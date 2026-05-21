@@ -29,6 +29,8 @@ graphify:
 legalize_kr:
   data_dir: "{google_drive}/external_data/legalize-kr"
   mode: "mcp"  # "cli" 또는 "mcp"
+  mcp_server_script: "scripts/legalize_mcp_server.py"  # MCP server (stdio transport)
+  mcp_config: ".claude/mcp_servers.json"               # project-level MCP registration
   context_pack_output: "{obsidian_vault}/06_Context_Packs/Legal"
 ```
 
