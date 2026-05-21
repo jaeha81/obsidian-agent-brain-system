@@ -1,0 +1,11 @@
+# Obsidian Agent Brain System — Python Dependencies
+# Updated: 2026-05-22
+
+# AgentBus / legalize-mcp
+mcp>=1.0
+
+# LegalizeKR CLI (installed separately via npm/pipx)
+# legalize-cli: npm install -g legalize-cli  OR  pipx install legalize
+
+# Graphify (installed separately)
+# graphify: pip install graphify
