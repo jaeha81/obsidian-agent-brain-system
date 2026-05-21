@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+coverage/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+private/
+
+# Git
+.git/
+
+# Large binary files
+*.zip
+*.tar
+*.gz
+*.7z
+*.rar
+
+# Logs
+*.log
+logs/
+
+# Local cache
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/manifest.json
+
+# Obsidian raw overload prevention
+01_RAW/Misc/
+01_RAW/Screenshots/
+01_RAW/Errors/
+
+# LegalizeKR full law repository should not be blindly indexed
+external_data/legalize-kr/
