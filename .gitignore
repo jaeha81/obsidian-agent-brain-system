@@ -26,10 +26,8 @@ data_sources/
 # Obsidian Vault (stored in Google Drive, not GitHub)
 ObsidianVault/
 
-# Obsidian private runtime
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/cache/
+# Obsidian private runtime (repo-root .obsidian — vault is ObsidianVault/)
+.obsidian/
 .trash/
 .smart-env/
 
