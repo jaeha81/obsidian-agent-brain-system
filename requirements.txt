@@ -9,3 +9,8 @@ mcp>=1.0
 
 # Graphify (installed separately)
 # graphify: pip install graphify
+
+# Voice Intake — Whisper 자동 전사 (선택, 오디오 파일 처리 시 필요)
+# openai-whisper: pip install openai-whisper
+# ffmpeg 필요: winget install ffmpeg  또는  choco install ffmpeg
+# 미설치 시 voice_intake.py는 수동 전사 대기 모드로 fallback됨
