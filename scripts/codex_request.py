@@ -12,10 +12,16 @@ Usage:
 """
 
 import argparse
+import re
+import sys
 from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
+
+_VALID_TASK_ID = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
+_MAX_CONTEXT_CHARS = 4000
+_GRAPH_JSON_PATTERN = re.compile(r'"nodes"\s*:\s*\[|"edges"\s*:\s*\[')
 VAULT = ROOT / "ObsidianVault"
 OUTBOX_CC = VAULT / "10_AgentBus" / "outbox" / "ClaudeCode"
 
@@ -74,6 +80,16 @@ def main():
     parser.add_argument("--priority", default="P2", choices=["P0", "P1", "P2"], help="Priority (default: P2)")
     parser.add_argument("--context", default="", help="Additional context for Codex")
     args = parser.parse_args()
+
+    if not _VALID_TASK_ID.match(args.task_id):
+        print(f"ERROR: task_id must match [A-Za-z0-9_-]{{1,32}}: {args.task_id!r}", file=sys.stderr)
+        sys.exit(1)
+    if len(args.context) > _MAX_CONTEXT_CHARS:
+        print(f"ERROR: context too large ({len(args.context)} chars, max {_MAX_CONTEXT_CHARS})", file=sys.stderr)
+        sys.exit(1)
+    if _GRAPH_JSON_PATTERN.search(args.context):
+        print("ERROR: context appears to contain graph.json content — this is prohibited", file=sys.stderr)
+        sys.exit(1)
 
     files = [f.strip() for f in args.files.split(",") if f.strip()]
     out_path = write_request(args.task_id, args.subject, files, args.priority, args.context)

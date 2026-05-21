@@ -17,6 +17,7 @@ NOTE: graph.json is never read or included in messages.
 """
 
 import argparse
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -24,6 +25,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 AGENTBUS_DIR = ROOT / "ObsidianVault" / "10_AgentBus"
+ALLOWED_CONTEXT_PACK_ROOT = ROOT / "ObsidianVault" / "06_Context_Packs"
+
+
+def _safe_resolve(candidate: Path, allowed_root: Path) -> Path | None:
+    try:
+        resolved = candidate.resolve()
+        if resolved.is_relative_to(allowed_root.resolve()):
+            return resolved
+    except (OSError, ValueError):
+        pass
+    return None
 
 
 def parse_graph_stats(graph_dir: Path) -> dict:
@@ -53,11 +65,16 @@ def write_request_message(project: str, graph_dir: Path, context_pack_path: str,
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{ts}_graphify_request.md"
 
+    try:
+        graph_dir_display = graph_dir.relative_to(ROOT)
+    except ValueError:
+        graph_dir_display = graph_dir.name
+
     content = f"""---
 type: context_request
 source: graphify
 project: {project}
-graph_dir: {graph_dir}
+graph_dir: {graph_dir_display}
 context_pack: {context_pack_path}
 status: pending
 created: {iso}
@@ -103,7 +120,11 @@ def ensure_context_pack(project: str, graph_dir: Path, context_pack: str) -> boo
         "--graph", str(graph_dir),
         "--output", context_pack,
     ]
-    result = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=30)
+    try:
+        result = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=30)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"WARNING: graphify_context_pack.py failed: {e}", file=sys.stderr)
+        return False
     if result.returncode != 0:
         print(f"WARNING: graphify_context_pack.py failed:\n{result.stderr}", file=sys.stderr)
         return False
@@ -121,14 +142,30 @@ def main():
                              "Defaults to ObsidianVault/06_Context_Packs/Graphify/{project}_graphify_pack.md")
     args = parser.parse_args()
 
+    if not re.match(r'^[A-Za-z0-9_-]{1,64}$', args.project):
+        print(f"ERROR: --project must match [A-Za-z0-9_-]{{1,64}}: {args.project!r}", file=sys.stderr)
+        sys.exit(1)
+
     graph_dir = ROOT / args.graph if not Path(args.graph).is_absolute() else Path(args.graph)
+    if _safe_resolve(graph_dir, ROOT) is None:
+        print(f"ERROR: --graph must be within project root: {args.graph}", file=sys.stderr)
+        sys.exit(1)
     if not graph_dir.exists():
         print(f"ERROR: graph dir not found: {graph_dir}", file=sys.stderr)
         sys.exit(1)
 
     context_pack = args.context_pack or f"ObsidianVault/06_Context_Packs/Graphify/{args.project}_graphify_pack.md"
 
-    ensure_context_pack(args.project, graph_dir, context_pack)
+    context_pack_candidate = Path(context_pack)
+    if not context_pack_candidate.is_absolute():
+        context_pack_candidate = ROOT / context_pack_candidate
+    if _safe_resolve(context_pack_candidate, ALLOWED_CONTEXT_PACK_ROOT) is None:
+        print(f"ERROR: --context-pack must be within ObsidianVault/06_Context_Packs/: {context_pack}", file=sys.stderr)
+        sys.exit(1)
+
+    if not ensure_context_pack(args.project, graph_dir, context_pack):
+        print("ERROR: Context pack generation failed — aborting AgentBus message write", file=sys.stderr)
+        sys.exit(1)
 
     stats = parse_graph_stats(graph_dir)
     msg_path = write_request_message(args.project, graph_dir, context_pack, stats)

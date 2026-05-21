@@ -48,14 +48,16 @@ def transcribe(audio_path: Path, model_name: str = "base", language: str = "ko")
         return None
 
     print(f"Whisper 전사 시작: {audio_path.name} (model={model_name}, lang={language})")
-    model = whisper.load_model(model_name)
-
-    options = {}
-    if language:
-        options["language"] = language
-
-    result = model.transcribe(str(audio_path), **options)
-    text = result.get("text", "").strip()
+    try:
+        model = whisper.load_model(model_name)
+        options = {}
+        if language:
+            options["language"] = language
+        result = model.transcribe(str(audio_path), **options)
+        text = result.get("text", "").strip()
+    except Exception as e:
+        print(f"Error: Whisper 전사 실패 — {e}")
+        return None
 
     if not text:
         print("Warning: 전사 결과가 비어 있습니다.")

@@ -14,8 +14,8 @@ Usage:
 """
 
 import argparse
-import os
 import re
+import shlex
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -23,7 +23,21 @@ from pathlib import Path
 DISCLAIMER = """법률 정보는 참고용이며, 실제 법적 판단은 전문 변호사 상담이 필요합니다.
 This is for reference only. Actual legal decisions require qualified legal counsel."""
 
-DATA_ROOT = Path("external_data/legalize-kr/kr")
+ROOT = Path(__file__).parent.parent
+DATA_ROOT = ROOT / "external_data" / "legalize-kr" / "kr"
+ALLOWED_OUTPUT_ROOT = ROOT / "ObsidianVault" / "06_Context_Packs"
+ALLOWED_DATA_ROOT = ROOT / "external_data"
+
+
+def _safe_resolve(candidate: Path, allowed_root: Path) -> Path | None:
+    """Return resolved path if within allowed_root, else None."""
+    try:
+        resolved = candidate.resolve()
+        if resolved.is_relative_to(allowed_root.resolve()):
+            return resolved
+    except (OSError, ValueError):
+        pass
+    return None
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -40,11 +54,11 @@ def parse_frontmatter(text: str) -> dict:
     return meta
 
 
-def find_law_files(law_name: str) -> list[Path]:
-    law_dir = DATA_ROOT / law_name
-    if not law_dir.exists():
-        # Try partial match
-        matches = [d for d in DATA_ROOT.iterdir() if d.is_dir() and law_name in d.name]
+def find_law_files(law_name: str, data_root: Path) -> list[Path]:
+    safe = _safe_resolve(data_root / law_name, data_root)
+    law_dir = Path(safe) if safe else None
+    if law_dir is None or not law_dir.exists():
+        matches = [d for d in data_root.iterdir() if d.is_dir() and law_name in d.name]
         if not matches:
             return []
         law_dir = matches[0]
@@ -99,7 +113,7 @@ def build_context_pack(topic: str, law_names: list[str],
     # Collect law files
     law_files = []
     for name in law_names:
-        law_files.extend(find_law_files(name))
+        law_files.extend(find_law_files(name, data_root))
 
     # Grep-based discovery if keywords provided
     if keywords and not law_files:
@@ -118,7 +132,8 @@ def build_context_pack(topic: str, law_names: list[str],
             continue
     clauses_text = "\n\n".join(clause_sections) if clause_sections else "_관련 조문을 직접 검색하세요._"
 
-    source_refs = "\n".join(f"- `{f}`" for f in law_files[:5]) or "- (없음 — legalize_sync.sh 실행 후 재시도)"
+    source_refs = "\n".join(f"- `{f.parent.name}/{f.name}`" for f in law_files[:5]) or "- (없음 — legalize_sync.sh 실행 후 재시도)"
+    search_term = shlex.quote(" ".join(law_names or keywords))
 
     return f"""# Legal Context Pack — {topic}
 > Generated: {now} | Researcher: ClaudeCode
@@ -163,7 +178,7 @@ def build_context_pack(topic: str, law_names: list[str],
 
 검색 커맨드:
 ```bash
-bash scripts/legalize_search.sh "{' '.join(law_names or keywords)}"
+bash scripts/legalize_search.sh {search_term}
 ```
 
 ---
@@ -180,21 +195,38 @@ def main():
     parser.add_argument("--laws", default="", help="Comma-separated law names")
     parser.add_argument("--keywords", default="", help="Comma-separated search keywords")
     parser.add_argument("--output", required=True, help="Output .md file path")
-    parser.add_argument("--data-root", default="external_data/legalize-kr/kr",
+    parser.add_argument("--data-root", default=str(DATA_ROOT),
                         help="Path to legalize-kr/kr directory")
     args = parser.parse_args()
 
-    data_root = Path(args.data_root)
+    if not re.match(r'^[\w\s가-힣_\-\.]{1,80}$', args.topic):
+        print(f"ERROR: --topic contains invalid characters: {args.topic!r}", file=sys.stderr)
+        sys.exit(1)
+
+    data_root_candidate = Path(args.data_root)
+    if not data_root_candidate.is_absolute():
+        data_root_candidate = ROOT / data_root_candidate
+    if _safe_resolve(data_root_candidate, ALLOWED_DATA_ROOT) is None:
+        print(f"ERROR: --data-root must be within external_data/: {args.data_root}", file=sys.stderr)
+        sys.exit(1)
+    data_root = data_root_candidate.resolve()
     if not data_root.exists():
         print(f"WARNING: {data_root} not found. Run scripts/legalize_sync.sh first.",
               file=sys.stderr)
+
+    output_candidate = Path(args.output)
+    if not output_candidate.is_absolute():
+        output_candidate = ROOT / output_candidate
+    if _safe_resolve(output_candidate, ALLOWED_OUTPUT_ROOT) is None:
+        print(f"ERROR: --output must be within ObsidianVault/06_Context_Packs/: {args.output}", file=sys.stderr)
+        sys.exit(1)
+    output_path = output_candidate
 
     law_names = [l.strip() for l in args.laws.split(",") if l.strip()]
     keywords = [k.strip() for k in args.keywords.split(",") if k.strip()]
 
     content = build_context_pack(args.topic, law_names, keywords, data_root)
 
-    output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(content, encoding="utf-8")
     print(f"Legal Context Pack written to: {output_path}")

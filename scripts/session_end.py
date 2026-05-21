@@ -43,14 +43,15 @@ def update_agent_state(agent: str, task_result: str):
     if not state_file.exists():
         return
     text = state_file.read_text(encoding="utf-8")
+    escaped = re.escape(agent)
     text = re.sub(
-        rf"(### {agent}.*?- status:) \S+",
+        rf"(### {escaped}.*?- status:) \S+",
         r"\1 standby",
         text, flags=re.DOTALL
     )
     text = re.sub(
-        rf"(### {agent}.*?- current_task:) .+",
-        r"\1 없음 — " + task_result,
+        rf"(### {escaped}.*?- current_task:) .+",
+        lambda m: m.group(1) + " 없음 — " + task_result,
         text, flags=re.DOTALL
     )
     state_file.write_text(text, encoding="utf-8")
@@ -107,6 +108,10 @@ def main():
     parser.add_argument("--result", default="완료", help="Result summary")
     parser.add_argument("--notes", default="", help="Additional notes")
     args = parser.parse_args()
+
+    if not re.match(r'^[A-Za-z0-9_-]+$', args.agent):
+        print(f"ERROR: --agent must match [A-Za-z0-9_-]+: {args.agent!r}", file=sys.stderr)
+        sys.exit(1)
 
     removed = clear_locks(args.agent)
     if removed:

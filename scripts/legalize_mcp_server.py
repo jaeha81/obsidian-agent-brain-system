@@ -6,6 +6,7 @@ Tools:
   search_laws(query)          — grep legalize-kr/kr/**/*.md, top-10 matches
   read_law_article(law, art)  — read specific article file, max 1500 chars
   build_legal_context_pack(topic, laws, output) — run legalize_context_pack.py
+  list_recent([limit])        — list recently modified law directories
 
 Run:
   python scripts/legalize_mcp_server.py
@@ -27,6 +28,19 @@ except ImportError:
 
 ROOT = Path(__file__).parent.parent
 DATA_ROOT = ROOT / "external_data" / "legalize-kr" / "kr"
+ALLOWED_OUTPUT_ROOT = ROOT / "ObsidianVault" / "06_Context_Packs"
+
+
+def _safe_resolve(candidate: Path, allowed_root: Path) -> Path | None:
+    """Return resolved path if within allowed_root, else None."""
+    try:
+        resolved = candidate.resolve()
+        if resolved.is_relative_to(allowed_root.resolve()):
+            return resolved
+    except (OSError, ValueError):
+        pass
+    return None
+
 
 server = Server("legalize-kr")
 
@@ -65,9 +79,20 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "topic": {"type": "string", "description": "Topic name for the pack (used in filename)"},
                     "laws": {"type": "string", "description": "Comma-separated law names (e.g. '주택법,건축법')"},
-                    "output": {"type": "string", "description": "Output .md file path relative to project root"},
+                    "output": {"type": "string", "description": "Output .md file path relative to project root (must be within ObsidianVault/06_Context_Packs/)"},
                 },
                 "required": ["topic", "laws", "output"],
+            },
+        ),
+        Tool(
+            name="list_recent",
+            description="List recently modified law directories in legalize-kr.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "limit": {"type": "integer", "description": "Max number of results (default 10)"},
+                },
+                "required": [],
             },
         ),
     ]
@@ -83,6 +108,8 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         return _build_context_pack(
             arguments["topic"], arguments["laws"], arguments["output"]
         )
+    elif name == "list_recent":
+        return _list_recent(arguments.get("limit", 10))
     return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
 
@@ -118,9 +145,10 @@ def _search_laws(query: str) -> list[TextContent]:
 
 
 def _read_law_article(law_name: str, article_id: str) -> list[TextContent]:
-    law_dir = DATA_ROOT / law_name
-    if not law_dir.exists():
-        # Partial match
+    safe = _safe_resolve(DATA_ROOT / law_name, DATA_ROOT)
+    law_dir = Path(safe) if safe else None
+    if law_dir is None or not law_dir.exists():
+        # Partial match — only direct subdirectories of DATA_ROOT
         matches = [d for d in DATA_ROOT.iterdir() if d.is_dir() and law_name in d.name]
         if not matches:
             return [TextContent(type="text", text=f"Law directory not found: {law_name}")]
@@ -146,6 +174,9 @@ def _read_law_article(law_name: str, article_id: str) -> list[TextContent]:
 
 
 def _build_context_pack(topic: str, laws: str, output: str) -> list[TextContent]:
+    output_candidate = ROOT / output if not Path(output).is_absolute() else Path(output)
+    if _safe_resolve(output_candidate, ALLOWED_OUTPUT_ROOT) is None:
+        return [TextContent(type="text", text="ERROR: output must be within ObsidianVault/06_Context_Packs/")]
     script = ROOT / "scripts" / "legalize_context_pack.py"
     cmd = [
         sys.executable, str(script),
@@ -162,6 +193,20 @@ def _build_context_pack(topic: str, laws: str, output: str) -> list[TextContent]
         return [TextContent(type="text", text="ERROR: Timed out after 60s")]
     except Exception as e:
         return [TextContent(type="text", text=f"ERROR: {e}")]
+
+
+def _list_recent(limit: int = 10) -> list[TextContent]:
+    if not DATA_ROOT.exists():
+        return [TextContent(type="text", text="ERROR: DATA_ROOT not found.")]
+    dirs = sorted(
+        (d for d in DATA_ROOT.iterdir() if d.is_dir()),
+        key=lambda d: d.stat().st_mtime,
+        reverse=True,
+    )[:limit]
+    if not dirs:
+        return [TextContent(type="text", text="No law directories found.")]
+    lines = [f"- {d.name}" for d in dirs]
+    return [TextContent(type="text", text=f"Recent {len(dirs)} law directories:\n\n" + "\n".join(lines))]
 
 
 async def main():

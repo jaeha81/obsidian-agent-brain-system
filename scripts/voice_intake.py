@@ -47,8 +47,8 @@ def write_inbox_message(
         transcription_line = ""
         body = (
             f"오디오 파일 수신 — 수동 전사 필요.\n\n"
-            f"Source: `{source_file}`\n\n"
-            f"자동 전사 방법: `python scripts/whisper_transcribe.py {source_file}`"
+            f"Source: `{source_file.name}`\n\n"
+            f"자동 전사 방법: `python scripts/whisper_transcribe.py {source_file.name}`"
         )
 
     message = f"""---
