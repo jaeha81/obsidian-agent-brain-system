@@ -1,15 +1,24 @@
 # Obsidian 플러그인 설치하기
 
-> **스크립트는 이미 실행됨** — `community-plugins.json` 20개 등록 완료.  
-> 아래 단계만 하면 됩니다.
+> **자동 설치 완료** — 17개 플러그인 파일 다운로드 + 안전모드 OFF 설정 완료.  
+> Obsidian 재시작 후 '켜기'만 하면 됩니다.
 
 ---
 
 ## 지금 해야 할 것
 
 1. **Obsidian 완전 종료 후 재시작**
-2. 설정(⚙) → **커뮤니티 플러그인** → 안전 모드 OFF
-3. 설치된 플러그인 목록에서 각 플러그인 **켜기**
+2. 설정(⚙) → **커뮤니티 플러그인** → 설치된 플러그인 목록에서 원하는 것 **켜기**
+
+> 안전모드는 이미 OFF 처리됨 (`app.json: restrictedMode: false`)
+
+### 수동 설치 필요 (공식 레지스트리 외 커스텀 플러그인 3개)
+
+| 플러그인 | 설치 방법 |
+|---------|---------|
+| `claudian` | GitHub에서 main.js + manifest.json 다운 → `.obsidian/plugins/claudian/` 에 복사 |
+| `jh-local-graph-view` | JH 로컬 빌드 결과물 → `.obsidian/plugins/jh-local-graph-view/` 에 복사 |
+| `obsidian-claude-code-mcp` | GitHub에서 직접 다운 → `.obsidian/plugins/obsidian-claude-code-mcp/` 에 복사 |
 
 ---
 
