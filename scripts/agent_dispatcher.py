@@ -31,7 +31,7 @@ from dotenv import load_dotenv
 # ── 환경 설정 ──────────────────────────────────────────────────────────────────
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8")
+load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"
@@ -221,7 +221,7 @@ def _is_implementation_request(body: str) -> bool:
 
 
 def process_file(filepath: Path) -> None:
-    content = filepath.read_text(encoding="utf-8")
+    content = filepath.read_text(encoding="utf-8-sig")
     fm, body = parse_frontmatter(content)
 
     if fm.get("status") != "pending":
@@ -314,7 +314,7 @@ def watch() -> None:
         for fp in sorted(INBOX.glob("*.md")):
             if fp.name == ".gitkeep":
                 continue
-            content = fp.read_text(encoding="utf-8", errors="ignore")
+            content = fp.read_text(encoding="utf-8-sig", errors="ignore")
             fm, _ = parse_frontmatter(content)
             if fm.get("status") == "pending":
                 process_file(fp)
