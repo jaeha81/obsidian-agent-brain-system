@@ -58,6 +58,8 @@ def find_law_files(law_name: str, data_root: Path) -> list[Path]:
     safe = _safe_resolve(data_root / law_name, data_root)
     law_dir = Path(safe) if safe else None
     if law_dir is None or not law_dir.exists():
+        if not data_root.exists():
+            return []
         matches = [d for d in data_root.iterdir() if d.is_dir() and law_name in d.name]
         if not matches:
             return []

@@ -109,8 +109,8 @@ def main():
     parser.add_argument("--notes", default="", help="Additional notes")
     args = parser.parse_args()
 
-    if not re.match(r'^[A-Za-z0-9_-]+$', args.agent):
-        print(f"ERROR: --agent must match [A-Za-z0-9_-]+: {args.agent!r}", file=sys.stderr)
+    if not re.match(r'^[A-Za-z0-9][A-Za-z0-9 _-]*$', args.agent):
+        print(f"ERROR: --agent must match [A-Za-z0-9][A-Za-z0-9 _-]*: {args.agent!r}", file=sys.stderr)
         sys.exit(1)
 
     removed = clear_locks(args.agent)

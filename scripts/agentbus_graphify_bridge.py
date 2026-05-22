@@ -45,14 +45,14 @@ def parse_graph_stats(graph_dir: Path) -> dict:
         return stats
     for line in report.read_text(encoding="utf-8", errors="ignore").splitlines():
         lower = line.lower()
-        if "node" in lower and ":" in line:
+        if "isolated" in lower and ":" in line:
+            stats["isolated"] = line.split(":")[-1].strip()
+        elif "node" in lower and ":" in line:
             stats["nodes"] = line.split(":")[-1].strip()
         elif "edge" in lower and ":" in line:
             stats["edges"] = line.split(":")[-1].strip()
         elif "cluster" in lower and ":" in line:
             stats["clusters"] = line.split(":")[-1].strip()
-        elif "isolated" in lower and ":" in line:
-            stats["isolated"] = line.split(":")[-1].strip()
     return stats
 
 
