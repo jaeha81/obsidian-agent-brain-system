@@ -18,3 +18,4 @@ python-dotenv>=1.0
 # openai-whisper: pip install openai-whisper
 # ffmpeg 필요: winget install ffmpeg  또는  choco install ffmpeg
 # 미설치 시 voice_intake.py는 수동 전사 대기 모드로 fallback됨
+anthropic>=0.40

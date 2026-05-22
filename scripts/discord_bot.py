@@ -1,28 +1,30 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
-Discord Real-Time Bot — AgentBus inbox writer
+Discord Real-Time Bot — AgentBus inbox writer + Claude AI 실시간 대화
 
-Listens for Discord messages in configured channels and writes each one to
-ObsidianVault/10_AgentBus/inbox/ as a markdown file (same format as discord_intake.py).
+Discord 메시지 → Claude API 응답 → Discord 채널에 답장
+동시에 ObsidianVault/10_AgentBus/inbox/ 에 대화 기록 저장
 
 Requirements:
-    pip install discord.py>=2.3 python-dotenv>=1.0
+    pip install discord.py>=2.3 python-dotenv>=1.0 anthropic
 
 Setup:
-    1. Copy .env.example → .env and fill in tokens/IDs
-    2. python scripts/discord_bot.py
+    1. Copy .env.example -> .env and fill in tokens/IDs
+    2. ANTHROPIC_API_KEY 추가
+    3. python scripts/discord_bot.py
 
-Commands available in monitored channels:
-    !status   — bot replies with "running" confirmation
-    !help     — bot replies with command list
-
-Messages shorter than MIN_LENGTH chars are silently ignored (noise filter).
+Commands:
+    !status   - 봇 상태 확인
+    !help     - 명령어 목록
+    !reset    - 현재 채널 대화 기록 초기화
 """
 
 import os
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import anthropic
 import discord
 from discord import Intents, Message
 from dotenv import load_dotenv
@@ -35,18 +37,25 @@ _raw_channels: str = os.getenv("DISCORD_CHANNEL_IDS", "")
 ALLOWED_CHANNELS: set[str] = {c.strip() for c in _raw_channels.split(",") if c.strip()}
 VAULT = Path(os.getenv("VAULT_PATH", Path(__file__).parent.parent / "ObsidianVault"))
 INBOX = VAULT / "10_AgentBus" / "inbox"
-MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "10"))
+MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "1"))
+ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL: str = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6")
+SYSTEM_PROMPT: str = os.getenv(
+    "CLAUDE_SYSTEM_PROMPT",
+    "당신은 Obsidian 지식 관리 시스템과 연결된 AI 에이전트입니다. "
+    "사용자의 질문에 간결하고 정확하게 한국어로 답변하세요."
+)
+
+# 채널별 대화 기록 (channel_id -> list of messages)
+conversation_history: dict[str, list[dict]] = defaultdict(list)
+MAX_HISTORY = 20  # 채널당 최대 보관 메시지 수
 
 
-def write_discord_message(message: Message) -> Path:
-    """Persist a Discord message to the AgentBus inbox."""
+def write_discord_message(message: Message, reply: str = "") -> Path:
     now = datetime.now()
     ts = now.strftime("%Y%m%d_%H%M%S")
     iso = now.isoformat(timespec="seconds")
     channel_name = getattr(message.channel, "name", str(message.channel.id))
-    safe_author = message.author.name.replace(" ", "_")
-
-    # Use IDs for filename to avoid non-ASCII issues on Google Drive paths
     channel_id = str(message.channel.id)
     author_id_str = str(message.author.id)
 
@@ -68,66 +77,122 @@ status: pending
 
 > {iso}
 
-{message.content}
+**User:** {message.content}
 """
+    if reply:
+        content += f"\n**Claude:** {reply}\n"
+
     out_path.write_text(content, encoding="utf-8")
     return out_path
+
+
+async def ask_claude(channel_id: str, user_message: str) -> str:
+    history = conversation_history[channel_id]
+    history.append({"role": "user", "content": user_message})
+
+    # 기록이 너무 길면 앞부분 제거
+    if len(history) > MAX_HISTORY:
+        conversation_history[channel_id] = history[-MAX_HISTORY:]
+        history = conversation_history[channel_id]
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    response = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=1024,
+        system=SYSTEM_PROMPT,
+        messages=history,
+    )
+    reply = response.content[0].text
+    history.append({"role": "assistant", "content": reply})
+    return reply
+
+
+def split_message(text: str, limit: int = 1900) -> list[str]:
+    """Discord 2000자 제한 대응 - 줄 단위로 분할."""
+    if len(text) <= limit:
+        return [text]
+    chunks, current = [], ""
+    for line in text.splitlines(keepends=True):
+        if len(current) + len(line) > limit:
+            if current:
+                chunks.append(current)
+            current = line
+        else:
+            current += line
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 class AgentBusBot(discord.Client):
     async def on_ready(self) -> None:
         guilds = [f"{g.name}({g.id})" for g in self.guilds]
-        print(f"Bot ready: {self.user}", flush=True)
-        print(f"Guilds joined: {guilds}", flush=True)
-        print(f"Watching channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
-        print(f"Inbox: {INBOX}", flush=True)
+        mode = "Claude AI" if ANTHROPIC_API_KEY else "inbox-only"
+        print(f"Bot ready: {self.user} [{mode}]", flush=True)
+        print(f"Guilds: {guilds}", flush=True)
+        print(f"Channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
 
     async def on_message(self, message: Message) -> None:
-        # Ignore own messages
         if message.author == self.user:
             return
-
-        # Guild filter (optional)
         if GUILD_ID and str(getattr(message.guild, "id", "")) != GUILD_ID:
             return
-
-        # Channel filter (empty = monitor all channels in guild)
         if ALLOWED_CHANNELS and str(message.channel.id) not in ALLOWED_CHANNELS:
             return
 
         content = message.content.strip()
+        channel_id = str(message.channel.id)
 
-        # Built-in commands
         if content == "!status":
-            await message.channel.send("✅ AgentBus bot running.")
+            mode = "Claude AI 대화 모드" if ANTHROPIC_API_KEY else "inbox 저장 모드"
+            await message.channel.send(f"✅ 실행 중 ({mode})")
             return
         if content == "!help":
             await message.channel.send(
-                "**AgentBus Bot Commands**\n"
-                "`!status` — confirm bot is alive\n"
-                "`!help` — show this help\n"
-                "_All other messages (≥10 chars) are saved to Obsidian inbox._"
+                "**명령어**\n"
+                "`!status` — 봇 상태\n"
+                "`!reset` — 대화 기록 초기화\n"
+                "`!help` — 도움말\n"
+                "_그 외 메시지는 Claude AI가 답변합니다._"
             )
             return
+        if content == "!reset":
+            conversation_history[channel_id].clear()
+            await message.channel.send("🔄 대화 기록을 초기화했습니다.")
+            return
 
-        # Ignore very short messages
         if len(content) < MIN_LENGTH:
             return
 
-        out_path = write_discord_message(message)
-        print(f"📥 Saved: {out_path.name}")
+        # Claude AI 응답
+        if ANTHROPIC_API_KEY:
+            async with message.channel.typing():
+                try:
+                    reply = await ask_claude(channel_id, content)
+                except Exception as e:
+                    reply = f"⚠️ 오류: {e}"
+                    print(f"Claude error: {e}", flush=True)
+
+            for chunk in split_message(reply):
+                await message.channel.send(chunk)
+
+            out_path = write_discord_message(message, reply)
+        else:
+            out_path = write_discord_message(message)
+
+        print(f"Saved: {out_path.name}", flush=True)
 
 
 def main() -> None:
     if not TOKEN:
-        print("❌ DISCORD_BOT_TOKEN not set. Copy .env.example → .env and fill in your token.")
+        print("DISCORD_BOT_TOKEN not set.")
         raise SystemExit(1)
+    if not ANTHROPIC_API_KEY:
+        print("ANTHROPIC_API_KEY not set — inbox-only mode.")
 
     intents = Intents.default()
-    intents.message_content = True  # required to read message body (Privileged Intent)
-
-    client = AgentBusBot(intents=intents)
-    client.run(TOKEN)
+    intents.message_content = True
+    AgentBusBot(intents=intents).run(TOKEN)
 
 
 if __name__ == "__main__":
