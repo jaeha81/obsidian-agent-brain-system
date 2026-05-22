@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Discord Real-Time Bot — AgentBus inbox writer
 
@@ -27,7 +27,7 @@ import discord
 from discord import Intents, Message
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).parent.parent / '.env', encoding='utf-8')
 
 TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
 GUILD_ID: str = os.getenv("DISCORD_GUILD_ID", "")
@@ -46,8 +46,12 @@ def write_discord_message(message: Message) -> Path:
     channel_name = getattr(message.channel, "name", str(message.channel.id))
     safe_author = message.author.name.replace(" ", "_")
 
+    # Use IDs for filename to avoid non-ASCII issues on Google Drive paths
+    channel_id = str(message.channel.id)
+    author_id_str = str(message.author.id)
+
     INBOX.mkdir(parents=True, exist_ok=True)
-    out_path = INBOX / f"{ts}_discord_{channel_name}_{safe_author}.md"
+    out_path = INBOX / f"{ts}_discord_{channel_id}_{author_id_str}.md"
 
     content = f"""---
 type: discord_intake
@@ -72,9 +76,11 @@ status: pending
 
 class AgentBusBot(discord.Client):
     async def on_ready(self) -> None:
-        print(f"✅ Bot ready: {self.user} (guild filter: {GUILD_ID or 'all'})")
-        print(f"   Watching channels: {ALLOWED_CHANNELS or 'ALL'}")
-        print(f"   Inbox: {INBOX}")
+        guilds = [f"{g.name}({g.id})" for g in self.guilds]
+        print(f"Bot ready: {self.user}", flush=True)
+        print(f"Guilds joined: {guilds}", flush=True)
+        print(f"Watching channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
+        print(f"Inbox: {INBOX}", flush=True)
 
     async def on_message(self, message: Message) -> None:
         # Ignore own messages
