@@ -1,0 +1,11 @@
+{
+  "autoStart": true,
+  "pythonCommand": "python",
+  "statusNotePath": "00_System/BUCKY_STATUS.md",
+  "startupDelayMs": 2500,
+  "scripts": [
+    "scripts/raw_import_watcher.py",
+    "scripts/codex_review_runner.py",
+    "scripts/agent_dispatcher.py"
+  ]
+}

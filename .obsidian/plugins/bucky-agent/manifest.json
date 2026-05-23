@@ -1,0 +1,9 @@
+{
+  "id": "bucky-agent",
+  "name": "Bucky Agent",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Auto-starts the local Obsidian Agent Brain dispatcher line and detects the current PC.",
+  "author": "JH",
+  "isDesktopOnly": true
+}

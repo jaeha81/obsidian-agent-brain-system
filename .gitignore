@@ -26,11 +26,31 @@ RAW_IMPORT/
 external_data/
 data_sources/
 
-# Obsidian Vault (stored in Google Drive, not GitHub)
-ObsidianVault/
+# Obsidian Vault (stored in Google Drive; only Bucky bootstrap is tracked)
+ObsidianVault/*
+!ObsidianVault/.obsidian/
+ObsidianVault/.obsidian/*
+!ObsidianVault/.obsidian/app.json
+!ObsidianVault/.obsidian/community-plugins.json
+!ObsidianVault/.obsidian/plugins/
+ObsidianVault/.obsidian/plugins/*
+!ObsidianVault/.obsidian/plugins/bucky-agent/
+!ObsidianVault/.obsidian/plugins/bucky-agent/**
+!ObsidianVault/00_System/
+ObsidianVault/00_System/*
+!ObsidianVault/00_System/BUCKY_STATUS.md
+!ObsidianVault/07_Reports/
+ObsidianVault/07_Reports/*
+!ObsidianVault/07_Reports/20260523_harness_subscription_agent_update.md
 
-# Obsidian private runtime (repo-root .obsidian — vault is ObsidianVault/)
-.obsidian/
+# Obsidian private runtime (repo-root; only Bucky bootstrap is tracked)
+/.obsidian/*
+!/.obsidian/app.json
+!/.obsidian/community-plugins.json
+!/.obsidian/plugins/
+/.obsidian/plugins/*
+!/.obsidian/plugins/bucky-agent/
+!/.obsidian/plugins/bucky-agent/**
 .trash/
 .smart-env/
 
