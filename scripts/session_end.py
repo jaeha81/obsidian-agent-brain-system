@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Hermes Session End Protocol — automates session close steps.
+Bucky Session End Protocol — automates session close steps.
 
 1. Removes lock files from 00_System/LOCKS/
 2. Updates AGENT_STATE.md (current_task → none, status → standby)
-3. Writes session report to 10_AgentBus/reports/Hermes/
+3. Writes session report to 10_AgentBus/reports/Bucky/
 4. Appends entry to HANDOFF_LOG.md
 
 Usage:
     python scripts/session_end.py \\
-        --agent Hermes \\
+        --agent Bucky \\
         --task "Phase 6 Agent Worker Flow" \\
         --result "완료" \\
         --notes "optional notes"
@@ -102,8 +102,8 @@ def append_handoff(agent: str, task: str, result: str, notes: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Hermes Session End Protocol")
-    parser.add_argument("--agent", default="Hermes", help="Agent name (default: Hermes)")
+    parser = argparse.ArgumentParser(description="Bucky Session End Protocol")
+    parser.add_argument("--agent", default="Bucky", help="Agent name (default: Bucky)")
     parser.add_argument("--task", required=True, help="Task description")
     parser.add_argument("--result", default="완료", help="Result summary")
     parser.add_argument("--notes", default="", help="Additional notes")

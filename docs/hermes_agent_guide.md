@@ -1,7 +1,7 @@
-# Hermes-Style Subscription Agent Guide
+# Bucky Subscription Agent Guide
 > Created: 2026-05-23
 
-This Obsidian Agent Brain System now uses a Hermes-style local agent pattern while keeping model execution on subscription CLIs.
+This Obsidian Agent Brain System uses Bucky as the Obsidian main orchestrator while keeping model execution on subscription CLIs.
 
 ## Default Runtime
 
@@ -12,7 +12,7 @@ AGENT_RUNTIME=claude_cli
 CLAUDE_COMMAND=claude.cmd
 CLAUDE_OUTPUT_FORMAT=text
 CLAUDE_USE_API_KEY=0
-AGENTBUS_WORKER_NAME=Hermes
+AGENTBUS_WORKER_NAME=Bucky
 ```
 
 `CLAUDE_USE_API_KEY=0` deliberately removes `ANTHROPIC_API_KEY` and `CLAUDE_API_KEY` from the subprocess environment, so the worker uses the logged-in Claude Code subscription flow instead of API billing.
@@ -32,7 +32,7 @@ CODEX_TIMEOUT=900
 Review requests are read from:
 
 ```text
-ObsidianVault/10_AgentBus/outbox/Hermes/
+ObsidianVault/10_AgentBus/outbox/Bucky/
 ```
 
 Codex writes review results to:
@@ -61,7 +61,7 @@ Supported harnesses:
 - GSD: large phased work and persistent planning state.
 - gstack: product direction, architecture, UX/security governance.
 
-For `implementation_request`, `harness_development_request`, and implementation-like Discord intake, the dispatcher adds a Harness Development Brief to the Claude Code prompt. Successful implementation results also create a Codex review request.
+For `implementation_request`, `harness_development_request`, and implementation-like Discord intake, Bucky adds a Harness Development Brief to the Claude Code prompt. Successful implementation results also create a Codex review request.
 
 ## Role Governance
 
@@ -75,8 +75,9 @@ JH_AGENT_ROOM_PATH=G:\내 드라이브\JH-Agent-Room
 Applied rules:
 
 - User decides direction, priority, and final approval.
-- Claude Code subscription lane handles implementation and operations.
-- Codex subscription lane handles independent review and reports directly to the user.
+- Bucky receives requests, classifies work, and routes tasks.
+- Claude Code subscription lane handles implementation and operations when Bucky assigns it.
+- Codex subscription lane handles independent review when Bucky assigns it and may report directly to the user.
 - Codex does not automatically modify Claude output.
 - Claude does not finalize implementation reports without Codex review.
 - Claude and Codex do not directly edit the same daily Markdown report; append-only JSONL/source logs are preferred.

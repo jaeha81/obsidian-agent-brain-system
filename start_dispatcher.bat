@@ -6,7 +6,7 @@ cd /d "%~dp0"
 echo [System] Starting Obsidian Agent Brain System...
 echo [System] AgentBus Inbox : ObsidianVault\10_AgentBus\inbox\
 echo [System] RAW Import     : RAW_IMPORT\
-echo [System] Codex Review   : ObsidianVault\10_AgentBus\outbox\Hermes\
+echo [System] Codex Review   : ObsidianVault\10_AgentBus\outbox\Bucky\
 echo [System] Harness Router : ObsidianVault\05_Frameworks\Harness\
 echo [System] CTRL+C to stop dispatcher; close watcher windows to stop them
 echo.

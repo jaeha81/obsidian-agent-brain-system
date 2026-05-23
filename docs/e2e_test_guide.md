@@ -101,8 +101,8 @@ python scripts/codex_request.py \
 ```
 
 **Pass criteria:**
-- File created at `ObsidianVault/10_AgentBus/outbox/Hermes/P2_*_Codex_TEST_001.md`
-- Frontmatter: `from: Hermes`, `to: Codex`, `status: pending`
+- File created at `ObsidianVault/10_AgentBus/outbox/Bucky/P2_*_Codex_TEST_001.md`
+- Frontmatter: `from: Bucky`, `to: Codex`, `status: pending`
 - File list appears in body
 
 ---
@@ -111,14 +111,14 @@ python scripts/codex_request.py \
 
 ```bash
 python scripts/session_end.py \
-  --agent Hermes \
+  --agent Bucky \
   --task "E2E Test Run" \
   --result "완료" \
   --notes "Phase 8 E2E 테스트 검증"
 ```
 
 **Pass criteria:**
-- `ObsidianVault/10_AgentBus/reports/Hermes/YYYYMMDD_*_session_report.md` created
+- `ObsidianVault/10_AgentBus/reports/Bucky/YYYYMMDD_*_session_report.md` created
 - `ObsidianVault/00_System/HANDOFF_LOG.md` has new entry
 - `ObsidianVault/00_System/AGENT_STATE.md` shows `status: standby`
 
@@ -181,11 +181,11 @@ LegalizeKR
 
 Codex Review Request
     → codex_request.py
-    → 10_AgentBus/outbox/Hermes/
+    → 10_AgentBus/outbox/Bucky/
 
 Session End
     → session_end.py
-    → 10_AgentBus/reports/Hermes/
+    → 10_AgentBus/reports/Bucky/
     → 00_System/HANDOFF_LOG.md
     → 00_System/AGENT_STATE.md
 ```

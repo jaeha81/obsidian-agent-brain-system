@@ -34,8 +34,8 @@ pip install discord.py python-dotenv
 
 ### 6단계 — 구독형 에이전트 확인
 
-Discord 실시간 답변 모드는 `scripts/hermes_client.py`를 통해 설정된 로컬 에이전트 런타임을 사용합니다.
-기본값은 Claude Code CLI 구독 모드입니다.
+Discord 실시간 답변 모드는 Bucky 로컬 에이전트 런타임을 사용합니다.
+기본값은 `scripts/bucky_client.py`를 통한 Claude Code CLI 구독 모드입니다.
 
 ```bash
 claude --version

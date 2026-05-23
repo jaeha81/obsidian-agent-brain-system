@@ -1,6 +1,6 @@
 # Obsidian Agent Brain System
 
-Obsidian을 중심 두뇌로, Hermes Agent와 Codex를 실행 에이전트로 사용하는 지식 관리 + AI 협업 시스템.
+Obsidian을 중심 두뇌로, Bucky가 Claude Code와 Codex에 작업을 지시하는 지식 관리 + AI 협업 시스템.
 
 ## Architecture
 
@@ -52,7 +52,8 @@ cp configs/paths.example.json configs/paths.json
 
 ## Agent Roles
 
-- **Hermes Agent**: 구현, 파일 생성, 시스템 설정, 운영
+- **Bucky**: Obsidian 메인 오케스트레이터, 작업 분류, 지시, 결과 수집
+- **Claude Code**: 구현, 파일 생성, 시스템 설정, 운영
 - **Codex**: 독립 코드 리뷰, 로직 검증
 - **User**: 아키텍처 결정, 민감 작업 승인
 
@@ -71,6 +72,6 @@ cp configs/paths.example.json configs/paths.json
 - [System Overview](docs/system_overview.md)
 - [Google Drive Vault Policy](docs/google_drive_vault_policy.md)
 - [Setup Guide](docs/setup_guide.md)
-- [Hermes Agent Guide](docs/hermes_agent_guide.md)
+- [Bucky Agent Guide](docs/hermes_agent_guide.md)
 - [Harness Framework Integration](docs/harness_framework_integration.md)
 - [Operating Principles](docs/operating_principles.md)

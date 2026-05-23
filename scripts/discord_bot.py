@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Discord Real-Time Bot — AgentBus inbox writer + Hermes Agent 실시간 대화
+Discord Real-Time Bot — AgentBus inbox writer + Bucky Agent 실시간 대화
 
-Discord 메시지 → Hermes Agent 응답 → Discord 채널에 답장
+Discord 메시지 → Bucky Agent 응답 → Discord 채널에 답장
 동시에 ObsidianVault/10_AgentBus/inbox/ 에 대화 기록 저장
 
 Requirements:
@@ -10,7 +10,7 @@ Requirements:
 
 Setup:
     1. Copy .env.example -> .env and fill in tokens/IDs
-    2. Install and configure Hermes Agent
+    2. Install and configure Bucky Agent runtime
     3. python scripts/discord_bot.py
 
 Commands:
@@ -81,7 +81,7 @@ status: pending
 **User:** {message.content}
 """
     if reply:
-        content += f"\n**Hermes:** {reply}\n"
+        content += f"\n**Bucky:** {reply}\n"
 
     out_path.write_text(content, encoding="utf-8")
     return out_path
@@ -130,7 +130,7 @@ def split_message(text: str, limit: int = 1900) -> list[str]:
 class AgentBusBot(discord.Client):
     async def on_ready(self) -> None:
         guilds = [f"{g.name}({g.id})" for g in self.guilds]
-        mode = f"Hermes Agent ({HERMES_MODEL})" if HERMES_ENABLED else "inbox-only"
+        mode = f"Bucky Agent ({HERMES_MODEL})" if HERMES_ENABLED else "inbox-only"
         print(f"Bot ready: {self.user} [{mode}]", flush=True)
         print(f"Guilds: {guilds}", flush=True)
         print(f"Channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
@@ -147,7 +147,7 @@ class AgentBusBot(discord.Client):
         channel_id = str(message.channel.id)
 
         if content == "!status":
-            mode = "Hermes Agent 대화 모드" if HERMES_ENABLED else "inbox 저장 모드"
+            mode = "Bucky Agent 대화 모드" if HERMES_ENABLED else "inbox 저장 모드"
             await message.channel.send(f"✅ 실행 중 ({mode})")
             return
         if content == "!help":
@@ -156,7 +156,7 @@ class AgentBusBot(discord.Client):
                 "`!status` — 봇 상태\n"
                 "`!reset` — 대화 기록 초기화\n"
                 "`!help` — 도움말\n"
-                "_그 외 메시지는 Hermes Agent가 답변합니다._"
+                "_그 외 메시지는 Bucky Agent가 답변합니다._"
             )
             return
         if content == "!reset":
@@ -167,14 +167,14 @@ class AgentBusBot(discord.Client):
         if len(content) < MIN_LENGTH:
             return
 
-        # Hermes Agent 응답
+        # Bucky Agent 응답
         if HERMES_ENABLED:
             async with message.channel.typing():
                 try:
                     reply = await ask_hermes(channel_id, content)
                 except Exception as e:
                     reply = f"⚠️ 오류: {e}"
-                    print(f"Hermes error: {e}", flush=True)
+                    print(f"Bucky error: {e}", flush=True)
 
             for chunk in split_message(reply):
                 await message.channel.send(chunk)

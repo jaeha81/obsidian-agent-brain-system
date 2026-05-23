@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Codex Review Request — writes a review task to 10_AgentBus/outbox/Hermes/
+Codex Review Request — writes a review task to 10_AgentBus/outbox/Bucky/
 so Codex can pick it up and review independently.
 
 Usage:
@@ -27,7 +27,7 @@ _VALID_TASK_ID = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
 _MAX_CONTEXT_CHARS = 4000
 _GRAPH_JSON_PATTERN = re.compile(r'"nodes"\s*:\s*\[|"edges"\s*:\s*\[')
 VAULT = ROOT / "ObsidianVault"
-WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Hermes")
+WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Bucky")
 OUTBOX_WORKER = VAULT / "10_AgentBus" / "outbox" / WORKER_NAME
 
 

@@ -215,7 +215,7 @@ target_output: {result_file}
 ## Review Target
 
 - Source request: `{source_name}`
-- Hermes result: `{result_file}`
+- Bucky result: `{result_file}`
 
 ## Review Scope
 
@@ -234,8 +234,9 @@ def _build_hermes_prompt(body: str, system_extra: str = "") -> str:
     instructions = _loader.load_agent_instructions()
     jh_roles = load_jh_role_context()
     system = "\n\n".join(filter(None, [instructions, jh_roles, system_extra])).strip() or (
-        "You are Hermes, the AI agent connected to the Obsidian knowledge system. "
-        "Answer clearly and act through the AgentBus conventions."
+        "You are Bucky, the main Obsidian orchestrator agent. "
+        "Analyze the request, route work to Claude Code or Codex when needed, "
+        "and act through the AgentBus conventions."
     )
     return (
         "# Obsidian AgentBus task\n\n"
@@ -390,7 +391,7 @@ def process_file(filepath: Path) -> None:
             filepath.rename(dest_dir / filepath.name)
 
         else:
-            # discord_intake (단순 Q&A) 및 기타 → Hermes Agent
+            # discord_intake (단순 Q&A) 및 기타 → Bucky Agent
             output = handle_via_api(body)
             result_file = _write_result(filepath.name, output, _worker_suffix())
 

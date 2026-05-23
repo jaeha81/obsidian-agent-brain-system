@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Watch Hermes AgentBus review requests and run Codex CLI reviews."""
+"""Watch Bucky AgentBus review requests and run Codex CLI reviews."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ ROOT = Path(__file__).parent.parent
 load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(ROOT / "ObsidianVault")))
-WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Hermes")
+WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Bucky")
 SOURCE_DIR = VAULT / "10_AgentBus" / "outbox" / WORKER_NAME
 CODEX_OUTBOX = VAULT / "10_AgentBus" / "outbox" / "Codex"
 COMPLETED_DIR = VAULT / "10_AgentBus" / "completed"

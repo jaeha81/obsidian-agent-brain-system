@@ -12,7 +12,7 @@ Discord 메시지 / 음성 입력
         ↓
 RAW_IMPORT/Discord/ 또는 RAW_IMPORT/Voice/
         ↓
-Hermes Agent가 AgentBus inbox에 작업 등록
+Bucky가 AgentBus inbox에 작업 등록하고 Claude Code/Codex로 라우팅
         ↓
 처리 후 01_RAW/ 또는 02_Processed/ 저장
         ↓

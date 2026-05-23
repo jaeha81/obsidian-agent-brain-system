@@ -6,19 +6,20 @@
 ```text
 JH Obsidian Agent Brain 운영 고지
 
-현재 시스템은 Hermes를 벤치마킹한 로컬 AgentBus 구조를 사용하지만, 기본 모델 실행은 Hermes API가 아니라 Claude Code CLI 구독 경로를 사용한다.
+현재 시스템은 Bucky를 Obsidian 메인 오케스트레이터로 사용한다. Bucky는 사용자 요청을 분석하고 Claude Code와 Codex에게 작업을 지시한다. 기본 모델 실행은 API 과금이 아니라 Claude Code CLI 구독 경로를 사용한다.
 
 런타임 기준:
 - AGENT_RUNTIME=claude_cli
 - CLAUDE_COMMAND=claude.cmd
 - CLAUDE_USE_API_KEY=0
-- AGENTBUS_WORKER_NAME=Hermes
+- AGENTBUS_WORKER_NAME=Bucky
 - HARNESS_ROUTER_ENABLED=1
 
 역할 기준:
 - 사용자는 방향, 우선순위, 최종 승인 담당이다.
-- Claude Code는 구현 및 운영 총괄 담당이다.
-- Codex는 독립 검수자이며 사용자에게 직접 보고한다.
+- Bucky는 Obsidian 메인 에이전트이며 요청 분석, 작업 분류, 지시, 결과 수집 담당이다.
+- Claude Code는 Bucky가 지시한 구현 및 운영 담당이다.
+- Codex는 Bucky가 지시한 독립 검수자이며 필요 시 사용자에게 직접 보고한다.
 - Claude Code는 Codex 검수 결과를 자동으로 처리하거나 묵살하지 않는다.
 - 사용자에게 최종 완료 보고를 하기 전, 코드/설정/운영 변경은 Codex 검수를 거친다.
 - Codex는 기본적으로 Claude 구현물을 직접 수정하지 않고 검수 결과를 남긴다.
@@ -41,14 +42,14 @@ JH Obsidian Agent Brain 운영 고지
 - 구현 결과에는 선택된 하네스, workflow, 변경 파일, 검증 결과, 남은 리스크를 포함한다.
 
 운영 순서:
-1. 사용자 지시를 받는다.
-2. 개발 요청이면 Harness Router가 프레임워크를 분류한다.
-3. Claude Code가 Harness Development Brief에 따라 구현 또는 작업 보고 초안을 만든다.
-4. 변경 파일과 실행/검증 결과를 AgentBus 또는 Agent Room에 남긴다.
-5. Codex가 선택된 하네스 기준으로 독립 검수한다.
-6. Codex 검수 결과를 사용자에게 직접 보고하거나 outbox/Codex에 기록한다.
-7. 수정이 필요하면 사용자가 Claude Code에게 다시 지시한다.
-8. 최종 완료 보고는 Codex 검수 이후에 확정한다.
+1. 사용자 지시를 Bucky가 받는다.
+2. 개발 요청이면 Bucky가 Harness Router로 프레임워크를 분류한다.
+3. Bucky가 Claude Code에게 Harness Development Brief와 함께 구현을 지시한다.
+4. Claude Code는 변경 파일과 실행/검증 결과를 AgentBus 또는 Agent Room에 남긴다.
+5. Bucky가 Codex에게 선택된 하네스 기준의 독립 검수를 지시한다.
+6. Codex 검수 결과를 Bucky와 사용자에게 보고하거나 outbox/Codex에 기록한다.
+7. 수정이 필요하면 Bucky가 Claude Code에게 다시 지시한다.
+8. 최종 완료 보고는 Bucky가 Codex 검수 이후에 확정한다.
 
 주의:
 - Anthropic API 키나 usage credit을 강제로 쓰지 않는다.

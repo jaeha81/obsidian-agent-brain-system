@@ -1,18 +1,23 @@
-const { Notice, Plugin, PluginSettingTab, Setting } = require("obsidian");
+const { ItemView, Notice, Plugin, PluginSettingTab, Setting, setIcon } = require("obsidian");
 const childProcess = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
 const BUCKY_NAME = "\uBC84\uD0A4";
+const BUCKY_CHAT_VIEW = "bucky-chat-view";
 const HOME_PROJECT_MARKER = "D:\\ai\uD504\uB85C\uC81D\uD2B8";
 const LOCAL_PROJECT_MARKER = "C:\\ai\uD504\uB85C\uC81D\uD2B8";
 const OFFICE_USERNAME = "\uC124\uACC4" + "4";
 
 const DEFAULT_SETTINGS = {
   autoStart: true,
+  autoOpenChat: true,
   pythonCommand: "python",
   statusNotePath: "00_System/BUCKY_STATUS.md",
+  chatTranscriptPath: "10_AgentBus/chat/BUCKY_CHAT.md",
+  chatBridgeScript: "scripts/bucky_chat_once.py",
+  chatTimeoutSeconds: 900,
   startupDelayMs: 2500,
   scripts: [
     "scripts/raw_import_watcher.py",
@@ -26,13 +31,27 @@ class BuckyAgentPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     this.rootPath = this.getRootPath();
     this.vaultPath = this.getVaultPath();
+    this.agentVaultPath = this.getAgentVaultPath();
     this.pc = this.detectPc();
     this.lastStartResult = { started: [], alreadyRunning: [], missing: [] };
+    this.chatMessages = [];
     this.statusBar = this.addStatusBarItem();
     this.statusBar.addClass("bucky-agent-status");
 
+    this.registerView(BUCKY_CHAT_VIEW, leaf => new BuckyChatView(leaf, this));
+
+    this.addRibbonIcon("message-circle", "Bucky Chat", async () => {
+      await this.activateChatView();
+    });
+
     this.addRibbonIcon("bot", "Bucky Agent status", async () => {
       await this.refreshStatus(true);
+    });
+
+    this.addCommand({
+      id: "bucky-open-chat",
+      name: "Bucky: open chat",
+      callback: async () => this.activateChatView(),
     });
 
     this.addCommand({
@@ -62,6 +81,14 @@ class BuckyAgentPlugin extends Plugin {
       }, this.settings.startupDelayMs);
     }
 
+    if (this.settings.autoOpenChat) {
+      this.app.workspace.onLayoutReady(() => {
+        this.chatTimer = window.setTimeout(() => {
+          this.activateChatView();
+        }, this.settings.startupDelayMs + 800);
+      });
+    }
+
     this.refreshTimer = window.setInterval(() => {
       this.refreshStatus(false);
     }, 60000);
@@ -69,7 +96,9 @@ class BuckyAgentPlugin extends Plugin {
 
   onunload() {
     if (this.startTimer) window.clearTimeout(this.startTimer);
+    if (this.chatTimer) window.clearTimeout(this.chatTimer);
     if (this.refreshTimer) window.clearInterval(this.refreshTimer);
+    this.app.workspace.detachLeavesOfType(BUCKY_CHAT_VIEW);
   }
 
   getVaultPath() {
@@ -89,6 +118,14 @@ class BuckyAgentPlugin extends Plugin {
     }
 
     return path.dirname(vaultPath);
+  }
+
+  getAgentVaultPath() {
+    if (this.vaultPath && path.basename(this.vaultPath) === "ObsidianVault") {
+      return this.vaultPath;
+    }
+    const nestedVault = path.join(this.rootPath, "ObsidianVault");
+    return fs.existsSync(nestedVault) ? nestedVault : this.vaultPath;
   }
 
   detectPc() {
@@ -112,8 +149,122 @@ class BuckyAgentPlugin extends Plugin {
       hostname,
       rootPath: this.rootPath,
       vaultPath: this.vaultPath,
+      agentVaultPath: this.agentVaultPath,
       markers,
     };
+  }
+
+  async activateChatView() {
+    let leaf = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW)[0];
+    if (!leaf) {
+      leaf = this.app.workspace.getLeaf(false) || this.app.workspace.getLeaf(true);
+      await leaf.setViewState({ type: BUCKY_CHAT_VIEW, active: true });
+    }
+    this.app.workspace.revealLeaf(leaf);
+  }
+
+  addChatMessage(role, text) {
+    const message = {
+      role,
+      text,
+      time: new Date().toISOString(),
+    };
+    this.chatMessages.push(message);
+    return message;
+  }
+
+  async sendChat(userText) {
+    const reply = await this.runChatBridge(userText);
+    await this.appendChatTranscript(userText, reply);
+    return reply;
+  }
+
+  runChatBridge(userText) {
+    return new Promise((resolve, reject) => {
+      const bridgePath = path.join(this.rootPath, this.settings.chatBridgeScript);
+      if (!fs.existsSync(bridgePath)) {
+        reject(new Error(`Bucky chat bridge not found: ${bridgePath}`));
+        return;
+      }
+
+      const timeoutSeconds = Number(this.settings.chatTimeoutSeconds || 900);
+      const child = childProcess.spawn(
+        this.settings.pythonCommand,
+        [bridgePath, "--timeout", String(timeoutSeconds)],
+        {
+          cwd: this.rootPath,
+          stdio: ["pipe", "pipe", "pipe"],
+          windowsHide: true,
+          env: Object.assign({}, process.env, {
+            PYTHONIOENCODING: "utf-8",
+            VAULT_PATH: this.agentVaultPath,
+            BUCKY_AGENT: "1",
+          }),
+        }
+      );
+
+      let stdout = "";
+      let stderr = "";
+      const timer = window.setTimeout(() => {
+        child.kill();
+        reject(new Error(`Bucky chat timed out after ${timeoutSeconds}s`));
+      }, (timeoutSeconds + 5) * 1000);
+
+      child.stdout.on("data", chunk => {
+        stdout += chunk.toString("utf8");
+      });
+      child.stderr.on("data", chunk => {
+        stderr += chunk.toString("utf8");
+      });
+      child.on("error", error => {
+        window.clearTimeout(timer);
+        reject(error);
+      });
+      child.on("close", code => {
+        window.clearTimeout(timer);
+        if (code === 0) {
+          resolve(stdout.trim() || "(empty response)");
+        } else {
+          reject(new Error((stderr || stdout || `Bucky exited with code ${code}`).trim()));
+        }
+      });
+
+      child.stdin.write(userText, "utf8");
+      child.stdin.end();
+    });
+  }
+
+  async appendChatTranscript(userText, replyText) {
+    const now = new Date().toISOString();
+    const transcriptPath = this.settings.chatTranscriptPath || DEFAULT_SETTINGS.chatTranscriptPath;
+    const header = [
+      "---",
+      "type: bucky-chat",
+      "agent: Bucky",
+      "---",
+      "",
+      "# Bucky Chat",
+      "",
+    ].join("\n");
+    const entry = [
+      `## ${now}`,
+      "",
+      "### User",
+      "",
+      userText.trim(),
+      "",
+      "### Bucky",
+      "",
+      replyText.trim(),
+      "",
+    ].join("\n");
+
+    await this.ensureParentFolder(transcriptPath);
+    const adapter = this.app.vault.adapter;
+    const existing = await adapter.exists(transcriptPath)
+      ? await adapter.read(transcriptPath)
+      : header;
+    await adapter.write(transcriptPath, `${existing.trim()}\n\n${entry}`);
   }
 
   async startBucky(showNotice) {
@@ -159,7 +310,7 @@ class BuckyAgentPlugin extends Plugin {
       stdio: "ignore",
       windowsHide: true,
       env: Object.assign({}, process.env, {
-        VAULT_PATH: this.vaultPath,
+        VAULT_PATH: this.agentVaultPath,
         BUCKY_AGENT: "1",
       }),
     });
@@ -206,6 +357,9 @@ class BuckyAgentPlugin extends Plugin {
   }
 
   async refreshStatus(showNotice) {
+    this.vaultPath = this.getVaultPath();
+    this.rootPath = this.getRootPath();
+    this.agentVaultPath = this.getAgentVaultPath();
     this.pc = this.detectPc();
     const scripts = await this.getRuntimeStatus();
     const runningCount = Object.values(scripts).filter(Boolean).length;
@@ -260,7 +414,9 @@ class BuckyAgentPlugin extends Plugin {
       `| Username | ${this.pc.username} |`,
       `| Root | ${this.rootPath} |`,
       `| Vault | ${this.vaultPath} |`,
+      `| Agent Vault | ${this.agentVaultPath} |`,
       `| Auto Start | ${this.settings.autoStart ? "on" : "off"} |`,
+      `| Chat | ${this.settings.autoOpenChat ? "open" : "manual"} |`,
       "",
       "## Runtime",
       "",
@@ -279,7 +435,7 @@ class BuckyAgentPlugin extends Plugin {
       "- Obsidian desktop loads the bucky-agent plugin.",
       "- Plugin detects local PC and starts Bucky scripts when autoStart is on.",
       "- Duplicate process check prevents launching the same script twice.",
-      "- Agent runtime uses the existing Claude CLI subscription route.",
+      "- Bucky Chat calls the Claude CLI subscription route through scripts/bucky_chat_once.py.",
     ];
 
     await this.ensureParentFolder(this.settings.statusNotePath);
@@ -294,6 +450,219 @@ class BuckyAgentPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+}
+
+class BuckyChatView extends ItemView {
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.plugin = plugin;
+    this.busy = false;
+  }
+
+  getViewType() {
+    return BUCKY_CHAT_VIEW;
+  }
+
+  getDisplayText() {
+    return "Bucky Chat";
+  }
+
+  getIcon() {
+    return "message-circle";
+  }
+
+  async onOpen() {
+    this.render();
+  }
+
+  render() {
+    const root = this.containerEl.children[1] || this.containerEl;
+    root.empty();
+    root.addClass("bucky-chat-view");
+
+    const titlebar = root.createDiv({ cls: "bucky-code-titlebar" });
+    titlebar.createDiv({ cls: "bucky-code-title", text: "Untitled" });
+    const titleActions = titlebar.createDiv({ cls: "bucky-code-actions" });
+    const historyButton = titleActions.createEl("button", {
+      cls: "bucky-icon-button",
+      attr: { title: "History", "aria-label": "History" },
+    });
+    setIcon(historyButton, "clock");
+    historyButton.addEventListener("click", () => this.openTranscript());
+    const newButton = titleActions.createEl("button", {
+      cls: "bucky-icon-button",
+      attr: { title: "New chat", "aria-label": "New chat" },
+    });
+    setIcon(newButton, "plus-circle");
+    newButton.addEventListener("click", () => {
+      this.plugin.chatMessages = [];
+      this.renderMessages();
+    });
+
+    const brand = root.createDiv({ cls: "bucky-code-brand" });
+    brand.createSpan({ cls: "bucky-code-spark" });
+    brand.createSpan({ text: "Bucky Code" });
+
+    const stage = root.createDiv({ cls: "bucky-code-stage" });
+    this.messagesEl = stage.createDiv({ cls: "bucky-chat-messages" });
+    this.renderMessages();
+
+    const composerWrap = root.createDiv({ cls: "bucky-composer-wrap" });
+    composerWrap.createDiv({
+      cls: "bucky-terminal-tip",
+      text: "Prefer the Terminal experience? Switch back in Settings.",
+    });
+    const form = composerWrap.createEl("form", { cls: "bucky-chat-form" });
+    const inputRow = form.createDiv({ cls: "bucky-input-row" });
+    this.inputEl = inputRow.createEl("textarea", {
+      cls: "bucky-chat-input",
+      attr: {
+        rows: "1",
+        placeholder: "ctrl esc to focus or unfocus Bucky",
+      },
+    });
+    const micEl = inputRow.createDiv({ cls: "bucky-mic" });
+    setIcon(micEl, "mic");
+    const controls = form.createDiv({ cls: "bucky-composer-controls" });
+    const leftControls = controls.createDiv({ cls: "bucky-composer-left" });
+    const plusButton = leftControls.createEl("button", {
+      cls: "bucky-tool-button",
+      attr: { type: "button", title: "Attach current file", "aria-label": "Attach current file" },
+    });
+    setIcon(plusButton, "plus");
+    plusButton.addEventListener("click", () => this.attachActiveFile());
+    const fileButton = leftControls.createEl("button", {
+      cls: "bucky-tool-button",
+      attr: { type: "button", title: "Current file", "aria-label": "Current file" },
+    });
+    setIcon(fileButton, "file");
+    fileButton.addEventListener("click", () => this.attachActiveFile());
+    this.attachEl = leftControls.createDiv({ cls: "bucky-attachment", text: "no file" });
+    const rightControls = controls.createDiv({ cls: "bucky-composer-right" });
+    rightControls.createDiv({ cls: "bucky-edit-mode", text: "Ask before edits" });
+    this.statusEl = rightControls.createDiv({ cls: "bucky-chat-status", text: "ready" });
+    this.sendButton = rightControls.createEl("button", {
+      cls: "bucky-send-button",
+      attr: { title: "Send", "aria-label": "Send" },
+    });
+    setIcon(this.sendButton, "arrow-up");
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      this.handleSubmit();
+    });
+    this.inputEl.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        this.handleSubmit();
+      }
+    });
+    this.refreshAttachmentLabel();
+  }
+
+  renderMessages() {
+    if (!this.messagesEl) return;
+    this.messagesEl.empty();
+    if (!this.plugin.chatMessages.length) {
+      const empty = this.messagesEl.createDiv({ cls: "bucky-chat-empty" });
+      empty.createDiv({ cls: "bucky-empty-mark", text: "B" });
+      empty.createDiv({ cls: "bucky-empty-line", text: "// TODO: Everything. Let's start." });
+      return;
+    }
+
+    for (const message of this.plugin.chatMessages) {
+      const item = this.messagesEl.createDiv({
+        cls: `bucky-chat-message bucky-chat-${message.role}`,
+      });
+      item.createDiv({ cls: "bucky-chat-role", text: message.role });
+      const body = item.createDiv({ cls: "bucky-chat-body" });
+      body.setText(message.text);
+    }
+    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+  }
+
+  refreshAttachmentLabel() {
+    if (!this.attachEl) return;
+    const file = this.app.workspace.getActiveFile();
+    this.attachEl.setText(file ? file.path : "no file");
+  }
+
+  attachActiveFile() {
+    this.refreshAttachmentLabel();
+    const file = this.app.workspace.getActiveFile();
+    new Notice(file ? `Bucky attached: ${file.path}` : "No active file");
+  }
+
+  async buildIdePrompt(prompt) {
+    const file = this.app.workspace.getActiveFile();
+    let fileContext = "";
+    if (file) {
+      try {
+        const content = await this.app.vault.cachedRead(file);
+        fileContext = [
+          "## Active Obsidian File",
+          `Path: ${file.path}`,
+          "",
+          "```markdown",
+          content.slice(0, 12000),
+          "```",
+        ].join("\n");
+      } catch (error) {
+        fileContext = `## Active Obsidian File\nPath: ${file.path}\nRead failed: ${error.message || error}`;
+      }
+    }
+    return [
+      "# Bucky Code IDE Chat",
+      "",
+      "Mode: Ask before edits. Do not edit files without explicit user approval.",
+      "Environment: Obsidian pane styled after Claude Code/Codex IDE chat.",
+      "",
+      fileContext,
+      "",
+      "## User Message",
+      "",
+      prompt,
+    ].join("\n");
+  }
+
+  setBusy(value) {
+    this.busy = value;
+    if (this.sendButton) this.sendButton.disabled = value;
+    if (this.inputEl) this.inputEl.disabled = value;
+    if (this.statusEl) this.statusEl.setText(value ? "thinking" : "ready");
+  }
+
+  async handleSubmit() {
+    if (this.busy || !this.inputEl) return;
+    const prompt = this.inputEl.value.trim();
+    if (!prompt) return;
+
+    this.inputEl.value = "";
+    this.plugin.addChatMessage("user", prompt);
+    this.renderMessages();
+    this.setBusy(true);
+
+    try {
+      const idePrompt = await this.buildIdePrompt(prompt);
+      const reply = await this.plugin.sendChat(idePrompt);
+      this.plugin.addChatMessage("bucky", reply);
+    } catch (error) {
+      this.plugin.addChatMessage("error", String(error.message || error));
+      new Notice("Bucky chat failed");
+    } finally {
+      this.setBusy(false);
+      this.renderMessages();
+      if (this.inputEl) this.inputEl.focus();
+    }
+  }
+
+  async openTranscript() {
+    const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.chatTranscriptPath);
+    if (file) {
+      await this.app.workspace.getLeaf(false).openFile(file);
+    } else {
+      new Notice("No Bucky transcript yet");
+    }
   }
 }
 
@@ -319,6 +688,16 @@ class BuckySettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
+      .setName("Auto open chat")
+      .setDesc("Open the Bucky chat pane when Obsidian loads.")
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.autoOpenChat)
+        .onChange(async value => {
+          this.plugin.settings.autoOpenChat = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
       .setName("Python command")
       .setDesc("Command used to launch Bucky scripts.")
       .addText(text => text
@@ -335,6 +714,16 @@ class BuckySettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.statusNotePath)
         .onChange(async value => {
           this.plugin.settings.statusNotePath = value || DEFAULT_SETTINGS.statusNotePath;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName("Chat transcript")
+      .setDesc("Vault-relative note path for Bucky chat history.")
+      .addText(text => text
+        .setValue(this.plugin.settings.chatTranscriptPath)
+        .onChange(async value => {
+          this.plugin.settings.chatTranscriptPath = value || DEFAULT_SETTINGS.chatTranscriptPath;
           await this.plugin.saveSettings();
         }));
   }

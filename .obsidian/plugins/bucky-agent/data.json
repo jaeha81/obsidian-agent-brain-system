@@ -1,7 +1,11 @@
 {
   "autoStart": true,
+  "autoOpenChat": true,
   "pythonCommand": "python",
   "statusNotePath": "ObsidianVault/00_System/BUCKY_STATUS.md",
+  "chatTranscriptPath": "ObsidianVault/10_AgentBus/chat/BUCKY_CHAT.md",
+  "chatBridgeScript": "scripts/bucky_chat_once.py",
+  "chatTimeoutSeconds": 900,
   "startupDelayMs": 2500,
   "scripts": [
     "scripts/raw_import_watcher.py",
