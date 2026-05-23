@@ -1,6 +1,6 @@
 # Obsidian Agent Brain System
 
-Obsidian을 중심 두뇌로, Claude Code와 Codex를 실행 에이전트로 사용하는 지식 관리 + AI 협업 시스템.
+Obsidian을 중심 두뇌로, Hermes Agent와 Codex를 실행 에이전트로 사용하는 지식 관리 + AI 협업 시스템.
 
 ## Architecture
 
@@ -27,6 +27,7 @@ vault_scaffold/                 graphify_selected/
 | RAW_IMPORT | Google Drive | 음성·미팅·클라이언트 원본 |
 | legalize-kr | Google Drive/external_data/ | 한국 법률 데이터 |
 | Graphify | scripts/ + vault/ | 프로젝트 지식 그래프 |
+| Harness Router | scripts/harness_router.py + vault | 개발 요구를 Superpowers/GSD/gstack 기준으로 분류 |
 
 ## Setup
 
@@ -51,9 +52,13 @@ cp configs/paths.example.json configs/paths.json
 
 ## Agent Roles
 
-- **Claude Code**: 구현, 파일 생성, 시스템 설정, 운영
+- **Hermes Agent**: 구현, 파일 생성, 시스템 설정, 운영
 - **Codex**: 독립 코드 리뷰, 로직 검증
 - **User**: 아키텍처 결정, 민감 작업 승인
+
+## Development Harness
+
+개발 요청은 `Harness Router`가 먼저 분석한다. Router는 `ObsidianVault/05_Frameworks/Harness/`에 저장된 Superpowers, GSD, gstack 지식을 읽고, Claude Code에게는 구현 지시를, Codex에게는 검수 체크리스트를 전달한다.
 
 ## Security Rules
 
@@ -66,5 +71,6 @@ cp configs/paths.example.json configs/paths.json
 - [System Overview](docs/system_overview.md)
 - [Google Drive Vault Policy](docs/google_drive_vault_policy.md)
 - [Setup Guide](docs/setup_guide.md)
-- [Claude Code Guide](docs/claude_code_guide.md)
+- [Hermes Agent Guide](docs/hermes_agent_guide.md)
+- [Harness Framework Integration](docs/harness_framework_integration.md)
 - [Operating Principles](docs/operating_principles.md)

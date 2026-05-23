@@ -27,11 +27,9 @@
 | 이름 | 용도 |
 |------|------|
 | calendar | 달력 + 일간 노트 |
-| claudian | Claude AI 연동 |
 | dataview | 노트 DB 쿼리 |
 | infranodus-graph-view | 그래프 지식 분석 |
 | jh-local-graph-view | JH 로컬 그래프 |
-| obsidian-claude-code-mcp | Claude Code MCP |
 | obsidian-excalidraw-plugin | 손그림/다이어그램 |
 | obsidian-git | Git 자동 sync |
 | obsidian-icon-folder | 폴더 아이콘 |

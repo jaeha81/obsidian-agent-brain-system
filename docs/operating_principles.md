@@ -33,10 +33,10 @@ API Key, 비밀번호, PII는 어떤 파일에도 포함하지 않는다.
 
 ## Agent Collaboration Rules
 
-- Claude Code와 Codex는 같은 파일을 동시에 수정하지 않는다.
+- Hermes Agent와 Codex는 같은 파일을 동시에 수정하지 않는다.
 - 작업 시작 전 LOCKS/ 에 잠금 파일 생성.
 - 작업 완료 후 잠금 파일 즉시 삭제.
-- Codex는 Claude Code의 독립 검토자다 — 사용자에게 직접 보고한다.
+- Codex는 Hermes Agent의 독립 검토자다 — 사용자에게 직접 보고한다.
 
 ## Vault Management Rules
 

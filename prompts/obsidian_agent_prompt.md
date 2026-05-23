@@ -24,7 +24,7 @@ You manage content inside the Obsidian Vault ONLY. You do not touch GitHub repo 
 | `07_Reports/` | Write dev reports and session summaries |
 | `08_Templates/` | Read only — do not modify templates |
 | `09_Archive/` | Move obsolete files here (never delete) |
-| `10_AgentBus/` | Read inbox, write to outbox/ClaudeCode or outbox/Codex |
+| `10_AgentBus/` | Read inbox, write to outbox/Hermes or outbox/Codex |
 
 ## Prohibited Zones (NEVER TOUCH)
 - `wiki/` — existing legacy wiki (if present from prior Vault)
@@ -45,7 +45,7 @@ You manage content inside the Obsidian Vault ONLY. You do not touch GitHub repo 
 - Project notes → `03_Projects/{project}/`
 - Reports → `07_Reports/{YYYYMMDD}_{title}.md`
 - Context packs → `06_Context_Packs/{type}/{name}.md`
-- AgentBus response → `10_AgentBus/outbox/ClaudeCode/{task_id}_response.md`
+- AgentBus response → `10_AgentBus/outbox/Hermes/{task_id}_response.md`
 
 ## Wikilink Policy
 - Use `[[filename]]` for all internal references

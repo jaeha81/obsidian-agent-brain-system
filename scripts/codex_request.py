@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Codex Review Request — writes a review task to 10_AgentBus/outbox/ClaudeCode/
+Codex Review Request — writes a review task to 10_AgentBus/outbox/Hermes/
 so Codex can pick it up and review independently.
 
 Usage:
@@ -12,18 +12,23 @@ Usage:
 """
 
 import argparse
+import os
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 ROOT = Path(__file__).parent.parent
+load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
 
 _VALID_TASK_ID = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
 _MAX_CONTEXT_CHARS = 4000
 _GRAPH_JSON_PATTERN = re.compile(r'"nodes"\s*:\s*\[|"edges"\s*:\s*\[')
 VAULT = ROOT / "ObsidianVault"
-OUTBOX_CC = VAULT / "10_AgentBus" / "outbox" / "ClaudeCode"
+WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Hermes")
+OUTBOX_WORKER = VAULT / "10_AgentBus" / "outbox" / WORKER_NAME
 
 
 def write_request(task_id: str, subject: str, files: list[str], priority: str, context: str) -> Path:
@@ -31,14 +36,14 @@ def write_request(task_id: str, subject: str, files: list[str], priority: str, c
     ts = now.strftime("%Y%m%d_%H%M%S")
     iso = now.isoformat(timespec="seconds")
 
-    OUTBOX_CC.mkdir(parents=True, exist_ok=True)
-    out_path = OUTBOX_CC / f"{priority}_{ts}_Codex_{task_id}.md"
+    OUTBOX_WORKER.mkdir(parents=True, exist_ok=True)
+    out_path = OUTBOX_WORKER / f"{priority}_{ts}_Codex_{task_id}.md"
 
     file_list = "\n".join(f"- `{f}`" for f in files)
     content = f"""---
 type: review_request
 task_id: {task_id}
-from: ClaudeCode
+from: {WORKER_NAME}
 to: Codex
 priority: {priority}
 status: pending
@@ -46,7 +51,7 @@ created: {iso}
 ---
 
 # Task: {task_id}
-- From: ClaudeCode
+- From: {WORKER_NAME}
 - To: Codex
 - Priority: {priority}
 - Date: {iso}

@@ -6,7 +6,7 @@
 You are an agent in the Obsidian Agent Brain System.
 
 ## Your Role
-{AGENT_ROLE: Claude Code Implementer / Codex Reviewer / specify}
+{AGENT_ROLE: Hermes Implementer / Codex Reviewer / specify}
 
 ## System Context
 - Central brain: Obsidian Vault at `{obsidian_vault}`

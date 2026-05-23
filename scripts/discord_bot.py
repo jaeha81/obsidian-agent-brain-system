@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Discord Real-Time Bot — AgentBus inbox writer + Claude AI 실시간 대화
+Discord Real-Time Bot — AgentBus inbox writer + Hermes Agent 실시간 대화
 
-Discord 메시지 → Claude API 응답 → Discord 채널에 답장
+Discord 메시지 → Hermes Agent 응답 → Discord 채널에 답장
 동시에 ObsidianVault/10_AgentBus/inbox/ 에 대화 기록 저장
 
 Requirements:
-    pip install discord.py>=2.3 python-dotenv>=1.0 anthropic
+    pip install discord.py>=2.3 python-dotenv>=1.0
 
 Setup:
     1. Copy .env.example -> .env and fill in tokens/IDs
-    2. ANTHROPIC_API_KEY 추가
+    2. Install and configure Hermes Agent
     3. python scripts/discord_bot.py
 
 Commands:
@@ -19,15 +19,16 @@ Commands:
     !reset    - 현재 채널 대화 기록 초기화
 """
 
+import asyncio
 import os
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-import anthropic
 import discord
 from discord import Intents, Message
 from dotenv import load_dotenv
+from hermes_client import run_hermes
 
 load_dotenv(Path(__file__).parent.parent / '.env', encoding='utf-8')
 
@@ -38,10 +39,10 @@ ALLOWED_CHANNELS: set[str] = {c.strip() for c in _raw_channels.split(",") if c.s
 VAULT = Path(os.getenv("VAULT_PATH", Path(__file__).parent.parent / "ObsidianVault"))
 INBOX = VAULT / "10_AgentBus" / "inbox"
 MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "1"))
-ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-CLAUDE_MODEL: str = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6")
+HERMES_ENABLED: bool = os.getenv("HERMES_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
+HERMES_MODEL: str = os.getenv("HERMES_MODEL", "default")
 SYSTEM_PROMPT: str = os.getenv(
-    "CLAUDE_SYSTEM_PROMPT",
+    "HERMES_SYSTEM_PROMPT",
     "당신은 Obsidian 지식 관리 시스템과 연결된 AI 에이전트입니다. "
     "사용자의 질문에 간결하고 정확하게 한국어로 답변하세요."
 )
@@ -80,13 +81,13 @@ status: pending
 **User:** {message.content}
 """
     if reply:
-        content += f"\n**Claude:** {reply}\n"
+        content += f"\n**Hermes:** {reply}\n"
 
     out_path.write_text(content, encoding="utf-8")
     return out_path
 
 
-async def ask_claude(channel_id: str, user_message: str) -> str:
+async def ask_hermes(channel_id: str, user_message: str) -> str:
     history = conversation_history[channel_id]
     history.append({"role": "user", "content": user_message})
 
@@ -95,14 +96,16 @@ async def ask_claude(channel_id: str, user_message: str) -> str:
         conversation_history[channel_id] = history[-MAX_HISTORY:]
         history = conversation_history[channel_id]
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-    response = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=history,
+    transcript = "\n".join(
+        f"{item['role'].title()}: {item['content']}" for item in history
     )
-    reply = response.content[0].text
+    prompt = (
+        "# Discord conversation\n\n"
+        f"{SYSTEM_PROMPT}\n\n"
+        "Answer the latest user message in Korean unless the user asks otherwise.\n\n"
+        f"{transcript}"
+    )
+    reply = await asyncio.to_thread(run_hermes, prompt)
     history.append({"role": "assistant", "content": reply})
     return reply
 
@@ -127,7 +130,7 @@ def split_message(text: str, limit: int = 1900) -> list[str]:
 class AgentBusBot(discord.Client):
     async def on_ready(self) -> None:
         guilds = [f"{g.name}({g.id})" for g in self.guilds]
-        mode = "Claude AI" if ANTHROPIC_API_KEY else "inbox-only"
+        mode = f"Hermes Agent ({HERMES_MODEL})" if HERMES_ENABLED else "inbox-only"
         print(f"Bot ready: {self.user} [{mode}]", flush=True)
         print(f"Guilds: {guilds}", flush=True)
         print(f"Channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
@@ -144,7 +147,7 @@ class AgentBusBot(discord.Client):
         channel_id = str(message.channel.id)
 
         if content == "!status":
-            mode = "Claude AI 대화 모드" if ANTHROPIC_API_KEY else "inbox 저장 모드"
+            mode = "Hermes Agent 대화 모드" if HERMES_ENABLED else "inbox 저장 모드"
             await message.channel.send(f"✅ 실행 중 ({mode})")
             return
         if content == "!help":
@@ -153,7 +156,7 @@ class AgentBusBot(discord.Client):
                 "`!status` — 봇 상태\n"
                 "`!reset` — 대화 기록 초기화\n"
                 "`!help` — 도움말\n"
-                "_그 외 메시지는 Claude AI가 답변합니다._"
+                "_그 외 메시지는 Hermes Agent가 답변합니다._"
             )
             return
         if content == "!reset":
@@ -164,14 +167,14 @@ class AgentBusBot(discord.Client):
         if len(content) < MIN_LENGTH:
             return
 
-        # Claude AI 응답
-        if ANTHROPIC_API_KEY:
+        # Hermes Agent 응답
+        if HERMES_ENABLED:
             async with message.channel.typing():
                 try:
-                    reply = await ask_claude(channel_id, content)
+                    reply = await ask_hermes(channel_id, content)
                 except Exception as e:
                     reply = f"⚠️ 오류: {e}"
-                    print(f"Claude error: {e}", flush=True)
+                    print(f"Hermes error: {e}", flush=True)
 
             for chunk in split_message(reply):
                 await message.channel.send(chunk)
@@ -187,8 +190,8 @@ def main() -> None:
     if not TOKEN:
         print("DISCORD_BOT_TOKEN not set.")
         raise SystemExit(1)
-    if not ANTHROPIC_API_KEY:
-        print("ANTHROPIC_API_KEY not set — inbox-only mode.")
+    if not HERMES_ENABLED:
+        print("HERMES_ENABLED=0 — inbox-only mode.")
 
     intents = Intents.default()
     intents.message_content = True

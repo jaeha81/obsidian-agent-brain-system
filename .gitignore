@@ -71,3 +71,6 @@ exports/
 
 # Duplicate planning scratch file
 plan2.md
+
+# Token/secret files (never commit)
+token.txt
