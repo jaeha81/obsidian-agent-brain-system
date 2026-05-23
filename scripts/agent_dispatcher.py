@@ -26,8 +26,8 @@ from pathlib import Path
 import requests
 import yaml
 from dotenv import load_dotenv
+from bucky_client import BuckyError, run_bucky
 from harness_router import build_development_brief, is_harness_router_enabled
-from hermes_client import HermesError, run_hermes
 
 # ── 환경 설정 ──────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"
-WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Hermes")
+WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Bucky")
 OUTBOX_WORKER = VAULT / "10_AgentBus" / "outbox" / WORKER_NAME
 OUTBOX_CODEX = VAULT / "10_AgentBus" / "outbox" / "Codex"
 COMPLETED = VAULT / "10_AgentBus" / "completed"
@@ -249,7 +249,7 @@ def _build_hermes_prompt(body: str, system_extra: str = "") -> str:
 
 def handle_via_hermes(body: str, system_extra: str = "") -> str:
     """Generate a response through configured local agent."""
-    return run_hermes(_build_hermes_prompt(body, system_extra))
+    return run_bucky(_build_hermes_prompt(body, system_extra))
 
 
 def handle_via_api(body: str, system_extra: str = "") -> str:
@@ -261,8 +261,8 @@ def handle_via_claude_code(task_prompt: str) -> tuple[str, bool]:
     """Compatibility wrapper: implementation tasks go through configured local agent."""
     print(f"  [Dispatcher] Spawning {WORKER_NAME} Agent ...")
     try:
-        return run_hermes(task_prompt), True
-    except HermesError as exc:
+        return run_bucky(task_prompt), True
+    except BuckyError as exc:
         return f"FAILED: {exc}", False
 
 
@@ -328,7 +328,7 @@ def process_file(filepath: Path) -> None:
 
     try:
         if task_type == "dispatcher_test":
-            output = run_hermes(body.strip())
+            output = run_bucky(body.strip())
             result_file = _write_result(filepath.name, output, _worker_suffix())
             update_frontmatter(filepath, {
                 "status": "done",
