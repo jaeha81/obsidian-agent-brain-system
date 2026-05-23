@@ -18,6 +18,7 @@ Requirements: pip install python-dotenv pyyaml requests
 
 import os
 import re
+import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
@@ -336,6 +337,25 @@ def process_file(filepath: Path) -> None:
                 "output": str(result_file),
             })
             filepath.rename(COMPLETED / filepath.name)
+
+        elif task_type == "claude_sync":
+            # Obsidian CLAUDE_MASTER.md → ~/.claude/CLAUDE.md 동기화
+            sync_script = Path(__file__).parent / "sync_claude_instructions.py"
+            result = subprocess.run(
+                ["python3", str(sync_script)],
+                capture_output=True, text=True, encoding="utf-8"
+            )
+            output = (result.stdout + result.stderr).strip()
+            success = result.returncode == 0
+            result_file = _write_result(filepath.name, output, "sync")
+            update_frontmatter(filepath, {
+                "status": "done" if success else "failed",
+                "processed_by": "AgentDispatcher",
+                "processed_at": iso(),
+                "output": str(result_file),
+            })
+            filepath.rename((COMPLETED if success else FAILED) / filepath.name)
+            print(f"  [Dispatcher] claude_sync {'OK' if success else 'FAILED'}: {output[:80]}")
 
         elif task_type == "review_request":
             result_file = route_to_codex(filepath, fm, body)
