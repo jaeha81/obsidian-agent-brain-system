@@ -1,11 +1,18 @@
 @echo off
-:: Agent Dispatcher 시작 스크립트
-:: .env에 ANTHROPIC_API_KEY 설정 후 실행
+:: Agent Dispatcher + RAW Import Watcher start script
+:: Requires configured local agent CLI.
 
 cd /d "%~dp0"
-echo [Dispatcher] Starting Agent Dispatcher...
-echo [Dispatcher] Vault: ObsidianVault\10_AgentBus\inbox\
-echo [Dispatcher] CTRL+C to stop
+echo [System] Starting Obsidian Agent Brain System...
+echo [System] AgentBus Inbox : ObsidianVault\10_AgentBus\inbox\
+echo [System] RAW Import     : RAW_IMPORT\
+echo [System] CTRL+C to stop both processes
 echo.
+
+:: RAW Import Watcher - 별도 창에서 실행
+start "RAW Import Watcher" cmd /k "cd /d "%~dp0" && python scripts\raw_import_watcher.py"
+
+:: Agent Dispatcher - 현재 창에서 실행
+echo [Dispatcher] Starting Agent Dispatcher...
 python scripts\agent_dispatcher.py
 pause
