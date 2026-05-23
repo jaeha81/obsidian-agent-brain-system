@@ -1,7 +1,8 @@
 # setup_claude_settings.ps1
 # Claude Code 전체 설정을 현재 PC에 적용:
 #   1. statusLine + Stop hook (context 경고)
-#   2. Obsidian CLAUDE_MASTER.md → ~/.claude/CLAUDE.md 동기화
+#   2. Obsidian CLAUDE_MASTER.md → ~/.claude/CLAUDE.md 동기화 (즉시)
+#   3. 로그인 시 자동 동기화 Task Scheduler 등록
 #
 # 어느 PC에서든 PowerShell로 실행:
 #   powershell -ExecutionPolicy Bypass -File "G:\내 드라이브\obsidian-agent-brain-system\scripts\setup_claude_settings.ps1"
@@ -64,6 +65,44 @@ if (Test-Path $SYNC_SCRIPT) {
     }
 } else {
     Write-Host "[WARN] sync_claude_instructions.py 없음 — G: 드라이브 마운트 확인 필요." -ForegroundColor Yellow
+}
+
+
+# ── 3단계: 로그인 자동 동기화 Task Scheduler 등록 ─────────────────────────────
+Write-Host ""
+Write-Host "[3/3] 로그인 시 자동 동기화 Task Scheduler 등록 중..." -ForegroundColor Cyan
+
+$TASK_NAME  = "ClaudeInstructionSync"
+$PYTHON_EXE = (Get-Command python3 -ErrorAction SilentlyContinue).Source
+if (-not $PYTHON_EXE) {
+    $PYTHON_EXE = (Get-Command python -ErrorAction SilentlyContinue).Source
+}
+
+if ($PYTHON_EXE) {
+    $ACTION  = New-ScheduledTaskAction `
+        -Execute $PYTHON_EXE `
+        -Argument "`"G:/내 드라이브/obsidian-agent-brain-system/scripts/sync_claude_instructions.py`""
+    $TRIGGER = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+    $SETTINGS = New-ScheduledTaskSettingsSet `
+        -ExecutionTimeLimit (New-TimeSpan -Minutes 2) `
+        -StartWhenAvailable
+
+    try {
+        # 기존 태스크 있으면 덮어쓰기
+        Register-ScheduledTask `
+            -TaskName $TASK_NAME `
+            -Action $ACTION `
+            -Trigger $TRIGGER `
+            -Settings $SETTINGS `
+            -Description "Obsidian CLAUDE_MASTER.md -> CLAUDE.md 로그인 자동 동기화" `
+            -Force -ErrorAction Stop | Out-Null
+        Write-Host "[OK] Task '$TASK_NAME' 등록 완료 — 로그인 시 자동 실행됩니다." -ForegroundColor Green
+    } catch {
+        Write-Host "[WARN] Task Scheduler 등록 실패 (관리자 권한 필요할 수 있음): $_" -ForegroundColor Yellow
+        Write-Host "       수동 실행: python3 $SYNC_SCRIPT"
+    }
+} else {
+    Write-Host "[WARN] python3/python 실행 파일을 찾을 수 없습니다. PATH 확인 필요." -ForegroundColor Yellow
 }
 
 Write-Host ""
