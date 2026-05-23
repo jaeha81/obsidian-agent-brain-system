@@ -86,6 +86,9 @@ class BuckyAgentPlugin extends Plugin {
         this.chatTimer = window.setTimeout(() => {
           this.activateChatView();
         }, this.settings.startupDelayMs + 800);
+        this.chatFocusTimer = window.setTimeout(() => {
+          this.activateChatView();
+        }, this.settings.startupDelayMs + 5000);
       });
     }
 
@@ -97,6 +100,7 @@ class BuckyAgentPlugin extends Plugin {
   onunload() {
     if (this.startTimer) window.clearTimeout(this.startTimer);
     if (this.chatTimer) window.clearTimeout(this.chatTimer);
+    if (this.chatFocusTimer) window.clearTimeout(this.chatFocusTimer);
     if (this.refreshTimer) window.clearInterval(this.refreshTimer);
     this.app.workspace.detachLeavesOfType(BUCKY_CHAT_VIEW);
   }
@@ -155,12 +159,18 @@ class BuckyAgentPlugin extends Plugin {
   }
 
   async activateChatView() {
-    let leaf = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW)[0];
-    if (!leaf) {
-      leaf = this.app.workspace.getLeaf(false) || this.app.workspace.getLeaf(true);
-      await leaf.setViewState({ type: BUCKY_CHAT_VIEW, active: true });
+    try {
+      let leaf = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW)[0];
+      if (!leaf) {
+        leaf = this.app.workspace.getLeaf(false) || this.app.workspace.getLeaf(true);
+        await leaf.setViewState({ type: BUCKY_CHAT_VIEW, active: true });
+      }
+      this.app.workspace.setActiveLeaf(leaf, { focus: true });
+      this.app.workspace.revealLeaf(leaf);
+    } catch (error) {
+      console.error("Bucky chat open failed", error);
+      new Notice(`Bucky chat open failed: ${error.message || error}`);
     }
-    this.app.workspace.revealLeaf(leaf);
   }
 
   addChatMessage(role, text) {
@@ -477,9 +487,9 @@ class BuckyChatView extends ItemView {
   }
 
   render() {
-    const root = this.containerEl.children[1] || this.containerEl;
+    const root = this.contentEl || this.containerEl.children[1] || this.containerEl;
     root.empty();
-    root.addClass("bucky-chat-view");
+    root.classList.add("bucky-chat-view");
 
     const titlebar = root.createDiv({ cls: "bucky-code-titlebar" });
     titlebar.createDiv({ cls: "bucky-code-title", text: "Untitled" });
@@ -501,8 +511,8 @@ class BuckyChatView extends ItemView {
     });
 
     const brand = root.createDiv({ cls: "bucky-code-brand" });
-    brand.createSpan({ cls: "bucky-code-spark" });
-    brand.createSpan({ text: "Bucky Code" });
+    brand.createEl("span", { cls: "bucky-code-spark" });
+    brand.createEl("span", { text: "Bucky Code" });
 
     const stage = root.createDiv({ cls: "bucky-code-stage" });
     this.messagesEl = stage.createDiv({ cls: "bucky-chat-messages" });
