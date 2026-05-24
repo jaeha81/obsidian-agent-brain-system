@@ -594,6 +594,7 @@ class BuckyChatView extends ItemView {
       return;
     }
 
+    const renders = [];
     for (const message of this.plugin.chatMessages) {
       const item = this.messagesEl.createDiv({
         cls: `bucky-chat-message bucky-chat-${message.role}`,
@@ -601,11 +602,17 @@ class BuckyChatView extends ItemView {
       item.createDiv({ cls: "bucky-chat-role", text: message.role });
       const body = item.createDiv({ cls: "bucky-chat-body" });
       if (message.role === "bucky") {
-        MarkdownRenderer.renderMarkdown(message.text, body, "", this);
+        renders.push(
+          MarkdownRenderer.renderMarkdown(message.text, body, "", this)
+            .catch(() => { body.setText(message.text); })
+        );
       } else {
         body.setText(message.text);
       }
     }
+    Promise.all(renders).then(() => {
+      if (this.messagesEl) this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    });
     this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
   }
 
