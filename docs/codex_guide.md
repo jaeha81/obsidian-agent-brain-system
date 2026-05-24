@@ -26,6 +26,22 @@ Codex는 Claude Code의 하위 에이전트가 아니다. Bucky의 지시에 따
 3. 검토 결과 `10_AgentBus/outbox/Codex/` 에 저장
 4. 중요 이슈는 사용자에게 직접 보고
 
+## Context Guard
+
+- Codex should not rely on session compression to continue overloaded work.
+- If a review is too large, create a handoff and continue in a new Codex session.
+- Keep review scope small: changed files first, explicitly listed files second, logs only by targeted search/tail.
+- Bucky should split oversized reviews by file, subsystem, or priority.
+- Manual handoff command:
+
+```bash
+python scripts/codex_session_handoff.py \
+  --task-id CODEX_CTX_001 \
+  --summary "what is already known" \
+  --remaining "what next session should do" \
+  --files "file1.py,file2.md"
+```
+
 ## Review Report Format
 
 ```markdown

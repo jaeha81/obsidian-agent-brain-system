@@ -10,25 +10,22 @@
 $SETTINGS_PATH = "$env:USERPROFILE\.claude\settings.json"
 $G_DRIVE = "G:/내 드라이브/obsidian-agent-brain-system/scripts"
 
-$NEW_KEYS = @{
-    statusLine = @{
-        type    = "command"
-        command = "python3 `"$G_DRIVE/claude_statusline.py`""
-        padding = 0
-    }
-    hooks = @{
-        Stop = @(
+$STOP_HOOK = @(
+    @{
+        hooks = @(
             @{
-                matcher = ""
-                hooks   = @(
-                    @{
-                        type    = "command"
-                        command = "python3 `"$G_DRIVE/context_warning.py`""
-                    }
-                )
+                type    = "command"
+                command = "python `"$G_DRIVE/context_warning.py`""
+                timeout = 10
             }
         )
     }
+)
+
+$STATUS_LINE = @{
+    type    = "command"
+    command = "python3 `"$G_DRIVE/claude_statusline.py`""
+    padding = 0
 }
 
 # settings.json 로드 (없으면 빈 객체)
@@ -40,9 +37,14 @@ if (Test-Path $SETTINGS_PATH) {
     $settings = New-Object PSCustomObject
 }
 
-# statusLine / hooks 병합 (덮어쓰기)
-$settings | Add-Member -NotePropertyName "statusLine" -NotePropertyValue $NEW_KEYS.statusLine -Force
-$settings | Add-Member -NotePropertyName "hooks"      -NotePropertyValue $NEW_KEYS.hooks      -Force
+# statusLine 병합
+$settings | Add-Member -NotePropertyName "statusLine" -NotePropertyValue $STATUS_LINE -Force
+
+# hooks.Stop만 병합 — 기존 PreToolUse, UserPromptSubmit, PostToolUse 등 보존
+if (-not ($settings.PSObject.Properties.Name -contains "hooks")) {
+    $settings | Add-Member -NotePropertyName "hooks" -NotePropertyValue (New-Object PSCustomObject) -Force
+}
+$settings.hooks | Add-Member -NotePropertyName "Stop" -NotePropertyValue $STOP_HOOK -Force
 
 # 저장
 $settings | ConvertTo-Json -Depth 10 | Out-File $SETTINGS_PATH -Encoding UTF8

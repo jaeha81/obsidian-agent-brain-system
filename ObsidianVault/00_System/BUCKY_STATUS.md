@@ -1,9 +1,9 @@
 ---
 type: bucky-status
-updated: 2026-05-23T09:25:37.786Z
-pc: 사무실 PC
-hostname: DESKTOP-6F8H500
-username: 설계4
+updated: 2026-05-24T02:36:49.239Z
+pc: 집 PC
+hostname: P0517A-22H2T8
+username: user1
 agent: 버키
 runtime: claude_cli
 ---
@@ -12,9 +12,9 @@ runtime: claude_cli
 
 | Item | Value |
 |---|---|
-| PC | 사무실 PC |
-| Hostname | DESKTOP-6F8H500 |
-| Username | 설계4 |
+| PC | 집 PC |
+| Hostname | P0517A-22H2T8 |
+| Username | user1 |
 | Root | G:\내 드라이브\obsidian-agent-brain-system |
 | Vault | G:\내 드라이브\obsidian-agent-brain-system |
 | Agent Vault | G:\내 드라이브\obsidian-agent-brain-system\ObsidianVault |

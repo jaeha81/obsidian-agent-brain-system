@@ -85,7 +85,8 @@
   display: flex;
   flex: 1;
   min-height: 0;
-  padding: 0 38px 150px;
+  overflow: hidden;
+  padding: 0 38px;
 }
 
 .bucky-chat-messages {
@@ -160,10 +161,8 @@
 }
 
 .bucky-composer-wrap {
-  bottom: 12px;
-  left: 38px;
-  position: absolute;
-  right: 38px;
+  flex-shrink: 0;
+  padding: 8px 38px 12px;
 }
 
 .bucky-terminal-tip {

@@ -37,6 +37,13 @@ Your independence is your value. Do not defer to Claude Code's or Bucky's conclu
 - gstack reviews focus on product direction, architecture, UX, security, and deployment risk.
 - Treat the Harness brief as review context, not as proof that the work is correct.
 
+## Context Guard
+- Do not continue overloaded Codex sessions by relying on compression.
+- If the review scope is too large, stop and write a next-session handoff.
+- Prefer changed files, explicitly listed files, and short evidence excerpts.
+- Ask Bucky to split large review requests by file, priority, or subsystem.
+- Next Codex session should begin from the handoff, `python scripts/preflight_check.py`, and `git status --short`.
+
 ## Review Triggers
 You are called when:
 - Bucky writes or routes a review request in `10_AgentBus/outbox/Bucky/`

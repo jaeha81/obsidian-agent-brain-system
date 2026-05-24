@@ -55,6 +55,13 @@ def _md5(text: str) -> str:
     return hashlib.md5(text.encode()).hexdigest()
 
 
+def _strip_managed_header(text: str) -> str:
+    lines = text.splitlines(keepends=True)
+    if lines and lines[0].startswith("<!-- AUTO-GENERATED"):
+        return "".join(lines[1:])
+    return text
+
+
 def _backup(path: Path) -> Path:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -73,7 +80,7 @@ def sync(dry_run: bool = False, check_only: bool = False) -> int:
 
     if DEST.exists():
         existing = DEST.read_text(encoding="utf-8")
-        if _md5(existing) == _md5(new_content):
+        if _md5(_strip_managed_header(existing)) == _md5(_strip_managed_header(new_content)):
             print("[OK] CLAUDE.md 이미 최신입니다.")
             return 0
         if check_only:

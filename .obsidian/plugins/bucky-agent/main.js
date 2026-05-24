@@ -518,7 +518,7 @@ class BuckyChatView extends ItemView {
       cls: "bucky-icon-button",
       attr: { title: "New chat", "aria-label": "New chat" },
     });
-    setIcon(newButton, "plus-circle");
+    setIcon(newButton, "circle-plus");
     newButton.addEventListener("click", () => {
       this.plugin.chatMessages = [];
       this.renderMessages();

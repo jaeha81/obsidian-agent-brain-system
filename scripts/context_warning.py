@@ -58,7 +58,7 @@ def main():
     for threshold, level in sorted(THRESHOLDS.items(), reverse=True):
         if pct >= threshold:
             msgs = {
-                "CRITICAL": f"CONTEXT {pct}% - /compact 즉시 실행 또는 새 세션 시작 필요",
+                "CRITICAL": f"CONTEXT {pct}% - 새 세션 시작 필요 (/compact 사용 금지)",
                 "WARNING":  f"CONTEXT {pct}% - 새 세션 시작을 권장합니다",
                 "CAUTION":  f"CONTEXT {pct}% - 컨텍스트 50% 초과, 모니터링 필요",
             }
