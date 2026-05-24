@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""
-Stop Hook - 컨텍스트 사용량 임계값 초과 시 경고 출력.
-stderr 출력 → 사용자 화면에 표시됨.
-"""
+"""Stop Hook — 컨텍스트 사용량 임계값 초과 시 systemMessage JSON 출력."""
 import json
 import sys
 from pathlib import Path
 
 THRESHOLDS = {90: "CRITICAL", 75: "WARNING", 50: "CAUTION"}
 DEFAULT_LIMIT = 200_000
+ICONS = {"CRITICAL": "🔴", "WARNING": "🟡", "CAUTION": "🟠"}
 
 
 def get_tokens(transcript_path: str) -> int:
@@ -58,11 +56,12 @@ def main():
     for threshold, level in sorted(THRESHOLDS.items(), reverse=True):
         if pct >= threshold:
             msgs = {
-                "CRITICAL": f"CONTEXT {pct}% - 새 세션 시작 필요 (/compact 사용 금지)",
-                "WARNING":  f"CONTEXT {pct}% - 새 세션 시작을 권장합니다",
-                "CAUTION":  f"CONTEXT {pct}% - 컨텍스트 50% 초과, 모니터링 필요",
+                "CRITICAL": f"컨텍스트 {pct}% — 새 세션 시작 필요 (/compact 사용 금지)",
+                "WARNING":  f"컨텍스트 {pct}% — 새 세션 시작을 권장합니다",
+                "CAUTION":  f"컨텍스트 {pct}% — 50% 초과, 모니터링 필요",
             }
-            print(f"[Context {level}] {msgs[level]}", file=sys.stderr)
+            icon = ICONS[level]
+            print(json.dumps({"systemMessage": f"{icon} [{level}] {msgs[level]}"}))
             break
 
 
