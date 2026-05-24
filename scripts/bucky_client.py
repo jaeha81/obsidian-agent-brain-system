@@ -50,12 +50,10 @@ def is_bucky_available() -> bool:
     return shutil.which(command) is not None
 
 
-def build_bucky_command(prompt: str) -> list[str]:
+def build_bucky_command() -> list[str]:
     command = bucky_command()
     return [
         command,
-        "-p",
-        prompt,
         "--output-format",
         os.getenv("CLAUDE_OUTPUT_FORMAT", "text").strip() or "text",
     ]
@@ -70,13 +68,15 @@ def run_bucky(prompt: str, *, timeout: int | None = None) -> str:
 
     timeout_s = timeout or int(os.getenv("BUCKY_TIMEOUT", "900"))
     env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
     # 구독 모드: API 키 제거 (과금 방지)
     if os.getenv("CLAUDE_USE_API_KEY", "0") != "1":
         env.pop("ANTHROPIC_API_KEY", None)
         env.pop("CLAUDE_API_KEY", None)
 
     result = subprocess.run(
-        build_bucky_command(prompt),
+        build_bucky_command(),
+        input=prompt,
         capture_output=True,
         text=True,
         encoding="utf-8",
