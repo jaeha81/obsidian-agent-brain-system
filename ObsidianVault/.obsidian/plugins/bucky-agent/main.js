@@ -313,7 +313,7 @@ class BuckyAgentPlugin extends Plugin {
         continue;
       }
 
-      const running = this.isScriptRunning(path.basename(relativeScript));
+      const running = await this.isScriptRunning(path.basename(relativeScript));
       if (running) {
         alreadyRunning.push(relativeScript);
         continue;
@@ -347,40 +347,35 @@ class BuckyAgentPlugin extends Plugin {
   }
 
   isScriptRunning(scriptName) {
-    if (process.platform !== "win32") return false;
+    return new Promise(resolve => {
+      if (process.platform !== "win32") { resolve(false); return; }
 
-    const command = [
-      "$script = " + JSON.stringify(scriptName) + ";",
-      "$items = Get-CimInstance Win32_Process | Where-Object {",
-      "  $_.CommandLine -and",
-      "  $_.CommandLine -like \"*$script*\" -and",
-      "  $_.Name -notmatch \"^(powershell|pwsh)(\\.exe)?$\"",
-      "};",
-      "@($items).Count",
-    ].join(" ");
+      const command = [
+        "$script = " + JSON.stringify(scriptName) + ";",
+        "$items = Get-CimInstance Win32_Process | Where-Object {",
+        "  $_.CommandLine -and",
+        "  $_.CommandLine -like \"*$script*\" -and",
+        "  $_.Name -notmatch \"^(powershell|pwsh)(\\.exe)?$\"",
+        "};",
+        "@($items).Count",
+      ].join(" ");
 
-    try {
-      const result = childProcess.spawnSync("powershell.exe", [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-Command",
-        command,
-      ], {
-        encoding: "utf8",
-        windowsHide: true,
-        timeout: 5000,
-      });
-      return Number(String(result.stdout || "").trim()) > 0;
-    } catch (error) {
-      return false;
-    }
+      const child = childProcess.spawn("powershell.exe", [
+        "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command,
+      ], { windowsHide: true });
+
+      let stdout = "";
+      const timer = window.setTimeout(() => { child.kill(); resolve(false); }, 5000);
+      child.stdout.on("data", chunk => { stdout += chunk.toString("utf8"); });
+      child.on("close", () => { window.clearTimeout(timer); resolve(Number(stdout.trim()) > 0); });
+      child.on("error", () => { window.clearTimeout(timer); resolve(false); });
+    });
   }
 
   async getRuntimeStatus() {
     const scripts = {};
     for (const relativeScript of this.settings.scripts) {
-      scripts[relativeScript] = this.isScriptRunning(path.basename(relativeScript));
+      scripts[relativeScript] = await this.isScriptRunning(path.basename(relativeScript));
     }
     return scripts;
   }
