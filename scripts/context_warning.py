@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stop Hook — 컨텍스트 사용량 임계값 초과 시 systemMessage JSON 출력."""
+"""Stop Hook — 컨텍스트 사용량 임계값 초과 시 경고."""
 import json
 import sys
 from pathlib import Path
@@ -58,10 +58,12 @@ def main():
             msgs = {
                 "CRITICAL": f"컨텍스트 {pct}% — 새 세션 시작 필요 (/compact 사용 금지)",
                 "WARNING":  f"컨텍스트 {pct}% — 새 세션 시작을 권장합니다",
-                "CAUTION":  f"컨텍스트 {pct}% — 50% 초과, 모니터링 필요",
+                "CAUTION":  f"컨텍스트 {pct}% — 모니터링 필요",
             }
             icon = ICONS[level]
-            print(json.dumps({"systemMessage": f"{icon} [{level}] {msgs[level]}"}))
+            msg = f"{icon} [{level}] {msgs[level]}"
+            # Stop hook: decision block으로 메시지 표시
+            print(json.dumps({"decision": "block", "reason": msg}))
             break
 
 
