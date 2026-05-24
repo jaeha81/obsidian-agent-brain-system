@@ -10,6 +10,7 @@
   "scripts": [
     "scripts/raw_import_watcher.py",
     "scripts/codex_review_runner.py",
-    "scripts/agent_dispatcher.py"
+    "scripts/agent_dispatcher.py",
+    "scripts/discord_bot.py"
   ]
 }

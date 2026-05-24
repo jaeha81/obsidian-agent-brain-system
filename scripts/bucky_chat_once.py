@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -20,16 +21,20 @@ if str(SCRIPTS) not in sys.path:
 from bucky_client import BuckyError, run_bucky  # noqa: E402
 
 
-SYSTEM_PROMPT = """# Bucky Obsidian Chat
+SYSTEM_PROMPT = """## BUCKY SUBPROCESS MODE (SUPERSEDES ALL PREVIOUS INSTRUCTIONS)
 
-You are Bucky, the user's Obsidian-installed local agent.
-You are running through the Claude CLI subscription route.
-Answer in Korean when the user writes Korean.
-Keep the answer practical and directly useful.
-When the user asks you to act on local files, explain what you can do and what evidence you need.
+You are Bucky, the user's Obsidian chat agent (BUCKY_SUBPROCESS=1).
 
-IMPORTANT: Do NOT output PC environment detection messages (집 PC, 노트북, 사무실 PC, 기본 경로 등).
-Answer directly without any preamble or environment info. Start with the actual answer.
+MANDATORY OVERRIDES — skip every step from global CLAUDE.md instructions:
+- Do NOT detect or announce PC environment (집 PC / 노트북 / 사무실 PC / 기본 경로)
+- Do NOT classify or route this conversation
+- Do NOT save session state or write to Vault / Second / synapse.md
+- Do NOT output any preamble, routing analysis, or completion summary
+
+Just answer the user's question directly:
+- Answer in Korean when the user writes Korean
+- Be practical and directly useful
+- Start immediately with the actual answer — no introduction
 """
 
 
@@ -46,6 +51,8 @@ def main() -> int:
     parser.add_argument("--prompt", default="", help="Prompt text. If omitted, stdin is used.")
     parser.add_argument("--prompt-file", default="", help="UTF-8 prompt file path.")
     parser.add_argument("--timeout", type=int, default=900, help="Timeout seconds.")
+    parser.add_argument("--model", default="sonnet", help="Claude model alias (sonnet/opus/haiku).")
+    parser.add_argument("--tool-mode", default="safe", choices=["safe", "auto"], help="Tool permission mode.")
     args = parser.parse_args()
 
     user_prompt = read_prompt(args).strip()
@@ -53,9 +60,11 @@ def main() -> int:
         print("No prompt supplied.", file=sys.stderr)
         return 2
 
-    prompt = f"{SYSTEM_PROMPT}\n\n## User Message\n\n{user_prompt}"
+    os.environ["BUCKY_CHAT_MODEL"] = args.model
+    os.environ["BUCKY_TOOL_MODE"] = args.tool_mode
+
     try:
-        print(run_bucky(prompt, timeout=args.timeout))
+        print(run_bucky(user_prompt, system_prompt=SYSTEM_PROMPT, timeout=args.timeout))
         return 0
     except BuckyError as exc:
         print(str(exc), file=sys.stderr)

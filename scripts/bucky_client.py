@@ -11,6 +11,7 @@ Supported runtimes:
 from __future__ import annotations
 
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -50,16 +51,28 @@ def is_bucky_available() -> bool:
     return shutil.which(command) is not None
 
 
-def build_bucky_command() -> list[str]:
+def build_bucky_command(system_prompt: str | None = None) -> list[str]:
     command = bucky_command()
-    return [
+    model = os.getenv("BUCKY_CHAT_MODEL", "sonnet").strip() or "sonnet"
+    tool_mode = os.getenv("BUCKY_TOOL_MODE", "safe").strip() or "safe"
+
+    cmd = [
         command,
-        "--output-format",
-        os.getenv("CLAUDE_OUTPUT_FORMAT", "text").strip() or "text",
+        "--print",
+        "--output-format", os.getenv("CLAUDE_OUTPUT_FORMAT", "text").strip() or "text",
+        "--model", model,
+        "--no-session-persistence",
     ]
+    if system_prompt:
+        cmd += ["--append-system-prompt", system_prompt]
+    if tool_mode == "safe":
+        cmd += ["--tools", ""]                           # no tools → no permission prompts
+    else:
+        cmd += ["--dangerously-skip-permissions"]        # auto-approve all tool calls
+    return cmd
 
 
-def run_bucky(prompt: str, *, timeout: int | None = None) -> str:
+def run_bucky(prompt: str, *, system_prompt: str | None = None, timeout: int | None = None) -> str:
     if not is_bucky_available():
         raise BuckyError(
             f"Bucky CLI not found. CLAUDE_COMMAND={bucky_command()!r} — "
@@ -75,7 +88,7 @@ def run_bucky(prompt: str, *, timeout: int | None = None) -> str:
     env.pop("CLAUDE_API_KEY", None)
 
     result = subprocess.run(
-        build_bucky_command(),
+        build_bucky_command(system_prompt),
         input=prompt,
         capture_output=True,
         text=True,
@@ -88,4 +101,9 @@ def run_bucky(prompt: str, *, timeout: int | None = None) -> str:
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip()
         raise BuckyError(f"Bucky runtime failed with code {result.returncode}: {detail}")
-    return result.stdout.strip()
+    return _strip_preamble(result.stdout).strip()
+
+
+def _strip_preamble(text: str) -> str:
+    """Remove CLAUDE.md PC-detection preamble lines from the start of the response."""
+    return re.sub(r'^[🏠💻🏢][^\n]*\n+(?:-{3,}\n+)?', '', text, count=1)

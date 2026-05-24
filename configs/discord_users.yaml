@@ -1,0 +1,39 @@
+# Discord 사용자 접근제어 설정
+# discord_bot.py가 시작 시 로드. 변경 시 봇 재시작 필요.
+#
+# 이 파일이 없으면 허용 채널의 모든 사용자가 Bucky에 접근 가능.
+# 등록하면 미등록 사용자는 접근 차단.
+#
+# 역할(role):
+#   owner     — 모든 기능 (구현 요청, Q&A, Wiki 생성)
+#   developer — Q&A + Wiki 생성 (구현 요청 제한적)
+#   viewer    — Q&A 전용
+#
+# author_id: Discord 사용자 ID (숫자, 문자열로 입력)
+# 확인 방법: Discord 설정 → 고급 → 개발자 모드 ON → 사용자 우클릭 → ID 복사
+
+users:
+  "1032248414127280199":
+    name: jaeha
+    display: "이재하"
+    role: owner
+    allowed_types:
+      - qa
+      - implementation
+      - wiki
+
+  # 추가 사용자 예시 (주석 해제 후 ID 교체):
+  # "USER_ID_HERE":
+  #   name: developer1
+  #   display: "개발자1"
+  #   role: developer
+  #   allowed_types:
+  #     - qa
+  #     - wiki
+
+# 채널별 최소 역할 설정 (선택)
+# 미설정 채널은 users 등록 기준으로만 판단
+channels:
+  "1507232437808271382":
+    name: "일반"
+    min_role: owner

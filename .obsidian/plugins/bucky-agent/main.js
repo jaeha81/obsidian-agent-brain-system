@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS = {
   chatBridgeScript: "scripts/bucky_chat_once.py",
   chatTimeoutSeconds: 900,
   startupDelayMs: 2500,
+  chatModel: "sonnet",    // sonnet | opus | haiku
+  toolMode: "safe",       // safe (no tools) | auto (dangerously-skip-permissions)
   scripts: [
     "scripts/raw_import_watcher.py",
     "scripts/codex_review_runner.py",
@@ -244,9 +246,11 @@ class BuckyAgentPlugin extends Plugin {
       }
 
       const timeoutSeconds = Number(this.settings.chatTimeoutSeconds || 900);
+      const model = this.settings.chatModel || DEFAULT_SETTINGS.chatModel;
+      const toolMode = this.settings.toolMode || DEFAULT_SETTINGS.toolMode;
       const child = childProcess.spawn(
         this.settings.pythonCommand,
-        [bridgePath, "--timeout", String(timeoutSeconds)],
+        [bridgePath, "--timeout", String(timeoutSeconds), "--model", model, "--tool-mode", toolMode],
         {
           cwd: this.rootPath,
           stdio: ["pipe", "pipe", "pipe"],
@@ -543,15 +547,50 @@ class BuckyChatView extends ItemView {
     root.empty();
     root.classList.add("bucky-chat-view");
 
+    // ── Titlebar ──────────────────────────────────────────────────────────
     const titlebar = root.createDiv({ cls: "bucky-code-titlebar" });
-    titlebar.createDiv({ cls: "bucky-code-title", text: "Untitled" });
+    titlebar.createDiv({ cls: "bucky-code-title", text: "Bucky Code" });
     const titleActions = titlebar.createDiv({ cls: "bucky-code-actions" });
+
+    // Model selector
+    const modelSel = titleActions.createEl("select", { cls: "bucky-model-select" });
+    [
+      { value: "sonnet", label: "Sonnet 4.6" },
+      { value: "opus",   label: "Opus 4.7" },
+      { value: "haiku",  label: "Haiku 4.5" },
+    ].forEach(({ value, label }) => {
+      const opt = modelSel.createEl("option", { value, text: label });
+      if ((this.plugin.settings.chatModel || "sonnet") === value) opt.selected = true;
+    });
+    modelSel.addEventListener("change", async () => {
+      this.plugin.settings.chatModel = modelSel.value;
+      await this.plugin.saveSettings();
+    });
+
+    // Tool mode toggle
+    const toolMode = this.plugin.settings.toolMode || "safe";
+    this.toolBtn = titleActions.createEl("button", {
+      cls: "bucky-icon-button bucky-tool-mode-btn",
+      attr: { title: toolMode === "safe" ? "Safe mode (no tools)" : "Auto mode (tools enabled)", "aria-label": "Tool mode" },
+      text: toolMode === "safe" ? "🔒" : "⚡",
+    });
+    this.toolBtn.addEventListener("click", async () => {
+      const next = (this.plugin.settings.toolMode === "safe") ? "auto" : "safe";
+      this.plugin.settings.toolMode = next;
+      await this.plugin.saveSettings();
+      this.toolBtn.textContent = next === "safe" ? "🔒" : "⚡";
+      this.toolBtn.setAttribute("title", next === "safe" ? "Safe mode (no tools)" : "Auto mode (tools enabled)");
+      new Notice(`Bucky: ${next === "safe" ? "Safe mode (채팅 전용)" : "Auto mode (툴 사용 가능)"}`);
+    });
+
+    // History & New chat
     const historyButton = titleActions.createEl("button", {
       cls: "bucky-icon-button",
       attr: { title: "History", "aria-label": "History" },
     });
     setIcon(historyButton, "clock");
     historyButton.addEventListener("click", () => this.openTranscript());
+
     const newButton = titleActions.createEl("button", {
       cls: "bucky-icon-button",
       attr: { title: "New chat", "aria-label": "New chat" },
@@ -560,64 +599,57 @@ class BuckyChatView extends ItemView {
     newButton.addEventListener("click", () => {
       this.plugin.chatMessages = [];
       this.renderMessages();
+      new Notice("Bucky: 새 대화 시작");
     });
 
-    const brand = root.createDiv({ cls: "bucky-code-brand" });
-    brand.createEl("span", { cls: "bucky-code-spark" });
-    brand.createEl("span", { text: "Bucky Code" });
-
+    // ── Messages ─────────────────────────────────────────────────────────
     const stage = root.createDiv({ cls: "bucky-code-stage" });
     this.messagesEl = stage.createDiv({ cls: "bucky-chat-messages" });
     this.renderMessages();
 
+    // ── Composer ─────────────────────────────────────────────────────────
     const composerWrap = root.createDiv({ cls: "bucky-composer-wrap" });
-    composerWrap.createDiv({
-      cls: "bucky-terminal-tip",
-      text: "Prefer the Terminal experience? Switch back in Settings.",
-    });
     const form = composerWrap.createEl("form", { cls: "bucky-chat-form" });
     const inputRow = form.createDiv({ cls: "bucky-input-row" });
     this.inputEl = inputRow.createEl("textarea", {
       cls: "bucky-chat-input",
-      attr: {
-        rows: "1",
-        placeholder: "ctrl esc to focus or unfocus Bucky",
-      },
+      attr: { rows: "1", placeholder: "메시지 입력 (Enter 전송, Shift+Enter 줄바꿈)" },
     });
-    const micEl = inputRow.createDiv({ cls: "bucky-mic" });
-    setIcon(micEl, "mic");
+
     const controls = form.createDiv({ cls: "bucky-composer-controls" });
     const leftControls = controls.createDiv({ cls: "bucky-composer-left" });
-    const plusButton = leftControls.createEl("button", {
+
+    // Attach file button
+    const attachBtn = leftControls.createEl("button", {
       cls: "bucky-tool-button",
-      attr: { type: "button", title: "Attach current file", "aria-label": "Attach current file" },
+      attr: { type: "button", title: "현재 파일 첨부", "aria-label": "파일 첨부" },
     });
-    setIcon(plusButton, "plus");
-    plusButton.addEventListener("click", () => this.attachActiveFile());
-    const fileButton = leftControls.createEl("button", {
+    setIcon(attachBtn, "paperclip");
+    attachBtn.addEventListener("click", () => this.attachActiveFile());
+    this.attachEl = leftControls.createDiv({ cls: "bucky-attachment", text: "파일 없음" });
+
+    // Clear attachment button
+    const clearAttachBtn = leftControls.createEl("button", {
       cls: "bucky-tool-button",
-      attr: { type: "button", title: "Current file", "aria-label": "Current file" },
+      attr: { type: "button", title: "첨부 해제", "aria-label": "첨부 해제" },
     });
-    setIcon(fileButton, "file");
-    fileButton.addEventListener("click", () => this.attachActiveFile());
-    this.attachEl = leftControls.createDiv({ cls: "bucky-attachment", text: "no file" });
+    setIcon(clearAttachBtn, "x");
+    clearAttachBtn.addEventListener("click", () => {
+      this.attachedFile = null;
+      this.refreshAttachmentLabel();
+    });
+
     const rightControls = controls.createDiv({ cls: "bucky-composer-right" });
-    rightControls.createDiv({ cls: "bucky-edit-mode", text: "Ask before edits" });
     this.statusEl = rightControls.createDiv({ cls: "bucky-chat-status", text: "ready" });
     this.sendButton = rightControls.createEl("button", {
       cls: "bucky-send-button",
-      attr: { title: "Send", "aria-label": "Send" },
+      attr: { title: "전송", "aria-label": "전송" },
     });
     setIcon(this.sendButton, "arrow-up");
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      this.handleSubmit();
-    });
-    this.inputEl.addEventListener("keydown", event => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        this.handleSubmit();
-      }
+
+    form.addEventListener("submit", e => { e.preventDefault(); this.handleSubmit(); });
+    this.inputEl.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.handleSubmit(); }
     });
     this.inputEl.addEventListener("input", () => {
       this.inputEl.style.height = "auto";
@@ -641,13 +673,30 @@ class BuckyChatView extends ItemView {
       const item = this.messagesEl.createDiv({
         cls: `bucky-chat-message bucky-chat-${message.role}`,
       });
-      item.createDiv({ cls: "bucky-chat-role", text: message.role });
+      const header = item.createDiv({ cls: "bucky-chat-header" });
+      header.createDiv({ cls: "bucky-chat-role", text: message.role === "bucky" ? "버키" : message.role === "user" ? "나" : message.role });
+      // Copy button for every message
+      const copyBtn = header.createEl("button", {
+        cls: "bucky-copy-btn",
+        attr: { title: "복사", "aria-label": "복사" },
+      });
+      setIcon(copyBtn, "copy");
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(message.text).then(() => {
+          setIcon(copyBtn, "check");
+          window.setTimeout(() => setIcon(copyBtn, "copy"), 1500);
+        });
+      });
       const body = item.createDiv({ cls: "bucky-chat-body" });
       if (message.role === "bucky") {
-        renders.push(
-          MarkdownRenderer.renderMarkdown(message.text, body, "", this)
-            .catch(() => { body.setText(message.text); })
-        );
+        if (message.text === "...") {
+          body.createDiv({ cls: "bucky-thinking-dots", text: "..." });
+        } else {
+          renders.push(
+            MarkdownRenderer.renderMarkdown(message.text, body, "", this)
+              .catch(() => { body.setText(message.text); })
+          );
+        }
       } else {
         body.setText(message.text);
       }
@@ -660,7 +709,7 @@ class BuckyChatView extends ItemView {
 
   refreshAttachmentLabel() {
     if (!this.attachEl) return;
-    this.attachEl.setText(this.attachedFile ? this.attachedFile.path : "no file");
+    this.attachEl.setText(this.attachedFile ? path.basename(this.attachedFile.path) : "파일 없음");
   }
 
   attachActiveFile() {
@@ -668,14 +717,14 @@ class BuckyChatView extends ItemView {
     if (file) {
       const transcriptPath = this.plugin.settings.chatTranscriptPath || DEFAULT_SETTINGS.chatTranscriptPath;
       if (file.path === transcriptPath) {
-        new Notice("Bucky: cannot attach the chat transcript itself");
+        new Notice("Bucky: 채팅 기록 파일은 첨부할 수 없습니다");
         return;
       }
       this.attachedFile = file;
-      new Notice(`Bucky attached: ${file.path}`);
+      new Notice(`첨부: ${file.name}`);
     } else {
       this.attachedFile = null;
-      new Notice("No active file");
+      new Notice("열린 파일 없음");
     }
     this.refreshAttachmentLabel();
   }
