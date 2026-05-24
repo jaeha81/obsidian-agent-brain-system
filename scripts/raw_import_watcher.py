@@ -9,12 +9,14 @@ Vision (stpe1.md):
 Flow:
   RAW_IMPORT/ (새 파일 감지)
     → 파일 타입 분류
-        .wav/.mp3/.m4a/.ogg/.flac  → Whisper 전사 → inbox (voice_transcript)
-        .mp4/.mov/.avi/.mkv        → ffmpeg 오디오 추출 → Whisper → inbox (video_transcript)
-        .txt/.md                   → 직접 inbox 저장 (raw_text)
-        .pdf/.docx/.xlsx           → inbox 등록 (document_review)
-        .jpg/.jpeg/.png/.webp      → inbox 등록 (image_review)
-        .json                      → Discord export 처리 (discord_intake)
+        .wav/.mp3/.m4a/.ogg/.flac      → Whisper 전사 → inbox (voice_transcript)
+        .mp4/.mov/.avi/.mkv            → ffmpeg 오디오 추출 → Whisper → inbox (video_transcript)
+        .url / youtube_urls.txt        → yt-dlp 오디오 추출 → Whisper → inbox (video_transcript)
+        .txt/.md (YouTube URL 포함 시) → URL 추출 → yt-dlp 처리
+        .txt/.md (일반)                → 직접 inbox 저장 (raw_text)
+        .pdf/.docx/.xlsx               → inbox 등록 (document_review)
+        .jpg/.jpeg/.png/.webp          → inbox 등록 (image_review)
+        .json                          → Discord export 처리 (discord_intake)
     → 원본 01_RAW/{category}/ 로 이동
     → 처리 완료 기록 (.processed_files.json)
 
@@ -26,12 +28,14 @@ Usage:
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+import urllib.parse
 
 from dotenv import load_dotenv
 
@@ -56,6 +60,11 @@ TEXT_EXTS  = {".txt", ".md"}
 DOC_EXTS   = {".pdf", ".docx", ".xlsx", ".pptx", ".hwp"}
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
 JSON_EXTS  = {".json"}
+URL_EXTS   = {".url"}
+
+YOUTUBE_URL_RE = re.compile(
+    r"https?://(?:www\.)?(?:youtube\.com/watch\?[^\s]*v=|youtu\.be/)[\w\-]+"
+)
 
 CATEGORY_MAP = {
     **{e: "Voice"    for e in AUDIO_EXTS},
@@ -64,9 +73,10 @@ CATEGORY_MAP = {
     **{e: "Docs"     for e in DOC_EXTS},
     **{e: "Images"   for e in IMAGE_EXTS},
     **{e: "Discord"  for e in JSON_EXTS},
+    **{e: "YouTube"  for e in URL_EXTS},
 }
 
-ALL_SUPPORTED = AUDIO_EXTS | VIDEO_EXTS | TEXT_EXTS | DOC_EXTS | IMAGE_EXTS | JSON_EXTS
+ALL_SUPPORTED = AUDIO_EXTS | VIDEO_EXTS | TEXT_EXTS | DOC_EXTS | IMAGE_EXTS | JSON_EXTS | URL_EXTS
 
 
 # ── 상태 관리 ──────────────────────────────────────────────────────────────────
@@ -192,8 +202,13 @@ def handle_video(path: Path) -> Path:
 
 
 def handle_text(path: Path) -> Path:
-    """텍스트/마크다운 → inbox 직접 저장"""
+    """텍스트/마크다운 → YouTube URL 포함 시 yt-dlp 처리, 아니면 inbox 직접 저장"""
     content = path.read_text(encoding="utf-8", errors="ignore")
+    urls = _extract_youtube_urls(content)
+    if urls:
+        print(f"  [Watcher] 텍스트 파일에서 YouTube URL {len(urls)}개 감지")
+        results = [handle_youtube_url(u, path) for u in urls]
+        return results[0]
     if len(content) > 8000:
         content = content[:8000] + "\n\n[... 이하 생략 — 원본 파일 참조]"
     body = f"## 텍스트 파일 내용\n\n{content}"
@@ -230,6 +245,81 @@ def handle_image(path: Path) -> Path:
     return out
 
 
+def _extract_youtube_urls(text: str) -> list[str]:
+    """텍스트에서 YouTube URL을 모두 추출한다."""
+    return YOUTUBE_URL_RE.findall(text)
+
+
+def handle_youtube_url(url: str, source_path: Path) -> Path:
+    """YouTube URL → yt-dlp 오디오 추출 → Whisper 전사 → inbox"""
+    video_id = re.search(r"(?:v=|youtu\.be/)([\w\-]+)", url)
+    stem = video_id.group(1) if video_id else "youtube"
+    audio_out = RAW_IMPORT / f"_tmp_{stem}.mp3"
+
+    extracted = False
+    try:
+        result = subprocess.run(
+            [
+                "yt-dlp", "-x", "--audio-format", "mp3",
+                "-o", str(audio_out),
+                "--no-playlist", url,
+            ],
+            capture_output=True, timeout=300,
+        )
+        if result.returncode == 0 and audio_out.exists():
+            extracted = True
+            print(f"  [Watcher] yt-dlp 다운로드 완료: {audio_out.name}")
+        else:
+            print(f"  [Watcher] yt-dlp 실패: {result.stderr.decode(errors='ignore')[:200]}")
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        print(f"  [Watcher] yt-dlp 없음 또는 타임아웃 ({e})")
+
+    if extracted:
+        out = handle_audio(audio_out)
+        audio_out.unlink(missing_ok=True)
+        # source_file을 YouTube URL로 교체
+        txt = out.read_text(encoding="utf-8")
+        txt = txt.replace(f"source_file: {audio_out.name}", f"source_file: {url}")
+        out.write_text(txt, encoding="utf-8")
+        return out
+    else:
+        body = (
+            f"## YouTube URL 수신 — 수동 처리 필요\n\n"
+            f"URL: {url}\n\n"
+            f"yt-dlp 설치 후:\n"
+            f"`yt-dlp -x --audio-format mp3 -o audio.mp3 \"{url}\"`\n"
+            f"그 다음: `python scripts/whisper_transcribe.py audio.mp3`"
+        )
+        out = write_inbox("youtube_pending", "video_transcript", source_path, body,
+                          extra_fm=f"youtube_url: {url}\n")
+        print(f"  [Watcher] YouTube 수동 처리 대기 → {out.name}")
+        return out
+
+
+def handle_url_file(path: Path) -> list[Path]:
+    """.url 파일 또는 YouTube URL이 포함된 텍스트 파일 처리."""
+    content = path.read_text(encoding="utf-8", errors="ignore")
+    urls = _extract_youtube_urls(content)
+
+    # .url 파일 형식 (Windows Internet Shortcut) — URL= 라인 파싱
+    if path.suffix.lower() == ".url":
+        for line in content.splitlines():
+            if line.strip().upper().startswith("URL="):
+                candidate = line.split("=", 1)[1].strip()
+                if YOUTUBE_URL_RE.match(candidate) and candidate not in urls:
+                    urls.append(candidate)
+
+    if not urls:
+        body = f"## URL 파일 — YouTube URL 없음\n\n원본:\n```\n{content[:500]}\n```"
+        return [write_inbox("url_noyoutube", "raw_text", path, body)]
+
+    results = []
+    for url in urls:
+        print(f"  [Watcher] YouTube URL 감지: {url}")
+        results.append(handle_youtube_url(url, path))
+    return results
+
+
 def handle_discord_json(path: Path) -> Path:
     """Discord JSON export → discord_intake 파이프라인"""
     try:
@@ -255,6 +345,8 @@ def process_file(path: Path) -> bool:
             handle_audio(path)
         elif ext in VIDEO_EXTS:
             handle_video(path)
+        elif ext in URL_EXTS:
+            handle_url_file(path)
         elif ext in TEXT_EXTS:
             handle_text(path)
         elif ext in DOC_EXTS:

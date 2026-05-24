@@ -34,6 +34,7 @@ API Key, 비밀번호, PII는 어떤 파일에도 포함하지 않는다.
 ## Agent Collaboration Rules
 
 - Bucky는 Claude Code와 Codex가 같은 파일을 동시에 수정하지 않도록 라우팅한다.
+- 사용자가 별도 앱에서 Claude Code 또는 Codex에게 직접 지시한 경우, 그 작업이 공유 상태, 파일, PC 설정, AgentBus, Git 상태, 최종 보고에 영향을 주면 Bucky는 반드시 알고 추적한다.
 - 작업 시작 전 LOCKS/ 에 잠금 파일 생성.
 - 작업 완료 후 잠금 파일 즉시 삭제.
 - Codex는 Claude Code 구현 결과의 독립 검토자다 — Bucky와 사용자에게 직접 보고한다.

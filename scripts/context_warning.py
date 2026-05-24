@@ -62,8 +62,11 @@ def main():
             }
             icon = ICONS[level]
             msg = f"{icon} [{level}] {msgs[level]}"
-            # Stop hook: decision block으로 메시지 표시
-            print(json.dumps({"decision": "block", "reason": msg}))
+            # CRITICAL/WARNING만 block — CAUTION은 stderr 출력 후 continue
+            if level in ("CRITICAL", "WARNING"):
+                print(json.dumps({"decision": "block", "reason": msg}))
+            else:
+                print(msg, file=sys.stderr)
             break
 
 

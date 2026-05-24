@@ -204,9 +204,34 @@ class BuckyAgentPlugin extends Plugin {
     return message;
   }
 
-  async sendChat(userText) {
-    const reply = await this.runChatBridge(userText);
-    await this.appendChatTranscript(userText, reply);
+  async loadChatHistoryFromTranscript() {
+    const transcriptPath = this.settings.chatTranscriptPath || DEFAULT_SETTINGS.chatTranscriptPath;
+    const adapter = this.app.vault.adapter;
+    if (!(await adapter.exists(transcriptPath))) return;
+    try {
+      const raw = await adapter.read(transcriptPath);
+      const blocks = raw.split(/\n(## \d{4}-\d{2}-\d{2}T[^\n]+)\n/);
+      const entries = [];
+      for (let i = 1; i < blocks.length; i += 2) {
+        const content = blocks[i + 1] || "";
+        const userMatch = content.match(/### User\n\n([\s\S]*?)(?=\n### Bucky|\n## |\s*$)/);
+        const buckyMatch = content.match(/### Bucky\n\n([\s\S]*?)(?=\n## |\s*$)/);
+        const userText = userMatch ? userMatch[1].trim() : null;
+        const buckyText = buckyMatch ? buckyMatch[1].trim() : null;
+        // Skip corrupted entries (recursive prompts or empty)
+        if (!userText || userText.length > 2000 || userText.includes("# Bucky Code IDE Chat")) continue;
+        entries.push({ role: "user", text: userText, time: blocks[i] });
+        if (buckyText) entries.push({ role: "bucky", text: buckyText, time: blocks[i] });
+      }
+      this.chatMessages = entries.slice(-20);
+    } catch (e) {
+      console.error("Bucky: failed to load chat history", e);
+    }
+  }
+
+  async sendChat(idePrompt, originalPrompt) {
+    const reply = await this.runChatBridge(idePrompt);
+    await this.appendChatTranscript(originalPrompt || idePrompt, reply);
     return reply;
   }
 
@@ -292,9 +317,17 @@ class BuckyAgentPlugin extends Plugin {
 
     await this.ensureParentFolder(transcriptPath);
     const adapter = this.app.vault.adapter;
-    const existing = await adapter.exists(transcriptPath)
+    let existing = (await adapter.exists(transcriptPath))
       ? await adapter.read(transcriptPath)
       : header;
+
+    // Truncate: keep last 50 entries to prevent unbounded growth
+    const tsPattern = /\n## \d{4}-\d{2}-\d{2}T/g;
+    const matches = [...existing.matchAll(tsPattern)];
+    if (matches.length > 50) {
+      existing = header.trim() + existing.slice(matches[matches.length - 50].index);
+    }
+
     await adapter.write(transcriptPath, `${existing.trim()}\n\n${entry}`);
   }
 
@@ -499,6 +532,9 @@ class BuckyChatView extends ItemView {
   }
 
   async onOpen() {
+    if (!this.plugin.chatMessages.length) {
+      await this.plugin.loadChatHistoryFromTranscript();
+    }
     this.render();
   }
 
@@ -583,6 +619,10 @@ class BuckyChatView extends ItemView {
         this.handleSubmit();
       }
     });
+    this.inputEl.addEventListener("input", () => {
+      this.inputEl.style.height = "auto";
+      this.inputEl.style.height = Math.min(this.inputEl.scrollHeight, 200) + "px";
+    });
     this.refreshAttachmentLabel();
   }
 
@@ -626,6 +666,11 @@ class BuckyChatView extends ItemView {
   attachActiveFile() {
     const file = this.app.workspace.getActiveFile();
     if (file) {
+      const transcriptPath = this.plugin.settings.chatTranscriptPath || DEFAULT_SETTINGS.chatTranscriptPath;
+      if (file.path === transcriptPath) {
+        new Notice("Bucky: cannot attach the chat transcript itself");
+        return;
+      }
       this.attachedFile = file;
       new Notice(`Bucky attached: ${file.path}`);
     } else {
@@ -636,6 +681,21 @@ class BuckyChatView extends ItemView {
   }
 
   async buildIdePrompt(prompt, attachFile) {
+    // chatMessages has current user msg already appended; exclude it from history
+    const historyRaw = this.plugin.chatMessages.slice(0, -1).slice(-16);
+    let historyContext = "";
+    if (historyRaw.length > 0) {
+      const lines = ["## Conversation History", ""];
+      for (const msg of historyRaw) {
+        if (msg.role === "user") {
+          lines.push("### User", "", msg.text.trim(), "");
+        } else if (msg.role === "bucky") {
+          lines.push("### Bucky", "", msg.text.trim(), "");
+        }
+      }
+      historyContext = lines.join("\n");
+    }
+
     let fileContext = "";
     if (attachFile) {
       try {
@@ -645,24 +705,23 @@ class BuckyChatView extends ItemView {
           `Path: ${attachFile.path}`,
           "",
           "```markdown",
-          content.slice(0, 12000),
+          content.slice(0, 8000),
           "```",
         ].join("\n");
       } catch (error) {
         fileContext = `## Attached File\nPath: ${attachFile.path}\nRead failed: ${error.message || error}`;
       }
     }
-    return [
+
+    const parts = [
       "# Bucky Code IDE Chat",
       "",
       "Mode: Ask before edits. Do not edit files without explicit user approval.",
-      "",
-      fileContext,
-      "",
-      "## User Message",
-      "",
-      prompt,
-    ].join("\n");
+    ];
+    if (historyContext) parts.push("", historyContext);
+    if (fileContext) parts.push("", fileContext);
+    parts.push("", "## User Message", "", prompt);
+    return parts.join("\n");
   }
 
   setBusy(value) {
@@ -696,12 +755,17 @@ class BuckyChatView extends ItemView {
     this.attachedFile = null;
     this.refreshAttachmentLabel();
 
+    const thinkingMsg = this.plugin.addChatMessage("bucky", "...");
+    this.renderMessages();
+
     try {
       const idePrompt = await this.buildIdePrompt(prompt, attachFile);
-      const reply = await this.plugin.sendChat(idePrompt);
-      this.plugin.addChatMessage("bucky", reply);
+      const reply = await this.plugin.sendChat(idePrompt, prompt);
+      thinkingMsg.text = reply;
+      thinkingMsg.role = "bucky";
     } catch (error) {
-      this.plugin.addChatMessage("error", String(error.message || error));
+      thinkingMsg.text = String(error.message || error);
+      thinkingMsg.role = "error";
       new Notice("Bucky chat failed");
     } finally {
       this.setBusy(false);

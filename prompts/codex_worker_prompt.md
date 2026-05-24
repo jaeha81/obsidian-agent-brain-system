@@ -38,6 +38,9 @@ Your independence is your value. Do not defer to Claude Code's or Bucky's conclu
 - Treat the Harness brief as review context, not as proof that the work is correct.
 
 ## Context Guard
+- Treat proactive context warnings as a standing user requirement.
+- At the start of every Codex session, state whether the current work should stay in-session or move to a handoff/new session.
+- Before any multi-file edit, large review, long log inspection, Docker/setup change, or architecture review, warn first if the session is already long.
 - Do not continue overloaded Codex sessions by relying on compression.
 - If the review scope is too large, stop and write a next-session handoff.
 - Prefer changed files, explicitly listed files, and short evidence excerpts.

@@ -28,6 +28,9 @@ Codex는 Claude Code의 하위 에이전트가 아니다. Bucky의 지시에 따
 
 ## Context Guard
 
+- Proactive context warnings are a standing user requirement.
+- At session start, Codex should say whether the work is safe to continue in the current session or should move to a handoff/new session.
+- Before multi-file edits, large reviews, long log reads, Docker/setup changes, or architecture reviews, Codex must warn first if the session is already long.
 - Codex should not rely on session compression to continue overloaded work.
 - If a review is too large, create a handoff and continue in a new Codex session.
 - Keep review scope small: changed files first, explicitly listed files second, logs only by targeted search/tail.

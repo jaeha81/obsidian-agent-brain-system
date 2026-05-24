@@ -50,6 +50,10 @@ POLL_INTERVAL: int = int(os.getenv("DISPATCHER_POLL_INTERVAL", "5"))
 DISCORD_BOT_TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
 DISCORD_API = "https://discord.com/api/v10"
 
+WIKI_DIR: Path = VAULT / "02_Wiki"
+WIKI_AUTOWRITE_ENABLED: bool = os.getenv("WIKI_AUTOWRITE_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"}
+WIKI_TASK_TYPES = {"raw_text", "document_review", "voice_transcript", "video_transcript"}
+
 # ── 헬퍼 ───────────────────────────────────────────────────────────────────────
 
 _FM_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
@@ -302,6 +306,80 @@ def route_to_codex(filepath: Path, fm: dict, body: str) -> Path:
     return dest
 
 
+# ── LLM Wiki 자동 생성 ────────────────────────────────────────────────────────
+
+_WIKI_PROMPT_TEMPLATE = """\
+아래 원문을 분석해서 Obsidian 마크다운 위키 페이지를 한 개 작성해줘.
+
+## 출력 규칙 (반드시 준수)
+1. 첫 줄: `TITLE: <제목>` (파일명으로 사용, 특수문자 금지)
+2. 둘째 줄: `CATEGORY: <카테고리>` (영문 소문자, 슬래시 허용 예: tech/ai)
+3. 셋째 줄부터: 실제 마크다운 위키 본문
+   - 요약 섹션 (`## 요약`)
+   - 핵심 개념 섹션 (`## 핵심 개념`) — 엔티티를 [[wikilink]] 형태로 표기
+   - 관련 주제 섹션 (`## 관련 주제`) — [[wikilink]] 목록
+   - 출처 섹션 (`## 출처`) — source_file 명시
+
+## 원문
+source_file: {source_file}
+task_type: {task_type}
+
+{body}
+"""
+
+
+def generate_wiki_entry(body: str, source_file: str, task_type: str) -> tuple[str, str, str]:
+    """LLM을 호출해 위키 제목·카테고리·본문을 반환한다."""
+    prompt = _WIKI_PROMPT_TEMPLATE.format(
+        source_file=source_file,
+        task_type=task_type,
+        body=body[:6000],
+    )
+    raw = handle_via_api(prompt)
+
+    lines = raw.strip().splitlines()
+    title = "untitled"
+    category = "inbox"
+    body_start = 0
+
+    for i, line in enumerate(lines):
+        if line.startswith("TITLE:"):
+            title = re.sub(r"[^\w가-힣\- ]", "", line[6:].strip())[:60] or "untitled"
+        elif line.startswith("CATEGORY:"):
+            category = re.sub(r"[^\w/\-]", "", line[9:].strip().lower()) or "inbox"
+        elif title != "untitled" and category != "inbox":
+            body_start = i
+            break
+
+    wiki_body = "\n".join(lines[body_start:]).strip()
+    return title, category, wiki_body
+
+
+def write_wiki_file(title: str, category: str, wiki_body: str, source_file: str) -> Path:
+    """ObsidianVault/02_Wiki/{category}/{title}.md 에 위키 파일을 저장한다."""
+    dest_dir = WIKI_DIR / category
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_title = re.sub(r"[^\w가-힣\- ]", "_", title).strip()
+    dest = dest_dir / f"{safe_title}.md"
+
+    # 동명 파일 충돌 방지
+    if dest.exists():
+        dest = dest_dir / f"{safe_title}_{datetime.now().strftime('%H%M%S')}.md"
+
+    frontmatter = (
+        f"---\n"
+        f"title: {title}\n"
+        f"category: {category}\n"
+        f"source_file: {source_file}\n"
+        f"created: {iso()}\n"
+        f"tags:\n  - llm-wiki\n  - auto-generated\n"
+        f"---\n\n"
+    )
+    dest.write_text(frontmatter + wiki_body + "\n", encoding="utf-8")
+    return dest
+
+
 # ── 태스크 처리 ────────────────────────────────────────────────────────────────
 
 _IMPL_KEYWORDS = (
@@ -365,6 +443,22 @@ def process_file(filepath: Path) -> None:
                 "processed_by": "AgentDispatcher",
                 "processed_at": iso(),
                 "output": str(result_file),
+            })
+            filepath.rename(COMPLETED / filepath.name)
+
+        elif task_type in WIKI_TASK_TYPES and WIKI_AUTOWRITE_ENABLED:
+            source_file = fm.get("source_file", filepath.name)
+            print(f"  [Dispatcher] Wiki auto-write: {source_file}")
+            title, category, wiki_body = generate_wiki_entry(body, source_file, task_type)
+            wiki_file = write_wiki_file(title, category, wiki_body, source_file)
+            result_text = f"Wiki created: `{wiki_file.relative_to(VAULT)}`\nTitle: {title}\nCategory: {category}"
+            result_file = _write_result(filepath.name, result_text, "wiki")
+            print(f"  [Dispatcher] Wiki → {wiki_file}")
+            update_frontmatter(filepath, {
+                "status": "done",
+                "processed_by": f"AgentDispatcher+{WORKER_NAME}",
+                "processed_at": iso(),
+                "output": str(wiki_file),
             })
             filepath.rename(COMPLETED / filepath.name)
 

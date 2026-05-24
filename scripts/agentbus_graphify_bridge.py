@@ -164,8 +164,7 @@ def main():
         sys.exit(1)
 
     if not ensure_context_pack(args.project, graph_dir, context_pack):
-        print("ERROR: Context pack generation failed — aborting AgentBus message write", file=sys.stderr)
-        sys.exit(1)
+        print("WARNING: Context pack generation failed — proceeding without context pack", file=sys.stderr)
 
     stats = parse_graph_stats(graph_dir)
     msg_path = write_request_message(args.project, graph_dir, context_pack, stats)
