@@ -122,6 +122,8 @@ class BuckyAgentPlugin extends Plugin {
     if (this.chatFocusTimer) window.clearTimeout(this.chatFocusTimer);
     if (this.refreshTimer) window.clearInterval(this.refreshTimer);
     this.app.workspace.detachLeavesOfType(BUCKY_CHAT_VIEW);
+    const views = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW).map(l => l.view);
+    for (const v of views) { if (v.elapsedTimer) window.clearInterval(v.elapsedTimer); }
   }
 
   getVaultPath() {
@@ -618,39 +620,42 @@ class BuckyChatView extends ItemView {
 
   refreshAttachmentLabel() {
     if (!this.attachEl) return;
-    const file = this.app.workspace.getActiveFile();
-    this.attachEl.setText(file ? file.path : "no file");
+    this.attachEl.setText(this.attachedFile ? this.attachedFile.path : "no file");
   }
 
   attachActiveFile() {
-    this.refreshAttachmentLabel();
     const file = this.app.workspace.getActiveFile();
-    new Notice(file ? `Bucky attached: ${file.path}` : "No active file");
+    if (file) {
+      this.attachedFile = file;
+      new Notice(`Bucky attached: ${file.path}`);
+    } else {
+      this.attachedFile = null;
+      new Notice("No active file");
+    }
+    this.refreshAttachmentLabel();
   }
 
-  async buildIdePrompt(prompt) {
-    const file = this.app.workspace.getActiveFile();
+  async buildIdePrompt(prompt, attachFile) {
     let fileContext = "";
-    if (file) {
+    if (attachFile) {
       try {
-        const content = await this.app.vault.cachedRead(file);
+        const content = await this.app.vault.cachedRead(attachFile);
         fileContext = [
-          "## Active Obsidian File",
-          `Path: ${file.path}`,
+          "## Attached File",
+          `Path: ${attachFile.path}`,
           "",
           "```markdown",
           content.slice(0, 12000),
           "```",
         ].join("\n");
       } catch (error) {
-        fileContext = `## Active Obsidian File\nPath: ${file.path}\nRead failed: ${error.message || error}`;
+        fileContext = `## Attached File\nPath: ${attachFile.path}\nRead failed: ${error.message || error}`;
       }
     }
     return [
       "# Bucky Code IDE Chat",
       "",
       "Mode: Ask before edits. Do not edit files without explicit user approval.",
-      "Environment: Obsidian pane styled after Claude Code/Codex IDE chat.",
       "",
       fileContext,
       "",
@@ -664,7 +669,17 @@ class BuckyChatView extends ItemView {
     this.busy = value;
     if (this.sendButton) this.sendButton.disabled = value;
     if (this.inputEl) this.inputEl.disabled = value;
-    if (this.statusEl) this.statusEl.setText(value ? "thinking" : "ready");
+    if (!value) {
+      if (this.elapsedTimer) { window.clearInterval(this.elapsedTimer); this.elapsedTimer = null; }
+      if (this.statusEl) this.statusEl.setText("ready");
+    } else {
+      const start = Date.now();
+      if (this.statusEl) this.statusEl.setText("thinking 0s");
+      this.elapsedTimer = window.setInterval(() => {
+        const s = Math.round((Date.now() - start) / 1000);
+        if (this.statusEl) this.statusEl.setText(`thinking ${s}s`);
+      }, 1000);
+    }
   }
 
   async handleSubmit() {
@@ -677,8 +692,12 @@ class BuckyChatView extends ItemView {
     this.renderMessages();
     this.setBusy(true);
 
+    const attachFile = this.attachedFile || null;
+    this.attachedFile = null;
+    this.refreshAttachmentLabel();
+
     try {
-      const idePrompt = await this.buildIdePrompt(prompt);
+      const idePrompt = await this.buildIdePrompt(prompt, attachFile);
       const reply = await this.plugin.sendChat(idePrompt);
       this.plugin.addChatMessage("bucky", reply);
     } catch (error) {
