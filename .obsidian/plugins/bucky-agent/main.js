@@ -1,4 +1,4 @@
-const { ItemView, Notice, Plugin, PluginSettingTab, Setting, setIcon } = require("obsidian");
+const { ItemView, MarkdownRenderer, Notice, Plugin, PluginSettingTab, Setting, setIcon } = require("obsidian");
 const childProcess = require("child_process");
 const fs = require("fs");
 const os = require("os");
@@ -70,6 +70,25 @@ class BuckyAgentPlugin extends Plugin {
       id: "bucky-open-status-note",
       name: "Bucky: open status note",
       callback: async () => this.openStatusNote(),
+    });
+
+    this.addCommand({
+      id: "bucky-focus-chat",
+      name: "Bucky: focus/unfocus chat input",
+      hotkeys: [{ modifiers: ["Ctrl"], key: "Escape" }],
+      callback: async () => {
+        const leaf = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW)[0];
+        if (!leaf) { await this.activateChatView(); return; }
+        const view = leaf.view;
+        if (view && view.inputEl) {
+          if (document.activeElement === view.inputEl) {
+            view.inputEl.blur();
+          } else {
+            this.app.workspace.setActiveLeaf(leaf, { focus: true });
+            view.inputEl.focus();
+          }
+        }
+      },
     });
 
     this.addSettingTab(new BuckySettingTab(this.app, this));
@@ -162,7 +181,7 @@ class BuckyAgentPlugin extends Plugin {
     try {
       let leaf = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW)[0];
       if (!leaf) {
-        leaf = this.app.workspace.getLeaf(false) || this.app.workspace.getLeaf(true);
+        leaf = this.app.workspace.getRightLeaf(false) || this.app.workspace.getLeaf(true);
         await leaf.setViewState({ type: BUCKY_CHAT_VIEW, active: true });
       }
       this.app.workspace.setActiveLeaf(leaf, { focus: true });
@@ -586,7 +605,11 @@ class BuckyChatView extends ItemView {
       });
       item.createDiv({ cls: "bucky-chat-role", text: message.role });
       const body = item.createDiv({ cls: "bucky-chat-body" });
-      body.setText(message.text);
+      if (message.role === "bucky") {
+        MarkdownRenderer.renderMarkdown(message.text, body, "", this);
+      } else {
+        body.setText(message.text);
+      }
     }
     this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
   }
