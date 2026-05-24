@@ -46,6 +46,9 @@ from bucky_client import BuckyError, run_bucky
 _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8")
 
+# Discord 봇은 Vault 파일 읽기·명령 실행이 필요 → 항상 auto(dangerously-skip-permissions)
+os.environ.setdefault("BUCKY_TOOL_MODE", "auto")
+
 # ── 환경변수 ───────────────────────────────────────────────────────────────────
 
 TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
