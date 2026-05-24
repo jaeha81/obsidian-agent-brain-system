@@ -44,9 +44,9 @@ FAILED = VAULT / "10_AgentBus" / "failed"
 
 OBSIDIAN_API_PORT: int = int(os.getenv("OBSIDIAN_API_PORT", "27123"))
 OBSIDIAN_API_KEY: str = os.getenv("OBSIDIAN_API_KEY", "")
-AGENT_RUNTIME: str = os.getenv("AGENT_RUNTIME", "hermes")
-HERMES_MODEL: str = os.getenv("HERMES_MODEL", "default")
 POLL_INTERVAL: int = int(os.getenv("DISPATCHER_POLL_INTERVAL", "5"))
+AGENT_RUNTIME: str = os.getenv("AGENT_RUNTIME", "claude_cli")
+HERMES_MODEL: str = os.getenv("HERMES_MODEL", "claude-sonnet-4-6")
 DISCORD_BOT_TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
 DISCORD_API = "https://discord.com/api/v10"
 
@@ -252,14 +252,9 @@ def _build_hermes_prompt(body: str, system_extra: str = "") -> str:
     )
 
 
-def handle_via_hermes(body: str, system_extra: str = "") -> str:
-    """Generate a response through configured local agent."""
+def handle_via_bucky(body: str, system_extra: str = "") -> str:
+    """Bucky Agent (Claude CLI 구독)로 요청 처리."""
     return run_bucky(_build_hermes_prompt(body, system_extra))
-
-
-def handle_via_api(body: str, system_extra: str = "") -> str:
-    """Compatibility wrapper: direct Q&A goes through configured local agent."""
-    return handle_via_hermes(body, system_extra)
 
 
 def handle_via_claude_code(task_prompt: str) -> tuple[str, bool]:
@@ -335,7 +330,7 @@ def generate_wiki_entry(body: str, source_file: str, task_type: str) -> tuple[st
         task_type=task_type,
         body=body[:6000],
     )
-    raw = handle_via_api(prompt)
+    raw = handle_via_bucky(prompt)
 
     lines = raw.strip().splitlines()
     title = "untitled"
@@ -462,6 +457,17 @@ def process_file(filepath: Path) -> None:
             })
             filepath.rename(COMPLETED / filepath.name)
 
+        elif task_type == "discord_intake" and fm.get("source") == "realtime_bot":
+            # bot이 이미 실시간으로 답변한 메시지 — 재처리 없이 아카이빙만
+            update_frontmatter(filepath, {
+                "status": "archived",
+                "processed_by": "AgentDispatcher",
+                "processed_at": iso(),
+                "note": "realtime_bot이 이미 답변함. dispatcher 재처리 생략.",
+            })
+            filepath.rename(COMPLETED / filepath.name)
+            print(f"  [Dispatcher] Archived (realtime_bot already replied)")
+
         elif task_type in {"implementation_request", "harness_development_request"} or (
             task_type == "discord_intake" and _is_implementation_request(body)
         ):
@@ -473,6 +479,14 @@ def process_file(filepath: Path) -> None:
             review_file = _write_codex_review_request(filepath.name, result_file, harness_context) if success else None
             if review_file:
                 print(f"  [Dispatcher] Codex review requested: {review_file.name}")
+            # discord_intake 구현 요청이면 Discord에 완료 알림
+            if task_type == "discord_intake" and success:
+                channel_id = str(fm.get("channel_id", ""))
+                if not channel_id or not channel_id.isdigit():
+                    channel_id = os.getenv("DISCORD_CHANNEL_IDS", "").split(",")[0].strip()
+                if channel_id:
+                    author = fm.get("author", "사용자")
+                    send_discord_reply(channel_id, f"✅ **{author}님의 구현 요청 완료**\n\n{output[:1800]}")
             status = "done" if success else "failed"
             update_frontmatter(filepath, {
                 "status": status,
@@ -485,22 +499,19 @@ def process_file(filepath: Path) -> None:
             filepath.rename(dest_dir / filepath.name)
 
         else:
-            # discord_intake (단순 Q&A) 및 기타 → Bucky Agent
-            output = handle_via_api(body)
+            # 기타 → Bucky Agent (Q&A 폴백)
+            output = handle_via_bucky(body)
             result_file = _write_result(filepath.name, output, _worker_suffix())
 
-            # discord_intake면 Discord 채널에도 답장
+            # discord_intake이면 Discord 채널에 답장 (channel_id 필드 우선)
             if task_type == "discord_intake":
-                channel_id = str(fm.get("channel_id", fm.get("author_id", "")))
-                # channel_id가 없으면 DISCORD_CHANNEL_IDS 첫번째 사용
+                channel_id = str(fm.get("channel_id", ""))
                 if not channel_id or not channel_id.isdigit():
-                    raw = os.getenv("DISCORD_CHANNEL_IDS", "")
-                    channel_id = raw.split(",")[0].strip() if raw else ""
+                    channel_id = os.getenv("DISCORD_CHANNEL_IDS", "").split(",")[0].strip()
                 if channel_id:
                     author = fm.get("author", "사용자")
-                    reply_msg = f"**{author}님의 요청 처리 완료**\n\n{output}"
-                    sent = send_discord_reply(channel_id, reply_msg)
-                    print(f"  [Dispatcher] Discord reply {'sent' if sent else 'skipped (no token/channel)'}")
+                    sent = send_discord_reply(channel_id, f"**{author}** {output}")
+                    print(f"  [Dispatcher] Discord reply {'sent' if sent else 'skipped'}")
 
             update_frontmatter(filepath, {
                 "status": "done",
