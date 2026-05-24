@@ -5,16 +5,27 @@
 mcp>=1.0
 
 # Discord 실시간 봇
-discord.py>=2.3
+discord.py[voice]>=2.3
 python-dotenv>=1.0
 pyyaml>=6.0
 requests>=2.31
+
+# 음성 채널 TTS 출력
+# gTTS: pip install gTTS
+# FFmpeg 필수: winget install ffmpeg  또는  choco install ffmpeg
+
+# 실시간 음성 수신 (선택)
+# pip install discord-ext-voice-recv
+# openai-whisper: pip install openai-whisper
 
 # LegalizeKR CLI (installed separately via npm/pipx)
 # legalize-cli: npm install -g legalize-cli  OR  pipx install legalize
 
 # Graphify (installed separately)
 # graphify: pip install graphify
+
+# Daily Briefing — AI/기술 뉴스 수집
+# feedparser: pip install feedparser  (선택, 없으면 내장 정규식 파싱 사용)
 
 # Voice Intake — Whisper 자동 전사 (선택, 오디오 파일 처리 시 필요)
 # openai-whisper: pip install openai-whisper

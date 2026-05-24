@@ -29,11 +29,14 @@ import sys
 import tempfile
 from collections import defaultdict
 
-# Windows stdout/stderr를 UTF-8로 강제 설정 (로그 인코딩 깨짐 방지)
+# Windows stdout/stderr UTF-8 설정 — reconfigure 사용 (Python 3.7+)
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
-from datetime import datetime
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except Exception:
+        pass
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import discord
@@ -42,12 +45,18 @@ from discord import Intents, Message
 from dotenv import load_dotenv
 
 from bucky_client import BuckyError, run_bucky
+from bucky_briefing import generate_briefing
 
 _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8")
 
 # Discord 봇은 Vault 파일 읽기·명령 실행이 필요 → 항상 auto(dangerously-skip-permissions)
 os.environ.setdefault("BUCKY_TOOL_MODE", "auto")
+
+# ── 자동 브리핑 스케줄 ─────────────────────────────────────────────────────────
+AUTO_BRIEFING: bool = os.getenv("AUTO_BRIEFING", "0").strip().lower() in {"1", "true", "yes"}
+BRIEFING_CHANNEL_ID: str = os.getenv("BRIEFING_CHANNEL_ID", "")
+BRIEFING_TIME: str = os.getenv("BRIEFING_TIME", "09:00")  # HH:MM 로컬 시각
 
 # ── 환경변수 ───────────────────────────────────────────────────────────────────
 
@@ -62,6 +71,9 @@ MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "1"))
 BUCKY_ENABLED: bool = os.getenv("BUCKY_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
 VOICE_ENABLED: bool = os.getenv("VOICE_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
 WHISPER_MODEL_NAME: str = os.getenv("WHISPER_MODEL", "small")
+VOICE_CHANNEL_ENABLED: bool = os.getenv("VOICE_CHANNEL_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
+TTS_LANG: str = os.getenv("TTS_LANG", "ko")
+VOICE_RECV_ENABLED: bool = os.getenv("VOICE_RECV_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
 
 # Whisper 선택적 임포트 — 미설치 시 음성 기능만 비활성화, 봇은 정상 동작
 if VOICE_ENABLED:
@@ -70,6 +82,31 @@ if VOICE_ENABLED:
     except ImportError:
         print("[Bot] openai-whisper 미설치 — 음성 기능 비활성화.", flush=True)
         VOICE_ENABLED = False
+
+# gTTS 선택적 임포트 — 음성 채널 TTS 출력용
+_gtts_available = False
+if VOICE_CHANNEL_ENABLED:
+    try:
+        from gtts import gTTS as _gTTS
+        _gtts_available = True
+        print("[Bot] gTTS 로드 완료 — TTS 음성 출력 활성화", flush=True)
+    except ImportError:
+        print("[Bot] gTTS 미설치 — TTS 비활성화. pip install gTTS", flush=True)
+
+# discord-ext-voice-recv 선택적 임포트 — 실시간 음성 수신용
+_voice_recv: object = None
+if VOICE_CHANNEL_ENABLED and VOICE_RECV_ENABLED and VOICE_ENABLED:
+    try:
+        import discord.ext.voice_recv as _voice_recv_mod  # type: ignore
+        _voice_recv = _voice_recv_mod
+        print("[Bot] discord-ext-voice-recv 로드 완료 — 실시간 음성 수신 활성화", flush=True)
+    except ImportError:
+        print("[Bot] discord-ext-voice-recv 미설치 — 실시간 수신 비활성화. pip install discord-ext-voice-recv", flush=True)
+
+# 음성 채널 상태 관리
+_voice_clients: dict[int, discord.VoiceClient] = {}   # guild_id → VoiceClient
+_voice_text_ch: dict[int, "discord.abc.Messageable"] = {}  # guild_id → 텍스트 채널
+_speaking_locks: "dict[int, asyncio.Lock]" = {}
 
 _whisper_model = None
 
@@ -238,6 +275,205 @@ async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
             Path(tmp_path).unlink(missing_ok=True)
 
 
+# ── 음성 채널 TTS / 수신 헬퍼 ──────────────────────────────────────────────────
+
+def _get_speaking_lock(guild_id: int) -> asyncio.Lock:
+    if guild_id not in _speaking_locks:
+        _speaking_locks[guild_id] = asyncio.Lock()
+    return _speaking_locks[guild_id]
+
+
+async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
+    """텍스트 → gTTS MP3 → FFmpegPCMAudio → 음성 채널 재생."""
+    if not _gtts_available or not vc or not vc.is_connected():
+        return
+    # 마크다운 특수문자 제거 (TTS 자연스럽게)
+    import re as _re
+    clean = _re.sub(r"[*`#_~>|]", "", text)[:500]
+    if not clean.strip():
+        return
+
+    async with _get_speaking_lock(guild_id):
+        tmp_path = None
+        try:
+            tts = _gTTS(text=clean, lang=TTS_LANG, slow=False)
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+                tmp_path = f.name
+            await asyncio.to_thread(tts.save, tmp_path)
+
+            if vc.is_playing():
+                vc.stop()
+                await asyncio.sleep(0.2)
+
+            done_event = asyncio.Event()
+            path_ref = tmp_path
+
+            def _after(error):
+                Path(path_ref).unlink(missing_ok=True)
+                asyncio.get_event_loop().call_soon_threadsafe(done_event.set)
+
+            vc.play(discord.FFmpegPCMAudio(tmp_path), after=_after)
+            await asyncio.wait_for(done_event.wait(), timeout=60)
+            tmp_path = None  # after callback이 삭제 담당
+        except asyncio.TimeoutError:
+            pass
+        except Exception as e:
+            print(f"[TTS] 재생 오류: {e}", flush=True)
+        finally:
+            if tmp_path:
+                Path(tmp_path).unlink(missing_ok=True)
+
+
+async def _join_voice_channel(vc_channel: discord.VoiceChannel, text_channel, guild_id: int) -> discord.VoiceClient | None:
+    """지정 음성 채널에 입장. 이미 연결된 경우 이동."""
+    try:
+        existing = _voice_clients.get(guild_id)
+        if existing and existing.is_connected():
+            await existing.move_to(vc_channel)
+            vc = existing
+        elif _voice_recv:
+            vc = await vc_channel.connect(cls=_voice_recv.VoiceRecvClient)  # type: ignore
+        else:
+            vc = await vc_channel.connect()
+
+        _voice_clients[guild_id] = vc
+        _voice_text_ch[guild_id] = text_channel
+
+        # 실시간 음성 수신 등록 — 기존 sink 정리 후 새로 등록
+        if _voice_recv and hasattr(vc, "listen"):
+            if hasattr(vc, "sink") and vc.sink:  # type: ignore
+                try:
+                    vc.stop_listening()  # type: ignore
+                except Exception:
+                    pass
+            sink = BuckyVoiceSink(guild_id)
+            vc.listen(sink)  # type: ignore
+            print(f"[Voice] BuckyVoiceSink 등록 완료 — guild {guild_id}", flush=True)
+
+        return vc
+    except Exception as e:
+        print(f"[Voice] 입장 오류: {e}", flush=True)
+        return None
+
+
+async def _leave_voice_channel(guild_id: int) -> None:
+    vc = _voice_clients.pop(guild_id, None)
+    _voice_text_ch.pop(guild_id, None)
+    if vc and vc.is_connected():
+        if vc.is_playing():
+            vc.stop()
+        await vc.disconnect()
+
+
+# ── 실시간 음성 수신 싱크 ──────────────────────────────────────────────────────
+
+def _make_voice_sink_class():
+    """_voice_recv 로드 후 동적으로 AudioSink 상속 클래스 생성."""
+    base = _voice_recv.AudioSink if _voice_recv else object  # type: ignore
+
+    class BuckyVoiceSinkInner(base):  # type: ignore
+        """discord-ext-voice-recv AudioSink — PCM → Whisper STT → Bucky → TTS."""
+
+        SILENCE_SEC = 1.5
+        MIN_PACKETS = 10
+
+        def __init__(self, guild_id: int) -> None:
+            if base is not object:
+                super().__init__()
+            self.guild_id = guild_id
+            self._chunks: dict[int, list[bytes]] = defaultdict(list)
+            self._tasks: dict[int, asyncio.Task] = {}
+            # 생성 시점(async 컨텍스트)에 loop 캡처 — write()는 다른 스레드에서 호출됨
+            try:
+                self._loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self._loop = asyncio.get_event_loop()
+
+        def wants_opus(self) -> bool:
+            return False
+
+        def write(self, user, data) -> None:  # type: ignore
+            # user=None은 Discord가 SSRC→멤버 매핑 전 상태 — uid=0으로 계속 처리
+            uid = user.id if user is not None else 0
+            pcm = data.pcm if hasattr(data, "pcm") else bytes(data) if data else b""
+            if not pcm:
+                return
+            self._chunks[uid].append(pcm)
+            if len(self._chunks[uid]) == 1:
+                name = user.display_name if user is not None else "Unknown"
+                print(f"[VoiceSink] 음성 수신 시작: {name}", flush=True)
+
+            # 이전 타이머 취소 (스레드 안전)
+            task = self._tasks.pop(uid, None)
+            if task and not task.done():
+                self._loop.call_soon_threadsafe(task.cancel)
+
+            # 새 타이머 등록 (call_soon_threadsafe로 event loop 스레드에서 create_task 실행)
+            def _schedule():
+                self._tasks[uid] = self._loop.create_task(self._process_silence(user, uid))
+
+            try:
+                self._loop.call_soon_threadsafe(_schedule)
+            except Exception as e:
+                print(f"[VoiceSink] 스케줄 오류: {e}", flush=True)
+
+        async def _process_silence(self, user, uid: int) -> None:
+            try:
+                await asyncio.sleep(self.SILENCE_SEC)
+                chunks = self._chunks.pop(uid, [])
+                if len(chunks) < self.MIN_PACKETS:
+                    return
+                await self._handle_audio(user, chunks)
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                print(f"[VoiceSink] 처리 오류: {e}", flush=True)
+
+        async def _handle_audio(self, user, chunks: list[bytes]) -> None:
+            import wave
+            pcm = b"".join(chunks)
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                wav_path = f.name
+            try:
+                with wave.open(wav_path, "wb") as wf:
+                    wf.setnchannels(2)
+                    wf.setsampwidth(2)
+                    wf.setframerate(48000)
+                    wf.writeframes(pcm)
+
+                model = await asyncio.to_thread(_get_whisper_model)
+                result = await asyncio.to_thread(
+                    lambda: model.transcribe(wav_path, language="ko", fp16=False)
+                )
+                text = result.get("text", "").strip()
+                if not text or len(text) < 2:
+                    return
+
+                ch = _voice_text_ch.get(self.guild_id)
+                if not ch:
+                    return
+
+                display_name = user.display_name if user is not None else "음성"
+                await ch.send(f"🎙️ **{display_name}:** {text}")
+                reply = await ask_bucky(str(self.guild_id), text)
+                for chunk in split_message(reply):
+                    await ch.send(chunk)
+
+                vc = _voice_clients.get(self.guild_id)
+                if vc and vc.is_connected():
+                    await _tts_speak(vc, reply, self.guild_id)
+            finally:
+                Path(wav_path).unlink(missing_ok=True)
+
+        def cleanup(self, error) -> None:
+            pass
+
+    return BuckyVoiceSinkInner
+
+
+BuckyVoiceSink = _make_voice_sink_class()
+
+
 async def ask_bucky(channel_id: str, user_message: str) -> str:
     """Bucky Agent에 질문하고 답변 반환. Claude CLI 구독 경로만 사용."""
     history = conversation_history[channel_id]
@@ -264,17 +500,96 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
+    async def setup_hook(self) -> None:
+        if AUTO_BRIEFING and BRIEFING_CHANNEL_ID:
+            self.loop.create_task(self._daily_briefing_task())
+
+    async def _daily_briefing_task(self) -> None:
+        """매일 BRIEFING_TIME에 자동 브리핑 게시."""
+        await self.wait_until_ready()
+        h, m = (int(x) for x in BRIEFING_TIME.split(":"))
+        print(f"[Bot] 자동 브리핑 스케줄 ON — 매일 {BRIEFING_TIME} / 채널 {BRIEFING_CHANNEL_ID}", flush=True)
+
+        # 오늘 브리핑 파일이 없고 지정 시각이 지났으면 즉시 발송
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        briefing_today = VAULT / "04_DAILY_REPORTS" / "briefings" / f"{date_str}-briefing.md"
+        now = datetime.now()
+        if not briefing_today.exists() and (now.hour > h or (now.hour == h and now.minute >= m)):
+            await self._post_auto_briefing()
+
+        while not self.is_closed():
+            now = datetime.now()
+            next_run = now.replace(hour=h, minute=m, second=0, microsecond=0)
+            if next_run <= now:
+                next_run += timedelta(days=1)
+            await asyncio.sleep((next_run - now).total_seconds())
+            await self._post_auto_briefing()
+
+    async def _post_auto_briefing(self) -> None:
+        channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
+        if not channel:
+            print(f"[Bot] 자동 브리핑: 채널 {BRIEFING_CHANNEL_ID} 없음", flush=True)
+            return
+        try:
+            briefing_text, saved_path = await asyncio.to_thread(generate_briefing)
+            fname = Path(saved_path).name
+            header = f"📡 **[자동 브리핑]** `{fname}`"
+            for chunk in split_message(header + "\n\n" + briefing_text):
+                await channel.send(chunk)
+            print(f"[Bot] 자동 브리핑 발송 → #{getattr(channel, 'name', channel.id)}", flush=True)
+        except Exception as e:
+            print(f"[Bot] 자동 브리핑 오류: {e}", flush=True)
+
+    async def on_voice_state_update(self, member, before, after) -> None:
+        """봇 혼자 남으면 자동 퇴장."""
+        if not VOICE_CHANNEL_ENABLED:
+            return
+        if member == self.user:
+            return
+        guild_id = member.guild.id
+        vc = _voice_clients.get(guild_id)
+        if not vc or not vc.is_connected():
+            return
+        # 채널에 봇만 남았으면 퇴장
+        members_in_vc = [m for m in vc.channel.members if not m.bot]
+        if not members_in_vc:
+            ch = _voice_text_ch.get(guild_id)
+            await _leave_voice_channel(guild_id)
+            if ch:
+                await ch.send("👋 채널에 아무도 없어 퇴장했습니다.")
+
     async def on_ready(self) -> None:
         guilds = [f"{g.name}({g.id})" for g in self.guilds]
         mode = "Bucky Agent (구독)" if BUCKY_ENABLED else "inbox-only"
         user_count = len(_ALLOWED_USER_IDS) if _ALLOWED_USER_IDS else "전체 허용"
         voice_status = f"ON ({WHISPER_MODEL_NAME})" if VOICE_ENABLED else "OFF"
+        tts_status = f"ON ({TTS_LANG})" if _gtts_available else "OFF"
+        recv_status = "ON" if _voice_recv else "OFF"
         print(f"Bot ready: {self.user} [{mode}]", flush=True)
         print(f"Guilds joined: {guilds}", flush=True)
         print(f"Watching channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
         print(f"Inbox: {INBOX}", flush=True)
         print(f"허용 사용자: {user_count}", flush=True)
-        print(f"음성(Whisper): {voice_status}", flush=True)
+        print(f"음성(Whisper STT): {voice_status}", flush=True)
+        print(f"음성(TTS 출력): {tts_status}", flush=True)
+        print(f"음성(실시간 수신): {recv_status}", flush=True)
+
+        # ── 자동 음성 채널 입장 (AUTO_JOIN_VOICE_CHANNEL_ID 설정 시) ──────────────
+        auto_join_ch_id = os.getenv("AUTO_JOIN_VOICE_CHANNEL_ID", "").strip()
+        auto_join_text_ch_id = os.getenv("AUTO_JOIN_TEXT_CHANNEL_ID", "").strip()
+        if auto_join_ch_id and VOICE_CHANNEL_ENABLED:
+            await asyncio.sleep(2)  # 게이트웨이 안정화 대기
+            try:
+                vc_channel = self.get_channel(int(auto_join_ch_id))
+                text_channel = self.get_channel(int(auto_join_text_ch_id)) if auto_join_text_ch_id else None
+                if vc_channel and isinstance(vc_channel, discord.VoiceChannel):
+                    guild_id = vc_channel.guild.id
+                    await _join_voice_channel(vc_channel, text_channel, guild_id)
+                    print(f"[Voice] 자동 입장: {vc_channel.name}", flush=True)
+                    if text_channel:
+                        await text_channel.send(f"🎙️ `{vc_channel.name}` 음성 채널에 자동 입장했습니다. 말씀하세요!")
+            except Exception as e:
+                print(f"[Voice] 자동 입장 실패: {e}", flush=True)
 
     async def on_message(self, message: Message) -> None:
         if message.author == self.user:
@@ -312,6 +627,27 @@ class BuckyDiscordBot(discord.Client):
                     break  # 첫 번째 음성 파일만 처리
 
         # ── 내장 명령어 ────────────────────────────────────────────────────────
+        if content == "!debug":
+            guild_id = getattr(message.guild, "id", None)
+            vc = _voice_clients.get(guild_id) if guild_id else None
+            vc_status = f"✅ 연결됨: {vc.channel.name}" if (vc and vc.is_connected()) else "❌ 미연결"
+            recv_ok = "✅ OK" if _voice_recv else "❌ 미설치"
+            whisper_ok = f"✅ OK ({WHISPER_MODEL_NAME})" if VOICE_ENABLED else "❌ 미설치"
+            gtts_ok = "✅ OK" if _gtts_available else "❌ 비활성화"
+            sink_ok = "✅ 등록됨" if (vc and hasattr(vc, "sink") and vc.sink) else "❌ 미등록"  # type: ignore
+            has_listen = "✅ VoiceRecvClient" if (vc and hasattr(vc, "listen")) else "❌ 기본VoiceClient"
+            members_in_vc = []
+            if vc and vc.is_connected():
+                members_in_vc = [m.display_name for m in vc.channel.members if not m.bot]
+            await message.channel.send(
+                f"**[음성 디버그]**\n"
+                f"VoiceClient: {vc_status}\n"
+                f"클라이언트: {has_listen} | Sink: {sink_ok}\n"
+                f"voice-recv: {recv_ok} | Whisper: {whisper_ok} | gTTS: {gtts_ok}\n"
+                f"채널 멤버: {', '.join(members_in_vc) or '없음'}"
+            )
+            return
+
         if content == "!status":
             role = _get_user_role(author_id)
             mode = "Bucky Agent 대화 모드" if BUCKY_ENABLED else "inbox 저장 모드"
@@ -319,10 +655,17 @@ class BuckyDiscordBot(discord.Client):
             return
 
         if content == "!help":
+            vc_status = "활성화" if VOICE_CHANNEL_ENABLED else "비활성화"
+            tts_status = "활성화" if _gtts_available else "비활성화 (pip install gTTS)"
+            recv_status = "활성화" if _voice_recv else "비활성화 (pip install discord-ext-voice-recv)"
             await message.channel.send(
                 "**Bucky 명령어**\n"
                 "`!status` — 봇 상태 및 내 역할 확인\n"
                 "`!reset` — 대화 기록 초기화\n"
+                "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
+                f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
+                f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
+                f"TTS: {tts_status} | 실시간 수신: {recv_status}\n"
                 "`!help` — 도움말\n"
                 "_그 외 메시지는 Bucky가 답변합니다._"
             )
@@ -331,6 +674,47 @@ class BuckyDiscordBot(discord.Client):
         if content == "!reset":
             conversation_history[channel_id].clear()
             await message.channel.send("🔄 대화 기록을 초기화했습니다.")
+            return
+
+        # ── 음성 채널 입장 ──────────────────────────────────────────────────────
+        if content in ("!입장", "!join") and VOICE_CHANNEL_ENABLED:
+            guild_id = getattr(message.guild, "id", None)
+            if not guild_id:
+                await message.channel.send("⚠️ 서버(Guild) 채널에서만 사용 가능합니다.")
+                return
+            member = message.guild.get_member(message.author.id)
+            vc_channel = member.voice.channel if (member and member.voice) else None
+            if not vc_channel:
+                await message.channel.send("⚠️ 먼저 음성 채널에 입장하세요.")
+                return
+            await message.channel.send(f"🎙️ `{vc_channel.name}` 입장 중...")
+            vc = await _join_voice_channel(vc_channel, message.channel, guild_id)
+            if vc:
+                await message.channel.send(f"✅ `{vc_channel.name}` 입장 완료. Bucky 음성 대화 준비됨.")
+                await _tts_speak(vc, "안녕하세요. Bucky 음성 채널 연결 완료.", guild_id)
+            else:
+                await message.channel.send("⚠️ 음성 채널 입장 실패. FFmpeg 설치를 확인하세요.")
+            return
+
+        if content in ("!퇴장", "!leave") and VOICE_CHANNEL_ENABLED:
+            guild_id = getattr(message.guild, "id", None)
+            if guild_id and guild_id in _voice_clients:
+                await _leave_voice_channel(guild_id)
+                await message.channel.send("👋 음성 채널에서 퇴장했습니다.")
+            else:
+                await message.channel.send("ℹ️ 현재 음성 채널에 없습니다.")
+            return
+
+        if content in ("!브리핑", "!briefing", "!뉴스"):
+            async with message.channel.typing():
+                try:
+                    briefing_text, saved_path = await asyncio.to_thread(generate_briefing)
+                    reply_header = f"📡 **브리핑 생성 완료** — `{Path(saved_path).name}`\n\n"
+                    for chunk in split_message(reply_header + briefing_text):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 브리핑 생성 실패: {e}")
+                    print(f"[Bot] 브리핑 오류: {e}", flush=True)
             return
 
         if len(content) < MIN_LENGTH:
@@ -350,6 +734,13 @@ class BuckyDiscordBot(discord.Client):
 
             for chunk in split_message(reply):
                 await message.channel.send(chunk)
+
+            # 음성 채널 TTS 재생 (입장 중인 경우)
+            guild_id = getattr(message.guild, "id", None)
+            if guild_id and VOICE_CHANNEL_ENABLED:
+                vc = _voice_clients.get(guild_id)
+                if vc and vc.is_connected():
+                    asyncio.ensure_future(_tts_speak(vc, reply, guild_id))
 
             # Obsidian PC 채팅창에 동기화
             append_to_bucky_chat(message.author.name, content, reply)

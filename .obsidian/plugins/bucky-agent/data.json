@@ -7,6 +7,8 @@
   "chatBridgeScript": "scripts/bucky_chat_once.py",
   "chatTimeoutSeconds": 900,
   "startupDelayMs": 2500,
+  "chatModel": "sonnet",
+  "toolMode": "safe",
   "scripts": [
     "scripts/raw_import_watcher.py",
     "scripts/codex_review_runner.py",
