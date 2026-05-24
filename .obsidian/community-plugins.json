@@ -8,7 +8,6 @@
   "obsidian-icon-folder",
   "obsidian-kanban",
   "obsidian-local-rest-api",
-  "bucky-agent",
   "obsidian-shellcommands",
   "obsidian-style-settings",
   "obsidian-tasks-plugin",
@@ -18,5 +17,6 @@
   "smart-connections",
   "table-editor-obsidian",
   "templater-obsidian",
-  "calendar-beta"
+  "calendar-beta",
+  "bucky-agent"
 ]

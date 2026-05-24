@@ -17,6 +17,7 @@ coverage/
 # Secrets
 .env
 .env.*
+token.txt
 *.pem
 *.key
 *.crt
