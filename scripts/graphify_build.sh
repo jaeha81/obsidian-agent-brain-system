@@ -25,6 +25,6 @@ python -m graphify update "$PROJECT_DIR" --no-cluster
 
 echo "Graph build complete. Output at: $PROJECT_DIR/graphify-out/"
 
-# Auto-generate GRAPH_REPORT.md from build output
-echo "Generating GRAPH_REPORT.md..."
+# Auto-generate GRAPH_REPORT.md and inject Obsidian backlinks
+echo "Generating GRAPH_REPORT.md + injecting backlinks..."
 python "$SCRIPT_DIR/graphify_post_build.py" "$PROJECT_DIR/graphify-out"
