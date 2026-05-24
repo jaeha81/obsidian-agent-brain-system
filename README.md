@@ -50,6 +50,16 @@ cp configs/paths.example.json configs/paths.json
 # paths.json 에서 실제 로컬 경로 설정
 ```
 
+### 5. Docker 3-PC preflight
+```bash
+docker compose run --rm preflight
+```
+
+Docker is used for the shared Python runtime and startup checks. Keep Obsidian,
+Claude Code, and Codex login sessions on the host unless the `host-cli` profile
+is explicitly prepared. If Obsidian `bucky-agent` already owns the background
+scripts, use Docker for `preflight` only. See [Docker 3-PC Workflow](docs/docker_3pc_workflow.md).
+
 ## Agent Roles
 
 - **Bucky**: Obsidian 메인 오케스트레이터, 작업 분류, 지시, 결과 수집

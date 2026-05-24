@@ -7,6 +7,8 @@ mcp>=1.0
 # Discord 실시간 봇
 discord.py>=2.3
 python-dotenv>=1.0
+pyyaml>=6.0
+requests>=2.31
 
 # LegalizeKR CLI (installed separately via npm/pipx)
 # legalize-cli: npm install -g legalize-cli  OR  pipx install legalize

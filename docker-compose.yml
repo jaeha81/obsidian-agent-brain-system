@@ -1,0 +1,29 @@
+name: obsidian-agent-brain
+
+x-agent-common: &agent-common
+  build:
+    context: .
+  working_dir: /workspace
+  volumes:
+    - ./:/workspace
+  restart: unless-stopped
+
+services:
+  preflight:
+    <<: *agent-common
+    restart: "no"
+    command: ["python", "scripts/preflight_check.py", "--docker"]
+
+  raw-import-watcher:
+    <<: *agent-common
+    command: ["python", "scripts/raw_import_watcher.py"]
+
+  codex-review-runner:
+    <<: *agent-common
+    profiles: ["host-cli"]
+    command: ["python", "scripts/codex_review_runner.py"]
+
+  agent-dispatcher:
+    <<: *agent-common
+    profiles: ["host-cli"]
+    command: ["python", "scripts/agent_dispatcher.py"]
