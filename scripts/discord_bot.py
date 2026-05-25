@@ -727,6 +727,90 @@ def _register_tasks_commands(tree: app_commands.CommandTree) -> None:
             await interaction.followup.send(f"⚠️ 리포트 생성 오류: {e}")
 
 
+# ── /landing · /deploy · /pipeline 슬래시 명령어 등록 ──────────────────────────
+
+def _register_deploy_commands(tree: app_commands.CommandTree) -> None:
+    """랜딩 페이지 생성(/landing) · Vercel 배포(/deploy) · 원스톱 파이프라인(/pipeline) 등록."""
+
+    @tree.command(name="landing", description="GitHub 레포 URL → 프리미엄 랜딩 페이지 생성 후 HTML 파일 전송")
+    @app_commands.describe(repo_url="GitHub 레포 URL (예: https://github.com/user/repo)")
+    async def cmd_landing(interaction: discord.Interaction, repo_url: str) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            sys.path.insert(0, str(_ROOT / "scripts"))
+            from bucky_landing_generator import from_github_url as _gen
+            out_path = await asyncio.to_thread(_gen, repo_url)
+            await interaction.followup.send(
+                f"✅ **랜딩 페이지 생성 완료!**\n📦 `{out_path.name}`",
+                file=discord.File(str(out_path), filename=out_path.name),
+            )
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 랜딩 페이지 생성 오류: {e}")
+            print(f"[Deploy] landing 오류: {e}", flush=True)
+
+    @tree.command(name="deploy", description="프로젝트 경로 → Vercel 배포 후 URL 전송")
+    @app_commands.describe(
+        project_path="배포할 프로젝트 경로 (절대 경로 또는 루트 기준 상대 경로)",
+        project_name="프로젝트 이름 (비워두면 경로에서 자동 추출)",
+    )
+    async def cmd_deploy(
+        interaction: discord.Interaction,
+        project_path: str,
+        project_name: str = "",
+    ) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            sys.path.insert(0, str(_ROOT / "scripts"))
+            from bucky_vercel_deploy import deploy as _deploy
+            path = Path(project_path)
+            if not path.is_absolute():
+                path = _ROOT / project_path
+            result = await asyncio.to_thread(_deploy, str(path), project_name)
+            if result["success"]:
+                await interaction.followup.send(
+                    f"✅ **{result['project']}** 배포 완료!\n🌐 {result.get('url', '확인 중...')}"
+                )
+            else:
+                await interaction.followup.send(
+                    f"❌ 배포 실패: {result.get('error', '알 수 없는 오류')[:500]}"
+                )
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 배포 오류: {e}")
+            print(f"[Deploy] deploy 오류: {e}", flush=True)
+
+    @tree.command(name="pipeline", description="GitHub 레포 URL → 랜딩 페이지 생성 + Vercel 배포 (원스톱)")
+    @app_commands.describe(repo_url="GitHub 레포 URL (예: https://github.com/user/repo)")
+    async def cmd_pipeline(interaction: discord.Interaction, repo_url: str) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            sys.path.insert(0, str(_ROOT / "scripts"))
+            from bucky_landing_generator import from_github_url as _gen
+            from bucky_vercel_deploy import deploy_landing_page as _deploy_landing
+
+            await interaction.followup.send(f"⚙️ 파이프라인 시작: `{repo_url}`\n**1️⃣** 랜딩 페이지 생성 중...")
+            out_path = await asyncio.to_thread(_gen, repo_url)
+            repo_name = out_path.stem
+
+            await interaction.followup.send(f"**2️⃣** Vercel 배포 중 (`{repo_name}`)...")
+            result = await asyncio.to_thread(_deploy_landing, repo_name, out_path)
+
+            if result["success"]:
+                await interaction.followup.send(
+                    f"✅ **파이프라인 완료!**\n"
+                    f"📦 레포: `{repo_name}`\n"
+                    f"🌐 URL: {result.get('url', '확인 중...')}\n"
+                    f"⏱️ {result.get('deployed_at', '')[:19]}"
+                )
+            else:
+                await interaction.followup.send(
+                    f"⚠️ 랜딩 페이지 생성 완료, Vercel 배포 실패\n"
+                    f"```{result.get('error', '')[:300]}```"
+                )
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 파이프라인 오류: {e}")
+            print(f"[Deploy] pipeline 오류: {e}", flush=True)
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -735,6 +819,7 @@ class BuckyDiscordBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
         _register_evolve_commands(self.tree)
         _register_tasks_commands(self.tree)
+        _register_deploy_commands(self.tree)
 
     async def setup_hook(self) -> None:
         # 슬래시 명령어 전역 동기화
