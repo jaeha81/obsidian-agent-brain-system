@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Google Drive Agent Room Migrator
 G:\내 드라이브\JH-SHARED → ObsidianVault 단방향 이관
@@ -36,13 +36,20 @@ VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 GDRIVE_AGENT_ROOM = Path(os.getenv("GDRIVE_AGENT_ROOM", r"G:\내 드라이브\JH-SHARED"))
 
 MIGRATION_MAP = {
-    "01_AGENT_ROOM": VAULT / "10_AgentBus" / "imported-agent-room",
-    "02_HANDOFF": VAULT / "10_AgentBus" / "handoffs",
-    "03_LOGS": VAULT / "05_Logs" / "gdrive-imported",
+    "00_SYSTEM":        VAULT / "00_System" / "gdrive-system",
+    "01_AGENT_ROOM":    VAULT / "10_AgentBus" / "imported-agent-room",
+    "02_HANDOFF":       VAULT / "10_AgentBus" / "handoffs",
+    "03_LOGS":          VAULT / "05_Logs" / "gdrive-imported",
     "04_DAILY_REPORTS": VAULT / "05_Logs" / "daily-reports-gdrive",
-    "06_TASK_LOGS": VAULT / "05_Logs" / "task-logs-gdrive",
-    "00_SYSTEM": VAULT / "00_System" / "gdrive-system",
+    "05_TASK_LOCKS":    VAULT / "10_AgentBus" / "task-locks-gdrive",
+    "06_TASK_LOGS":     VAULT / "05_Logs" / "task-logs-gdrive",
+    "99_ARCHIVE":       VAULT / "99_Archive" / "gdrive-archive",
+    "scripts":          VAULT / "00_System" / "gdrive-scripts",
 }
+
+# 루트 파일 이관 대상 글로브 패턴 (폴더가 아닌 개별 파일)
+ROOT_FILE_PATTERNS = ["*.json", "*.md"]
+ROOT_FILES_DST = VAULT / "00_System" / "gdrive-root-files"
 
 MIGRATION_LOG = VAULT / "10_AgentBus" / "gdrive-migration-log.json"
 LOCK_FILE = _ROOT / ".gdrive-migration.lock"
@@ -55,7 +62,7 @@ def _iso() -> str:
 def _load_log() -> dict:
     if MIGRATION_LOG.exists():
         return json.loads(MIGRATION_LOG.read_text(encoding="utf-8"))
-    return {"migrated": [], "skipped": [], "errors": [], "last_run": None}
+    return {"migrated": [], "skipped": [], "errors": [], "not_migrated": [], "last_run": None}
 
 
 def _save_log(log: dict) -> None:
@@ -103,13 +110,93 @@ def migrate_folder(
             shutil.copy2(item, dest_file)
             log["migrated"].append({"src": src_str, "dst": str(dest_file), "at": _iso()})
             copied += 1
-            print(f"  ✅ {rel}")
+            print(f"  [OK] {rel}")
         except Exception as e:
             log["errors"].append({"src": src_str, "error": str(e), "at": _iso()})
             errors += 1
-            print(f"  ❌ {rel}: {e}")
+            print(f"  [ERR] {rel}: {e}")
 
     return copied, skipped, errors
+
+
+def migrate_root_files(
+    src_root: Path,
+    dst: Path,
+    log: dict,
+    patterns: list,
+    dry_run: bool = False,
+    force: bool = False,
+) -> tuple[int, int, int]:
+    """
+    src_root 바로 아래의 파일(하위 폴더 제외)을 패턴에 맞춰 dst로 복사한다.
+    루트 파일 전용 처리 (*.json, *.md 등).
+    returns (copied, skipped, errors)
+    """
+    copied = skipped = errors = 0
+    if not src_root.exists():
+        return 0, 0, 0
+
+    # 루트에 존재하는 파일만 (재귀 X)
+    root_files_dict: dict = {}
+    for pattern in patterns:
+        for f in src_root.glob(pattern):
+            if f.is_file():
+                root_files_dict[str(f)] = f
+    root_files = list(root_files_dict.values())
+
+    if not root_files:
+        return 0, 0, 0
+
+    dst.mkdir(parents=True, exist_ok=True)
+    print(f"[gdrive-root-files] {len(root_files)}개 루트 파일 발견 → {dst.relative_to(VAULT)}")
+
+    for item in root_files:
+        dest_file = dst / item.name
+        src_str = str(item)
+
+        if not force and _already_migrated(log, src_str):
+            skipped += 1
+            continue
+
+        if dry_run:
+            print(f"  [DRY] {item.name} → {dest_file}")
+            copied += 1
+            continue
+
+        try:
+            shutil.copy2(item, dest_file)
+            log["migrated"].append({"src": src_str, "dst": str(dest_file), "at": _iso()})
+            copied += 1
+            print(f"  [OK] {item.name}")
+        except Exception as e:
+            log["errors"].append({"src": src_str, "error": str(e), "at": _iso()})
+            errors += 1
+            print(f"  [ERR] {item.name}: {e}")
+
+    return copied, skipped, errors
+
+
+def check_unmigrated_items(src_root: Path) -> list:
+    """
+    src_root 하위에 존재하지만 MIGRATION_MAP 및 ROOT_FILE_PATTERNS에
+    포함되지 않은 항목을 탐지하여 리포트용 목록을 반환한다.
+    """
+    if not src_root.exists():
+        return []
+
+    known_folders = set(MIGRATION_MAP.keys())
+    known_ext = {p.lstrip("*.") for p in ROOT_FILE_PATTERNS}
+
+    unmigrated = []
+    for item in src_root.iterdir():
+        if item.is_dir():
+            if item.name not in known_folders:
+                unmigrated.append(f"[폴더] {item.name}")
+        else:
+            if item.suffix.lstrip(".") not in known_ext:
+                unmigrated.append(f"[파일] {item.name}")
+
+    return unmigrated
 
 
 def create_vault_boundary_marker() -> None:
@@ -140,16 +227,18 @@ type: system
 - `scripts\\` (스크립트)
 """
     marker.write_text(content, encoding="utf-8")
-    print(f"  📌 경계 마커 생성: {marker}")
+    print(f"  [MARKER] 경계 마커 생성: {marker}")
 
 
 def run(dry_run: bool = False, force: bool = False) -> None:
     if LOCK_FILE.exists() and not force:
-        print("⚠️ 마이그레이션이 이미 실행 중입니다 (.gdrive-migration.lock). --force로 덮어쓰기 가능.")
+        print("[WARN] 마이그레이션이 이미 실행 중입니다 (.gdrive-migration.lock). --force로 덮어쓰기 가능.")
         return
 
     LOCK_FILE.write_text(_iso())
     log = _load_log()
+    if "not_migrated" not in log:
+        log["not_migrated"] = []
     log["last_run"] = _iso()
 
     total_copied = total_skipped = total_errors = 0
@@ -158,6 +247,7 @@ def run(dry_run: bool = False, force: bool = False) -> None:
     print(f"  소스: {GDRIVE_AGENT_ROOM}")
     print(f"  대상: {VAULT}\n")
 
+    # ── 폴더 이관 ─────────────────────────────────────────────────────────────
     for folder_name, dst_path in MIGRATION_MAP.items():
         src_path = GDRIVE_AGENT_ROOM / folder_name
         print(f"[{folder_name}] → {dst_path.relative_to(VAULT)}")
@@ -165,6 +255,28 @@ def run(dry_run: bool = False, force: bool = False) -> None:
         total_copied += c
         total_skipped += s
         total_errors += e
+
+    # ── 루트 파일 이관 ────────────────────────────────────────────────────────
+    c, s, e = migrate_root_files(
+        GDRIVE_AGENT_ROOM, ROOT_FILES_DST, log, ROOT_FILE_PATTERNS,
+        dry_run=dry_run, force=force,
+    )
+    total_copied += c
+    total_skipped += s
+    total_errors += e
+
+    # ── 미이관 항목 탐지 및 로그 기록 ────────────────────────────────────────
+    unmigrated = check_unmigrated_items(GDRIVE_AGENT_ROOM)
+    if unmigrated:
+        print(f"\n[REPORT] 미이관 항목 {len(unmigrated)}개:")
+        for item in unmigrated:
+            print(f"  - {item}")
+        log["not_migrated"] = [
+            {"item": item, "at": _iso()} for item in unmigrated
+        ]
+    else:
+        log["not_migrated"] = []
+        print("\n[REPORT] 미이관 항목 없음.")
 
     if not dry_run:
         create_vault_boundary_marker()
@@ -175,6 +287,8 @@ def run(dry_run: bool = False, force: bool = False) -> None:
     print(f"\n완료: 복사 {total_copied}개 / 스킵 {total_skipped}개 / 오류 {total_errors}개")
     if total_errors > 0:
         print(f"오류 로그: {MIGRATION_LOG}")
+    if unmigrated:
+        print(f"[WARN] 미이관 {len(unmigrated)}개 항목이 있습니다. MIGRATION_MAP 추가 검토 필요.")
 
 
 # ============================================================

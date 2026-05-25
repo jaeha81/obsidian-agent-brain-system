@@ -428,23 +428,30 @@ def generate_repo_md(repo: dict, user: str) -> str:
         else "알 수 없음"
     )
 
+    rname = repo["name"]
+    rlang = repo["language"]
+    rlast = repo["last_commit"]
+    rstatus = repo["status"]
+    rtype = repo["repo_type"]
+    rpriv = str(repo["private"]).lower()
+
     lines = [
         "---",
         "tags:",
         "  - github",
-        f"  - {repo['repo_type']}",
-        f'repo: "https://github.com/{user}/{repo[\"name\"]}"',
-        f'language: "{repo[\"language\"]}"',
-        f'last_commit: "{repo[\"last_commit\"]}"',
-        f'status: "{repo[\"status\"]}"',
-        f'repo_type: "{repo[\"repo_type\"]}"',
+        f"  - {rtype}",
+        f'repo: "https://github.com/{user}/{rname}"',
+        f'language: "{rlang}"',
+        f'last_commit: "{rlast}"',
+        f'status: "{rstatus}"',
+        f'repo_type: "{rtype}"',
         f"stars: {repo['stargazers_count']}",
         f"forks: {repo['forks_count']}",
-        f'private: {str(repo[\"private\"]).lower()}',
+        f"private: {rpriv}",
         f'generated: "{now}"',
         "---",
         "",
-        f"# {repo['name']}",
+        f"# {rname}",
         "",
     ]
 

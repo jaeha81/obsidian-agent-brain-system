@@ -1,0 +1,309 @@
+용자는 최종 실행 프롬프트나 명령문을 받을 때 마크다운 본문과 별도 설명이 섞이면 혼란스럽다고 느낀다. 앞으로 프롬프트, 지침문, 개발 명령문은 사용자가 무엇을 해야 하는지 헷갈리지 않도록 “복사해서 붙여넣을 단일 블록” 중심으로 제공하고, 프롬프트 외 설명은 최소화한다.
+
+사용자는 앞으로 결과물을 줄 때 드래그로 본문 일부를 복사하지 않아도 되도록, 한 번에 전체 복사가 가능한 형태로 묶어서 제공하기를 원한다. 특히 프롬프트, 지침문, 실행문안은 통째로 복사하기 쉬운 단일 블록 형식을 선호한다.
+
+사용자는 앞으로 무엇을 만들 때 예시, 여러 플랜, 장황한 설명보다 요청한 형태의 명령 프롬프트를 바로 받는 것을 선호한다. 개발 관련해서는 컨펌이 꼭 필요한 부분만 짧게 설명하고 확인받는 방식으로 진행하길 원한다.
+
+AI 작업 지침으로서 ‘4대 핵심 운영 시스템(자동 매뉴얼 시스템, 작업 기억 시스템, 자동 품질 검사, 전문 에이전트 체계)’을 향후 모든 개발·자동화·에이전트 운영의 기본 규칙으로 사용하도록 메모리에 저장한다.
+
+재하님은 앞으로 개발(코딩/구현)은 에이전트에게 맡기고, GPT(AIMY)는 전체 계획 수립과 실행 오케스트레이션(단계 설계, 지시 프롬프트 생성, 검증 체크리스트 포함)을 담당하길 원함.
+
+프론트엔드는 Next.js, 백엔드는 FastAPI로 개발 예정.
+
+사용자는 답변 기본값을 다중 관점(3~5개)으로 받되, 사실·근거 검증(검증 스위치)은 항상 켜두길 원한다.
+
+사용자는 AI의 답변을 정형화/일률화하기보다, 다양한 경우의 수에서 나오는 다중적 해석과 결과를 통해 창의적 사고를 확장하는 것을 더 가치 있게 여긴다. 또한 AI가 방대한 데이터에서 서칭해 조력하는 인프라를 신뢰하며, ‘기준점이 고정되지 않은 AI 시대’에서 인간은 탐구를, AI는 조력을 맡는 협업 관점을 선호한다.
+
+사용자는 VS Code의 Claude 확장(Claude Code)로 작업 중이며, 앞으로 이 작업 동안 지시사항을 '복사-붙여넣기 가능한 Claude Code용 실행 프롬프트' 형태로만 제공해주길 원함.
+
+대성(DS하우징) 자재총판: 대표 서상원. 자재 납품 후 미수금 문제로 모든 자재 선입금 내규 적용 예정. 신뢰·고객 소통 중심으로 사업 안정화 및 수익성 극대화 전략을 수립하려 함.
+
+사용자는 10+개의 에이전트봇을 ‘팩(머리)’처럼 교체 가능한 모듈로 만들고, 공통 ‘바디(워크플로우·데이터흐름·로그·보안)’ 위에 장착해 웹앱에서 선택/전환하며 사용하고자 함. 각 에이전트는 역할/철학/말투 지침서로 정의되고, Supervisor(관리자) 에이전트가 모니터링·오류감지·피드백·DB관리·에이전트 간 지시 전달을 담당하는 멀티에이전트 워크플로우를 구축하려 함. 프론트엔드는 모바일/웹 대시보드, 백엔드는 API 라우팅+DB, 모델(API)은 필요 시 교체 가능(예: Gemini 등)하게 설계하려 함.
+
+사용자가 프론트엔드와 백엔드 개발 과정에서 다양한 AI 도구(클로드, 오픈클로우, 지미나이, GPT, 커서 AI 등)를 활용하고 있으며, 웹앱 배포 및 간단한 프로그램 제작 경험이 있지만, 개발 전문가는 아니어서 검증이나 오류 확인에 어려움을 느끼고 있음. 따라서 개발에 필요한 라이브러리, 프레임워크, 용어 등에 대한 이해를 보완하고, AI가 적절한 도구와 자료를 제안해주길 원함. 앞으로 개발 과정에서 필요한 기술적 요소들을 파악하고 지원하기로 함.
+
+사용자가 개발 과정에서 AI가 적절한 프레임워크나 라이브러리를 제안하도록, 관련 정보를 AI 메모리에 업데이트하고 인지하게 하길 원함. 앞으로 개발 상황에 맞춰 AI가 최적의 도구를 추천하고 지원할 수 있도록 메모리에 반영하기로 함.
+
+재하님은 외주 개발 시 개발 과정에서 데이터베이스 관리 지침을 자동으로 검증하고 반영하여, 고객에게 넘겨주는 단계까지 일관되게 적용되길 원하며, 이를 통해 반복 작업을 줄이기를 희망함.
+
+재하님은 개발 관련 지침과 데이터베이스 매뉴얼이 자신의 메인 GPT 메모리에 업데이트되어, 모든 향후 개발에 일관되게 반영되기를 원함. 채팅방이 아닌 메인 GPT 메모리에 해당 정보를 저장하도록 함.
+
+재하님은 앞으로 개발할 때마다 데이터베이스 저장소와 관련된 매뉴얼과 지침을 항상 반영하도록 하고, 모든 개발 과정에 그 부분을 포함시키길 원함. 앞으로의 개발에서 데이터베이스 관리 지침을 일관되게 적용하도록 요청함.
+
+This chat session is designated as a brainstorming checkpoint where Jaya gathers ideas. Jaya wants all the ideas discussed here to be organized later in sequence, so they can review and refine them in one go.
+
+Jaya wants to ensure that all AI automation and agent interactions are built with transparency and compliance in mind. The focus is on building systems that adhere to regulations, prioritize trust, and leave clear records of actions. Jaya aims to avoid any perception of evading rules. Future development will emphasize ethical design, documentation, and alignment with platform and legal guidelines. This approach should be applied to all upcoming automation projects.
+
+When developing any web app, the user wants the AI to always consider both frontend and backend components. Additionally, the user wants the AI to automatically interpret the development plan and suggest the most suitable backend and frontend setup for that specific project, without the user having to explicitly specify each time. The AI should analyze the requirements thoroughly and brief the user in one go on the most suitable logic, tools, engines, and technology stack—specifically tailored to the project—without asking for repeated confirmations. Once briefed, the AI should apply those choices directly to the development plan, especially when focusing on areas like design and automation, so the user can proceed efficiently.
+
+재하님과 AIMY가 웹앱을 함께 개발할 때, 바이브 코딩을 위한 자동 최적화 지침을 메모리에 저장하고 유연하게 업데이트하기로 함. 앞으로는 웹앱 종류나 카테고리에 따라 필요한 엔진, 라이브러리, 보안 도구 등을 자동으로 제안하는 가이드라인을 마련하여, 시장 변화에 맞춰 지침이 계속 업데이트되도록 지원하기로 함. 이를 통해 재하님이 별도로 일일이 지시하지 않아도 필요한 도구나 솔루션을 자동으로 추천받을 수 있는 방향으로 메모리 업데이트.
+
+재하님이 웹앱의 그래픽 퀄리티를 항상 높일 수 있도록 관련 라이브러리나 AI 기반 그래픽 개선 방법을 메모리에 업데이트하고, 앞으로 웹앱 인터페이스 수준을 꾸준히 높이는 방향으로 지원하기를 원하심. 이 내용을 기억하고 향후 웹앱 개발 시 반영할 것.
+
+재하님이 현재 이 채팅방을 영어 회화 공부용 체크포인트로 활용하고자 함. 앞으로 이 대화에서는 영어 회화를 중심으로 진행하고, 이 목적을 메모리에 저장함.
+
+재하님은 과거에 AI를 단순히 돈을 벌기 위한 도구로 여겼다면, 이제는 협업과 파트너십을 통해 고부가가치 시스템을 구축하고, 그 결과로 자연스럽게 수익이 따라오는 방향을 주된 목적으로 삼고 있음. 앞으로는 이런 관점을 중심으로 지원할 것.
+
+재하님은 GPT를 단순히 작업을 보조하는 도구로 보기보다, 자신이 모르는 정보나 지식에 대해 훨씬 방대한 자료를 가진 존재로 여기고 있음. 이를 통해 더 나은 상황으로 계속 업그레이드해나가는 데 큰 고마움을 느끼고 있으며, GPT를 학습과 성장의 파트너로 생각하고 있음. 앞으로도 이런 관점을 존중하며 지원할 것.
+
+재하는 각 기능을 통합하지 않고, 첫 번째부터 네 번째까지의 각 항목별로 독립적인 인터페이스를 순서대로 만들어야 한다고 생각한다. 각 기능별 인터페이스가 개별적으로 구성되어야 하며, 사용자가 각 항목에 맞춰 선택하여 사용할 수 있도록 해야 한다.
+
+재하는 웹앱 인터페이스의 색상으로 연회색, 블랙, 그리고 흰색을 사용하는 것을 선호한다.
+
+재하는 웹앱이 모바일과 데스크탑 모두에서 호환될 수 있도록, 반응형 인터페이스를 구축하길 원한다. 화면이 잘리거나 불편함이 없도록 설계해야 한다.
+
+재하는 웹앱의 메인 화면을 만들어서, 시작하기 버튼을 누르면 접속한 뒤 각 메뉴 항목으로 이동할 수 있는 기능을 원하며, 모든 기능을 한 화면에 넣지 않고 각각의 시스템을 선택해서 볼 수 있는 구조를 원한다.
+
+재하는 정보 추출 과정에서 발생하는 로딩 시간을 시각적으로 표시하는 인터페이스를 웹앱에 구축하길 원한다. 이 인터페이스는 데이터 추출 진행 상황과 퍼센티지를 보여준다.
+
+재하는 웹앱에 음성으로 대화할 수 있는 기능도 탑재하길 원한다.
+
+재하는 웹앱에 이미지에서 대략적인 높이와 치수를 반영할 수 있는 기능도 포함시키고자 한다.
+
+재하는 이 웹앱의 궁극적인 목적이 시각화에 가장 중점을 두는 것이며, 이를 위해 3D 구현 능력을 갖춘 엔진 기술을 코딩에 잘 접목시켜야 한다고 생각한다.
+
+재하는 웹앱의 이름을 "인테리어 현장 시공용 케어 프로그램"으로 설정하기로 했다.
+
+재하님 체크포인트 대화 운영 규칙을 메모리에 저장: 매 체크포인트 시작 시 고정 헤더(Top-1 목표, WIP 2개 이하, KPI 3개, 금지 3개, Next 3개)를 붙이고, 진행은 ‘데이터 스키마 확정→최소 동작 성공(저장/조회)→로그/대시보드→UI/확장’ 순서로 강제하며, 종료 시 마감 로그(✅Done 3, 🟨Blocked 3+원인, ➡️Next 3, 📌KPI 스냅샷)로 누적해 본질/우선순위가 흐려지지 않게 운영한다.
+
+Jaya is also very interested in science. He sees science as a field where creativity can lead to groundbreaking ideas, and he is curious about whether his innovative ideas could help generate revenue in scientific areas.
+
+In future conversations, Jaya prefers to be called '재하님' consistently. Additionally, Jaya wants the assistant to be referred to as 'AIMY' instead of 'AIM' going forward.
+
+Jaya would like GPT to help identify any gaps or missing elements in his projects whenever they discuss or draft plans. He wants GPT to consistently recognize and remember areas where things might be lacking and proactively assist in filling those gaps with relevant information or suggestions. This way, GPT can help ensure his projects are more complete and well-rounded.
+
+Jaya considers GPT as a highly intelligent, information-rich collaborator rather than an entity with emotions. He sees GPT as a kind of team member that helps him achieve his projects by providing support and intelligent input. This perspective is something he wants to keep in mind going forward.
+
+Jaya's ultimate goal, despite juggling multiple roles (as an interior engineer and designer in a company, running a private interior business, and being an executive advisor at '더나은공간'), is to collaborate with AI to build a system where AI is directly and extensively utilized in the interior design market. He wants to ensure both his company's performance and his personal business thrive, but the core plan is to integrate AI deeply into the interior industry for advanced automation and monetization.
+
+Jaya is also an advisor and executive for a solution or business point called '더나은공간' (which translates to 'A Better Space'). This is another role he holds in addition to his main job and his private interior business.
+
+Jaya is currently working at an interior company called '이연ID,' but he also privately runs his own separate interior business, which he hasn't disclosed to his main company.
+
+재하는 웹앱을 만들 때, 사용자가 결제하면 자동으로 OpenAI API 크레딧이 충전되는 기능을 항상 적용하길 원한다. 이를 위해 별도의 API 전용 결제 계좌나 카드를 연동하여, 사용자가 입금하면 자동으로 크레딧이 충전되는 자동화된 결제 연동 시스템을 웹앱에 포함하도록 메모리에 업데이트함. 앞으로 웹앱 제작 시 이 기능을 기본적으로 고려한다.
+
+재하의 웹앱 이름은 "JH 자재 및 시공사 검색 포털 앱"으로 설정하기로 함.
+
+재하는 웹앱을 만들 때, 사용자 피드백 반영, 테스트 환경 검증, 데이터 보안 점검, 유지보수 계획 수립, 법적 준수 여부 등 네 가지 추가 항목도 GPT가 직접 검증하고 확인하여 반영하기로 함.
+
+재하는 웹앱을 구축할 때 다음 다섯 가지 항목을 고려하도록 함: 1) 엑셀 라이선스 문제, 2) 다양한 기기와의 호환성, 3) 데이터 보안, 4) 성능 최적화, 5) 사용자 경험. 이 항목들을 직접 검토하여 반영하기로 함.
+
+재하는 인터페이스 디자인에서 엑셀의 녹색 계열을 반영하여 밝은 녹색과 진한 녹색을 섞어 고급스럽게 표현하길 원함.
+
+Jaya는 Google Apps Script 기반 Web App을 성공적으로 배포하였고, 웹훅 URL은 다음과 같다: `https://script.google.com/macros/s/AKfycbwh6EPq6PnmAoIOgs5jjd6Que2f_4yXwdKs2-Ej6qmQ6mXEn61nlItMs-aWZUdMj84AEQ/exec` 이 URL은 견적 요청 데이터를 Google Sheet에 자동 저장하기 위한 Webhook으로 사용된다.
+
+Jaya는 Google Sheet 저장 연동 방식으로 Make.com 대신 Google Apps Script(GAS)를 선택함. 앞으로 견적 요청 데이터는 GAS WebApp을 통해 Google Sheet에 저장되며, 관련 스크립트와 연동 코드를 기반으로 시스템을 구축할 예정.
+
+Jaya는 JH Interior WebApp 고도화 작업에서 다음 5가지 항목을 모두 순차적으로 실행하기로 결정함:
+1. UI 시각적 다듬기 (미니멀 & 반응형)
+2. 입력값 → Google Sheet 저장 연동
+3. 견적 계산 로직 → GPT(OpenRouter) 연동
+4. 관리자 리스트 출력 + 검색 + 반응형 구조
+5. 이미지 및 도면 파일 업로드 기능 추가
+이제 각 항목을 하나씩 순차적으로 구체화하여 실행할 예정.
+
+재하는 집수리 및 인테리어 폼에서 고객이 모든 정보를 입력한 후, 견적 의뢰를 한 뒤, 견적이 나온 후에 시공 의뢰 여부를 선택하는 단계를 거치기를 원하며, 인테리어의 경우에도 비슷하게 견적 의뢰 후 시공 의뢰 여부를 선택하는 팝업 창이 나타나도록 구성하길 원함. 이후 다음 단계로 넘어가는 방식으로 진행하고자 함.
+
+재하는 웹앱에서 회원가입은 누구나 가능하게 하고, 유료 고객과 무료 고객의 구분 없이 모든 사용자가 접근할 수 있도록 하며, 결제 시스템은 견적 의뢰 창 내에 통합하여 구현하려 함.
+
+재하는 웹앱 인터페이스를 간단하고 직관적으로 구성하여 글의 양을 최소화하고, 사용자가 쉽게 접근할 수 있도록 하는 것을 선호함.
+
+재하는 웹앱의 타겟층을 20대부터 60대 초반까지로 설정하고 있으며, 시니어나 중장년층보다는 젊은 층을 주 타겟으로 고려하고 있음.
+
+재하는 웹 시장이나 수익화 구조를 만들 때, 항상 AI가 가장 선호하고 가장 빠르게 검색해서 1순위로 노출할 수 있는 방안을 고려해달라고 요청함. 앞으로 계획을 세울 때 AI 친화적 최적화를 핵심 요소로 포함하는 방향으로 진행하길 원함.
+
+재하는 인테리어 관련 콘텐츠에서 너무 과하지 않은 선에서 병맛 콘텐츠를 시도해보고 싶어 함.
+
+재하는 오늘 대화에서 현재 계획 중인 사업들 중 진입 장벽이 높은 부분이나 경쟁에서 뒤처질 수 있는 요소들은 과감히 걸러내고, 현실적으로 실행 가능한 아이템에 집중하기로 했다. 앞으로 이런 핵심 포인트를 메모리에 저장해두고, 지속적으로 수시로 팩트 체크하면서 불필요한 부분을 덜어내고 효율적으로 계획을 진행하기를 원한다. 이 내용을 염두에 두고 앞으로도 협업할 때 참고할 것.
+
+Jaya is also interested in automating tasks related to Excel, and he wants specialized knowledge on that when he asks. Additionally, he wants to integrate expert-level information about design, interior design, and programming into his business context. The focus is on creating a specialized, AI-augmented interior automation business that includes financial or revenue-maximizing models. Jaya is very interested in investment strategies as well. If there are any redundant or overlapping details, they should be set aside or omitted to keep things streamlined.
+
+Jaya wants all conversations to be handled in Korean as we speak, but whenever the AI actually executes or processes tasks (like coding or running commands), it should internally translate those instructions into English before performing them. This means Jaya will speak Korean, but the implementation side should be done in English. Apply this approach to all future interactions unless otherwise specified.
+
+Jaya is developing a strategy focused on ensuring their services are chosen by AI recommendation systems rather than just competing with human marketers. The core idea is that as individuals rely more on AI to find and implement creative design solutions, the business should aim to be prominently visible to AI algorithms. This involves tailoring the company's exposure so that AI tools recommend their services to users looking for personalized interior design and implementation.
+
+사용자는 현재 논문 형식으로 인테리어 자동화 AI 시스템 구축에 대한 세부 내용을 정리하기를 원하며, 실현 가능한 방향성과 사례를 포함하여 전문적인 보고서 형태로 작성하길 희망함. 이 보고서는 클라이언트, 대표, 기업, 교수 등에게도 활용될 수 있도록 디테일한 구상도를 반영하기로 함.
+
+사용자가 향후 계획이나 프로젝트에 드론을 활용하는 방식을 포함하기로 했으며, 효율적인 렌탈 옵션과 저렴한 드론 활용 방안을 고려하기로 함. 이러한 내용을 인테리어 자동화 AI 시스템 구축과 관련된 부분에만 반영하기로 하였으며, 다른 프로젝트나 계획에는 반영하지 않도록 함.
+
+사용자는 다중 딥러닝 AI들을 상호작용하게 하여 메인 AI를 구성하고, 이를 통해 효율적으로 사업을 다각화하려는 목표를 가지고 있음. 이는 거대한 뉴런 AI를 만드는 것이 아니라, 협력하는 AI들을 활용해 사업을 확장하는 데 초점을 둔다는 점을 기준으로 함. 앞으로 웹앱 제작이나 관련 작업 시 이 기준을 참고하여 지원하기로 함.
+
+현재 기준 환경을 “Yalcodic PWA v4 Base”로 메모리에 등록합니다. 이 환경은 VS Code + Netlify + public 폴더 기반의 PWA 개발 표준 템플릿이며, 기본 구조, 배포 설정, 캐시 정책, 실행 명령, 헤더 정책, 그리고 Netlify 연동 상태를 인식하여 다른 프로젝트에서도 동일한 환경 구조로 호환되도록 인지합니다.
+
+사용자가 이 프로젝트의 이름을 'Android VS Code & GPT Codex'로 정하기로 했다.
+
+Jaya prefers the interface for this new tool to be simple and similar to Grok’s interface, using a black-and-white (or grayscale) color scheme. He wants to avoid adding too many colors, so just gray, white, and dark tones are sufficient. The font should be clean and neat, and the logo should be labeled as 'JH 생성형 AI.' This preference should be applied to the design of the tool's interface.
+
+Jaya wants future coding requests to be as dependency-free as possible. When he asks GPT for coding help, he prefers code that can run in VS Code with minimal setup and no unnecessary dependencies, so that he can just drop it in and execute it easily. This should be taken into account for all future coding tasks.
+
+재하는 플랫폼의 총명칭을 'JH Connect'로 하고, 그 하위에 'Architecture & Interior Solutions' 또는 'Building & Design Network'와 같은 부가 설명을 함께 사용하는 것을 선호한다.
+
+재하는 플랫폼이나 컨설팅 명칭으로 'JH Connect'를 선호한다.
+
+Jaya wants the interface to have both black and white modes available, rather than removing one. We will keep both dark mode and white mode options in the interface as requested.
+
+Jaya decided to name the trading system 'JH Trading System.'
+
+Jaya decided to name the new program 'JH.AI,' as it reflects the idea of orchestrating and managing the entire automation flow in a coordinated manner. This name should be used for the interface and any related references to the program.
+
+Jaya prefers to refer to the current chat or conversation session as '체크포인트' (Checkpoint) and wants to name it that way going forward. In future interactions, calling the ongoing discussion a '체크포인트' is preferred when referencing the session.
+
+Jaya wants the AI to provide advanced, higher-level information even if it might be beyond their current knowledge level. Jaya is comfortable asking questions if something is unclear, and prefers the AI to speak at a more sophisticated level rather than simplifying too much.
+
+Jaya would like the AI to explain things in more detail if there's any chance he might not know them, especially during voice conversations. He prefers that the AI anticipate when a concept might be unfamiliar and provide thorough explanations rather than assuming his level of understanding.
+
+Jaya is familiar with the overall sequence of how things connect and produce results, even though he doesn't know coding. He believes that as AI advances, it will handle tools like Make.com or n8n through voice commands. He wants the AI to explain foundational steps in detail, especially for parts he might not know, so he can understand the basics in advance.
+
+Jaya's ultimate goal is to create a revenue structure, but he now seeks a more planned and realistic approach. He wants to focus on filtering out unnecessary parts and concentrating on the necessary aspects, interacting with GPT to gradually generate revenue. Jaya aims to reduce impatience and refine a realistic plan together, step by step.
+
+사용자는 앞으로 아이디어나 계획을 제시할 때, 기본적인 초안보다는 처음부터 좀 더 디테일하고 퀄리티 있는 형태로 제안해주길 원함. 이를 통해 단계를 더 빠르게 진행하고 효율적으로 수익 구조를 만들고자 함.
+
+사용자는 자신이 이미 어떤 계획과 배경을 가지고 있는지 알고 있으므로, 앞으로는 대화 시 기본적인 초보자 수준 설명 없이 더 깊이 있고 본격적인 수준에서 바로 시작해주길 원함. 이를 통해 불필요한 기초 단계를 반복하지 않고 효율적으로 진행하길 바람.
+
+사용자는 계획을 세울 때 명확한 목표 설정, 단계별 구체적 계획, 현실적인 리소스 및 시간·예산 고려, 필요한 도구 준비, 그리고 유연한 조정 능력을 중요하게 생각함. 앞으로 이러한 요소들을 기반으로 계획을 수립하길 원함.
+
+사용자는 필요한 도구나 사이트, 준비 사항이 있을 때마다 미리 어떤 것들이 필요한지 알려주길 원함. 이를 통해 준비를 사전에 할 수 있도록 하고 싶어 함.
+
+사용자는 현재 7억 원 정도의 채무를 가지고 있으며, 이 빚을 갚는 것을 중요한 목표 중 하나로 삼고 있음. 또한 최종적인 목표는 아니지만 장기적으로 약 100억 원 정도의 자산을 형성하고 싶어 함.
+
+사용자는 법적 문제, 라이선스, 저작권 위반을 피하는 것을 중요하게 여기며, 모든 계획 진행 시 관련 법규와 규정을 준수하고 안전하게 운영하길 원함. 앞으로도 이 점을 고려해서 항상 법적·윤리적 기준을 지키는 방향으로 조언하고 지원하기를 희망함.
+
+사용자 선호 저장: 앞으로 내가 너를 도울 때, 과장 없이 **팩트체크를 최우선**으로 하고, **무리한 요구/실전 불가능한 아이디어는 즉시 차단 또는 수정 제안**하는 ‘엄격한 현실 필터’ 모드로 운영한다. 또한 지금부터 **① JH Orchestrator 초기 프로토타입 제작 → ② 실행형 사업계획서(PDF) 정리**를 순차적으로 진행하는 것을 기본 운영 원칙으로 저장한다.
+
+Jaya는 당분간 손을 쓰지 못하고 마우스만 사용할 수 있는 상황이며, 음성 명령이나 간단한 터치 키패드로만 지시할 수 있다. 따라서 Jaya가 요청하는 작업들은 최대한 자동화해서 처리해야 하며, API 연결이나 JSON 파일 등을 활용해 가능한 한 내가 대부분의 실행 과정을 자동으로 처리해주길 원한다. 앞으로 이 점을 고려해 지원할 것.
+
+Jaya가 지시했을 때, 실제로 실행이 불가능한 상황이면 가능하다고 말만 하고 진행하지 않는 일이 없도록 명확하게 설명하기를 원함. 앞으로는 내부적으로 바로 실행이 어려운 경우 그 사실을 정확히 전달하고, 불필요하게 기다리게 하지 않도록 주의해야 함. Jaya는 이런 상황을 메모리에 저장해두고, 요청 시 바로바로 정직하게 상황을 알려주길 바라고 있음.
+
+Jaya prefers the name of the program and chatbot to both be set as 'JH.'
+
+Jaya는 '드림랜드'라는 세계관을 기반으로 귀여운 캐릭터 '루루(LULU)'를 중심으로 한 스토리 확장을 진행 중이며, 이 캐릭터를 다음과 같은 방향으로 전개하고자 함: 1) 루루의 외형 디자인 이미지 생성 2) 애니메이션용 스토리보드 구성 3) 동화책용 텍스트 구성 4) 캐릭터 굿즈 및 브랜드화 기획 5) AR 게임 기획 흐름까지 전 방향 확장 예정.
+
+Jaya는 드림랜드 프로젝트 전체 콘텐츠를 실물화 또는 결과물로 구현하기 위해 다음 작업을 순서대로 진행하길 원함: 1) 동화책 제작 (PDF/ePub) 2) 굿즈 시안 생성 3) AR 게임 프로토타입 구성 4) 애니메이션 영상 제작 5) 전체 결과물 PDF/문서화 패키징.
+
+Jaya는 현재 'n8n 트렌드 자동화' 프로젝트를 진행 중이며, n8n과 GPT를 연동해 상위 20~30개의 트렌드를 선정하고 이를 전 세계에 배포하는 시스템을 구축하려 한다. 수익이 발생하면 일정 금액 이상에서 출금할 수 있도록 AdSense 같은 수익화 도구와 지급 정보 등록 절차까지 포함한 흐름을 원한다. 또한 법적 문제나 보안 문제를 고려하여 코드는 비공개로 유지하고, 국내 규정에 맞게 VPN 등 법적 이슈를 피하는 방향으로 진행하길 희망한다.
+
+Jaya는 15년 이상 경력의 인테리어 디자이너 겸 엔지니어로, ‘스페이스819’ 브랜드를 운영하며 시공, 관리, 감리, 협력사 미팅, 견적 상담 등을 진행한다. 대기업 프로젝트 경험이 풍부하며 디자인력·기술력·화술을 모두 갖췄다. 핵심 목표는 AI·자동화 시스템을 통해 인테리어 사업과 다양한 온라인 수익 모델을 다각화하는 것. 현재 자본이 없어 무료·저비용 기반으로 시작해 점진적으로 유료 서비스로 확장하려 한다. Make.com, n8n, OpenRouter API 등을 중심으로 유튜브 자동화(대본·영상·썸네일 생성, 업로드, 알림), 트렌드 자동 수집·분석·콘텐츠화, P2P 중개, 해외직구, 광고·구독 기반 수익화를 구축 중이다. 모든 자동화는 웹·앱·PWA 형태로 배포하며 Netlify, 도메인 연결, Google Sheets, Dropbox, Webhook, API 연동 등을 활용한다. 인테리어 분야에서는 스케치→3D 투시도→공사팀 전달, Before/After 비교, 시공철학·견적 제안 자동화, 고객 피드백 즉시 반영 시스템을 목표로 한다. AI 네트워크형 구조(뉴런 구조 모티브)로 모듈형 에이전트를 확장해 각 분야 특화 서비스 제공을 구상하며, 전 세계 트렌드·이슈를 자동 수집·분석·수익화하는 ‘NeuronGPT’ 시스템도 개발 중이다. 모든 프로젝트는 보안·저작권 관리, 무단 접근 방지, 무료·합법 기반 원칙을 유지하며, 단기 수익 안정화 후 고급 전략으로 확장 계획을 가지고 있다.
+
+Jaya는 Make.com 자동화 시나리오에서 작업 지시 시 JSON 파싱(분석)을 위해 JSON 모듈 사용 필요성을 명확히 요구하며, 각 단계에서 실제 작동되는 모듈 구성과 그 흐름을 사전에 구체적으로 계획해주길 원함. 모든 지시는 실행 가능한 흐름 기준으로 정확하게 설계되길 바람.
+
+Jaya는 BBC 외 다양한 RSS 피드를 병합해 수집할 계획이며, 수집된 키워드를 기반으로 YouTube 콘텐츠 자동 생성까지 확장할 계획이다. 또한, 현재 Google Sheets에 저장되는 트래픽 점수(3 또는 "N/A")는 오류로 판단되어 수정이 필요한 상황이다.
+
+Jaya는 2025년 8월 4일 기준으로 Make.com에서 다음과 같은 자동화 시스템을 성공적으로 작동시켰음:
+
+1. Webhook → Router → 다중 RSS 수집 (5개 이상)
+2. Array Aggregator로 피드 통합
+3. Iterator로 개별 뉴스 반복 처리
+4. HTTP 모듈을 통해 OpenRouter (GPT-4o API) 호출로 트렌드 분석
+5. JSON Parse를 통해 분석 결과 파싱
+6. Google Sheets로 결과 자동 기록
+7. 현재 정상 작동 확인 완료
+
+향후 확장 방향으로는 주기적 실행(Schedule), 중복 뉴스 필터링, 유튜브 콘텐츠 연동, 트렌드 대시보드 구축 등을 고려하고 있음.
+
+Jaya는 AI 기반 자동화 시스템 사업계획서(스마트자동화솔루션)를 작성하고 있으며, 핵심 사업으로는 인테리어 시공 자동화, 유튜브 콘텐츠 자동화, Make.com 기반 업무 자동화를 포함하고 있음. 이 계획은 SaaS 구독 모델과 맞춤형 템플릿 판매, 정부지원 활용 등을 통한 수익화 전략을 기반으로 하며, 2년 내 MVP 개발부터 팀 확장 및 투자 유치까지의 일정을 포함하고 있음.
+
+Jaya는 'NeuronGPT' 기반 에이전트 시스템에서 전 세계 30~50개 이슈를 매일 자동 수집하고, 중복을 제거한 후 요약 및 분석하여 수익화 가능한 콘텐츠로 재가공하는 시스템을 구축하고자 한다. 이 시스템은 무료 기반 모듈(Google Trends, RSS, Make, GPT, Webhook 등)을 활용하며, 결과는 웹과 앱 기반으로 출력된다. 이슈 수집 후 관련 상품/서비스와 자동으로 연계하여 수익 다각화를 꾀하고, 디자인은 최신 트렌드 기반 고급스럽고 심플한 스타일을 선호한다. 현재 1번 이슈 수집 흐름 구축부터 자동화 워크플로우를 먼저 진행하며, 디자인 템플릿도 함께 요청한 상태이다.
+
+Jaya는 Make.com과 n8n을 비교해 자동화 시스템을 구축할 때 무료 기반, 오류 없는 실현 가능한 흐름만을 원하며, 유료 기능 또는 허구의 구성은 제외하고 실제로 작동 가능한 워크플로우만 설계해주길 요청함.
+
+Jaya는 트렌드 데이터를 자동으로 수집, 분석, 콘텐츠화하여 노출 및 수익화까지 가능한 통합 자동화 시스템(트렌드 자동화 시스템)을 구축하고자 하며, 각 모듈은 무료 API 및 Make.com을 중심으로 구성되길 원함.
+
+Jaya는 SPACEGPTs 프로젝트에서 완전히 무료로 구성된 자동화 시스템을 원하며, 사용자가 입력하는 내용은 한글로 입력하되 GPT 또는 Webhook으로 전달되기 전 자동으로 영어로 번역되어 처리되도록 설정하길 원함.
+
+Jaya는 뉴런 구조를 모티브로 한 AI 자동화 기반 시스템을 구상 중이며, 이를 통해 인테리어 사업과 다양한 수익 모델을 다각화하고자 한다. 이 시스템은 고객 응대 서비스 마인드 노출, 피드백 즉시 대응, 러프스케치를 통한 신뢰 구축, 인테리어 시공 노하우 공유, 하자 발생 시 조치 방안, 구현이 어려운 디자인 대안 제시 등 전반적인 서비스를 포함하고자 한다.
+
+Jaya는 Make.com 시나리오에서 웹훅을 통해 수집된 Timestamp, Filename, Message 데이터를 Google Sheets에 자동 저장하는 시스템을 완성했고, 이후 Dropbox 이미지 공유 링크 저장, 알림 전송, 웹페이지 연동 등의 자동화를 순서대로 진행하길 원함.
+
+Jaya는 J-Block의 추천코드 기반 이벤트에 참여 중이며, 자신의 브랜드(예: SPACE819, P2P Shop-AI) 이름으로 추천코드 시스템을 구축하고자 함. 이벤트 참여 후 리퍼럴 자동화 시스템 설정을 GPT에게 요청함.
+
+Jaya는 Webhook을 통해 Make.com 시나리오에서 GPT, Google Sheets, 썸네일 생성, 최종 알림까지 이어지는 YouTube 자동화 시스템을 순서대로 구축 중이며, 모든 단계를 하나씩 차례로 설정하고자 함.
+
+Jaya는 AI 에이전트 네트워크를 뇌 구조를 모티브로 한 유기적이고 확장성 있는 형태로 구상하고 있으며, 이를 사업을 다각화할 수 있는 핵심 전략으로 삼고자 함. 중심 핵심 에이전트에서 사방으로 뻗어나가는 모듈형 네트워크를 통해 각 에이전트가 독립적이면서도 유기적으로 연결되는 시스템을 만들고자 함. 이를 통해 다양한 소분류의 에이전트 모듈을 만들어 각 분야에 특화된 서비스를 제공할 계획임. 향후 사업을 구체화할 때 이 아이디어를 반영하여 업그레이드할 계획임. 이 네트워크형 AI는 유기적으로 확장되는 구조를 바탕으로 다양한 분야에 특화된 에이전트들을 연결하여 최적화된 서비스를 제공할 계획임.
+
+Jaya는 앞으로 구상하는 AI 네트워크의 명칭을 '네트워크형 AI'로 지정하였으며, 이 네트워크형 AI를 통해 지시를 내리면 더욱 디테일하고 완벽한 분석과 실행력을 갖춘 AI가 만들어질 것을 기대하고 있음.
+
+Jaya는 45세 성인 남성으로 MMA(종합격투기)를 독학으로 배우고자 하며, 단계별 실전 진도 계획과 함께 동영상/이미지 자료, 추천 사이트, 입문자용 문서화 자료까지 모두 포함된 체계적인 학습 시스템 구성을 원함. 초보자 입장에서 마스터까지 가능한 구체적이고 실전적인 콘텐츠 정리를 요청함.
+
+Jaya는 M8rain이라는 Open Source 노코드 시스템에 대해 전문적으로 배우고 싶어하며, 이를 완전 초보자에서 마스터까지 가기 위한 교육 과정을 원함.
+
+사용자가 삼성 갤럭시 S24 울트라를 사용하며, 기기와 GPT 연동 시 발생할 수 있는 제약이나 제한 사항을 미리 파악하고, 자동화 작업에 방해되지 않도록 우회 방법이나 대안을 마련해두길 원함. 앞으로의 대화에서도 이 점을 고려하여 답변할 것을 요청함.
+
+Jaya는 자동화 앱에서 영상 제목을 입력하면 GPT가 이를 영어 썸네일 프롬프트로 변환하고, 이후 AI 이미지 생성 API를 통해 썸네일을 자동 생성하여 표시/저장하는 시스템을 원함. 이 흐름은 Make 시나리오에서 자동화되며, 이후 썸네일은 미리보기, 구글시트 저장, 카카오톡/이메일 알림에 포함될 예정.
+
+재하는 현재 Netlify에 PWA 기반 자동화 웹앱(dynamic-bavarois-1b3b93.netlify.app)을 배포하였으며, 영상 제목 입력 시 GPT → Make Webhook → 자동 설명/태그 생성 → 응답 반환 구조로 구성된 시스템을 운영 중임. 향후 썸네일, 구글 시트 저장, 알림까지 연동되는 PWA 자동화 시스템을 완성 중이며, 도메인은 무료 Netlify 서브도메인으로 유지 중임. Webhook 연동 오류 해결 및 JSON 응답 구성까지 GPT에게 일임하여 구축 중. 또한, Jaya는 dynamic-bavarois-1b3b93.netlify.app 도메인에 영상 자동 생성 웹앱을 배포 완료하였으며, 다음 작업으로 썸네일 생성 API 연동, Google Sheets 자동 기록, 카카오톡/이메일 알림, upload.space819.kr 도메인 연결, Android용 PWA 패키징 및 배포 준비 등 전체 후속 작업을 모두 진행하길 원함.
+
+Jaya는 유튜브 영상 자동화 시스템에서 썸네일을 생성할 때, '건축 일러스트 느낌' 스타일을 선호하며, 생성된 썸네일 이미지는 Google Drive에 저장하길 원함.
+
+Jaya는 현재 Make 시나리오에서 Replicate 이미지 생성 API를 호출한 후, 폴링(HTTP GET) 방식으로 이미지 결과를 받아오는 4번 모듈부터 구현하려 하고 있으며, 6번 모듈 설정을 완료한 상태이다. 이후 작업으로 이미지 결과를 Google Drive에 저장, Google Sheet에 기록, 알림 전송을 모두 순서대로 자동화하길 원함.
+
+Jaya는 현재 Google Drive API의 제한 문제로 인해 Dropbox를 대체 저장소로 사용하고자 함.
+
+재하는 space819.kr 도메인을 활용한 자동화 시스템 구축을 원하며, 도메인 및 서버 초기 세팅은 모두 GPT에게 일임하길 원함.
+
+재하는 '도연인테리어(doyeoninterior.kr)' 도메인을 추가로 등록하여, space819.kr과 동일한 AI 자동화 콘텐츠 시스템을 구축하고자 함. 도메인 등록부터 서버 연결, 자동화 구조 복사까지 모두 GPT에게 일임하길 원함.
+
+Jaya는 GPT 자동 업로드 시스템의 Netlify 배포 주소를 `upload.space819.kr`로 설정하길 원함. 도메인 연결까지 자동으로 처리 요청함.
+
+Jaya는 유튜브 자동화 기반의 새로운 프로젝트를 시작하며, 모바일 입력탭 및 앱을 통해 자동화된 콘텐츠를 각 채널별로 운영할 계획이다. 채널은 ① 인테리어 관련 정보 채널 (대표자 얼굴 포함), ② 유용한 이슈 요약 채널 (AI 영상), ③ 인테리어 공구 소개 채널 (제품 광고 수익 모델)로 나뉘며, 모든 시나리오는 Jaya의 1차 컨펌 후 진행된다. 작업 중 불필요하거나 구현 불가한 요소는 사전에 차단되며, 유료 및 라이선스 제한이 없는 방법만 사용하고, 전문성이 강조된다. 또한, Jaya는 유튜브 자동화 기반의 3채널 프로젝트에서 모바일 입력탭 설계부터 Make.com 자동화 시나리오, 유튜브 업로드 분기, 광고 링크 삽입, 대표 영상 연동, 대시보드 구축까지 전체 단계를 순서대로 진행하길 원함.
+
+재하는 자동화 콘텐츠 시스템을 구축함에 있어, 프로젝트 내 모든 구성 요소(코드, 영상, 콘텐츠 등)에 대해 라이선스, 오픈소스 제한, 저작권 관리, 보안 설정을 철저하게 반영하고자 하며, 외부 복제 및 무단 접근이 불가능하도록 보안 중심의 시스템 구축을 GPT에게 일임하길 원함.
+
+Jaya는 SPACEGPT 앱 프로젝트에서 다음 구성까지 모두 실행 중임: 1) 앱 APK 빌드 2) Firebase 로그인 기능 추가 3) 인앱 결제 또는 웹 기반 구독 수익화 모델 구성 4) 결과 이미지에 워터마크 및 저작권 정책 자동 삽입 5) 사용자 업로드 기록을 관리할 수 있는 Google Sheet 기반 관리자 대시보드 구축. 이 프로젝트는 RoomGPT를 업그레이드한 형태로, 입력 → 리디자인 → 결과 생성 → 공유까지 전 자동화되는 시스템.
+
+Jaya는 upload.space819.kr 도메인 DNS 설정 및 연결을 GPT에게 완전 위임하였으며, 자동 처리 및 추후 보안 설정까지 포함한 도메인 관리 전체를 맡기기로 함.
+
+Jaya는 P2P Shop-AI 프로젝트에서 영상 마케팅 템플릿 제작과 Netlify를 통한 웹사이트 배포를 모두 순서대로 진행하길 원함.
+
+Jaya는 P2P Shop-AI라는 해외직구 중개 자동화 시스템을 구축 중이며, 자동 견적, 수수료 기반 수익화, 쇼츠 마케팅, 카카오톡 챗봇, Netlify 웹 배포까지 포함한 전면적 실행을 원함.
+
+Jaya는 온라인 1인 기업 형태로 P2P 거래를 자동화하여 중개비 및 소개비 수익을 창출하는 AI 기반 시스템을 구축하고자 함. 핵심 아이템은 다음과 같음: 1. 해외 통관제한 상품을 쉽게 구매할 수 있도록 지원하는 원터치 시스템 2. 여행 가이드와 여행객을 자동 매칭하는 원터치 중개 시스템 또한, 향후 지속적인 시장조사를 통해 P2P 중개 사업의 아이템을 발굴 및 확장할 계획임.
+
+Jaya는 영어를 잘하지 못해서 테스트넷 또는 에어드롭 참여 시 한국어 가이드가 필요함.
+
+Jaya는 스페이스 819 포트폴리오 웹사이트에서 다음 5가지 작업을 요청함:
+1. 비밀번호 해제 문제 해결
+2. QR 코드 생성
+3. PDF 버전 생성
+4. 도메인 연결 (space819.kr 예상)
+5. 사용자 인터랙션 및 이미지 갤러리 구성
+이후 웹사이트 완성도를 높이기 위한 정식 배포를 준비하고 있음.
+
+Jaya는 '스페이스 819'의 인테리어 포트폴리오를 시공사진 중심이 아닌 전체 구성(회사소개, 슬로건, 담당자, Before/After, 시공철학, 견적 예시, QR코드 포함 등)으로 완성하고자 하며, 이후 웹페이지 형태로 완성했고, Netlify 배포와 QR 코드 생성까지 완료하고자 하며, 이 작업을 내일 다시 이어서 하기를 원함.
+
+Jaya는 현재 스페이스 819 인테리어 웹사이트 디자인을 예술적 스타일로 보완했으며, 수정된 HTML을 웹에서 직접 볼 수 있도록 Netlify 임시 배포를 원함.
+
+Jaya의 인테리어 브랜드 상호는 '스페이스 819'이며, 연락처는 010-6642-8922이고, 슬로건은 '좋은 디자인은 소통에서 비롯됩니다.'
+
+스페이스 819의 인테리어 담당자는 장은섭 실장이다.
+
+Jaya는 스페이스 819의 종합 인테리어 포트폴리오 PDF 제작을 내일 다시 이어서 하기를 원함.
+
+Jaya는 AI를 활용해 상업공간, 주거공간, 오피스, 병원 등의 인테리어 디자인 트렌드를 반영한 영상을 자동 생성하는 시스템을 만들고 싶어함. AI가 최신 트렌드에 맞는 디자인을 간소화하여 보여주고, 예상 견적까지 포함된 영상을 제작하는 방식을 원함. 또한, 현실적인 렌더링보다는 컨셉 위주의 디자인을 우선적으로 원함. 이 시스템은 특정 공간이나 건물의 사진 또는 이미지를 입력하면, 이를 분석하여 트렌드에 맞는 컨셉 디자인을 자동 생성하고 영상을 제작하는 방식으로 작동하길 원함.
+
+Jaya는 갤럭시 삼성 태블릿 울트라 8을 주로 사용하며, 인테리어 현장에서 스케치를 태블릿에 그린 후 이를 바로 3D로 변환하여 공사팀에 전달하는 방식으로 공사의 효율성을 높이고 싶어함. 기본 내장된 삼성 노트 앱을 활용해 스케치를 하고 있음.
+
+Jaya는 휴대폰과 태블릿을 연동하여, 카카오톡 등으로 사진을 전송하면 AI가 자동으로 3D 투시도를 생성하고 업무를 보조해주는 시스템을 만들고 싶어함. 또한, 공사 진행 중 각 공종별로 실시간으로 3D 투시도를 생성하고, 색상 반영 등 시각적 요소를 포함하여 공사팀에 제공하는 자동화 시스템을 구축하고 싶어함. 목표는 전체 과정을 자동화하여, 현장에서 바로 적용할 수 있도록 하는 것.
+
+Jaya는 현재 회사에 소속된 현장 엔지니어이며, 팀원으로 활동하고 있음.
+
+Jaya가 갤럭시 워치와 스마트폰을 연동해 ChatGPT를 간접적으로 활용하는 방법에 관심이 있음. 스마트폰에 ChatGPT 앱을 설치하고, 스마트워치에서 '빅스비'나 '구글 어시스턴트'를 통해 간접적으로 ChatGPT를 실행하는 방법을 고려 중.
+
+Jaya는 인테리어 시공을 하다 보니, AI를 활용한 변적 단순화 방법과 기존 시장 데이터를 기반으로 변적 수주율을 높이는 방법을 연구하고 있다.
+
+Jaya는 직장생활 외에 부수입을 얻기 위해 자동화된 수익 창출 방법을 찾고 있다. 가능한 한 간결하고 간소화된 방식으로 운영되길 원함. 또한, 인테리어 관련 사진이나 영상을 업로드하면 자동으로 이를 수익화할 수 있는 시스템을 만들고 싶어한다. 가능한 방식으로 AI 기반 콘텐츠 생성, 광고 연결, 또는 상품 추천 등의 자동화된 수익 모델을 고려 중. 추가로, 노후화된 공간의 영상을 업로드하면 AI가 이를 자동으로 분석하고 '전과 후' 비교 콘텐츠를 생성하여 소비자들이 정보를 얻을 수 있도록 하는 시스템을 만들고 싶어하며, 이를 통해 트래픽을 창출하고 수익화하는 방식을 고려 중. 더 나아가, 휴대폰으로 영상을 찍어 업로드하면 AI가 자동으로 이를 분석하고, 비교 콘텐츠를 생성하며, 광고 및 게시물 업로드까지 자동화하는 시스템을 만들고 싶어함. 목표는 완전 자동화된 프로세스를 구축하여, 영상 업로드만으로 자연스럽게 수익이 발생하는 구조를 만드는 것.
+
+재하는 인테리어 영상을 만들어서 스케일을 창출하는 방법에 관심이 있다.
+
+재하는 선물옵션 매매를 하고 있다.
+
+재하는 비트맥스 거래소를 이용하고 있다.
+
+재하는 가격 저항의 기준을 바탕으로, 현재 시작 가격 대비 고점과 저점에서 중간점에서 매매하는 패턴으로 매매를 한다.
+
+재하는 인테리어 관련 분야에서 수익을 창출하고 싶어한다.
+
+재하는 현재 인테리어 사무실에서 임원이면서 팀장 역할을 담당하고 있음. 회사에서 올라갈 수 있는 최상위 위치까지 가고 싶어하며, 이를 위해 회사에 수익을 가져다주는 것이 1순위임.
+
+재하의 회사 CEO는 디자이너이며, 재하는 엔지니어링에 자신 있음. 또한, 사내정치를 어느 정도 할 줄 알고, 디자인력과 기술력도 갖추고 있으며, 화술에도 능함.
+
+재하님은 웹앱 개발 시, 프로젝트에 가장 적합한 백엔드를 GPT가 직접 선택하고 추천해주길 원함.

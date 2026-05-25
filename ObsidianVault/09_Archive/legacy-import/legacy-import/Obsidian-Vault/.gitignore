@@ -1,0 +1,13 @@
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+*.tmp
+Thumbs.db
+.DS_Store
+
+
+
+
+# Ignore Smart Environment folder
+.smart-env
