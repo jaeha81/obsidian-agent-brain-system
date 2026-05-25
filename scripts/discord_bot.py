@@ -41,11 +41,13 @@ from pathlib import Path
 
 import discord
 import yaml
-from discord import Intents, Message
+from discord import Intents, Message, app_commands
 from dotenv import load_dotenv
 
 from bucky_client import BuckyError, run_bucky
 from bucky_briefing import generate_briefing
+from task_tracker import add_task, format_task_list, get_today_tasks
+from daily_report_generator import run as generate_daily_report
 
 _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8")
@@ -474,6 +476,76 @@ def _make_voice_sink_class():
 BuckyVoiceSink = _make_voice_sink_class()
 
 
+# ── /evolve 슬래시 명령어 헬퍼 ────────────────────────────────────────────────
+
+_KNOWLEDGE_GAPS_PATH = VAULT / "00_System" / "knowledge-gaps.md"
+_EVOLUTION_LOG_PATH = VAULT / "00_System" / "evolution-log.md"
+_AGENT_BUS_QUEUE = VAULT / "10_AgentBus" / "agent-room-messages.jsonl"
+_KNOWLEDGE_GAP_ANALYZER = _ROOT / "scripts" / "knowledge_gap_analyzer.py"
+
+
+def _read_evolve_status() -> dict:
+    """evolution-log.md와 knowledge-gaps.md를 읽어 상태 딕셔너리 반환."""
+    import re as _re
+
+    # 마지막 실행 시각 파싱
+    last_run = "기록 없음"
+    if _EVOLUTION_LOG_PATH.exists():
+        text = _EVOLUTION_LOG_PATH.read_text(encoding="utf-8", errors="replace")
+        # ## YYYY-MM-DD 또는 ## YYYY-MM-DDTHH:MM 형태 탐색
+        matches = _re.findall(r"##\s+(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}[^\n]*)", text)
+        if not matches:
+            matches = _re.findall(r"##\s+(\d{4}-\d{2}-\d{2}[^\n]*)", text)
+        if matches:
+            last_run = matches[-1].strip()
+
+    # 지식갭 수 파싱 (## 또는 - 으로 시작하는 갭 항목 카운트)
+    gap_count = 0
+    if _KNOWLEDGE_GAPS_PATH.exists():
+        gap_text = _KNOWLEDGE_GAPS_PATH.read_text(encoding="utf-8", errors="replace")
+        # H2 섹션 기준 갭 수 (frontmatter 제외)
+        gap_count = len(_re.findall(r"^#{1,3} ", gap_text, flags=_re.MULTILINE))
+        if gap_count == 0:
+            # 목록 항목 기준 폴백
+            gap_count = len(_re.findall(r"^\s*[-*] ", gap_text, flags=_re.MULTILINE))
+
+    # 태스크 수: evolution-log.md 내 task/created 키워드
+    task_count = 0
+    if _EVOLUTION_LOG_PATH.exists():
+        text = _EVOLUTION_LOG_PATH.read_text(encoding="utf-8", errors="replace")
+        task_count = len(_re.findall(r"태스크|task|generated|created", text, flags=_re.IGNORECASE))
+
+    return {"last_run": last_run, "task_count": task_count, "gap_count": gap_count}
+
+
+def _read_knowledge_gap_tasks(limit: int = 10) -> list[dict]:
+    """agent-room-messages.jsonl에서 knowledge_gap_fill 타입 태스크 최근 N개 반환."""
+    import json as _json
+
+    if not _AGENT_BUS_QUEUE.exists():
+        return []
+
+    results: list[dict] = []
+    try:
+        lines = _AGENT_BUS_QUEUE.read_text(encoding="utf-8", errors="replace").splitlines()
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = _json.loads(line)
+            except _json.JSONDecodeError:
+                continue
+            msg_type = entry.get("type", "") or entry.get("task_type", "")
+            if "knowledge_gap" in msg_type.lower():
+                results.append(entry)
+    except Exception:
+        return []
+
+    # 최신 N개 (뒤에서부터)
+    return results[-limit:]
+
+
 async def ask_bucky(channel_id: str, user_message: str) -> str:
     """Bucky Agent에 질문하고 답변 반환. Claude CLI 구독 경로만 사용."""
     history = conversation_history[channel_id]
@@ -497,10 +569,136 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
     return reply
 
 
+# ── /evolve 슬래시 명령어 등록 ────────────────────────────────────────────────
+
+def _register_evolve_commands(tree: app_commands.CommandTree) -> None:
+    """CommandTree에 /evolve 그룹(status · tasks · run) 등록."""
+
+    evolve_group = app_commands.Group(
+        name="evolve",
+        description="Bucky 진화 사이클 관리 명령어",
+    )
+
+    @evolve_group.command(name="status", description="마지막 진화 사이클 실행 시각, 태스크 수, 지식갭 수 표시")
+    async def evolve_status(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            status = await asyncio.to_thread(_read_evolve_status)
+            gaps_exists = "✅" if _KNOWLEDGE_GAPS_PATH.exists() else "⚠️ 파일 없음"
+            elog_exists = "✅" if _EVOLUTION_LOG_PATH.exists() else "⚠️ 파일 없음"
+            lines = [
+                "**[Evolve Status]**",
+                f"마지막 실행: `{status['last_run']}`",
+                f"생성된 태스크 수: `{status['task_count']}`",
+                f"지식갭 수: `{status['gap_count']}`",
+                f"knowledge-gaps.md: {gaps_exists}",
+                f"evolution-log.md: {elog_exists}",
+            ]
+            await interaction.followup.send("\n".join(lines))
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ status 조회 오류: {e}")
+            print(f"[Evolve] status 오류: {e}", flush=True)
+
+    @evolve_group.command(name="tasks", description="AgentBus 큐에서 knowledge_gap_fill 태스크 목록 표시 (최근 10개)")
+    async def evolve_tasks(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            tasks = await asyncio.to_thread(_read_knowledge_gap_tasks, 10)
+            if not tasks:
+                queue_exists = "✅" if _AGENT_BUS_QUEUE.exists() else "⚠️ 파일 없음"
+                await interaction.followup.send(
+                    f"**[Evolve Tasks]**\nknowledge_gap_fill 태스크 없음 (큐: {queue_exists})"
+                )
+                return
+
+            import json as _json
+            lines = [f"**[Evolve Tasks]** — 최근 {len(tasks)}개"]
+            for i, task in enumerate(reversed(tasks), 1):
+                ts = task.get("timestamp", task.get("created", ""))[:19] if isinstance(
+                    task.get("timestamp", task.get("created", "")), str
+                ) else ""
+                title = task.get("title", task.get("subject", task.get("gap", "")))
+                msg_type = task.get("type", task.get("task_type", ""))
+                status = task.get("status", "")
+                parts = [f"`{i}.`"]
+                if ts:
+                    parts.append(f"`{ts}`")
+                parts.append(f"[{msg_type}]")
+                if title:
+                    parts.append(title[:60])
+                if status:
+                    parts.append(f"({status})")
+                lines.append(" ".join(parts))
+
+            for chunk in split_message("\n".join(lines)):
+                await interaction.followup.send(chunk)
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ tasks 조회 오류: {e}")
+            print(f"[Evolve] tasks 오류: {e}", flush=True)
+
+    @evolve_group.command(name="run", description="knowledge_gap_analyzer.py 즉시 실행 후 결과 전송")
+    async def evolve_run(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        if not _KNOWLEDGE_GAP_ANALYZER.exists():
+            await interaction.followup.send(
+                f"⚠️ `knowledge_gap_analyzer.py` 파일이 없습니다.\n경로: `{_KNOWLEDGE_GAP_ANALYZER}`"
+            )
+            return
+        try:
+            import subprocess as _subprocess
+            await interaction.followup.send("⚙️ `knowledge_gap_analyzer.py` 실행 중...")
+            result = await asyncio.to_thread(
+                lambda: _subprocess.run(
+                    [sys.executable, str(_KNOWLEDGE_GAP_ANALYZER)],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=120,
+                    cwd=str(_ROOT),
+                )
+            )
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip()
+            rc = result.returncode
+
+            status_icon = "✅" if rc == 0 else "❌"
+            output_lines = [f"{status_icon} **[Evolve Run]** 종료코드: `{rc}`"]
+            if stdout:
+                output_lines.append(f"**stdout:**\n```\n{stdout[:1200]}\n```")
+            if stderr:
+                output_lines.append(f"**stderr:**\n```\n{stderr[:600]}\n```")
+            if not stdout and not stderr:
+                output_lines.append("_(출력 없음)_")
+
+            for chunk in split_message("\n".join(output_lines)):
+                await interaction.followup.send(chunk)
+            print(f"[Evolve] run 완료 — rc={rc}", flush=True)
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⚠️ 실행 타임아웃 (120초 초과)")
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ run 실행 오류: {e}")
+            print(f"[Evolve] run 오류: {e}", flush=True)
+
+    tree.add_command(evolve_group)
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.tree = app_commands.CommandTree(self)
+        _register_evolve_commands(self.tree)
+
     async def setup_hook(self) -> None:
+        # 슬래시 명령어 전역 동기화
+        try:
+            synced = await self.tree.sync()
+            print(f"[Bot] 슬래시 명령어 동기화 완료 — {len(synced)}개", flush=True)
+        except Exception as e:
+            print(f"[Bot] 슬래시 명령어 동기화 실패: {e}", flush=True)
+
         if AUTO_BRIEFING and BRIEFING_CHANNEL_ID:
             self.loop.create_task(self._daily_briefing_task())
 
