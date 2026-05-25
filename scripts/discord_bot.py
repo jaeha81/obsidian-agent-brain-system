@@ -48,6 +48,7 @@ from bucky_client import BuckyError, run_bucky
 from bucky_briefing import generate_briefing
 from task_tracker import add_task, format_task_list, get_today_tasks
 from daily_report_generator import run as generate_daily_report
+from bucky_dispatcher import dispatch as dispatch_task, get_pending_tasks
 
 _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8")
@@ -891,6 +892,8 @@ class BuckyDiscordBot(discord.Client):
                 "`!reset` — 대화 기록 초기화\n"
                 "`!tasks` / `!태스크` / `!현황` — 오늘 태스크 현황\n"
                 "`!태스크추가 <내용>` — 태스크 등록 및 배분\n"
+                "`!배분 <내용>` — 태스크 자동 분류 → Claude/Codex/Sub-agent 배분\n"
+                "`!배분현황` — 대기 중인 배분 태스크 조회\n"
                 "`!리포트` / `!report` — 데일리 리포트 생성\n"
                 "`!수집` / `!collect` — GPT+Claude 세션 수집 → 지식 정제 파이프라인\n"
                 "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
@@ -960,6 +963,31 @@ class BuckyDiscordBot(discord.Client):
                         await message.channel.send(chunk)
                 except Exception as e:
                     await message.channel.send(f"⚠️ 리포트 생성 실패: {e}")
+            return
+
+        if content.startswith("!배분 ") or content.startswith("!dispatch "):
+            body = content.split(" ", 1)[1].strip()
+            if body:
+                task = await asyncio.to_thread(dispatch_task, body, "discord")
+                agent = task.get("agent", "unknown")
+                task_id = task.get("id", "?")
+                agent_emoji = {"claude": "🤖", "codex": "🔍", "collector": "📥", "distiller": "🧠", "gap": "🔎", "reporter": "📊"}.get(agent, "📋")
+                await message.channel.send(
+                    f"{agent_emoji} **[{agent}] 배분 완료**\n"
+                    f"태스크 ID: `{task_id}`\n"
+                    f"내용: {body[:80]}"
+                )
+            return
+
+        if content in ("!배분현황", "!pending"):
+            tasks = await asyncio.to_thread(get_pending_tasks)
+            if not tasks:
+                await message.channel.send("✅ 대기 중인 태스크 없음")
+            else:
+                lines = [f"**📋 대기 태스크 ({len(tasks)}개)**"]
+                for t in tasks[:10]:
+                    lines.append(f"• [{t['agent']}] {t['instruction'][:60]} — `{t['id']}`")
+                await message.channel.send("\n".join(lines))
             return
 
         if content in ("!수집", "!collect", "!파이프라인"):

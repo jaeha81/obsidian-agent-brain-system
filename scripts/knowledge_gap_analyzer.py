@@ -45,7 +45,7 @@ GAPS_OUTPUT = VAULT / "00_System" / "knowledge-gaps.md"
 AGENTBUS_QUEUE = Path(
     os.getenv(
         "AGENTBUS_QUEUE",
-        r"G:\내 드라이브\JH-SHARED\00_SYSTEM\agent-room-messages.jsonl",
+        str(_ROOT / "ObsidianVault" / "10_AgentBus" / "agent-room-messages.jsonl"),
     )
 )
 
