@@ -1,49 +1,63 @@
 #!/usr/bin/env python3
 """
-Docker Sync — 3-PC 환경 자동 설정 및 Docker 관리 유틸리티
+Docker 3-PC 환경 동기화 설정
+자동으로 현재 PC를 감지하고 docker/.env를 설정한다.
 
-PC 환경 자동 감지:
-  - 집 PC   : D:/ai프로젝트 존재 여부 확인
-  - 노트북  : whoami == info
-  - 사무실  : whoami == 설계4
+PC 감지 기준:
+  집 PC   → D:/ai프로젝트 존재
+  노트북  → whoami 결과에 'info' 포함
+  사무실  → whoami 결과에 '설계4' 포함
 
 사용법:
-    python scripts/docker_sync.py --setup    # PC 감지 → .env 자동 생성
-    python scripts/docker_sync.py --start    # docker-compose up -d (core)
-    python scripts/docker_sync.py --start --profile full   # 전체 서비스 기동
-    python scripts/docker_sync.py --stop     # docker-compose down
-    python scripts/docker_sync.py --status   # 실행 중인 서비스 상태 출력
-    python scripts/docker_sync.py --logs     # 서비스 로그 스트리밍
+  python scripts/docker_sync.py --setup         # 환경 감지 후 .env 생성
+  python scripts/docker_sync.py --start         # setup + docker compose up -d
+  python scripts/docker_sync.py --start --full  # 모든 profile 포함
+  python scripts/docker_sync.py --status        # 컨테이너 상태 확인
+  python scripts/docker_sync.py --stop          # 컨테이너 중지
 """
 
 from __future__ import annotations
 
 import argparse
 import os
-import platform
+import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 경로 상수
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# 경로 설정
+# ─────────────────────────────────────────────
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCKER_DIR = REPO_ROOT / "docker"
-ENV_EXAMPLE = DOCKER_DIR / ".env.example"
-ENV_FILE = DOCKER_DIR / ".env"
 COMPOSE_FILE = DOCKER_DIR / "docker-compose.yml"
+ENV_FILE = DOCKER_DIR / ".env"
+BACKUP_DIR = REPO_ROOT / ".agent" / "backup"
 
-# G드라이브 마운트 포인트 (Windows)
-GDRIVE_PATH = "G:/내 드라이브"
-VAULT_SUBPATH = "obsidian-agent-brain-system/ObsidianVault"
-
-# PC별 로컬 AI 프로젝트 경로
-PC_AI_PATHS: dict[str, str] = {
-    "home":   "D:/ai프로젝트",
-    "laptop": "C:/ai프로젝트",
-    "office": "C:/ai프로젝트",
+# ─────────────────────────────────────────────
+# PC별 설정 정의
+# ─────────────────────────────────────────────
+PC_CONFIGS: dict[str, dict[str, str]] = {
+    "home": {
+        "PC_ENV": "home",
+        "VAULT_BASE_PATH": "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+        "LOCAL_AI_PATH": "D:/ai프로젝트",
+        "GDRIVE_PATH": "G:/내 드라이브",
+    },
+    "laptop": {
+        "PC_ENV": "laptop",
+        "VAULT_BASE_PATH": "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+        "LOCAL_AI_PATH": "C:/ai프로젝트",
+        "GDRIVE_PATH": "G:/내 드라이브",
+    },
+    "office": {
+        "PC_ENV": "office",
+        "VAULT_BASE_PATH": "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+        "LOCAL_AI_PATH": "C:/ai프로젝트",
+        "GDRIVE_PATH": "G:/내 드라이브",
+    },
 }
 
 PC_LABELS: dict[str, str] = {
@@ -52,234 +66,280 @@ PC_LABELS: dict[str, str] = {
     "office": "🏢 사무실 PC",
 }
 
+# 사용자가 보존해야 할 키 (API 키 등)
+USER_PRESERVED_KEYS = {
+    "ANTHROPIC_API_KEY",
+    "CLAUDE_API_KEY",
+    "OPENAI_API_KEY",
+    "GITHUB_TOKEN",
+    "GITHUB_USERNAME",
+    "DISCORD_BOT_TOKEN",
+    "DISCORD_WEBHOOK_URL",
+    "DISCORD_CHANNEL_ID",
+    "REDIS_URL",
+    "LOG_LEVEL",
+    "DISTILLER_BATCH_SIZE",
+    "DISTILLER_RETRY_MAX",
+    "DISTILLER_INTERVAL_HOURS",
+}
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PC 환경 감지
-# ─────────────────────────────────────────────────────────────────────────────
 
-def detect_pc_env() -> str:
-    """PC 환경을 자동 감지하여 'home' | 'laptop' | 'office' 반환."""
-    # 1. 집 PC 판별: D:\ai프로젝트 존재 여부
-    if Path("D:/ai프로젝트").exists():
-        return "home"
+# ─────────────────────────────────────────────
+# PC 감지
+# ─────────────────────────────────────────────
 
-    # 2. whoami 로 노트북 / 사무실 구분
+def detect_pc() -> tuple[str, str]:
+    """
+    현재 PC 환경을 감지한다.
+    반환: (pc_type, reason)  pc_type ∈ {'home', 'laptop', 'office'}
+    """
+    # 1. 집 PC: D:/ai프로젝트 존재 여부
+    home_marker = Path("D:/ai프로젝트")
+    if home_marker.exists():
+        return "home", "D:/ai프로젝트 존재 감지"
+
+    # 2. whoami로 노트북/사무실 구분
     try:
         result = subprocess.run(
             ["whoami"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=5,
         )
-        username = result.stdout.strip().lower()
-    except (subprocess.SubprocessError, FileNotFoundError):
-        username = ""
+        whoami_output = (result.stdout or "").strip() + (result.stderr or "").strip()
+    except Exception as e:
+        whoami_output = ""
+        print(f"[WARN] whoami 실행 실패: {e}", file=sys.stderr)
 
-    if "info" in username:
-        return "laptop"
-    if "설계4" in username or "xn--" in username:
-        return "office"
+    if "설계4" in whoami_output:
+        return "office", f"whoami에 '설계4' 포함: {whoami_output!r}"
+
+    if "info" in whoami_output.lower():
+        return "laptop", f"whoami에 'info' 포함: {whoami_output!r}"
 
     # 3. 환경변수 fallback
     env_val = os.environ.get("PC_ENV", "").lower()
-    if env_val in ("home", "laptop", "office"):
-        return env_val
+    if env_val in PC_CONFIGS:
+        return env_val, f"PC_ENV 환경변수 사용: {env_val}"
 
-    # 4. 사용자에게 물어보기
-    print("PC 환경을 자동 감지하지 못했습니다.")
-    choice = input("PC 환경을 선택하세요 [home/laptop/office]: ").strip().lower()
-    if choice in ("home", "laptop", "office"):
-        return choice
-
-    print("기본값으로 'home'을 사용합니다.")
-    return "home"
+    # 4. fallback → laptop
+    print(f"[WARN] PC 감지 실패 (whoami: {whoami_output!r}), laptop으로 fallback", file=sys.stderr)
+    return "laptop", f"감지 실패 — laptop fallback"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# .env 파일 생성
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# .env 파싱 / 생성
+# ─────────────────────────────────────────────
 
-def build_env_content(pc_env: str) -> str:
-    """PC 환경에 맞는 .env 파일 내용을 반환."""
-    ai_path = PC_AI_PATHS[pc_env]
-    vault_base = f"{GDRIVE_PATH}/{VAULT_SUBPATH}"
+def parse_env_file(path: Path) -> dict[str, str]:
+    """기존 .env 파일을 파싱하여 key-value dict 반환."""
+    result: dict[str, str] = {}
+    if not path.exists():
+        return result
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$", line)
+        if match:
+            key, val = match.group(1), match.group(2)
+            # 따옴표 제거
+            if (val.startswith('"') and val.endswith('"')) or (
+                val.startswith("'") and val.endswith("'")
+            ):
+                val = val[1:-1]
+            result[key] = val
+    return result
+
+
+def build_env_content(pc_type: str, existing: dict[str, str]) -> str:
+    """
+    pc_type 설정을 기반으로 .env 내용 생성.
+    기존 파일에서 USER_PRESERVED_KEYS 값은 그대로 보존.
+    """
+    config = PC_CONFIGS[pc_type]
+    label = PC_LABELS[pc_type]
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     lines: list[str] = [
-        "# Auto-generated by docker_sync.py — do not commit this file",
-        f"# PC: {PC_LABELS[pc_env]}",
+        f"# docker/.env — {label}",
+        f"# 생성: {now_str} by docker_sync.py",
+        f"# 직접 수정 가능하지만 --setup 재실행 시 'PC 환경' 섹션은 덮어씁니다.",
+        f"# API 키 등 '사용자 설정' 섹션은 자동으로 보존됩니다.",
         "",
-        f"PC_ENV={pc_env}",
-        "",
-        "# 경로 설정",
-        f"VAULT_BASE_PATH={vault_base}",
-        f"LOCAL_AI_PATH={ai_path}",
-        f"GDRIVE_PATH={GDRIVE_PATH}",
-        "",
-        "# API 키 (값은 직접 입력하세요)",
-        "ANTHROPIC_API_KEY=",
-        "DISCORD_BOT_TOKEN=",
-        "GITHUB_TOKEN=",
-        "",
-        "# Discord 알림 (선택)",
-        "DISCORD_WEBHOOK_URL=",
-        "",
-        "# 지식 정제기 설정",
-        "DISTILLER_BATCH_SIZE=3",
-        "DISTILLER_RETRY_MAX=3",
-        "DISTILLER_INTERVAL_HOURS=6",
-        "",
-        "# Redis (AgentBus 상태 공유, 선택)",
-        "REDIS_URL=redis://redis:6379/0",
-        "",
-        "# 로그 레벨",
-        "LOG_LEVEL=INFO",
+        "# ── PC 환경 (자동 감지·덮어씌워짐) ─────────────",
     ]
-    return "\n".join(lines) + "\n"
+    for key, val in config.items():
+        lines.append(f"{key}={val}")
+
+    lines += [
+        "",
+        "# ── 사용자 설정 (보존됨) ────────────────────────",
+    ]
+    for key in sorted(USER_PRESERVED_KEYS - set(config.keys())):
+        val = existing.get(key, "")
+        lines.append(f"{key}={val}")
+
+    # 기존 .env에만 있는 추가 키 보존 (PC_CONFIGS 키, USER_PRESERVED_KEYS 제외)
+    extra_keys = {
+        k: v
+        for k, v in existing.items()
+        if k not in config and k not in USER_PRESERVED_KEYS
+    }
+    if extra_keys:
+        lines += ["", "# ── 기타 보존 설정 ──────────────────────────────"]
+        for key in sorted(extra_keys.keys()):
+            lines.append(f"{key}={extra_keys[key]}")
+
+    lines.append("")
+    return "\n".join(lines)
 
 
-def cmd_setup(args: argparse.Namespace) -> None:
-    """PC 환경 감지 후 .env 파일 자동 생성."""
-    pc_env = detect_pc_env()
-    label = PC_LABELS[pc_env]
-    ai_path = PC_AI_PATHS[pc_env]
-
-    print(f"\n{label} 환경 감지되었습니다.")
-    print(f"  - LOCAL_AI_PATH : {ai_path}")
-    print(f"  - VAULT_BASE_PATH: {GDRIVE_PATH}/{VAULT_SUBPATH}")
-
-    # 기존 .env 존재 시 백업
-    if ENV_FILE.exists() and not args.force:
-        backup = ENV_FILE.with_suffix(".env.bak")
-        shutil.copy(ENV_FILE, backup)
-        print(f"  - 기존 .env 백업: {backup}")
-
-    env_content = build_env_content(pc_env)
-    ENV_FILE.write_text(env_content, encoding="utf-8")
-    print(f"\n.env 파일 생성 완료: {ENV_FILE}")
-    print("\n다음 단계:")
-    print("  1. docker/.env 에서 API 키 값을 입력하세요.")
-    print("  2. python scripts/docker_sync.py --start")
+def backup_env(env_path: Path) -> Path | None:
+    """기존 .env 파일을 타임스탬프 백업 폴더에 복사. 백업 경로 반환."""
+    if not env_path.exists():
+        return None
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup_path = BACKUP_DIR / ts / ".env"
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(env_path, backup_path)
+    return backup_path
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# docker-compose 래퍼
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# 명령 구현
+# ─────────────────────────────────────────────
 
-def _compose(*compose_args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    """docker compose 명령을 DOCKER_DIR 에서 실행."""
-    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE), *compose_args]
-    print(f"\n$ {' '.join(cmd)}")
-    return subprocess.run(
-        cmd,
-        cwd=DOCKER_DIR,
-        check=check,
-        text=True,
-    )
+def cmd_setup() -> str:
+    """PC 감지 후 docker/.env 생성/업데이트. 현재 pc_type 반환."""
+    pc_type, reason = detect_pc()
+    label = PC_LABELS[pc_type]
+    print(f"[INFO] PC 감지: {label} — {reason}")
+
+    # 기존 .env 파싱 (보존 키 추출)
+    existing = parse_env_file(ENV_FILE)
+
+    # 백업
+    backup_path = backup_env(ENV_FILE)
+    if backup_path:
+        print(f"[INFO] 기존 .env 백업: {backup_path}")
+
+    # 새 .env 작성
+    DOCKER_DIR.mkdir(parents=True, exist_ok=True)
+    content = build_env_content(pc_type, existing)
+    ENV_FILE.write_text(content, encoding="utf-8")
+
+    cfg = PC_CONFIGS[pc_type]
+    print(f"[OK] docker/.env 생성 완료 ({pc_type})")
+    print(f"     VAULT_BASE_PATH = {cfg['VAULT_BASE_PATH']}")
+    print(f"     LOCAL_AI_PATH   = {cfg['LOCAL_AI_PATH']}")
+    print(f"     GDRIVE_PATH     = {cfg['GDRIVE_PATH']}")
+
+    return pc_type
+
+
+def _assert_docker() -> None:
+    if not shutil.which("docker"):
+        print("[ERROR] docker 명령을 찾을 수 없습니다. Docker Desktop이 실행 중인지 확인하세요.", file=sys.stderr)
+        sys.exit(1)
 
 
 def _assert_env_exists() -> None:
     if not ENV_FILE.exists():
-        print(f"[오류] {ENV_FILE} 파일이 없습니다.")
-        print("먼저 'python scripts/docker_sync.py --setup' 을 실행하세요.")
+        print(f"[ERROR] {ENV_FILE} 파일이 없습니다. 먼저 --setup을 실행하세요.", file=sys.stderr)
         sys.exit(1)
 
 
-def cmd_start(args: argparse.Namespace) -> None:
-    """docker-compose up -d."""
+def run_compose(compose_args: list[str]) -> int:
+    """docker compose 명령 실행 (cwd=docker/). 종료 코드 반환."""
+    cmd = ["docker", "compose"] + compose_args
+    print(f"[RUN] {' '.join(cmd)}  (cwd={DOCKER_DIR})")
+    result = subprocess.run(cmd, cwd=str(DOCKER_DIR))
+    return result.returncode
+
+
+def cmd_start(full: bool = False) -> None:
+    """setup 후 docker compose up -d 실행."""
+    _assert_docker()
+    cmd_setup()
     _assert_env_exists()
 
     compose_args = ["up", "-d", "--build"]
+    if full:
+        compose_args = ["--profile", "full"] + compose_args
 
-    # --profile 옵션
-    profile = getattr(args, "profile", None)
-    if profile:
-        compose_args = ["--profile", profile] + compose_args
+    rc = run_compose(compose_args)
+    if rc == 0:
+        print("[OK] 컨테이너 시작 완료")
+        print("     상태 확인: python scripts/docker_sync.py --status")
+    else:
+        print(f"[ERROR] docker compose up 실패 (exit code {rc})", file=sys.stderr)
+        sys.exit(rc)
 
-    _compose(*compose_args)
-    print("\n서비스가 백그라운드에서 시작되었습니다.")
-    print("상태 확인: python scripts/docker_sync.py --status")
 
-
-def cmd_stop(args: argparse.Namespace) -> None:
-    """docker-compose down."""
+def cmd_status() -> None:
+    """docker compose ps 실행."""
+    _assert_docker()
     _assert_env_exists()
-    _compose("down")
-    print("\n모든 서비스가 중단되었습니다.")
+    rc = run_compose(["ps"])
+    sys.exit(rc)
 
 
-def cmd_status(args: argparse.Namespace) -> None:
-    """docker-compose ps."""
+def cmd_stop() -> None:
+    """docker compose down 실행."""
+    _assert_docker()
     _assert_env_exists()
-    _compose("ps", check=False)
+    rc = run_compose(["down"])
+    if rc == 0:
+        print("[OK] 컨테이너 중지 완료")
+    else:
+        print(f"[ERROR] docker compose down 실패 (exit code {rc})", file=sys.stderr)
+        sys.exit(rc)
 
 
-def cmd_logs(args: argparse.Namespace) -> None:
-    """docker-compose logs -f."""
-    _assert_env_exists()
-    service = getattr(args, "service", None)
-    log_args = ["logs", "--follow", "--tail=100"]
-    if service:
-        log_args.append(service)
-    try:
-        _compose(*log_args)
-    except KeyboardInterrupt:
-        print("\n로그 스트리밍을 종료합니다.")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # CLI
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 
-def parse_args() -> argparse.Namespace:
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="docker_sync.py",
-        description="Bucky Brain — Docker 3-PC 동기화 환경 관리",
+        description="Docker 3-PC 환경 동기화 설정",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+예시:
+  python scripts/docker_sync.py --setup         # 환경 감지 후 .env 생성
+  python scripts/docker_sync.py --start         # setup + docker compose up -d
+  python scripts/docker_sync.py --start --full  # 모든 profile 포함
+  python scripts/docker_sync.py --status        # 컨테이너 상태 확인
+  python scripts/docker_sync.py --stop          # 컨테이너 중지
+        """,
     )
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--setup",  action="store_true", help="PC 감지 후 .env 자동 생성")
-    group.add_argument("--start",  action="store_true", help="Docker 서비스 시작 (up -d)")
-    group.add_argument("--stop",   action="store_true", help="Docker 서비스 중단 (down)")
-    group.add_argument("--status", action="store_true", help="실행 중인 서비스 상태 확인")
-    group.add_argument("--logs",   action="store_true", help="서비스 로그 스트리밍")
+    group.add_argument("--setup",  action="store_true", help="PC 감지 후 docker/.env 생성")
+    group.add_argument("--start",  action="store_true", help="setup + docker compose up -d")
+    group.add_argument("--status", action="store_true", help="컨테이너 상태 확인 (docker compose ps)")
+    group.add_argument("--stop",   action="store_true", help="컨테이너 중지 (docker compose down)")
 
     parser.add_argument(
-        "--profile",
-        choices=["full", "distiller", "collector", "redis"],
-        default=None,
-        help="Docker Compose 프로파일 (--start 와 함께 사용)",
-    )
-    parser.add_argument(
-        "--service",
-        default=None,
-        help="로그를 볼 특정 서비스 이름 (--logs 와 함께 사용)",
-    )
-    parser.add_argument(
-        "--force",
+        "--full",
         action="store_true",
-        help="기존 .env 파일을 덮어쓰기 (백업 없이)",
+        help="--start 시 모든 profile 포함 (--profile full)",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
 
-
-def main() -> None:
-    args = parse_args()
-
-    if not shutil.which("docker"):
-        print("[오류] docker 명령을 찾을 수 없습니다. Docker Desktop이 설치 및 실행 중인지 확인하세요.")
-        sys.exit(1)
-
-    if args.setup:
-        cmd_setup(args)
-    elif args.start:
-        cmd_start(args)
+    if args.status:
+        cmd_status()
     elif args.stop:
-        cmd_stop(args)
-    elif args.status:
-        cmd_status(args)
-    elif args.logs:
-        cmd_logs(args)
+        cmd_stop()
+    elif args.start:
+        cmd_start(full=args.full)
+    elif args.setup:
+        cmd_setup()
 
 
 if __name__ == "__main__":
