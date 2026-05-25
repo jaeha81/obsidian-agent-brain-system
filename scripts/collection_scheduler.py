@@ -1,0 +1,316 @@
+#!/usr/bin/env python3
+"""
+Collection Scheduler
+LLM 대화 수집 파이프라인 통합 오케스트레이터.
+
+기능:
+  1. 수동 실행: --run 으로 즉시 모든 수집기 실행
+  2. Windows Task Scheduler 등록: --install 로 매일 오전 6시 자동 실행 등록
+  3. 등록 해제: --uninstall
+  4. 상태 확인: --status
+
+Discord 알림: DISCORD_WEBHOOK_URL 환경변수 또는 .env 파일에 설정
+
+Usage:
+    python collection_scheduler.py --run              # 즉시 전체 수집 실행
+    python collection_scheduler.py --run --dry-run    # 테스트 (저장 없음)
+    python collection_scheduler.py --install          # Windows Task Scheduler 등록
+    python collection_scheduler.py --uninstall        # 등록 해제
+    python collection_scheduler.py --status           # 스케줄 상태 확인
+"""
+
+import sys
+import os
+import subprocess
+import logging
+import argparse
+import json
+from pathlib import Path
+from datetime import datetime
+
+ROOT = Path(__file__).parent.parent
+SCRIPTS_DIR = Path(__file__).parent
+LOG_DIR = ROOT / "logs" / "collection"
+TASK_NAME = "ObsidianBrain_CollectionScheduler"
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+except ImportError:
+    pass
+
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
+
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stdout)
+log = logging.getLogger(__name__)
+
+
+# ── Discord 알림 ──────────────────────────────────────────────────────────────
+
+def notify_discord(message: str) -> None:
+    if not DISCORD_WEBHOOK_URL:
+        return
+    try:
+        import urllib.request
+        data = json.dumps({"content": message}).encode("utf-8")
+        req = urllib.request.Request(
+            DISCORD_WEBHOOK_URL,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        urllib.request.urlopen(req, timeout=10)
+    except Exception as e:
+        log.warning(f"Discord 알림 실패: {e}")
+
+
+# ── 수집기 실행 ────────────────────────────────────────────────────────────────
+
+COLLECTORS = [
+    {
+        "name": "GPT Session Collector",
+        "script": "gpt_session_collector.py",
+        "args": ["--collect"],
+        "dry_run_args": ["--collect", "--dry-run"],
+        "login_required": True,
+    },
+    {
+        "name": "Claude Session Collector",
+        "script": "claude_session_collector.py",
+        "args": ["--collect"],
+        "dry_run_args": ["--collect", "--dry-run"],
+        "login_required": True,
+    },
+    {
+        "name": "Codex Log Collector",
+        "script": "codex_log_collector.py",
+        "args": ["--collect"],
+        "dry_run_args": ["--collect", "--dry-run"],
+        "login_required": False,
+    },
+]
+
+
+def run_collector(collector: dict, dry_run: bool = False, timeout: int = 300) -> dict:
+    script = SCRIPTS_DIR / collector["script"]
+    args = collector["dry_run_args"] if dry_run else collector["args"]
+    cmd = [sys.executable, str(script)] + args
+
+    log.info(f"실행: {collector['name']} {'[DRY-RUN]' if dry_run else ''}")
+
+    result = {
+        "name": collector["name"],
+        "success": False,
+        "files_saved": 0,
+        "error": None,
+        "duration_s": 0,
+    }
+
+    start = datetime.now()
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            cwd=str(ROOT),
+            timeout=timeout,
+        )
+        result["duration_s"] = round((datetime.now() - start).total_seconds(), 1)
+
+        if proc.returncode == 0:
+            result["success"] = True
+            # 저장된 파일 수 계산 (출력 줄 중 파일 경로 카운트)
+            saved = [ln for ln in proc.stdout.splitlines() if "\\" in ln or "/" in ln]
+            result["files_saved"] = len(saved)
+            log.info(f"  ✓ {collector['name']}: {result['files_saved']}개 파일, {result['duration_s']}s")
+        else:
+            result["error"] = proc.stderr.strip()[:300] or proc.stdout.strip()[-300:]
+            log.warning(f"  ✗ {collector['name']}: {result['error']}")
+
+    except subprocess.TimeoutExpired:
+        result["error"] = f"타임아웃 ({timeout}s)"
+        result["duration_s"] = timeout
+        log.error(f"  ✗ {collector['name']}: 타임아웃")
+    except Exception as e:
+        result["error"] = str(e)
+        log.error(f"  ✗ {collector['name']}: {e}")
+
+    return result
+
+
+def run_all(dry_run: bool = False) -> list[dict]:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
+    log.info(f"=== 수집 파이프라인 시작 {ts} {'[DRY-RUN]' if dry_run else ''} ===")
+
+    results = []
+    for collector in COLLECTORS:
+        r = run_collector(collector, dry_run=dry_run)
+        results.append(r)
+
+    # 결과 요약
+    total_files = sum(r["files_saved"] for r in results)
+    success_count = sum(1 for r in results if r["success"])
+    fail_count = len(results) - success_count
+
+    log.info(f"=== 완료: 성공 {success_count}/{len(results)}, 총 {total_files}개 파일 저장 ===")
+
+    # 로그 저장
+    log_path = LOG_DIR / f"{ts}_collection.json"
+    log_data = {
+        "timestamp": ts,
+        "date": date_str,
+        "dry_run": dry_run,
+        "results": results,
+        "summary": {
+            "total_collectors": len(results),
+            "success": success_count,
+            "failed": fail_count,
+            "total_files": total_files,
+        }
+    }
+    log_path.write_text(json.dumps(log_data, ensure_ascii=False, indent=2), encoding="utf-8")
+    log.info(f"로그 저장: {log_path}")
+
+    # Discord 알림
+    if not dry_run:
+        status_icon = "✅" if fail_count == 0 else "⚠️"
+        msg_lines = [f"{status_icon} **수집 파이프라인 완료** ({date_str})"]
+        for r in results:
+            icon = "✓" if r["success"] else "✗"
+            msg_lines.append(f"  {icon} {r['name']}: {r['files_saved']}개 파일")
+        if fail_count:
+            msg_lines.append(f"\n⚠️ {fail_count}개 수집기 실패 — 로그 확인: `{log_path.name}`")
+        notify_discord("\n".join(msg_lines))
+
+    return results
+
+
+# ── Windows Task Scheduler ────────────────────────────────────────────────────
+
+def install_task() -> None:
+    """Windows Task Scheduler에 매일 오전 6시 수집 작업을 등록한다."""
+    script_path = Path(__file__).resolve()
+    python_exe = sys.executable
+
+    # XML 태스크 정의
+    task_xml = f"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Obsidian Brain — LLM 대화 자동 수집 (매일 오전 6시)</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2026-01-01T06:00:00</StartBoundary>
+      <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>
+  </Triggers>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Enabled>true</Enabled>
+  </Settings>
+  <Actions>
+    <Exec>
+      <Command>{python_exe}</Command>
+      <Arguments>"{script_path}" --run</Arguments>
+      <WorkingDirectory>{ROOT}</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>"""
+
+    xml_path = ROOT / "logs" / f"{TASK_NAME}.xml"
+    xml_path.parent.mkdir(parents=True, exist_ok=True)
+    xml_path.write_text(task_xml, encoding="utf-16")
+
+    try:
+        result = subprocess.run(
+            ["schtasks", "/Create", "/F", "/TN", TASK_NAME, "/XML", str(xml_path)],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+        if result.returncode == 0:
+            log.info(f"✓ Task Scheduler 등록 완료: '{TASK_NAME}'")
+            log.info("  매일 오전 6시에 자동 실행됩니다.")
+        else:
+            log.error(f"등록 실패: {result.stderr.strip()}")
+    except FileNotFoundError:
+        log.error("schtasks 명령을 찾을 수 없습니다. Windows에서만 사용 가능합니다.")
+
+
+def uninstall_task() -> None:
+    try:
+        result = subprocess.run(
+            ["schtasks", "/Delete", "/F", "/TN", TASK_NAME],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+        if result.returncode == 0:
+            log.info(f"✓ Task Scheduler 등록 해제: '{TASK_NAME}'")
+        else:
+            log.warning(f"등록 해제 실패 (이미 없을 수 있음): {result.stderr.strip()}")
+    except FileNotFoundError:
+        log.error("schtasks 명령을 찾을 수 없습니다.")
+
+
+def check_status() -> None:
+    try:
+        result = subprocess.run(
+            ["schtasks", "/Query", "/FO", "LIST", "/TN", TASK_NAME],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+        if result.returncode == 0:
+            print(result.stdout)
+        else:
+            log.info(f"Task '{TASK_NAME}' 미등록 상태")
+    except FileNotFoundError:
+        log.error("schtasks 명령을 찾을 수 없습니다.")
+
+    # 최근 로그 요약
+    if LOG_DIR.exists():
+        logs = sorted(LOG_DIR.glob("*_collection.json"), reverse=True)[:3]
+        if logs:
+            print("\n=== 최근 수집 로그 ===")
+            for lf in logs:
+                try:
+                    data = json.loads(lf.read_text(encoding="utf-8"))
+                    s = data.get("summary", {})
+                    print(f"  [{data['date']}] 성공: {s.get('success')}/{s.get('total_collectors')}, 파일: {s.get('total_files')}")
+                except Exception:
+                    pass
+
+
+# ── 진입점 ─────────────────────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(description="Collection Scheduler — LLM 대화 수집 파이프라인")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--run", action="store_true", help="즉시 전체 수집 실행")
+    group.add_argument("--install", action="store_true", help="Windows Task Scheduler 등록 (매일 오전 6시)")
+    group.add_argument("--uninstall", action="store_true", help="Task Scheduler 등록 해제")
+    group.add_argument("--status", action="store_true", help="스케줄 및 최근 로그 상태 확인")
+    parser.add_argument("--dry-run", action="store_true", help="실제 저장 없이 테스트")
+    args = parser.parse_args()
+
+    if args.install:
+        install_task()
+    elif args.uninstall:
+        uninstall_task()
+    elif args.status:
+        check_status()
+    else:
+        # --run 또는 인수 없이 실행
+        results = run_all(dry_run=args.dry_run)
+        failed = [r for r in results if not r["success"]]
+        sys.exit(1 if failed else 0)
+
+
+if __name__ == "__main__":
+    main()
