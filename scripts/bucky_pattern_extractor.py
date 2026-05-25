@@ -232,8 +232,70 @@ def save_pattern_report(patterns: list[dict]) -> Path:
     return report_path
 
 
+def detect_patterns_nlp(messages: list[dict]) -> list[dict]:
+    """NLP 전처리기 기반 강화 패턴 감지 (Item 3).
+
+    액션 유형별로 메시지를 분류해 의미론적 클러스터링 수행.
+    bucky_nlp_preprocessor 없으면 기존 방식으로 폴백.
+    """
+    try:
+        nlp_preprocess = None
+        nlp_scripts_dir = str(Path(__file__).parent)
+        if nlp_scripts_dir not in sys.path:
+            sys.path.insert(0, nlp_scripts_dir)
+        from bucky_nlp_preprocessor import preprocess as nlp_preprocess  # type: ignore
+    except Exception:
+        return detect_patterns(messages)
+
+    # 액션별 클러스터
+    action_clusters: dict[str, list] = {}
+    for msg in messages:
+        content = msg.get("content", msg.get("instruction", msg.get("message", "")))
+        if not content or len(content) < 5:
+            continue
+        try:
+            result = nlp_preprocess(content)
+            action = result.get("action", "EXPLAIN")
+            target = result.get("target", "system")
+            component = result.get("component") or "general"
+            cluster_key = f"{action}:{component}"
+
+            if cluster_key not in action_clusters:
+                action_clusters[cluster_key] = []
+            action_clusters[cluster_key].append({
+                "content": content[:200],
+                "action": action,
+                "target": target,
+                "component": component,
+                "timestamp": msg.get("timestamp", ""),
+                "confidence": result.get("confidence", 0.5),
+            })
+        except Exception:
+            continue
+
+    patterns = []
+    for key, items in action_clusters.items():
+        if len(items) < MIN_REPEAT_COUNT:
+            continue
+        action, component = key.split(":", 1)
+        avg_confidence = sum(i["confidence"] for i in items) / len(items)
+        patterns.append({
+            "pattern_key": f"{action} → {component}",
+            "action": action,
+            "component": component,
+            "count": len(items),
+            "avg_confidence": round(avg_confidence, 2),
+            "examples": [i["content"] for i in items[:3]],
+            "first_seen": items[0].get("timestamp", ""),
+            "last_seen": items[-1].get("timestamp", ""),
+            "nlp_enhanced": True,
+        })
+
+    return sorted(patterns, key=lambda x: (x["count"], x["avg_confidence"]), reverse=True)
+
+
 def run(notify_discord: bool = True) -> dict:
-    print("🔍 패턴 분석 시작...")
+    print("🔍 패턴 분석 시작 (NLP 강화)...")
     messages = load_messages()
     print(f"   → {len(messages)}개 메시지 로드")
 
@@ -241,8 +303,11 @@ def run(notify_discord: bool = True) -> dict:
         print("⚠️ 분석할 메시지 없음")
         return {"patterns": [], "suggestions": []}
 
-    patterns = detect_patterns(messages)
-    print(f"   → {len(patterns)}개 패턴 감지")
+    # Item 3: NLP 강화 패턴 감지 우선, 폴백: 기존 방식
+    patterns = detect_patterns_nlp(messages)
+    if not patterns:
+        patterns = detect_patterns(messages)
+    print(f"   → {len(patterns)}개 패턴 감지 (NLP: {patterns[0].get('nlp_enhanced', False) if patterns else False})")
 
     suggestions = []
     for p in patterns[:5]:  # 상위 5개만 스킬 제안
@@ -254,8 +319,9 @@ def run(notify_discord: bool = True) -> dict:
 
     if notify_discord and DISCORD_WEBHOOK and patterns:
         top = patterns[0]
+        nlp_badge = "🧠 NLP" if top.get("nlp_enhanced") else "📊"
         msg = (
-            f"🔄 **패턴 분석 완료**\n"
+            f"🔄 **패턴 분석 완료** ({nlp_badge})\n"
             f"📊 {len(patterns)}개 반복 패턴 감지\n"
             f"🥇 최다 패턴: `{top['pattern_key'][:40]}` ({top['count']}회)\n"
             f"💡 {len(suggestions)}개 스킬 자동 제안 생성됨\n"

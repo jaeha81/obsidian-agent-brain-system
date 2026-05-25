@@ -67,8 +67,17 @@ status: processed
 
 [[vibe-coding]] · [[landing-page]] · [[vercel-deploy]] · [[stripe-integration]] · [[bucky-landing-generator]]
 
-## 다음 할 일
+## 구현 완료 (2026-05-25)
+
+- [x] 랜딩페이지 템플릿 — `templates/landing_page_template.html` (Tailwind, 다크모드, 결제 섹션)
+- [x] `bucky_landing_generator.py` — GitHub URL → HTML 자동 생성
+- [x] `bucky_vercel_deploy.py` — Vercel 자동 배포 + Discord 알림
+- [x] Discord `/landing` — GitHub URL 입력 → HTML 파일 바로 전송
+- [x] Discord `/deploy` — 경로 입력 → Vercel 배포 + URL 반환
+- [x] Discord `/pipeline` — GitHub URL 하나로 생성+배포 원스톱
+- [x] GitHub Actions `vercel-deploy.yml` — `generated/landing_pages/` 변경 시 자동 배포
+
+## 남은 작업
 
 - [ ] Stripe 결제 보일러플레이트 스크립트 작성
-- [ ] 랜딩페이지 템플릿 (`03_Knowledge/landing-page-template.md`) 생성
-- [ ] `bucky_vercel_deploy.py`와 파이프라인 연동 테스트
+- [ ] GitHub Actions secrets 등록: `VERCEL_TOKEN`, `DISCORD_WEBHOOK_URL`

@@ -280,8 +280,8 @@ try:
     _scripts_dir = str(_ROOT / "scripts")
     if _scripts_dir not in sys.path:
         sys.path.insert(0, _scripts_dir)
-    from bucky_stt_enhancer import postprocess_for_bucky as _stt_enhance_fn  # type: ignore
-    from bucky_nlp_preprocessor import preprocess as _nlp_preprocess_fn  # type: ignore
+    from stt_enhanced import postprocess_for_discord as _stt_enhance_fn  # type: ignore
+    from nlp_preprocessor import preprocess as _nlp_preprocess_fn  # type: ignore
     print("[Bot] STT 고도화 + NLP 전처리기 로드 완료", flush=True)
 except Exception as _nlp_e:
     print(f"[Bot] STT/NLP 모듈 로드 실패 (기본 후처리 사용): {_nlp_e}", flush=True)
