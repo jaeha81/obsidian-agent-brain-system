@@ -1008,6 +1008,76 @@ def _register_analyze_commands(tree: app_commands.CommandTree) -> None:
             print(f"[NLP] 오류: {e}", flush=True)
 
 
+# ── /wishket 슬래시 명령어 등록 ──────────────────────────────────────────────
+
+def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
+    """/wishket (공고 수집+제안서 생성) · /wishket_stats · /wishket_won 등록."""
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).parent))
+
+    @tree.command(name="wishket", description="Wishket 공고 자동 수집 + 제안서 생성 + 수익 파이프라인 실행")
+    async def cmd_wishket(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            from bucky_wishket_agent import run_full_pipeline, format_stats_message
+            result = await asyncio.get_event_loop().run_in_executor(None, run_full_pipeline)
+
+            if result["status"] == "no_projects":
+                await interaction.followup.send("📭 조건에 맞는 공고가 없습니다. 키워드나 예산 조건을 확인하세요.")
+                return
+
+            lines = [f"**Wishket 파이프라인 완료** — {result['count']}개 제안서 생성\n"]
+            for p in result["proposals"][:3]:
+                lines.append(f"**{p['title']}** ({p['budget']})")
+                lines.append(f"> {p['preview'][:150]}...")
+                lines.append("")
+
+            if len(result["proposals"]) > 3:
+                lines.append(f"_외 {len(result['proposals'])-3}개..._\n")
+
+            lines.append(format_stats_message(result.get("stats", {})))
+            await interaction.followup.send("\n".join(lines)[:2000])
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ Wishket 오류: {e}")
+            print(f"[Wishket] 오류: {e}", flush=True)
+
+    @tree.command(name="wishket_stats", description="Wishket 응찰 현황 및 누적 수익 조회")
+    async def cmd_wishket_stats(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            from bucky_wishket_agent import get_stats, format_stats_message
+            stats = get_stats()
+            await interaction.followup.send(format_stats_message(stats))
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 통계 조회 오류: {e}")
+
+    @tree.command(name="wishket_won", description="낙찰 수동 기록 — 프로젝트명과 수익(만원) 입력")
+    @app_commands.describe(
+        project_title="낙찰된 프로젝트 제목 (일부 입력 가능)",
+        revenue_wan="수익 금액 (만원 단위, 예: 150)",
+    )
+    async def cmd_wishket_won(
+        interaction: discord.Interaction,
+        project_title: str,
+        revenue_wan: int,
+    ) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            from bucky_wishket_agent import mark_won, get_stats, format_stats_message
+            ok = mark_won(project_title, revenue_wan)
+            if ok:
+                stats = get_stats()
+                await interaction.followup.send(
+                    f"낙찰 기록 완료!\n"
+                    f"**{project_title}** — {revenue_wan}만원\n\n"
+                    + format_stats_message(stats)
+                )
+            else:
+                await interaction.followup.send(f"⚠️ '{project_title}'에 해당하는 대기 중 공고를 찾지 못했습니다.")
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 낙찰 기록 오류: {e}")
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -1018,6 +1088,7 @@ class BuckyDiscordBot(discord.Client):
         _register_tasks_commands(self.tree)
         _register_deploy_commands(self.tree)
         _register_analyze_commands(self.tree)
+        _register_wishket_commands(self.tree)
 
     async def setup_hook(self) -> None:
         # 슬래시 명령어 전역 동기화
@@ -1034,6 +1105,8 @@ class BuckyDiscordBot(discord.Client):
         self.loop.create_task(self._periodic_pattern_task())
         # 매일 1회 자기 반성 (P2)
         self.loop.create_task(self._periodic_reflection_task())
+        # 매일 오전 8:30 Wishket 공고 자동 스캔
+        self.loop.create_task(self._wishket_auto_scan_task())
 
     async def _daily_briefing_task(self) -> None:
         """매일 BRIEFING_TIME에 자동 브리핑 게시."""
@@ -1108,6 +1181,52 @@ class BuckyDiscordBot(discord.Client):
             except Exception as e:
                 print(f"[Bot] 자기 반성 오류: {e}", flush=True)
             await asyncio.sleep(3600 * 24)  # 24시간 대기
+
+    async def _wishket_auto_scan_task(self) -> None:
+        """매일 오전 8:30 Wishket 공고 자동 스캔 + 제안서 생성."""
+        await self.wait_until_ready()
+
+        # profile에서 스캔 시각 로드
+        try:
+            import yaml as _yaml
+            _profile = _yaml.safe_load((_ROOT / "configs" / "wishket_profile.yaml").read_text(encoding="utf-8")) or {}
+            _h = int(_profile.get("auto_scan_hour", 8))
+            _m = int(_profile.get("auto_scan_minute", 30))
+        except Exception:
+            _h, _m = 8, 30
+
+        now = datetime.now()
+        next_run = now.replace(hour=_h, minute=_m, second=0, microsecond=0)
+        if next_run <= now:
+            next_run += timedelta(days=1)
+        print(f"[WishketAuto] 다음 스캔: {next_run.strftime('%Y-%m-%d %H:%M')}", flush=True)
+        await asyncio.sleep((next_run - now).total_seconds())
+
+        while not self.is_closed():
+            try:
+                import sys as _sys
+                if str(_ROOT / "scripts") not in _sys.path:
+                    _sys.path.insert(0, str(_ROOT / "scripts"))
+                from bucky_wishket_agent import run_full_pipeline, format_stats_message
+                result = await asyncio.to_thread(run_full_pipeline)
+
+                if BRIEFING_CHANNEL_ID:
+                    channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
+                    if channel and result.get("count", 0) > 0:
+                        lines = [
+                            f"💰 **[Wishket 자동 스캔]** — {result['count']}개 제안서 생성 완료",
+                        ]
+                        for p in result.get("proposals", [])[:3]:
+                            lines.append(f"  • **{p['title'][:40]}** ({p['budget']})")
+                        lines.append(format_stats_message(result.get("stats", {})))
+                        await channel.send("\n".join(lines)[:2000])
+                        print("[WishketAuto] 스캔 완료 → Discord 알림 발송", flush=True)
+                    elif channel and result.get("status") == "no_projects":
+                        await channel.send("📭 **[Wishket]** 오늘 조건 맞는 공고 없음")
+            except Exception as e:
+                print(f"[WishketAuto] 오류: {e}", flush=True)
+
+            await asyncio.sleep(3600 * 24)  # 24시간 후 재실행
 
     async def _post_auto_briefing(self) -> None:
         channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
