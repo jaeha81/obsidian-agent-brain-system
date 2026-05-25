@@ -697,18 +697,24 @@ function getScoreClass(score) {
   return score >= 78 ? 'score-high' : score >= 60 ? 'score-mid' : 'score-low';
 }
 
+// ── 카드 클릭 (버튼/체크박스 제외한 영역) ───────────────────────
+function cardClick(e, url) {
+  if (e.target.closest('button,a,input')) return;
+  window.open(url, '_blank');
+}
+
 // ── 카드 렌더 ────────────────────────────────────────────────────
 function renderCard(r) {
   const score = getScore(r);
   const tierLabel = r.tier === 1 ? '🟢 즉시 출시' : r.tier === 2 ? '🟡 개발 필요' : '⚫ 인프라/보류';
   const tierClass = `tier-${r.tier}`;
   return `
-  <div class="card ${r.checked ? 'checked' : ''}" id="card-${r.id}" data-tier="${r.tier}" data-checked="${r.checked}" data-score="${score}">
+  <div class="card ${r.checked ? 'checked' : ''}" id="card-${r.id}" data-tier="${r.tier}" data-checked="${r.checked}" data-score="${score}" onclick="cardClick(event,'${r.url}')" style="cursor:pointer">
     <span class="tier-badge ${tierClass}">${tierLabel}</span>
     <div class="card-header">
-      <input type="checkbox" class="card-check" ${r.checked ? 'checked' : ''} onchange="toggleCheck('${r.id}', this)">
+      <input type="checkbox" class="card-check" ${r.checked ? 'checked' : ''} onchange="toggleCheck('${r.id}', this)" onclick="event.stopPropagation()">
       <div class="card-title">
-        <a href="${r.url}" target="_blank">${r.name}</a>
+        <a href="${r.url}" target="_blank" onclick="event.stopPropagation()">${r.name}</a>
       </div>
     </div>
     <div class="card-desc">${r.desc}</div>
@@ -730,9 +736,9 @@ function renderCard(r) {
       </div>
     </div>
     <div class="card-footer">
-      <a class="action-btn" href="${r.url}" target="_blank">GitHub →</a>
-      <button class="action-btn bucky-btn" onclick="sendToBucky('${r.id}')">🤖 Bucky 전송</button>
-      <button class="action-btn" onclick="copyAction('${r.id}')">액션 복사</button>
+      <a class="action-btn" href="${r.url}" target="_blank" onclick="event.stopPropagation()">GitHub →</a>
+      <button class="action-btn bucky-btn" onclick="event.stopPropagation();sendToBucky('${r.id}')">🤖 Bucky 전송</button>
+      <button class="action-btn" onclick="event.stopPropagation();copyAction('${r.id}')">액션 복사</button>
     </div>
   </div>`;
 }
