@@ -40,6 +40,7 @@ ObsidianVault/.obsidian/plugins/*
 !ObsidianVault/00_System/
 ObsidianVault/00_System/*
 !ObsidianVault/00_System/BUCKY_STATUS.md
+!ObsidianVault/00_System/migration_status.md
 !ObsidianVault/07_Reports/
 ObsidianVault/07_Reports/*
 !ObsidianVault/07_Reports/20260523_harness_subscription_agent_update.md
