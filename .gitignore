@@ -26,7 +26,7 @@ RAW_IMPORT/
 external_data/
 data_sources/
 
-# Obsidian Vault (stored in Google Drive; only Bucky bootstrap is tracked)
+# Obsidian Vault (stored in Google Drive; only Bucky bootstrap and system docs are tracked)
 ObsidianVault/*
 !ObsidianVault/.obsidian/
 ObsidianVault/.obsidian/*
@@ -42,6 +42,10 @@ ObsidianVault/00_System/*
 !ObsidianVault/07_Reports/
 ObsidianVault/07_Reports/*
 !ObsidianVault/07_Reports/20260523_harness_subscription_agent_update.md
+!ObsidianVault/09_Archive/
+!ObsidianVault/09_Archive/**
+!ObsidianVault/03_Knowledge/
+!ObsidianVault/03_Knowledge/**
 
 # Obsidian private runtime (repo-root; only Bucky bootstrap is tracked)
 /.obsidian/*
