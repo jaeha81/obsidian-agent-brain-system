@@ -27,3 +27,27 @@ services:
     <<: *agent-common
     profiles: ["host-cli"]
     command: ["python", "scripts/agent_dispatcher.py"]
+
+  # ── 자가복구 시스템 ──────────────────────────────────────────
+  bucky-watchdog:
+    <<: *agent-common
+    restart: always
+    command: ["python", "scripts/bucky_watchdog.py"]
+    depends_on:
+      - raw-import-watcher
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+
+  health-monitor:
+    <<: *agent-common
+    restart: always
+    command: ["python", "scripts/agent_health_monitor.py"]
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+
+  recovery-handler:
+    <<: *agent-common
+    restart: always
+    command: ["python", "scripts/bucky_recovery_handler.py"]
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
