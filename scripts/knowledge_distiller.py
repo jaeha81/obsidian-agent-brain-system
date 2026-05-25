@@ -23,6 +23,8 @@ import re
 import sys
 import textwrap
 import time
+import urllib.request
+import urllib.error
 from datetime import datetime
 from pathlib import Path
 
@@ -32,23 +34,54 @@ import anthropic
 VAULT_BASE   = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 RAW_DIR      = VAULT_BASE / "01_RAW"
 INBOX_DIR    = RAW_DIR / "inbox"
-OUTPUT_BASE  = VAULT_BASE / "03_Knowledge" / "AI-Distilled"
+OUTPUT_BASE  = VAULT_BASE / "02_PROCESSED" / "knowledge-notes"
 SCRIPTS_DIR  = Path(__file__).parent
 STATE_FILE   = SCRIPTS_DIR / ".distiller_cache.json"
 RETRY_QUEUE  = SCRIPTS_DIR / ".distiller_retry_queue.json"
 
-MODEL        = "claude-haiku-4-5"
+MODEL        = "claude-sonnet-4-6"
 MAX_TOKENS   = 2048
 
 # 재시도 설정
 RETRY_MAX    = 3
 RETRY_BASE   = 2.0   # 초 (exponential backoff: 2, 4, 8)
+
+# 청크 처리 설정
+CHUNK_MAX_CHARS = 8000  # 이 이상이면 분할 처리
+CHUNK_SIZE      = 7500  # 각 청크 크기
+
+# 에러 리포트 경로
+ERROR_REPORT = VAULT_BASE / "00_System" / "distiller-errors.md"
+
+# ── 소스 유형 감지 ─────────────────────────────────────────────────────────────
+# 파일명 또는 경로에서 소스 유형을 판별하는 키워드
+SOURCE_PATTERNS = {
+    "gpt":    re.compile(r"gpt|chatgpt|openai", re.IGNORECASE),
+    "claude": re.compile(r"claude|anthropic", re.IGNORECASE),
+    "codex":  re.compile(r"codex|copilot|code-?gen", re.IGNORECASE),
+}
+
+SOURCE_TAG_MAP = {
+    "gpt":     "source/gpt",
+    "claude":  "source/claude",
+    "codex":   "source/codex",
+    "unknown": "source/unknown",
+}
+
 # ──────────────────────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = textwrap.dedent("""
-    당신은 지식 정제 전문가입니다.
-    사용자가 제공하는 원시 대화/메모 파일을 분석하여 구조화된 지식 노트를 생성합니다.
+def detect_source_type(path: Path) -> str:
+    """파일명·경로에서 소스 유형(gpt/claude/codex/unknown)을 감지한다."""
+    search_str = str(path).lower()
+    for src, pattern in SOURCE_PATTERNS.items():
+        if pattern.search(search_str):
+            return src
+    return "unknown"
 
+
+# ── 소스별 시스템 프롬프트 ─────────────────────────────────────────────────────
+
+_BASE_SCHEMA = textwrap.dedent("""
     반드시 다음 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요.
 
     {
@@ -67,7 +100,7 @@ SYSTEM_PROMPT = textwrap.dedent("""
       "summary": "이 문서 전체를 1~2문장으로 요약"
     }
 
-    규칙:
+    공통 규칙:
     - insights는 3~7개. 구체적이고 재사용 가능한 지식으로 압축.
     - topics는 2~6개의 소문자 영문 또는 한글 태그.
     - related_knowledge는 [[wikilink]] 형태로 연관 개념/주제 2~5개.
@@ -76,11 +109,43 @@ SYSTEM_PROMPT = textwrap.dedent("""
     - 파일 인코딩 문제로 깨진 텍스트가 있어도 읽을 수 있는 내용 위주로 처리.
 """).strip()
 
+SYSTEM_PROMPTS: dict[str, str] = {
+    "gpt": textwrap.dedent("""
+        당신은 ChatGPT/GPT 세션 정제 전문가입니다.
+        GPT 대화 기록에서 핵심 지식·패턴·프롬프트 전략을 추출합니다.
+        GPT 특유의 장황한 설명체를 걸러내고 실질적 인사이트만 보존하세요.
+        프롬프트 엔지니어링 팁, 모델 행동 패턴, 활용 전략에 주목하세요.
+    """).strip() + "\n\n" + _BASE_SCHEMA,
+
+    "claude": textwrap.dedent("""
+        당신은 Claude 세션 정제 전문가입니다.
+        Claude 대화 기록에서 추론 과정, 아키텍처 결정, 코드 설계 원칙을 추출합니다.
+        Claude의 사고 체인과 대안 검토 과정에서 재사용 가능한 패턴을 도출하세요.
+        시스템 설계, 에이전트 패턴, 프롬프트 캐싱 전략에 주목하세요.
+    """).strip() + "\n\n" + _BASE_SCHEMA,
+
+    "codex": textwrap.dedent("""
+        당신은 Codex/코드 생성 세션 정제 전문가입니다.
+        코드 생성 세션에서 재사용 가능한 코드 패턴, 알고리즘, 구현 전략을 추출합니다.
+        코드 품질 원칙, 리팩터링 기법, 테스트 전략, 성능 최적화 패턴에 주목하세요.
+        구체적인 코드 스니펫보다는 설계 원칙과 패턴을 우선 추출하세요.
+    """).strip() + "\n\n" + _BASE_SCHEMA,
+
+    "unknown": textwrap.dedent("""
+        당신은 지식 정제 전문가입니다.
+        사용자가 제공하는 원시 대화/메모 파일을 분석하여 구조화된 지식 노트를 생성합니다.
+    """).strip() + "\n\n" + _BASE_SCHEMA,
+}
+
+# 기본 시스템 프롬프트 (하위 호환)
+SYSTEM_PROMPT = SYSTEM_PROMPTS["unknown"]
+
 USER_PROMPT_TEMPLATE = textwrap.dedent("""
     다음 원시 파일을 분석하여 지식 노트를 생성하세요.
 
     파일 경로: {file_path}
     파일 날짜: {file_date}
+    소스 유형: {source_type}
 
     --- 파일 내용 시작 ---
     {content}
@@ -245,17 +310,103 @@ def extract_date_from_path(path: Path) -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def read_file_safe(path: Path, max_chars: int = 8000) -> str:
-    """파일을 안전하게 읽는다. 인코딩 오류는 replace 처리."""
+def read_file_safe(path: Path) -> str:
+    """파일을 안전하게 읽는다. 인코딩 오류는 replace 처리. 길이 제한 없음."""
     for encoding in ("utf-8", "utf-8-sig", "cp949", "latin-1"):
         try:
-            text = path.read_text(encoding=encoding, errors="replace")
-            if len(text) > max_chars:
-                text = text[:max_chars] + "\n\n[... 내용이 너무 길어 잘렸습니다 ...]"
-            return text
+            return path.read_text(encoding=encoding, errors="replace")
         except OSError as e:
             print(f"  [WARN] {encoding} 읽기 실패: {e}")
     return "[파일 읽기 실패]"
+
+
+def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE) -> list[str]:
+    """
+    텍스트를 chunk_size 문자 단위로 분할한다.
+    단락 경계(빈 줄)를 우선 탐색하여 자연스럽게 분할.
+    """
+    if len(text) <= CHUNK_MAX_CHARS:
+        return [text]
+
+    chunks: list[str] = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        if end >= len(text):
+            chunks.append(text[start:])
+            break
+        # 단락 경계 탐색: end 앞쪽 500자 내에서 빈 줄 찾기
+        boundary = text.rfind("\n\n", start, end)
+        if boundary == -1 or boundary <= start:
+            # 단락 경계가 없으면 줄 경계 탐색
+            boundary = text.rfind("\n", start, end)
+        if boundary == -1 or boundary <= start:
+            boundary = end
+        chunks.append(text[start:boundary])
+        start = boundary
+    return chunks
+
+
+def merge_chunk_results(results: list[dict]) -> dict:
+    """
+    여러 청크의 distill 결과를 하나로 병합한다.
+    - topics: 합집합 (중복 제거, 최대 8개)
+    - insights: 합집합 (중복 제거, 최대 10개)
+    - related_knowledge: 합집합 (중복 제거, 최대 7개)
+    - tasks: 합집합
+    - confidence: 평균
+    - summary: 첫 번째 청크 요약 + 추가 요약 결합
+    """
+    if not results:
+        return {}
+    if len(results) == 1:
+        return results[0]
+
+    seen_insights:  set[str] = set()
+    seen_topics:    set[str] = set()
+    seen_related:   set[str] = set()
+    seen_tasks:     set[str] = set()
+
+    all_topics:   list[str] = []
+    all_insights: list[str] = []
+    all_related:  list[str] = []
+    all_tasks:    list[str] = []
+    all_summaries: list[str] = []
+    confidence_sum = 0.0
+
+    for r in results:
+        for t in r.get("topics", []):
+            if t not in seen_topics:
+                seen_topics.add(t)
+                all_topics.append(t)
+        for i in r.get("insights", []):
+            if i not in seen_insights:
+                seen_insights.add(i)
+                all_insights.append(i)
+        for rel in r.get("related_knowledge", []):
+            if rel not in seen_related:
+                seen_related.add(rel)
+                all_related.append(rel)
+        for task in r.get("tasks", []):
+            if task not in seen_tasks:
+                seen_tasks.add(task)
+                all_tasks.append(task)
+        confidence_sum += r.get("confidence", 0.8)
+        if r.get("summary"):
+            all_summaries.append(r["summary"])
+
+    summary = all_summaries[0] if all_summaries else ""
+    if len(all_summaries) > 1:
+        summary += " / " + " | ".join(all_summaries[1:])
+
+    return {
+        "topics":           all_topics[:8],
+        "insights":         all_insights[:10],
+        "related_knowledge": all_related[:7],
+        "tasks":            all_tasks,
+        "confidence":       round(confidence_sum / len(results), 2),
+        "summary":          summary,
+    }
 
 
 # ── Claude API 호출 (재시도 + 프롬프트 캐싱) ──────────────────────────────────
@@ -266,16 +417,21 @@ def distill_with_claude(
     content: str,
     file_date: str,
     stats: dict,
+    source_type: str = "unknown",
 ) -> dict:
     """
     Claude API를 호출해 원시 파일에서 지식을 추출한다.
+    - source_type에 따라 전문화된 시스템 프롬프트 사용
     - system prompt에 cache_control 적용 (비용 절감)
     - 실패 시 exponential backoff 3회 재시도
     반환: 파싱된 JSON dict
     """
+    system_prompt = SYSTEM_PROMPTS.get(source_type, SYSTEM_PROMPTS["unknown"])
+
     user_message = USER_PROMPT_TEMPLATE.format(
         file_path=str(file_path),
         file_date=file_date,
+        source_type=source_type,
         content=content,
     )
 
@@ -288,7 +444,7 @@ def distill_with_claude(
                 system=[
                     {
                         "type": "text",
-                        "text": SYSTEM_PROMPT,
+                        "text": system_prompt,
                         "cache_control": {"type": "ephemeral"},
                     }
                 ],
@@ -346,6 +502,7 @@ def build_output_note(
     result: dict,
     source_path: Path,
     file_date: str,
+    source_type: str = "unknown",
 ) -> str:
     """추출 결과를 Obsidian Markdown 노트로 변환한다."""
     topics     = result.get("topics", [])
@@ -355,26 +512,40 @@ def build_output_note(
     tasks      = result.get("tasks", [])
     summary    = result.get("summary", "")
 
+    # 소스 태그 자동 생성 (#source/gpt, #source/claude, #source/codex)
+    source_tag = SOURCE_TAG_MAP.get(source_type, SOURCE_TAG_MAP["unknown"])
+
+    # frontmatter tags: ai-distilled + source 태그
+    fm_tags = ["ai-distilled", source_tag]
+    # topics도 frontmatter tags에 포함
+    all_tags = fm_tags + topics
+    tags_yaml = "[" + ", ".join(all_tags) + "]"
+
     topics_yaml  = "[" + ", ".join(topics) + "]"
     related_yaml = "[" + ", ".join(f'"{t}"' for t in related) + "]"
 
     insights_md = "\n".join(f"- {i}" for i in insights) if insights else "- (인사이트 없음)"
     related_md  = "\n".join(f"- {r}" for r in related)  if related  else "- (연결 개념 없음)"
     tasks_md    = "\n".join(tasks) if tasks else "- (실행 태스크 없음)"
-    tags_md     = " ".join(f"#{t}" for t in topics)      if topics   else ""
+
+    # 인라인 태그 (소스 태그 + 토픽 태그)
+    inline_tags  = f"#{source_tag}"
+    if topics:
+        inline_tags += " " + " ".join(f"#{t}" for t in topics)
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     note = textwrap.dedent(f"""
         ---
         source: {source_path.name}
+        source_type: {source_type}
         date: {file_date}
         original_file: "{source_path}"
         topics: {topics_yaml}
         related: {related_yaml}
         confidence: {confidence}
         distilled_at: {now_str}
-        tags: [ai-distilled]
+        tags: {tags_yaml}
         ---
 
         > {summary}
@@ -393,10 +564,10 @@ def build_output_note(
 
         ## 태그
 
-        {tags_md}
+        {inline_tags}
 
         ---
-        *자동 생성: knowledge_distiller.py — 원본: `{source_path.name}`*
+        *자동 생성: knowledge_distiller.py — 원본: `{source_path.name}` — 소스: {source_type}*
     """).lstrip()
 
     return note
@@ -423,6 +594,51 @@ def determine_output_path(file_date: str, source_path: Path) -> Path:
     return output_dir / filename
 
 
+# ── 에러 리포트 ────────────────────────────────────────────────────────────────
+
+def append_error_report(error_entries: list[dict]) -> None:
+    """
+    실패한 파일 목록을 ObsidianVault/00_System/distiller-errors.md에 기록한다.
+    기존 파일에 이어 쓴다 (append).
+    """
+    if not error_entries:
+        return
+
+    ERROR_REPORT.parent.mkdir(parents=True, exist_ok=True)
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    lines = [f"\n## {now_str} — 오류 {len(error_entries)}건\n"]
+    for entry in error_entries:
+        lines.append(f"- `{entry['file']}` — {entry['error']}")
+    lines.append("")
+
+    with ERROR_REPORT.open("a", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    print(f"  [ERROR-REPORT] {len(error_entries)}건 기록 → {ERROR_REPORT}")
+
+
+def _ensure_error_report_header() -> None:
+    """에러 리포트 파일이 없으면 헤더를 생성한다."""
+    if not ERROR_REPORT.exists():
+        ERROR_REPORT.parent.mkdir(parents=True, exist_ok=True)
+        ERROR_REPORT.write_text(
+            textwrap.dedent("""
+                ---
+                title: Distiller Error Report
+                tags: [system, error-log]
+                ---
+
+                # Knowledge Distiller 오류 기록
+
+                > 자동 생성: `knowledge_distiller.py`
+                > 실패한 파일은 `--retry` 옵션으로 재처리하세요.
+
+            """).lstrip(),
+            encoding="utf-8",
+        )
+
+
 # ── 배치 처리 ──────────────────────────────────────────────────────────────────
 
 def process_batch(
@@ -435,10 +651,14 @@ def process_batch(
 ) -> tuple[int, int]:
     """
     배치(N개 파일) 처리.
+    - 소스 유형(gpt/claude/codex/unknown) 자동 감지
+    - 중복 감지: 파일명 해시 기반으로 이미 처리된 파일 건너뜀
+    - 에러 발생 시 distiller-errors.md에 기록
     반환: (success_count, fail_count)
     """
     success = 0
     fail    = 0
+    error_entries: list[dict] = []
 
     print(f"\n[배치 {batch_num}/{total_batches}] {len(batch)}개 파일 처리 중...")
 
@@ -446,13 +666,15 @@ def process_batch(
         global_idx = (batch_num - 1) * len(batch) + idx
         rel_path   = raw_file.relative_to(VAULT_BASE)
         file_date  = extract_date_from_path(raw_file)
-        print(f"  [{global_idx}] {rel_path}  (날짜: {file_date})")
+        source_type = detect_source_type(raw_file)
+        print(f"  [{global_idx}] {rel_path}  (날짜: {file_date}, 소스: {source_type})")
 
         content = read_file_safe(raw_file)
         if content == "[파일 읽기 실패]":
             print("    [SKIP] 파일 읽기 실패")
             fail += 1
             stats["failed"] += 1
+            error_entries.append({"file": str(raw_file), "error": "파일 읽기 실패"})
             continue
 
         if len(content.strip()) < 30:
@@ -460,14 +682,25 @@ def process_batch(
             stats["skipped"] += 1
             continue
 
+        # 중복 감지: 출력 파일이 이미 동일 해시로 존재하는지 확인
+        output_path_candidate = determine_output_path(file_date, raw_file)
+        if output_path_candidate.exists():
+            # 출력 파일의 source 메타에서 원본 해시를 state로 재확인
+            current_hash = file_hash(raw_file)
+            if state.get(str(raw_file)) == current_hash:
+                print("    [SKIP] 중복 — 동일 내용이 이미 정제됨 (해시 일치)")
+                stats["skipped"] += 1
+                continue
+
         try:
-            result      = distill_with_claude(client, raw_file, content, file_date, stats)
-            note_text   = build_output_note(result, raw_file, file_date)
+            result      = distill_with_claude(client, raw_file, content, file_date, stats, source_type)
+            note_text   = build_output_note(result, raw_file, file_date, source_type)
             output_path = determine_output_path(file_date, raw_file)
 
             output_path.write_text(note_text, encoding="utf-8")
             print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
-            print(f"         토픽: {result.get('topics', [])}  "
+            print(f"         소스: {source_type}  "
+                  f"토픽: {result.get('topics', [])}  "
                   f"인사이트: {len(result.get('insights', []))}개  "
                   f"신뢰도: {result.get('confidence', '?')}")
 
@@ -483,6 +716,7 @@ def process_batch(
             raw_path = save_original_on_failure(content, raw_file, file_date)
             add_to_retry_queue(raw_file, err_msg)
             print(f"           원본 저장: {raw_path.name}")
+            error_entries.append({"file": str(raw_file), "error": err_msg})
             fail += 1
             stats["failed"] += 1
         except anthropic.APIError as e:
@@ -491,12 +725,20 @@ def process_batch(
             raw_path = save_original_on_failure(content, raw_file, file_date)
             add_to_retry_queue(raw_file, err_msg)
             print(f"           원본 저장: {raw_path.name}")
+            error_entries.append({"file": str(raw_file), "error": err_msg})
             fail += 1
             stats["failed"] += 1
         except OSError as e:
-            print(f"    [FAIL] 파일 저장 오류: {e}")
+            err_msg = f"파일 저장 오류: {e}"
+            print(f"    [FAIL] {err_msg}")
+            error_entries.append({"file": str(raw_file), "error": err_msg})
             fail += 1
             stats["failed"] += 1
+
+    # 이번 배치 오류를 리포트에 기록
+    if error_entries:
+        _ensure_error_report_header()
+        append_error_report(error_entries)
 
     return success, fail
 

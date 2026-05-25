@@ -900,6 +900,8 @@ class BuckyDiscordBot(discord.Client):
                 "`!에이전트` / `!agents` — 서브에이전트 역할 목록 확인\n"
                 "`!이관` / `!migrate` — Google Drive Agent Room → ObsidianVault 이관\n"
                 "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
+                "`!깃헙` — GitHub 레포 카탈로그 전체 업데이트\n"
+                "`!깃헙 [repo명]` — 특정 레포 상태 조회\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
                 f"TTS: {tts_status} | 실시간 수신: {recv_status}\n"
@@ -1074,6 +1076,37 @@ class BuckyDiscordBot(discord.Client):
                 except Exception as e:
                     await message.channel.send(f"⚠️ 브리핑 생성 실패: {e}")
                     print(f"[Bot] 브리핑 오류: {e}", flush=True)
+            return
+
+        # ── GitHub 카탈로그 명령어 ──────────────────────────────────────────────
+        if content == "!깃헙" or content.startswith("!깃헙 "):
+            async with message.channel.typing():
+                try:
+                    # scripts 폴더를 sys.path에 추가
+                    import sys as _sys
+                    scripts_dir = str(Path(__file__).parent)
+                    if scripts_dir not in _sys.path:
+                        _sys.path.insert(0, scripts_dir)
+
+                    repo_arg = content[len("!깃헙"):].strip()
+
+                    if repo_arg:
+                        # 특정 레포 상태 조회
+                        from bucky_sub_agents.github_agent import cmd_status
+                        reply_text = await asyncio.to_thread(
+                            cmd_status, {"repo": repo_arg}
+                        )
+                    else:
+                        # 전체 카탈로그 업데이트
+                        from bucky_sub_agents.github_agent import cmd_catalog
+                        await message.channel.send("⚙️ GitHub 레포 카탈로그 업데이트 중...")
+                        reply_text = await asyncio.to_thread(cmd_catalog, {})
+
+                    for chunk in split_message(reply_text):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"⚠️ GitHub 명령 실패: {e}")
+                    print(f"[Bot] GitHub 오류: {e}", flush=True)
             return
 
         if len(content) < MIN_LENGTH:
