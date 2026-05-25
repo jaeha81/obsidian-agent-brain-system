@@ -34,7 +34,16 @@ import anthropic
 VAULT_BASE   = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 RAW_DIR      = VAULT_BASE / "01_RAW"
 INBOX_DIR    = RAW_DIR / "inbox"
-OUTPUT_BASE  = VAULT_BASE / "02_PROCESSED" / "knowledge-notes"
+# Phase 2: 출력 경로를 06_Knowledge/distilled 로 변경
+#   (06_Knowledge 디렉터리가 없으면 03_Knowledge/distilled 로 fallback)
+_KNOWLEDGE_06 = VAULT_BASE / "06_Knowledge" / "distilled"
+_KNOWLEDGE_03 = VAULT_BASE / "03_Knowledge" / "distilled"
+OUTPUT_BASE  = _KNOWLEDGE_06 if _KNOWLEDGE_06.parent.exists() else _KNOWLEDGE_03
+
+# Phase 2: 증분 처리 대상 추가 소스 경로
+CLAUDE_SESSIONS_DIR = RAW_DIR / "claude-sessions"
+CODEX_SESSIONS_DIR  = RAW_DIR / "codex-sessions"
+
 SCRIPTS_DIR  = Path(__file__).parent
 STATE_FILE   = SCRIPTS_DIR / ".distiller_cache.json"
 RETRY_QUEUE  = SCRIPTS_DIR / ".distiller_retry_queue.json"
@@ -266,6 +275,7 @@ def save_original_on_failure(raw_content: str, source_path: Path, file_date: str
 def collect_raw_files(include_inbox: bool = False) -> list[Path]:
     """
     01_RAW/ 하위의 .md 파일을 모두 수집한다.
+    Phase 2: claude-sessions/, codex-sessions/ 도 자동 포함.
     include_inbox=True 이면 inbox 폴더도 포함.
     날짜순 정렬.
     """
@@ -278,6 +288,15 @@ def collect_raw_files(include_inbox: bool = False) -> list[Path]:
         if not include_inbox and INBOX_DIR in md.parents:
             continue
         candidates.append(md)
+
+    # Phase 2: claude-sessions/ 추가 스캔 (01_RAW 외부일 경우 대비)
+    for sessions_dir in (CLAUDE_SESSIONS_DIR, CODEX_SESSIONS_DIR):
+        if sessions_dir.exists() and sessions_dir not in RAW_DIR.parents and sessions_dir != RAW_DIR:
+            for md in sessions_dir.rglob("*.md"):
+                if md.name.lower() not in ("index.md", "readme.md"):
+                    if md not in candidates:
+                        candidates.append(md)
+
     candidates.sort(key=lambda p: p.name)
     return candidates
 
@@ -762,6 +781,109 @@ def determine_output_path(file_date: str, source_path: Path) -> Path:
     return output_dir / filename
 
 
+# ── Phase 2: 주제 기반 중복 감지 및 병합 ──────────────────────────────────────
+
+def _extract_frontmatter_topics(md_path: Path) -> list[str]:
+    """
+    기존 노트의 frontmatter에서 topics 목록을 추출한다.
+    파싱 실패 시 빈 리스트 반환.
+    """
+    try:
+        text = md_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+
+    # frontmatter 블록 추출 (--- ... ---)
+    fm_match = re.match(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
+    if not fm_match:
+        return []
+
+    fm_text = fm_match.group(1)
+    topics_match = re.search(r"^topics:\s*\[([^\]]*)\]", fm_text, re.MULTILINE)
+    if not topics_match:
+        return []
+
+    raw = topics_match.group(1)
+    topics = [t.strip().strip('"\'') for t in raw.split(",") if t.strip()]
+    return topics
+
+
+def find_existing_note_by_topic(result: dict, output_dir: Path) -> Path | None:
+    """
+    output_dir 내에 동일 주제 토픽을 2개 이상 공유하는 기존 노트를 탐색한다.
+    찾으면 해당 Path 반환, 없으면 None.
+    """
+    new_topics = set(result.get("topics", []))
+    if not new_topics or not output_dir.exists():
+        return None
+
+    for existing_md in output_dir.glob("*.md"):
+        existing_topics = set(_extract_frontmatter_topics(existing_md))
+        overlap = new_topics & existing_topics
+        if len(overlap) >= 2:
+            return existing_md
+    return None
+
+
+def merge_into_existing_note(existing_path: Path, result: dict, source_path: Path) -> None:
+    """
+    Phase 2: 같은 주제 노트가 이미 존재할 때 overwrite 하지 않고 병합한다.
+    - 새로운 insights만 기존 노트 하단에 append
+    - 새 topics/related_knowledge도 frontmatter에 병합
+    - 기존 내용은 변경하지 않는다
+    """
+    try:
+        existing_text = existing_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return
+
+    new_insights = result.get("insights", [])
+    new_topics   = result.get("topics", [])
+    new_related  = result.get("related_knowledge", [])
+    new_tasks    = result.get("tasks", [])
+
+    # 기존 노트에서 이미 있는 인사이트 추출 (중복 방지)
+    existing_insights: set[str] = set(
+        re.findall(r"^- (.+)$", existing_text, re.MULTILINE)
+    )
+    unique_insights = [i for i in new_insights if i not in existing_insights]
+
+    if not unique_insights and not new_tasks:
+        # 추가할 내용이 없으면 병합 불필요
+        return
+
+    now_str     = datetime.now().strftime("%Y-%m-%d %H:%M")
+    append_lines = [
+        f"\n\n---\n## 병합 추가 — {now_str} (원본: `{source_path.name}`)\n",
+    ]
+    if unique_insights:
+        append_lines.append("### 추가 인사이트\n")
+        append_lines.extend(f"- {i}" for i in unique_insights)
+    if new_tasks:
+        append_lines.append("\n### 추가 태스크\n")
+        append_lines.extend(new_tasks)
+    if new_related:
+        append_lines.append("\n### 추가 연결 개념\n")
+        append_lines.extend(f"- {r}" for r in new_related)
+
+    with existing_path.open("a", encoding="utf-8") as f:
+        f.write("\n".join(append_lines))
+
+    # frontmatter의 topics 업데이트 (기존 + 신규 합집합)
+    existing_topics = set(_extract_frontmatter_topics(existing_path))
+    merged_topics   = sorted(existing_topics | set(new_topics))
+    if merged_topics != sorted(existing_topics):
+        updated_text = existing_path.read_text(encoding="utf-8", errors="replace")
+        new_topics_yaml = "[" + ", ".join(merged_topics) + "]"
+        updated_text = re.sub(
+            r"^(topics:\s*)\[[^\]]*\]",
+            f"\\g<1>{new_topics_yaml}",
+            updated_text,
+            flags=re.MULTILINE,
+        )
+        existing_path.write_text(updated_text, encoding="utf-8")
+
+
 # ── 에러 리포트 ────────────────────────────────────────────────────────────────
 
 def append_error_report(error_entries: list[dict]) -> None:
@@ -821,6 +943,7 @@ def process_batch(
     배치(N개 파일) 처리.
     - 소스 유형(gpt/claude/codex/unknown) 자동 감지
     - 중복 감지: 파일명 해시 기반으로 이미 처리된 파일 건너뜀
+    - Phase 2: 같은 주제 노트 존재 시 병합 (overwrite 금지)
     - 에러 발생 시 distiller-errors.md에 기록
     반환: (success_count, fail_count)
     """
@@ -832,7 +955,10 @@ def process_batch(
 
     for idx, raw_file in enumerate(batch, 1):
         global_idx = (batch_num - 1) * len(batch) + idx
-        rel_path   = raw_file.relative_to(VAULT_BASE)
+        try:
+            rel_path = raw_file.relative_to(VAULT_BASE)
+        except ValueError:
+            rel_path = raw_file  # VAULT_BASE 외부 경로(claude-sessions 등) 절대경로 표시
         file_date  = extract_date_from_path(raw_file)
         source_type = detect_source_type(raw_file)
         print(f"  [{global_idx}] {rel_path}  (날짜: {file_date}, 소스: {source_type})")
@@ -871,11 +997,26 @@ def process_batch(
                 if validated_count < original_count:
                     print(f"    [WIKI] wikilink {original_count}개 → {validated_count}개 (검증 후)")
 
-            note_text   = build_output_note(result, raw_file, file_date, source_type)
             output_path = determine_output_path(file_date, raw_file)
 
-            output_path.write_text(note_text, encoding="utf-8")
-            print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
+            # Phase 2: 같은 주제 노트가 이미 존재하는지 확인 (overwrite 금지)
+            existing_by_topic = find_existing_note_by_topic(result, output_path.parent)
+            if existing_by_topic and existing_by_topic != output_path:
+                # 동일 주제 노트에 병합 (append)
+                merge_into_existing_note(existing_by_topic, result, raw_file)
+                print(f"    [MERGE] → {existing_by_topic.relative_to(VAULT_BASE)} (주제 병합)")
+                print(f"             신규 인사이트: {len(result.get('insights', []))}개  "
+                      f"토픽 겹침: {set(result.get('topics', [])) & set(_extract_frontmatter_topics(existing_by_topic))}")
+            elif output_path.exists() and state.get(str(raw_file)):
+                # 동일 파일명 이미 존재하고 state 기록 있음 → 병합
+                merge_into_existing_note(output_path, result, raw_file)
+                print(f"    [MERGE] → {output_path.relative_to(VAULT_BASE)} (파일명 일치, 병합)")
+            else:
+                # 신규 노트 생성
+                note_text = build_output_note(result, raw_file, file_date, source_type)
+                output_path.write_text(note_text, encoding="utf-8")
+                print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
+
             print(f"         소스: {source_type}  "
                   f"토픽: {result.get('topics', [])}  "
                   f"인사이트: {len(result.get('insights', []))}개  "
