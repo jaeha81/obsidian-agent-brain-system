@@ -28,6 +28,13 @@ LAWS_DIR  = LEGAL_DIR / "laws"
 PACKS_DIR = VAULT / "06_Context_Packs" / "Legal"
 REPORT    = VAULT / "00_System" / "legal-node-analysis.md"
 BACKUP    = VAULT / "09_Archive" / "legal-cleanup-backup"
+ARCHIVE   = VAULT / "09_Archive"
+
+# 그래프에서 제외해야 할 아카이브 디렉터리
+GRAPH_POLLUTING_DIRS = [
+    VAULT / "09_Archive" / "legal-cleanup-backup",
+    VAULT / "09_Archive" / "migration-conflicts",
+]
 
 
 def extract_law_sections(content: str) -> list[dict]:
@@ -170,15 +177,122 @@ def extract_laws(dry_run: bool = False):
         print(f"  백업 위치: {BACKUP}")
 
 
+def scan_orphans():
+    """09_Archive 등 비활성 디렉터리에서 그래프를 오염시키는 법령 H1 노드 탐지"""
+    H1_LAW = re.compile(r'^# (.+)$', re.MULTILINE)
+    WIKILINK = re.compile(r'\[\[laws/([^\]|]+)')
+
+    print("\n=== 그래프 오염 파일 스캔 ===")
+    polluters: list[dict] = []
+
+    for pollute_dir in GRAPH_POLLUTING_DIRS:
+        if not pollute_dir.exists():
+            continue
+        for md in pollute_dir.rglob("*.md"):
+            content = md.read_text(encoding="utf-8", errors="ignore")
+            h1s = H1_LAW.findall(content)
+            links = WIKILINK.findall(content)
+            if h1s or links:
+                polluters.append({
+                    "file": str(md.relative_to(VAULT)),
+                    "h1_headings": h1s,
+                    "wiki_links": links,
+                })
+
+    if polluters:
+        print(f"\n[경고] 그래프 오염 가능 파일: {len(polluters)}개")
+        for p in polluters:
+            print(f"\n  파일: {p['file']}")
+            if p["h1_headings"]:
+                print(f"    H1 헤딩 (중복 노드 생성): {p['h1_headings']}")
+            if p["wiki_links"]:
+                print(f"    [[laws/]] 링크: {p['wiki_links']}")
+        print("\n[권장 조치]")
+        print("  Obsidian Settings > Files and links > Excluded files에 추가:")
+        for d in GRAPH_POLLUTING_DIRS:
+            if d.exists():
+                rel = d.relative_to(VAULT)
+                print(f"    {rel}")
+    else:
+        print("  그래프 오염 파일 없음.")
+
+    return polluters
+
+
+def check_duplicates():
+    """동일 laws/ 링크를 참조하는 Context Pack 중복 감지 + 내용 유사도 분석"""
+    WIKILINK = re.compile(r'\[\[laws/([^\]|]+)')
+
+    print("\n=== Context Pack 중복/유사도 분석 ===")
+
+    pack_files = [f for f in PACKS_DIR.glob("*.md")
+                  if f.name != "legal_context_pack_template.md"]
+
+    # 각 팩의 법령 링크 수집
+    pack_links: dict[str, set[str]] = {}
+    for pf in pack_files:
+        content = pf.read_text(encoding="utf-8", errors="ignore")
+        links = set(WIKILINK.findall(content))
+        pack_links[pf.name] = links
+
+    # 동일 법령 링크를 공유하는 팩 쌍 찾기
+    pack_names = list(pack_links.keys())
+    duplicate_pairs = []
+    for i in range(len(pack_names)):
+        for j in range(i + 1, len(pack_names)):
+            a, b = pack_names[i], pack_names[j]
+            shared = pack_links[a] & pack_links[b]
+            if shared:
+                duplicate_pairs.append((a, b, shared))
+
+    if duplicate_pairs:
+        print(f"\n[중복 링크 쌍]: {len(duplicate_pairs)}쌍")
+        for a, b, shared in duplicate_pairs:
+            print(f"\n  '{a}' ↔ '{b}'")
+            print(f"    공유 법령 링크: {sorted(shared)}")
+            # 유사도 점수: Jaccard
+            union = pack_links[a] | pack_links[b]
+            jaccard = len(shared) / len(union) if union else 0
+            print(f"    유사도 (Jaccard): {jaccard:.0%}")
+            if jaccard >= 0.8:
+                print(f"    ⚠️ HIGH 유사도 — 통합 또는 차별화 필요")
+            elif jaccard >= 0.5:
+                print(f"    ⚡ MEDIUM 유사도 — 공통 법령 앵커 링크 분리 권장")
+    else:
+        print("  중복 링크 쌍 없음.")
+
+    # laws/ 파일 참조 없는 팩 탐지
+    print("\n[laws/ 링크 없는 Context Pack]:")
+    no_link_packs = [name for name, links in pack_links.items() if not links]
+    if no_link_packs:
+        for name in no_link_packs:
+            print(f"  ⚠️ {name} — laws/ 링크 없음 (원문 임베드 가능성)")
+    else:
+        print("  모든 팩이 laws/ 링크 보유. 정상.")
+
+    return duplicate_pairs
+
+
 def main():
     p = argparse.ArgumentParser(description="Obsidian 법률 노드 중복 정리")
-    p.add_argument("--analyze",  action="store_true", help="중복 분석 리포트 생성")
-    p.add_argument("--extract",  action="store_true", help="법령 추출 및 컨텍스트팩 재구성")
-    p.add_argument("--dry-run",  action="store_true", help="변경 없이 미리보기")
+    p.add_argument("--analyze",          action="store_true", help="중복 분석 리포트 생성")
+    p.add_argument("--extract",          action="store_true", help="법령 추출 및 컨텍스트팩 재구성")
+    p.add_argument("--scan-orphans",     action="store_true", help="그래프 오염 아카이브 파일 탐지")
+    p.add_argument("--check-duplicates", action="store_true", help="Context Pack 중복/유사도 분석")
+    p.add_argument("--full",             action="store_true", help="모든 분석 실행 (analyze + scan-orphans + check-duplicates)")
+    p.add_argument("--dry-run",          action="store_true", help="변경 없이 미리보기")
     args = p.parse_args()
 
     if args.extract:
         extract_laws(dry_run=args.dry_run)
+    elif args.scan_orphans:
+        scan_orphans()
+    elif args.check_duplicates:
+        check_duplicates()
+    elif args.full:
+        analyze(dry_run=True)
+        scan_orphans()
+        check_duplicates()
     else:
         analyze(dry_run=True)
 

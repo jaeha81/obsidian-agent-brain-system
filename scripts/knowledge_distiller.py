@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Knowledge Distiller — Phase 2
+Knowledge Distiller — Phase 3
 ObsidianVault/01_RAW/ 의 원시 대화 파일을 Claude API로 정제하여
 구조화된 지식 노트로 변환한다.
 
@@ -13,6 +13,12 @@ ObsidianVault/01_RAW/ 의 원시 대화 파일을 Claude API로 정제하여
     python knowledge_distiller.py --dry-run     # 대상 목록만 출력 (API 미호출)
     python knowledge_distiller.py --reset       # 처리 이력 초기화
     python knowledge_distiller.py --watch       # inbox 폴더 실시간 감시
+
+Phase 3 추가 기능:
+    - auto_tag()          : 키워드 기반 카테고리 자동 태깅 (법률/개발/건설/AI)
+    - detect_duplicates() : 콘텐츠 해시 기반 전체 중복 감지 (파일명 무관)
+    - generate_wikilinks(): 기존 노트와 토픽 유사도로 wikilink 자동 생성
+    - priority_score()    : 최신성 + 빈도 기반 우선순위 점수 산출
 """
 
 import argparse
@@ -25,7 +31,7 @@ import textwrap
 import time
 import urllib.request
 import urllib.error
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import anthropic
@@ -76,6 +82,61 @@ SOURCE_TAG_MAP = {
     "codex":   "source/codex",
     "unknown": "source/unknown",
 }
+
+# ── Phase 3: 카테고리 자동 태깅 키워드 맵 ──────────────────────────────────────
+# 각 카테고리는 (한글 키워드, 영문 키워드) 튜플 목록으로 구성.
+# 우선순위: 앞에 있을수록 높음 (점수가 높은 카테고리가 선택됨).
+CATEGORY_KEYWORD_MAP: dict[str, list[str]] = {
+    "법률": [
+        "계약", "법률", "법원", "소송", "판례", "법령", "조항", "민법", "형법", "상법",
+        "규정", "위반", "처벌", "벌칙", "손해배상", "청구", "분쟁", "조정", "중재",
+        "법적", "의무", "권리", "의뢰", "변호", "공증", "등기", "허가", "인허가",
+        "contract", "law", "legal", "lawsuit", "litigation", "regulation", "clause",
+        "penalty", "damages", "dispute", "arbitration", "attorney",
+    ],
+    "개발": [
+        "코드", "개발", "프로그래밍", "함수", "클래스", "API", "데이터베이스", "서버",
+        "프론트엔드", "백엔드", "배포", "테스트", "디버그", "리팩터", "알고리즘",
+        "라이브러리", "프레임워크", "Git", "CI/CD", "Docker", "Python", "JavaScript",
+        "TypeScript", "React", "FastAPI", "SQL", "NoSQL", "REST", "GraphQL",
+        "code", "function", "class", "deploy", "debug", "refactor", "algorithm",
+        "library", "framework", "database", "server", "frontend", "backend",
+    ],
+    "건설/인테리어": [
+        "건설", "인테리어", "시공", "설계", "견적", "공사", "자재", "도면", "시방서",
+        "발주", "하도급", "현장", "공정", "기초", "골조", "마감", "전기", "배관",
+        "단열", "방수", "타일", "바닥재", "조명", "가구", "리모델링", "인테리어",
+        "건축", "구조", "토목", "철근", "콘크리트", "방음",
+        "construction", "interior", "renovation", "design", "material", "blueprint",
+        "contractor", "subcontractor", "estimate", "flooring", "plumbing", "wiring",
+    ],
+    "AI/에이전트": [
+        "AI", "인공지능", "머신러닝", "딥러닝", "LLM", "에이전트", "프롬프트",
+        "임베딩", "벡터", "RAG", "파인튜닝", "모델", "추론", "Claude", "GPT",
+        "Anthropic", "OpenAI", "토큰", "컨텍스트", "체인", "오케스트레이션",
+        "자동화", "워크플로", "챗봇", "어시스턴트", "지식그래프", "지식베이스",
+        "agent", "prompt", "embedding", "vector", "fine-tuning", "inference",
+        "context", "chain", "orchestration", "automation", "workflow", "chatbot",
+        "knowledge graph", "knowledge base", "assistant",
+    ],
+}
+
+# 카테고리 → Obsidian 태그 형식
+CATEGORY_TAG_MAP: dict[str, str] = {
+    "법률":       "category/법률",
+    "개발":       "category/개발",
+    "건설/인테리어": "category/건설-인테리어",
+    "AI/에이전트": "category/AI-에이전트",
+}
+
+# ── Phase 3: 중복 감지 캐시 파일 ──────────────────────────────────────────────
+CONTENT_HASH_REGISTRY = SCRIPTS_DIR / ".distiller_content_hashes.json"
+
+# ── Phase 3: 우선순위 점수 상수 ────────────────────────────────────────────────
+PRIORITY_RECENCY_DAYS   = 30   # 최근 N일 이내 파일에 가중치
+PRIORITY_RECENCY_BONUS  = 3.0  # 최근 파일 보너스 점수
+PRIORITY_MENTION_WEIGHT = 0.5  # 토픽 1회 언급당 추가 점수
+PRIORITY_CONFIDENCE_W   = 2.0  # confidence 가중치
 
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -620,6 +681,283 @@ def validate_wikilinks(related: list[str]) -> list[str]:
     return deduped
 
 
+# ── Phase 3: 자동 태깅 ────────────────────────────────────────────────────────
+
+def auto_tag(content: str, topics: list[str]) -> list[str]:
+    """
+    Phase 3: 파일 내용과 토픽 목록에서 카테고리 태그를 자동 생성한다.
+
+    탐지 방법:
+    1. content + topics 를 합친 검색 문자열에서 카테고리별 키워드 출현 횟수 집계.
+    2. 출현 횟수가 가장 많은 카테고리를 주 카테고리로, 2위(임계치 이상)를 부 카테고리로 선택.
+    3. 반환 형식: ["category/AI-에이전트", "category/개발"] (CATEGORY_TAG_MAP 기준)
+
+    Args:
+        content: 원본 파일 텍스트
+        topics:  Claude API가 반환한 topics 리스트
+
+    Returns:
+        Obsidian 태그 형식의 카테고리 태그 목록 (0~2개)
+    """
+    search_text = (content + " " + " ".join(topics)).lower()
+
+    scores: dict[str, int] = {}
+    for category, keywords in CATEGORY_KEYWORD_MAP.items():
+        count = 0
+        for kw in keywords:
+            # 단어 경계 없이 단순 포함 여부로 계산 (한글 지원)
+            count += search_text.count(kw.lower())
+        scores[category] = count
+
+    # 점수 0인 카테고리 제거
+    scores = {k: v for k, v in scores.items() if v > 0}
+    if not scores:
+        return []
+
+    # 내림차순 정렬
+    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+    result_tags: list[str] = []
+    top_score = ranked[0][1]
+
+    # 1위 카테고리 (항상 포함)
+    result_tags.append(CATEGORY_TAG_MAP[ranked[0][0]])
+
+    # 2위 카테고리: 1위 점수의 40% 이상일 때만 포함 (노이즈 방지)
+    if len(ranked) >= 2:
+        second_score = ranked[1][1]
+        if top_score > 0 and second_score / top_score >= 0.4:
+            result_tags.append(CATEGORY_TAG_MAP[ranked[1][0]])
+
+    return result_tags
+
+
+# ── Phase 3: 콘텐츠 해시 기반 중복 감지 ────────────────────────────────────────
+
+def _load_content_hash_registry() -> dict:
+    """콘텐츠 해시 레지스트리 로드. 없으면 빈 dict 반환."""
+    if CONTENT_HASH_REGISTRY.exists():
+        try:
+            return json.loads(CONTENT_HASH_REGISTRY.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def _save_content_hash_registry(registry: dict) -> None:
+    """콘텐츠 해시 레지스트리 저장."""
+    CONTENT_HASH_REGISTRY.write_text(
+        json.dumps(registry, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def content_hash(text: str) -> str:
+    """
+    텍스트 콘텐츠의 SHA-256 해시를 반환한다.
+    공백·줄바꿈을 정규화한 뒤 해싱하여 공백 차이로 인한 미스매치를 방지.
+    """
+    normalized = re.sub(r"\s+", " ", text.strip())
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:64]
+
+
+def detect_duplicates(
+    file_path: Path,
+    content: str,
+    registry: dict,
+) -> tuple[bool, str | None]:
+    """
+    Phase 3: 콘텐츠 해시 기반 전역 중복 감지.
+
+    파일명이 달라도 내용이 동일하면 중복으로 판정한다.
+    registry는 {content_hash: file_path_str} 형태.
+
+    Args:
+        file_path: 현재 처리 대상 파일 경로
+        content:   파일 내용 문자열
+        registry:  콘텐츠 해시 → 최초 파일 경로 매핑 dict (in-place 업데이트)
+
+    Returns:
+        (is_duplicate, original_file_path_str)
+        is_duplicate=True 이면 원본 파일 경로를 함께 반환.
+    """
+    chash = content_hash(content)
+    file_str = str(file_path)
+
+    if chash in registry:
+        existing = registry[chash]
+        if existing != file_str:
+            # 동일 내용, 다른 파일 → 중복
+            return True, existing
+
+    # 신규 → 레지스트리에 등록
+    registry[chash] = file_str
+    return False, None
+
+
+# ── Phase 3: 지식 그래프 wikilink 생성 ────────────────────────────────────────
+
+def _load_distilled_topics() -> dict[str, list[str]]:
+    """
+    OUTPUT_BASE 디렉터리에 있는 기존 정제 노트들의
+    {파일명 stem: topics 리스트} 맵을 반환한다.
+    최대 500개 파일까지 스캔 (성능 보호).
+    """
+    topic_map: dict[str, list[str]] = {}
+    if not OUTPUT_BASE.exists():
+        return topic_map
+
+    scanned = 0
+    for md in OUTPUT_BASE.rglob("*.md"):
+        if scanned >= 500:
+            break
+        topics = _extract_frontmatter_topics(md)
+        if topics:
+            topic_map[md.stem] = topics
+        scanned += 1
+
+    return topic_map
+
+
+def generate_wikilinks(result: dict, current_output_stem: str | None = None) -> list[str]:
+    """
+    Phase 3: 기존 정제 노트와 토픽 유사도를 비교해 [[wikilink]] 를 자동 생성한다.
+
+    알고리즘:
+    1. OUTPUT_BASE 의 기존 노트 → {stem: topics} 맵 로드.
+    2. 현재 result 의 topics 와 각 기존 노트의 topics 의 교집합 계산.
+    3. 교집합이 1개 이상인 노트를 유사 노트로 선정.
+    4. 교집합 크기 내림차순 정렬 → 상위 5개 선택.
+    5. "[[파일명]]" 형태로 반환.
+
+    Args:
+        result:              distill 결과 dict (topics 키 사용)
+        current_output_stem: 현재 출력 파일의 stem (자기 자신 링크 방지)
+
+    Returns:
+        [[wikilink]] 형태의 문자열 목록 (최대 5개, 중복 없음)
+    """
+    new_topics = set(result.get("topics", []))
+    if not new_topics:
+        return []
+
+    distilled_map = _load_distilled_topics()
+    if not distilled_map:
+        return []
+
+    # (overlap_count, note_stem) 목록
+    candidates: list[tuple[int, str]] = []
+    for stem, topics in distilled_map.items():
+        if stem == current_output_stem:
+            continue  # 자기 자신 제외
+        overlap = len(new_topics & set(topics))
+        if overlap >= 1:
+            candidates.append((overlap, stem))
+
+    # 교집합 크기 내림차순 정렬
+    candidates.sort(key=lambda x: x[0], reverse=True)
+
+    # 상위 5개 선택, wikilink 형식으로 변환
+    links: list[str] = []
+    seen: set[str] = set()
+    for _, stem in candidates[:5]:
+        link = f"[[{stem}]]"
+        if link not in seen:
+            seen.add(link)
+            links.append(link)
+
+    return links
+
+
+# ── Phase 3: 우선순위 점수 산출 ───────────────────────────────────────────────
+
+def _count_topic_mentions_in_vault(topics: list[str]) -> int:
+    """
+    OUTPUT_BASE 의 기존 정제 노트 frontmatter 에서 topics 가 언급된 총 횟수.
+    성능 상 최대 300개 파일 스캔.
+    """
+    if not topics or not OUTPUT_BASE.exists():
+        return 0
+
+    topic_set = {t.lower() for t in topics}
+    mention_count = 0
+    scanned = 0
+
+    for md in OUTPUT_BASE.rglob("*.md"):
+        if scanned >= 300:
+            break
+        existing = _extract_frontmatter_topics(md)
+        for t in existing:
+            if t.lower() in topic_set:
+                mention_count += 1
+        scanned += 1
+
+    return mention_count
+
+
+def priority_score(
+    result: dict,
+    file_date: str,
+    file_path: Path,
+) -> float:
+    """
+    Phase 3: 지식 노트의 우선순위 점수를 산출한다.
+
+    점수 구성:
+    - 최신성 (recency)   : 파일 날짜가 최근 PRIORITY_RECENCY_DAYS 일 이내면 +PRIORITY_RECENCY_BONUS
+    - 빈도 (frequency)   : Vault 기존 노트에서 동일 토픽 언급 횟수 × PRIORITY_MENTION_WEIGHT
+    - 신뢰도 (confidence): result["confidence"] × PRIORITY_CONFIDENCE_W
+    - 인사이트 수         : insights 개수 × 0.3
+
+    점수 범위는 대략 0.0 ~ 10.0 (소수점 2자리 반올림).
+
+    Args:
+        result:    distill 결과 dict
+        file_date: "YYYY-MM-DD" 형식 날짜 문자열
+        file_path: 원본 파일 경로 (파일 수정시각 보조 활용)
+
+    Returns:
+        float 우선순위 점수 (높을수록 중요)
+    """
+    score = 0.0
+
+    # 1. 최신성 점수
+    try:
+        file_dt = datetime.strptime(file_date, "%Y-%m-%d")
+        days_old = (datetime.now() - file_dt).days
+        if days_old <= PRIORITY_RECENCY_DAYS:
+            score += PRIORITY_RECENCY_BONUS
+        elif days_old <= PRIORITY_RECENCY_DAYS * 3:
+            # 점진적 감쇠
+            score += PRIORITY_RECENCY_BONUS * (1 - days_old / (PRIORITY_RECENCY_DAYS * 3))
+    except ValueError:
+        pass
+
+    # 파일 수정시각도 보조로 활용 (실제 mtime 이 더 최신이면 보정)
+    try:
+        mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+        mtime_days_old = (datetime.now() - mtime).days
+        if mtime_days_old <= PRIORITY_RECENCY_DAYS:
+            score += PRIORITY_RECENCY_BONUS * 0.5  # 절반 보너스
+    except OSError:
+        pass
+
+    # 2. 토픽 빈도 점수 (기존 Vault에서 같은 토픽이 많이 언급될수록 = 중요한 주제)
+    topics = result.get("topics", [])
+    mention_count = _count_topic_mentions_in_vault(topics)
+    score += mention_count * PRIORITY_MENTION_WEIGHT
+
+    # 3. 신뢰도 점수
+    confidence = float(result.get("confidence", 0.8))
+    score += confidence * PRIORITY_CONFIDENCE_W
+
+    # 4. 인사이트 수 점수
+    insight_count = len(result.get("insights", []))
+    score += insight_count * 0.3
+
+    return round(score, 2)
+
+
 # ── Discord Webhook ────────────────────────────────────────────────────────────
 
 def send_discord_summary(stats: dict, elapsed_sec: float) -> None:
@@ -690,8 +1028,18 @@ def build_output_note(
     source_path: Path,
     file_date: str,
     source_type: str = "unknown",
+    category_tags: list[str] | None = None,
+    graph_wikilinks: list[str] | None = None,
+    p3_priority: float | None = None,
 ) -> str:
-    """추출 결과를 Obsidian Markdown 노트로 변환한다."""
+    """
+    추출 결과를 Obsidian Markdown 노트로 변환한다.
+
+    Phase 3 추가 파라미터:
+        category_tags   : auto_tag() 반환값 (카테고리 태그 목록)
+        graph_wikilinks : generate_wikilinks() 반환값 (그래프 기반 wikilink)
+        p3_priority     : priority_score() 반환값 (0.0~10.0 우선순위 점수)
+    """
     topics     = result.get("topics", [])
     confidence = result.get("confidence", 0.8)
     insights   = result.get("insights", [])
@@ -702,8 +1050,11 @@ def build_output_note(
     # 소스 태그 자동 생성 (#source/gpt, #source/claude, #source/codex)
     source_tag = SOURCE_TAG_MAP.get(source_type, SOURCE_TAG_MAP["unknown"])
 
-    # frontmatter tags: ai-distilled + source 태그
-    fm_tags = ["ai-distilled", source_tag]
+    # Phase 3: 카테고리 태그 병합
+    cat_tags = category_tags or []
+
+    # frontmatter tags: ai-distilled + source 태그 + category 태그
+    fm_tags = ["ai-distilled", source_tag] + cat_tags
     # topics도 frontmatter tags에 포함
     all_tags = fm_tags + topics
     tags_yaml = "[" + ", ".join(all_tags) + "]"
@@ -715,10 +1066,25 @@ def build_output_note(
     related_md  = "\n".join(f"- {r}" for r in related)  if related  else "- (연결 개념 없음)"
     tasks_md    = "\n".join(tasks) if tasks else "- (실행 태스크 없음)"
 
-    # 인라인 태그 (소스 태그 + 토픽 태그)
-    inline_tags  = f"#{source_tag}"
+    # Phase 3: 지식 그래프 wikilink 섹션
+    graph_links = graph_wikilinks or []
+    graph_md = "\n".join(f"- {lnk}" for lnk in graph_links) if graph_links else "- (연결된 노트 없음)"
+
+    # 인라인 태그 (소스 태그 + 카테고리 태그 + 토픽 태그)
+    inline_tags_parts = [f"#{source_tag}"] + [f"#{ct}" for ct in cat_tags]
     if topics:
-        inline_tags += " " + " ".join(f"#{t}" for t in topics)
+        inline_tags_parts += [f"#{t}" for t in topics]
+    inline_tags = " ".join(inline_tags_parts)
+
+    # Phase 3: 우선순위 레이블
+    priority_label = ""
+    if p3_priority is not None:
+        if p3_priority >= 7.0:
+            priority_label = " 🔴 HIGH"
+        elif p3_priority >= 4.0:
+            priority_label = " 🟡 MEDIUM"
+        else:
+            priority_label = " 🟢 LOW"
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -731,6 +1097,8 @@ def build_output_note(
         topics: {topics_yaml}
         related: {related_yaml}
         confidence: {confidence}
+        priority: {p3_priority if p3_priority is not None else ""}
+        category_tags: [{", ".join(cat_tags)}]
         distilled_at: {now_str}
         tags: {tags_yaml}
         ---
@@ -745,6 +1113,10 @@ def build_output_note(
 
         {related_md}
 
+        ## 지식 그래프 링크{priority_label}
+
+        {graph_md}
+
         ## 실행 가능한 태스크
 
         {tasks_md}
@@ -755,6 +1127,7 @@ def build_output_note(
 
         ---
         *자동 생성: knowledge_distiller.py — 원본: `{source_path.name}` — 소스: {source_type}*
+        *Phase 3 — 카테고리: {", ".join(cat_tags) or "없음"} — 우선순위: {p3_priority}*
     """).lstrip()
 
     return note
@@ -938,18 +1311,24 @@ def process_batch(
     stats: dict,
     batch_num: int,
     total_batches: int,
+    content_hash_registry: dict | None = None,
 ) -> tuple[int, int]:
     """
     배치(N개 파일) 처리.
     - 소스 유형(gpt/claude/codex/unknown) 자동 감지
     - 중복 감지: 파일명 해시 기반으로 이미 처리된 파일 건너뜀
     - Phase 2: 같은 주제 노트 존재 시 병합 (overwrite 금지)
+    - Phase 3: auto_tag / detect_duplicates / generate_wikilinks / priority_score 통합
     - 에러 발생 시 distiller-errors.md에 기록
     반환: (success_count, fail_count)
     """
     success = 0
     fail    = 0
     error_entries: list[dict] = []
+
+    # Phase 3: 배치 전역 콘텐츠 해시 레지스트리 (전달 안 되면 새로 로드)
+    if content_hash_registry is None:
+        content_hash_registry = _load_content_hash_registry()
 
     print(f"\n[배치 {batch_num}/{total_batches}] {len(batch)}개 파일 처리 중...")
 
@@ -976,7 +1355,15 @@ def process_batch(
             stats["skipped"] += 1
             continue
 
-        # 중복 감지: 출력 파일이 이미 동일 해시로 존재하는지 확인
+        # Phase 3: 콘텐츠 해시 기반 전역 중복 감지 (파일명 무관)
+        is_dup, dup_original = detect_duplicates(raw_file, content, content_hash_registry)
+        if is_dup:
+            print(f"    [SKIP-P3] 콘텐츠 중복 — 원본: {dup_original}")
+            stats["skipped"] += 1
+            _save_content_hash_registry(content_hash_registry)
+            continue
+
+        # Phase 1/2 중복 감지: 출력 파일이 이미 동일 해시로 존재하는지 확인
         output_path_candidate = determine_output_path(file_date, raw_file)
         if output_path_candidate.exists():
             # 출력 파일의 source 메타에서 원본 해시를 state로 재확인
@@ -999,6 +1386,21 @@ def process_batch(
 
             output_path = determine_output_path(file_date, raw_file)
 
+            # ── Phase 3: 자동 태깅 ──────────────────────────────────────
+            cat_tags = auto_tag(content, result.get("topics", []))
+            if cat_tags:
+                print(f"    [P3-TAG] 카테고리: {cat_tags}")
+
+            # ── Phase 3: 지식 그래프 wikilink 생성 ──────────────────────
+            graph_links = generate_wikilinks(result, current_output_stem=output_path.stem)
+            if graph_links:
+                print(f"    [P3-GRAPH] 연결 노트: {len(graph_links)}개 → {graph_links}")
+
+            # ── Phase 3: 우선순위 점수 ────────────────────────────────────
+            p3_score = priority_score(result, file_date, raw_file)
+            priority_label = "HIGH" if p3_score >= 7.0 else ("MEDIUM" if p3_score >= 4.0 else "LOW")
+            print(f"    [P3-PRIORITY] 점수: {p3_score} ({priority_label})")
+
             # Phase 2: 같은 주제 노트가 이미 존재하는지 확인 (overwrite 금지)
             existing_by_topic = find_existing_note_by_topic(result, output_path.parent)
             if existing_by_topic and existing_by_topic != output_path:
@@ -1012,8 +1414,16 @@ def process_batch(
                 merge_into_existing_note(output_path, result, raw_file)
                 print(f"    [MERGE] → {output_path.relative_to(VAULT_BASE)} (파일명 일치, 병합)")
             else:
-                # 신규 노트 생성
-                note_text = build_output_note(result, raw_file, file_date, source_type)
+                # 신규 노트 생성 (Phase 3 데이터 포함)
+                note_text = build_output_note(
+                    result,
+                    raw_file,
+                    file_date,
+                    source_type,
+                    category_tags=cat_tags,
+                    graph_wikilinks=graph_links,
+                    p3_priority=p3_score,
+                )
                 output_path.write_text(note_text, encoding="utf-8")
                 print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
 
@@ -1021,6 +1431,9 @@ def process_batch(
                   f"토픽: {result.get('topics', [])}  "
                   f"인사이트: {len(result.get('insights', []))}개  "
                   f"신뢰도: {result.get('confidence', '?')}")
+
+            # Phase 3: 콘텐츠 해시 레지스트리 저장 (처리 성공 시)
+            _save_content_hash_registry(content_hash_registry)
 
             state[str(raw_file)] = file_hash(raw_file)
             save_state(state)
@@ -1076,6 +1489,8 @@ def watch_inbox(client: anthropic.Anthropic, state: dict, poll_interval: int = 1
                          if state.get(str(f)) == file_hash(f))
 
     stats = _make_stats()
+    # Phase 3: watch 모드에서도 콘텐츠 해시 레지스트리 공유
+    watch_content_registry = _load_content_hash_registry()
     try:
         while True:
             inbox_files = collect_inbox_files()
@@ -1091,7 +1506,10 @@ def watch_inbox(client: anthropic.Anthropic, state: dict, poll_interval: int = 1
                     seen.add(str(f))
 
                 total_batches = 1
-                process_batch(client, new_files, state, stats, 1, total_batches)
+                process_batch(
+                    client, new_files, state, stats, 1, total_batches,
+                    content_hash_registry=watch_content_registry,
+                )
                 _print_stats(stats)
             else:
                 print(f"[WATCH] 대기 중... ({datetime.now().strftime('%H:%M:%S')})", end="\r")
@@ -1293,6 +1711,9 @@ def main() -> int:
     total_batches = len(batches)
     stats         = _make_stats()
 
+    # Phase 3: 콘텐츠 해시 레지스트리를 전체 실행에 걸쳐 공유 (배치 간 중복 감지)
+    content_hash_registry = _load_content_hash_registry()
+
     print(f"[INFO] 배치 크기: {batch_size}  →  총 {total_batches}개 배치\n")
 
     total_success = 0
@@ -1300,7 +1721,10 @@ def main() -> int:
     start_time    = time.time()
 
     for batch_num, batch in enumerate(batches, 1):
-        s, f = process_batch(client, batch, state, stats, batch_num, total_batches)
+        s, f = process_batch(
+            client, batch, state, stats, batch_num, total_batches,
+            content_hash_registry=content_hash_registry,
+        )
         total_success += s
         total_fail    += f
 
