@@ -860,6 +860,9 @@ class BuckyDiscordBot(discord.Client):
                 "**Bucky 명령어**\n"
                 "`!status` — 봇 상태 및 내 역할 확인\n"
                 "`!reset` — 대화 기록 초기화\n"
+                "`!tasks` / `!태스크` / `!현황` — 오늘 태스크 현황\n"
+                "`!태스크추가 <내용>` — 태스크 등록 및 배분\n"
+                "`!리포트` / `!report` — 데일리 리포트 생성\n"
                 "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
@@ -901,6 +904,32 @@ class BuckyDiscordBot(discord.Client):
                 await message.channel.send("👋 음성 채널에서 퇴장했습니다.")
             else:
                 await message.channel.send("ℹ️ 현재 음성 채널에 없습니다.")
+            return
+
+        if content in ("!tasks", "!태스크", "!현황"):
+            task_text = format_task_list()
+            for chunk in split_message(task_text):
+                await message.channel.send(chunk)
+            return
+
+        if content.startswith("!태스크추가 ") or content.startswith("!task "):
+            body = content.split(" ", 1)[1].strip()
+            if body:
+                task = await asyncio.to_thread(add_task, body[:40], body, None, "discord")
+                await message.channel.send(
+                    f"✅ 태스크 등록: `{task['id']}` → **{task['type']}** → {task['router']}"
+                )
+            return
+
+        if content in ("!리포트", "!report", "!일지"):
+            async with message.channel.typing():
+                try:
+                    report_content, jh_path, _ = await asyncio.to_thread(generate_daily_report)
+                    header = f"📊 **데일리 리포트 저장** → `{jh_path.name}`\n\n"
+                    for chunk in split_message(header + report_content[:1600]):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 리포트 생성 실패: {e}")
             return
 
         if content in ("!브리핑", "!briefing", "!뉴스"):
@@ -945,6 +974,17 @@ class BuckyDiscordBot(discord.Client):
 
             # 이미 답변했으므로 status=answered → dispatcher 재처리 방지
             out_path = write_discord_message(message, reply, status="answered")
+
+            # 구현/리뷰 키워드 감지 시 task_tracker에 자동 등록
+            try:
+                from task_tracker import classify
+                detected_type = classify(content)
+                if detected_type in ("implementation_request", "review_request"):
+                    await asyncio.to_thread(
+                        add_task, content[:40], content, detected_type, "discord"
+                    )
+            except Exception:
+                pass
         else:
             out_path = write_discord_message(message, status="pending")
 
