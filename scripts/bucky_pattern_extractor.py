@@ -18,7 +18,8 @@ ROOT = Path(__file__).parent.parent
 load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(ROOT / "ObsidianVault")))
-AGENTBUS_MESSAGES = VAULT / "AgentBus" / "messages" / "agent-room-messages.jsonl"
+AGENTBUS_INBOX = VAULT / "10_AgentBus" / "inbox"
+AGENTBUS_MESSAGES = VAULT / "10_AgentBus" / "agent-room-messages.jsonl"
 PATTERNS_DIR = VAULT / "09_Knowledge_Capture" / "patterns"
 SKILLS_SUGGESTION_DIR = ROOT / ".claude" / "skills" / "suggested"
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK_URL", "")
@@ -59,27 +60,50 @@ repeat_count: {repeat_count}
 
 
 def load_messages(days: int = PATTERN_WINDOW_DAYS) -> list[dict]:
-    if not AGENTBUS_MESSAGES.exists():
-        return []
-
     cutoff = datetime.now() - timedelta(days=days)
     messages = []
-    try:
-        for line in AGENTBUS_MESSAGES.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                msg = json.loads(line)
-                ts_str = msg.get("timestamp", msg.get("created_at", ""))
-                if ts_str:
-                    ts = datetime.fromisoformat(ts_str[:19])
-                    if ts >= cutoff:
-                        messages.append(msg)
-            except Exception:
-                continue
-    except Exception as e:
-        print(f"⚠️ 메시지 로드 실패: {e}")
+
+    # 1) inbox .md 파일들에서 Discord 메시지 추출
+    if AGENTBUS_INBOX.exists():
+        try:
+            for md_file in sorted(AGENTBUS_INBOX.glob("*.md")):
+                try:
+                    mtime = datetime.fromtimestamp(md_file.stat().st_mtime)
+                    if mtime < cutoff:
+                        continue
+                    text = md_file.read_text(encoding="utf-8", errors="replace")
+                    # **User:** 뒤 내용 추출
+                    import re as _re
+                    m = _re.search(r"\*\*User:\*\*\s*(.+)", text)
+                    if m:
+                        messages.append({
+                            "content": m.group(1).strip(),
+                            "timestamp": mtime.isoformat(),
+                        })
+                except Exception:
+                    continue
+        except Exception as e:
+            print(f"⚠️ inbox 읽기 실패: {e}")
+
+    # 2) JSONL 파일도 있으면 추가
+    if AGENTBUS_MESSAGES.exists():
+        try:
+            for line in AGENTBUS_MESSAGES.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    msg = json.loads(line)
+                    ts_str = msg.get("timestamp", msg.get("created_at", ""))
+                    if ts_str:
+                        ts = datetime.fromisoformat(ts_str[:19])
+                        if ts >= cutoff:
+                            messages.append(msg)
+                except Exception:
+                    continue
+        except Exception as e:
+            print(f"⚠️ JSONL 로드 실패: {e}")
+
     return messages
 
 

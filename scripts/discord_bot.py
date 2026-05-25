@@ -266,11 +266,79 @@ _FILLER_PATTERN = _re.compile(
     _re.IGNORECASE
 )
 
+_URL_PATTERN = _re.compile(r'https?://[^\s<>"\']+')
+
+_CLAUDE_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+_STT_ENHANCE_ENABLED: bool = bool(_CLAUDE_API_KEY) and os.getenv("STT_AI_ENHANCE", "1").strip() not in {"0", "false", "no"}
+
 
 def _postprocess_stt(text: str) -> str:
-    """Typeless 스타일 후처리: 필러 제거 + 중복 공백 정리."""
+    """Typeless 스타일 기본 후처리: 필러 제거 + 중복 공백 정리."""
     text = _FILLER_PATTERN.sub("", text)
     return _re.sub(r"\s{2,}", " ", text).strip()
+
+
+def _postprocess_stt_claude(text: str) -> str:
+    """Claude API 기반 고급 STT 후처리 — Typeless 벤치마킹 구현.
+
+    필러 제거 + 반복 문장 정리 + 의도 명확화.
+    API 실패 시 기본 regex 후처리로 폴백.
+    """
+    if not _STT_ENHANCE_ENABLED or len(text) < 10:
+        return _postprocess_stt(text)
+
+    prompt = f"""다음은 한국어 음성 인식(STT) 결과입니다. 아래 규칙에 따라 정제하세요:
+
+1. 필러 단어 제거: "음", "어", "아", "그", "저", "그니까", "있잖아", "뭔가" 등
+2. 반복되는 표현 정리 (동일 내용 중복 제거)
+3. 문장 의도를 유지하면서 자연스럽게 다듬기
+4. 원문의 내용과 의도를 절대 바꾸지 말 것
+5. 정제된 텍스트만 출력 (설명 없이)
+
+STT 원문:
+{text}"""
+
+    try:
+        import urllib.request
+        import urllib.error
+        body = json.dumps({
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 300,
+            "messages": [{"role": "user", "content": prompt}],
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=body,
+            headers={
+                "x-api-key": _CLAUDE_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            refined = data["content"][0]["text"].strip()
+            if refined:
+                return refined
+    except Exception as e:
+        print(f"[STT] Claude API 후처리 실패, 기본 후처리 사용: {e}", flush=True)
+
+    return _postprocess_stt(text)
+
+
+async def _auto_capture_url_bg(url: str) -> None:
+    """URL을 백그라운드로 Obsidian에 캡처 — 조용히 처리, 실패해도 무시."""
+    try:
+        import sys as _sys
+        scripts_dir = str(Path(__file__).parent)
+        if scripts_dir not in _sys.path:
+            _sys.path.insert(0, scripts_dir)
+        from bucky_knowledge_capture import capture_url
+        saved = await asyncio.to_thread(capture_url, url)
+        print(f"[AutoCapture] 저장: {saved}", flush=True)
+    except Exception as e:
+        print(f"[AutoCapture] 실패 ({url[:50]}): {e}", flush=True)
 
 
 async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
@@ -287,7 +355,8 @@ async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
             lambda: model.transcribe(tmp_path, language="ko", fp16=False)
         )
         raw = result.get("text", "").strip()
-        return _postprocess_stt(raw)
+        # Claude API 가용 시 고급 후처리, 아니면 regex 폴백
+        return await asyncio.to_thread(_postprocess_stt_claude, raw)
     finally:
         if tmp_path:
             Path(tmp_path).unlink(missing_ok=True)
@@ -832,6 +901,11 @@ class BuckyDiscordBot(discord.Client):
         if AUTO_BRIEFING and BRIEFING_CHANNEL_ID:
             self.loop.create_task(self._daily_briefing_task())
 
+        # 6시간마다 패턴 분석 자동 실행
+        self.loop.create_task(self._periodic_pattern_task())
+        # 매일 1회 자기 반성 (P2)
+        self.loop.create_task(self._periodic_reflection_task())
+
     async def _daily_briefing_task(self) -> None:
         """매일 BRIEFING_TIME에 자동 브리핑 게시."""
         await self.wait_until_ready()
@@ -852,6 +926,38 @@ class BuckyDiscordBot(discord.Client):
                 next_run += timedelta(days=1)
             await asyncio.sleep((next_run - now).total_seconds())
             await self._post_auto_briefing()
+
+    async def _periodic_pattern_task(self) -> None:
+        """6시간마다 패턴 분석 자동 실행."""
+        await self.wait_until_ready()
+        await asyncio.sleep(3600 * 2)  # 봇 시작 2시간 후 첫 실행
+        while not self.is_closed():
+            try:
+                import sys as _sys
+                if str(_ROOT / "scripts") not in _sys.path:
+                    _sys.path.insert(0, str(_ROOT / "scripts"))
+                from bucky_pattern_extractor import run as run_patterns
+                await asyncio.to_thread(run_patterns, True)
+                print("[Bot] 자동 패턴 분석 완료", flush=True)
+            except Exception as e:
+                print(f"[Bot] 패턴 분석 오류: {e}", flush=True)
+            await asyncio.sleep(3600 * 6)  # 6시간 대기
+
+    async def _periodic_reflection_task(self) -> None:
+        """매일 1회 자기 반성 자동 실행 (P2)."""
+        await self.wait_until_ready()
+        await asyncio.sleep(3600 * 4)  # 봇 시작 4시간 후 첫 실행
+        while not self.is_closed():
+            try:
+                import sys as _sys
+                if str(_ROOT / "scripts") not in _sys.path:
+                    _sys.path.insert(0, str(_ROOT / "scripts"))
+                from bucky_self_reflection import run as run_reflection
+                await asyncio.to_thread(run_reflection, True)
+                print("[Bot] 자동 자기 반성 완료", flush=True)
+            except Exception as e:
+                print(f"[Bot] 자기 반성 오류: {e}", flush=True)
+            await asyncio.sleep(3600 * 24)  # 24시간 대기
 
     async def _post_auto_briefing(self) -> None:
         channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
@@ -937,6 +1043,12 @@ class BuckyDiscordBot(discord.Client):
         content = message.content.strip()
         channel_id = str(message.channel.id)
 
+        # ── URL 자동 캡처 — 명령어가 아닌 메시지에서 URL 감지 시 Obsidian 백그라운드 저장 ──
+        if content and not content.startswith("!") and not content.startswith("/"):
+            urls = _URL_PATTERN.findall(content)
+            for url in urls:
+                asyncio.ensure_future(_auto_capture_url_bg(url))
+
         # ── 음성 첨부파일 처리 ─────────────────────────────────────────────────
         if VOICE_ENABLED and message.attachments:
             for att in message.attachments:
@@ -1006,6 +1118,7 @@ class BuckyDiscordBot(discord.Client):
                 "`!랜딩 <GitHub URL 또는 이름>` — 랜딩 페이지만 생성\n"
                 "`!배포 <경로>` — 프로젝트를 Vercel에 배포\n"
                 "`!저장 <URL 또는 텍스트>` / `!캡처` — Obsidian 지식베이스에 저장\n"
+                "`!패턴` / `!pattern` — 반복 요청 패턴 분석 → 스킬 자동 제안\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
                 f"TTS: {tts_status} | 실시간 수신: {recv_status}\n"
@@ -1211,6 +1324,48 @@ class BuckyDiscordBot(discord.Client):
                 except Exception as e:
                     await message.channel.send(f"⚠️ GitHub 명령 실패: {e}")
                     print(f"[Bot] GitHub 오류: {e}", flush=True)
+            return
+
+        # ── P1 패턴 분석 ───────────────────────────────────────────────────────────
+        if content in ("!패턴", "!pattern", "!패턴분석"):
+            async with message.channel.typing():
+                try:
+                    import sys as _sys
+                    if str(Path(__file__).parent) not in _sys.path:
+                        _sys.path.insert(0, str(Path(__file__).parent))
+                    from bucky_pattern_extractor import run as run_patterns
+                    await message.channel.send("🔍 패턴 분석 시작...")
+                    result = await asyncio.to_thread(run_patterns, False)
+                    patterns = result.get("patterns", [])
+                    suggestions = result.get("suggestions", [])
+                    if not patterns:
+                        await message.channel.send("📊 분석할 반복 패턴이 없습니다. (메시지 축적 필요)")
+                    else:
+                        lines = [f"**🔄 패턴 분석 완료** — {len(patterns)}개 감지"]
+                        for i, p in enumerate(patterns[:5], 1):
+                            lines.append(f"`{i}.` {p['pattern_key'][:50]} — **{p['count']}회**")
+                        if suggestions:
+                            lines.append(f"\n💡 **{len(suggestions)}개 스킬 자동 제안** 생성됨 (`.claude/skills/suggested/`)")
+                        await message.channel.send("\n".join(lines))
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 패턴 분석 실패: {e}")
+                    print(f"[Bot] 패턴 분석 오류: {e}", flush=True)
+            return
+
+        # ── P2 자기 반성 ───────────────────────────────────────────────────────────
+        if content in ("!성찰", "!reflect", "!자기반성"):
+            async with message.channel.typing():
+                try:
+                    import sys as _sys
+                    if str(Path(__file__).parent) not in _sys.path:
+                        _sys.path.insert(0, str(Path(__file__).parent))
+                    from bucky_self_reflection import run as run_reflection
+                    await message.channel.send("💭 자기 반성 분석 시작...")
+                    result = await asyncio.to_thread(run_reflection, False)
+                    analysis = result.get("analysis", "")[:600]
+                    await message.channel.send(f"**💭 자기 반성 완료**\n\n{analysis}")
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 자기 반성 실패: {e}")
             return
 
         # ── Track A: 상품화 파이프라인 (랜딩 + 결제 + 배포 통합) ─────────────────
