@@ -48,6 +48,13 @@ ObsidianVault/07_Reports/*
 !ObsidianVault/09_Archive/**
 !ObsidianVault/03_Knowledge/
 !ObsidianVault/03_Knowledge/**
+!ObsidianVault/06_Knowledge/
+!ObsidianVault/06_Knowledge/**
+!ObsidianVault/03_Projects/
+ObsidianVault/03_Projects/*
+!ObsidianVault/03_Projects/github-overview.md
+!ObsidianVault/03_Projects/github-repos/
+!ObsidianVault/03_Projects/github-repos/**
 
 # Obsidian private runtime (repo-root; only Bucky bootstrap is tracked)
 /.obsidian/*
