@@ -9,12 +9,16 @@ G:\내 드라이브\JH-SHARED → ObsidianVault 단방향 이관
   - Claude Code / Codex가 G: 드라이브를 불필요하게 탐색하지 못하게 방지
 
 매핑:
+  JH-SHARED/00_SYSTEM/      → ObsidianVault/00_System/gdrive-system/
   JH-SHARED/01_AGENT_ROOM/  → ObsidianVault/10_AgentBus/imported-agent-room/
   JH-SHARED/02_HANDOFF/     → ObsidianVault/10_AgentBus/handoffs/
   JH-SHARED/03_LOGS/        → ObsidianVault/05_Logs/gdrive-imported/
   JH-SHARED/04_DAILY_REPORTS/ → ObsidianVault/05_Logs/daily-reports-gdrive/
+  JH-SHARED/05_TASK_LOCKS/  → ObsidianVault/10_AgentBus/task-locks-gdrive/
   JH-SHARED/06_TASK_LOGS/   → ObsidianVault/05_Logs/task-logs-gdrive/
-  JH-SHARED/00_SYSTEM/      → ObsidianVault/00_System/gdrive-system/
+  JH-SHARED/99_ARCHIVE/     → ObsidianVault/99_Archive/gdrive-archive/
+  JH-SHARED/scripts/        → ObsidianVault/00_System/gdrive-scripts/
+  JH-SHARED/*.json, *.md    → ObsidianVault/00_System/gdrive-root-files/
 """
 
 import json
@@ -171,6 +175,139 @@ def run(dry_run: bool = False, force: bool = False) -> None:
     print(f"\n완료: 복사 {total_copied}개 / 스킵 {total_skipped}개 / 오류 {total_errors}개")
     if total_errors > 0:
         print(f"오류 로그: {MIGRATION_LOG}")
+
+
+# ============================================================
+# MIGRATED_FILES — 수동 이관 완료 목록 (2026-05-25)
+# Claude Code로 직접 Read/Write하여 이관한 파일들.
+# gdrive_agent_room_migrator.py 자동 스캔 대상에서 중복 방지용.
+# ============================================================
+MANUALLY_MIGRATED_FILES = [
+    # 00_SYSTEM → ObsidianVault/05_Frameworks/guides/
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\agent-onboarding.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\agent-onboarding.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\boris-phase1-report.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\boris-phase1-report.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\boris-phase2-plan.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\boris-phase2-plan.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\boris-phase2-report.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\boris-phase2-report.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\jh-system.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\jh-system.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\parallel-session-template.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\parallel-session-template.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\paths.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\paths.md",
+        "migrated_at": "2026-05-25",
+        "action": "frontmatter_updated (already existed)",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\roles.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\roles.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\session-state.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\session-state-gdrive.md",
+        "migrated_at": "2026-05-25",
+        "action": "created (snapshot mirror)",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\shared-protocol.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\shared-protocol.md",
+        "migrated_at": "2026-05-25",
+        "action": "merged (gdrive version newer — added naming rules, additional prohibitions)",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\00_SYSTEM\sync-protocol.md",
+        "dst": r"ObsidianVault\05_Frameworks\guides\sync-protocol.md",
+        "migrated_at": "2026-05-25",
+        "action": "merged (gdrive version newer — full content with all sections)",
+    },
+    # 02_HANDOFF → ObsidianVault/00_System/archive/handoffs/
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\agent-startup-check.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\agent-startup-check.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\claude-brief-agent-room-rehome.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\claude-brief-agent-room-rehome.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\claude-obsidian-upgrade.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\claude-obsidian-upgrade.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\claude-sync-context-guard.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\claude-sync-context-guard.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\codex-sync-redesign-협의.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\codex-sync-redesign-협의.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\handoff-20260502-claude-web.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\handoff-20260502-claude-web.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\02_HANDOFF\session-handoff-20260430.md",
+        "dst": r"ObsidianVault\00_System\archive\handoffs\session-handoff-20260430.md",
+        "migrated_at": "2026-05-25",
+        "action": "created",
+    },
+    # 03_LOGS md 파일 → ObsidianVault/00_System/archive/
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\03_LOGS\sync-log.md",
+        "dst": r"ObsidianVault\00_System\archive\sync-log-gdrive.md",
+        "migrated_at": "2026-05-25",
+        "action": "created (snapshot)",
+    },
+    {
+        "src": r"G:\내 드라이브\JH-SHARED\03_LOGS\sync-manifest.md",
+        "dst": r"ObsidianVault\00_System\archive\sync-manifest-gdrive.md",
+        "migrated_at": "2026-05-25",
+        "action": "created (snapshot)",
+    },
+]
+# ============================================================
 
 
 if __name__ == "__main__":

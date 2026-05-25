@@ -489,6 +489,174 @@ def distill_with_claude(
     raise last_error  # type: ignore[misc]
 
 
+# ── 청크 처리 래퍼 ────────────────────────────────────────────────────────────
+
+def distill_file(
+    client: anthropic.Anthropic,
+    file_path: Path,
+    content: str,
+    file_date: str,
+    stats: dict,
+    source_type: str = "unknown",
+) -> dict:
+    """
+    파일 내용이 CHUNK_MAX_CHARS 초과 시 청크로 분할 처리 후 결과를 병합한다.
+    8000자 이하이면 단일 API 호출.
+    """
+    chunks = split_into_chunks(content)
+    if len(chunks) == 1:
+        return distill_with_claude(client, file_path, content, file_date, stats, source_type)
+
+    print(f"    [CHUNK] {len(content):,}자 → {len(chunks)}개 청크 분할 처리")
+    results: list[dict] = []
+    for i, chunk in enumerate(chunks, 1):
+        print(f"    [CHUNK {i}/{len(chunks)}] {len(chunk):,}자 처리 중...")
+        result = distill_with_claude(client, file_path, chunk, file_date, stats, source_type)
+        results.append(result)
+
+    merged = merge_chunk_results(results)
+    print(f"    [CHUNK] 병합 완료 — 인사이트 {len(merged.get('insights', []))}개, "
+          f"토픽 {len(merged.get('topics', []))}개")
+    return merged
+
+
+# ── Obsidian Wikilink 검증 ─────────────────────────────────────────────────────
+
+_vault_filenames_cache: set[str] | None = None
+
+
+def _load_vault_filenames() -> set[str]:
+    """
+    ObsidianVault 전체의 .md 파일 스템 목록을 캐싱하여 반환.
+    첫 호출 시 glob으로 수집, 이후 캐시 재사용.
+    """
+    global _vault_filenames_cache
+    if _vault_filenames_cache is not None:
+        return _vault_filenames_cache
+
+    names: set[str] = set()
+    for md in VAULT_BASE.rglob("*.md"):
+        names.add(md.stem)
+        names.add(md.stem.lower())
+    _vault_filenames_cache = names
+    return names
+
+
+def _extract_wikilink_name(link: str) -> str:
+    """'[[파일명]]' 또는 '[[파일명|표시텍스트]]' 에서 파일명 추출."""
+    inner = link.strip("[]")
+    if "|" in inner:
+        inner = inner.split("|")[0]
+    if "#" in inner:
+        inner = inner.split("#")[0]
+    return inner.strip()
+
+
+def validate_wikilinks(related: list[str]) -> list[str]:
+    """
+    related_knowledge 목록에서 Vault에 실제로 존재하는 파일과 매칭되는
+    wikilink만 반환한다. 매칭되지 않는 링크는 원본 유지 (Obsidian이 자동으로
+    새 파일 생성 제안). 매칭된 링크는 실제 파일명으로 보정.
+    """
+    vault_names = _load_vault_filenames()
+    validated: list[str] = []
+
+    for link in related:
+        raw_name = _extract_wikilink_name(link)
+        if not raw_name:
+            continue
+
+        # 정확히 일치하는지 확인
+        if raw_name in vault_names:
+            validated.append(f"[[{raw_name}]]")
+            continue
+
+        # 소문자 비교
+        raw_lower = raw_name.lower()
+        if raw_lower in vault_names:
+            validated.append(f"[[{raw_name}]]")
+            continue
+
+        # 부분 매칭 (파일명이 링크 텍스트를 포함하는 경우)
+        matched = [n for n in vault_names if raw_lower in n.lower() and len(n) < 60]
+        if matched:
+            # 가장 짧은(가장 구체적인) 매칭 선택
+            best = min(matched, key=len)
+            validated.append(f"[[{best}]]")
+            continue
+
+        # 매칭 없음 — 원본 유지
+        if link.startswith("[["):
+            validated.append(link)
+        else:
+            validated.append(f"[[{link}]]")
+
+    # 중복 제거 (순서 유지)
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for v in validated:
+        if v not in seen:
+            seen.add(v)
+            deduped.append(v)
+    return deduped
+
+
+# ── Discord Webhook ────────────────────────────────────────────────────────────
+
+def send_discord_summary(stats: dict, elapsed_sec: float) -> None:
+    """
+    처리 완료 통계를 Discord Webhook으로 전송한다.
+    DISCORD_WEBHOOK_URL 환경변수가 없으면 건너뜀.
+    """
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+    if not webhook_url:
+        return
+
+    mins, secs = divmod(int(elapsed_sec), 60)
+    elapsed_str = f"{mins}분 {secs}초" if mins else f"{secs}초"
+
+    cache_info = ""
+    if stats.get("cache_creation_tokens") or stats.get("cache_read_tokens"):
+        total_in = (
+            stats["input_tokens"]
+            + stats["cache_creation_tokens"]
+            + stats["cache_read_tokens"]
+        )
+        hit_rate = (stats["cache_read_tokens"] / total_in * 100) if total_in > 0 else 0
+        cache_info = (
+            f"\n> 캐시 생성: {stats['cache_creation_tokens']:,}  "
+            f"재사용: {stats['cache_read_tokens']:,}  "
+            f"히트율: {hit_rate:.1f}%"
+        )
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    content = (
+        f"**[Knowledge Distiller] 처리 완료** — {now_str}\n"
+        f"> 처리: **{stats['processed']}건**  "
+        f"실패: {stats['failed']}건  "
+        f"건너뜀: {stats['skipped']}건\n"
+        f"> 소요시간: {elapsed_str}\n"
+        f"> 토큰 — 입력: {stats['input_tokens']:,}  출력: {stats['output_tokens']:,}"
+        f"{cache_info}"
+    )
+
+    payload = json.dumps({"content": content}).encode("utf-8")
+    req = urllib.request.Request(
+        webhook_url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status not in (200, 204):
+                print(f"  [DISCORD] 전송 실패: HTTP {resp.status}")
+            else:
+                print(f"  [DISCORD] 통계 전송 완료")
+    except urllib.error.URLError as e:
+        print(f"  [DISCORD] 전송 오류: {e}")
+
+
 # ── 출력 노트 생성 ─────────────────────────────────────────────────────────────
 
 def slugify(text: str, max_len: int = 40) -> str:
@@ -693,7 +861,16 @@ def process_batch(
                 continue
 
         try:
-            result      = distill_with_claude(client, raw_file, content, file_date, stats, source_type)
+            result = distill_file(client, raw_file, content, file_date, stats, source_type)
+
+            # wikilink 검증: 실제 Vault 파일과 매칭하여 유효한 링크만 유지
+            if result.get("related_knowledge"):
+                original_count = len(result["related_knowledge"])
+                result["related_knowledge"] = validate_wikilinks(result["related_knowledge"])
+                validated_count = len(result["related_knowledge"])
+                if validated_count < original_count:
+                    print(f"    [WIKI] wikilink {original_count}개 → {validated_count}개 (검증 후)")
+
             note_text   = build_output_note(result, raw_file, file_date, source_type)
             output_path = determine_output_path(file_date, raw_file)
 
@@ -979,11 +1156,14 @@ def main() -> int:
 
     total_success = 0
     total_fail    = 0
+    start_time    = time.time()
 
     for batch_num, batch in enumerate(batches, 1):
         s, f = process_batch(client, batch, state, stats, batch_num, total_batches)
         total_success += s
         total_fail    += f
+
+    elapsed = time.time() - start_time
 
     # ── 결과 요약 ──────────────────────────────────────────────────────────────
     _print_stats(stats)
@@ -992,6 +1172,9 @@ def main() -> int:
     remaining_retry = len(load_retry_queue())
     if remaining_retry:
         print(f"       재시도 대기:  {remaining_retry}개 (--retry 옵션으로 재처리)")
+
+    # ── Discord Webhook 전송 ────────────────────────────────────────────────────
+    send_discord_summary(stats, elapsed)
 
     return 0 if total_fail == 0 else 1
 

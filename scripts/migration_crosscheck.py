@@ -323,7 +323,7 @@ def main() -> int:
     args = parse_args()
 
     print(f"[INFO] G드라이브 경로: {GDRIVE_ROOT}")
-    print(f(f"[INFO] Vault 경로:    {VAULT_BASE}"))
+    print(f"[INFO] Vault 경로:    {VAULT_BASE}")
 
     if not GDRIVE_ROOT.exists():
         print(f"[ERROR] G드라이브 경로에 접근할 수 없습니다: {GDRIVE_ROOT}")
