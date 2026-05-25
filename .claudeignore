@@ -1,0 +1,28 @@
+# Claude Code 탐색 제외 경로
+# 이 파일이 있는 경로 기준으로 적용
+
+# Google Drive 구 Agent Room — 이관 완료 전까지 직접 탐색 금지
+# 필요한 데이터는 gdrive_agent_room_migrator.py로 먼저 ObsidianVault에 이관
+
+# 대용량 아카이브 — 탐색 불필요
+ObsidianVault/09_Archive/
+ObsidianVault/09_Archive/**
+
+# 이관 충돌 임시 폴더
+ObsidianVault/09_Archive/migration-conflicts/
+ObsidianVault/09_Archive/legacy-import/
+
+# 원시 수집 데이터 (구조화 전)
+ObsidianVault/01_RAW/
+
+# 환경 설정 비밀
+.env
+*.env.local
+*.env.*.local
+
+# 캐시·임시
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+node_modules/
