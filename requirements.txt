@@ -1,33 +1,34 @@
 # Obsidian Agent Brain System — Python Dependencies
-# Updated: 2026-05-22
+# Updated: 2026-05-25
 
-# AgentBus / legalize-mcp
+# ── AI / Claude API ──────────────────────────────────────
+anthropic>=0.28
+
+# ── AgentBus / legalize-mcp ──────────────────────────────
 mcp>=1.0
 
-# Discord 실시간 봇
+# ── Discord 봇 ───────────────────────────────────────────
 discord.py[voice]>=2.3
+
+# ── 환경·설정 ────────────────────────────────────────────
 python-dotenv>=1.0
 pyyaml>=6.0
+
+# ── HTTP / 스크래핑 ──────────────────────────────────────
 requests>=2.31
+playwright>=1.44          # 웹 자동화 수집 (collection_pipeline)
 
-# 음성 채널 TTS 출력
-# gTTS: pip install gTTS
-# FFmpeg 필수: winget install ffmpeg  또는  choco install ffmpeg
+# ── 파일 감시 ────────────────────────────────────────────
+watchdog>=4.0             # RAW inbox 실시간 감시 (knowledge_distiller --watch)
 
-# 실시간 음성 수신 (선택)
-# pip install discord-ext-voice-recv
-# openai-whisper: pip install openai-whisper
+# ── 스케줄링 ─────────────────────────────────────────────
+schedule>=1.2             # collection_scheduler 내부 루프
 
-# LegalizeKR CLI (installed separately via npm/pipx)
+# ── 유틸리티 ─────────────────────────────────────────────
+# feedparser: pip install feedparser  (선택, 뉴스 수집)
+# openai-whisper: pip install openai-whisper  (선택, 음성 전사)
+# FFmpeg 필수 (voice): winget install ffmpeg  또는  choco install ffmpeg
+
+# ── 외부 CLI (별도 설치) ─────────────────────────────────
 # legalize-cli: npm install -g legalize-cli  OR  pipx install legalize
-
-# Graphify (installed separately)
 # graphify: pip install graphify
-
-# Daily Briefing — AI/기술 뉴스 수집
-# feedparser: pip install feedparser  (선택, 없으면 내장 정규식 파싱 사용)
-
-# Voice Intake — Whisper 자동 전사 (선택, 오디오 파일 처리 시 필요)
-# openai-whisper: pip install openai-whisper
-# ffmpeg 필요: winget install ffmpeg  또는  choco install ffmpeg
-# 미설치 시 voice_intake.py는 수동 전사 대기 모드로 fallback됨
