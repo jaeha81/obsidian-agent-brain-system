@@ -936,6 +936,78 @@ def _register_deploy_commands(tree: app_commands.CommandTree) -> None:
             print(f"[Deploy] pipeline 오류: {e}", flush=True)
 
 
+# ── /analyze · /nlp 슬래시 명령어 등록 ──────────────────────────────────────
+
+def _register_analyze_commands(tree: app_commands.CommandTree) -> None:
+    """/analyze (패턴 즉시 분석) · /nlp (NLP 전처리 결과 표시) 등록."""
+
+    @tree.command(name="analyze", description="반복 패턴 즉시 분석 후 스킬 제안 결과 표시")
+    async def cmd_analyze(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            sys.path.insert(0, str(_ROOT / "scripts"))
+            from bucky_pattern_extractor import run as run_patterns
+            result = await asyncio.to_thread(run_patterns, False)  # webhook 알림 없이 실행
+
+            patterns = result.get("patterns", [])
+            suggestions = result.get("suggestions", [])
+            report = result.get("report", "")
+
+            if not patterns:
+                await interaction.followup.send("📊 **[패턴 분석]** 아직 반복 패턴 없음 (메시지 더 쌓이면 재시도)")
+                return
+
+            lines = [f"🔍 **[패턴 분석 결과]** — {len(patterns)}개 패턴 감지"]
+            for i, p in enumerate(patterns[:5], 1):
+                nlp_badge = "🧠" if p.get("nlp_enhanced") else "📊"
+                lines.append(
+                    f"{nlp_badge} `{i}.` **{p['pattern_key'][:40]}** — {p['count']}회"
+                )
+            if suggestions:
+                lines.append(f"\n💡 **스킬 자동 제안**: {len(suggestions)}개")
+                for s in suggestions[:3]:
+                    lines.append(f"  • `{s['skill']}` ({s['count']}회)")
+            if report:
+                lines.append(f"\n📄 `{Path(report).name}`")
+
+            for chunk in split_message("\n".join(lines)):
+                await interaction.followup.send(chunk)
+            print("[Analyze] 즉시 패턴 분석 완료", flush=True)
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 분석 오류: {e}")
+            print(f"[Analyze] 오류: {e}", flush=True)
+
+    @tree.command(name="nlp", description="텍스트 NLP 전처리 — 액션/컴포넌트/구조화 프롬프트 반환")
+    @app_commands.describe(text="분석할 자연어 텍스트 (예: 대시보드 만들어줘)")
+    async def cmd_nlp(interaction: discord.Interaction, text: str) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            sys.path.insert(0, str(_ROOT / "scripts"))
+            from bucky_nlp_preprocessor import preprocess, format_for_discord as _nlp_fmt
+            result = await asyncio.to_thread(preprocess, text)
+
+            lines = [
+                f"🧠 **[NLP 전처리 결과]**",
+                f"입력: `{text[:60]}`",
+                f"액션: **{result.get('action', '?')}**",
+                f"컴포넌트: `{result.get('component') or '없음'}`",
+                f"타겟: `{result.get('target', '?')}`",
+                f"신뢰도: `{result.get('confidence', 0):.0%}`",
+            ]
+            structured = result.get("structured_prompt", "")
+            if structured and structured != text:
+                lines.append(f"\n📝 **구조화 프롬프트:**\n```\n{structured[:400]}\n```")
+
+            fmt = _nlp_fmt(result)
+            if fmt:
+                lines.append(fmt)
+
+            await interaction.followup.send("\n".join(lines))
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ NLP 오류: {e}")
+            print(f"[NLP] 오류: {e}", flush=True)
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -945,6 +1017,7 @@ class BuckyDiscordBot(discord.Client):
         _register_evolve_commands(self.tree)
         _register_tasks_commands(self.tree)
         _register_deploy_commands(self.tree)
+        _register_analyze_commands(self.tree)
 
     async def setup_hook(self) -> None:
         # 슬래시 명령어 전역 동기화
@@ -984,20 +1057,41 @@ class BuckyDiscordBot(discord.Client):
             await self._post_auto_briefing()
 
     async def _periodic_pattern_task(self) -> None:
-        """6시간마다 패턴 분석 자동 실행."""
+        """매일 자정(00:05) 패턴 분석 자동 실행. 임계값 초과 패턴은 Discord 알림."""
         await self.wait_until_ready()
-        await asyncio.sleep(3600 * 2)  # 봇 시작 2시간 후 첫 실행
+        # 오늘 자정이 지났으면 내일 00:05까지 대기, 아니면 오늘 00:05 대기
+        now = datetime.now()
+        next_run = now.replace(hour=0, minute=5, second=0, microsecond=0)
+        if next_run <= now:
+            next_run += timedelta(days=1)
+        initial_wait = (next_run - now).total_seconds()
+        print(f"[Bot] 패턴 분석 스케줄: 다음 실행 {next_run.strftime('%Y-%m-%d %H:%M')}", flush=True)
+        await asyncio.sleep(initial_wait)
+
         while not self.is_closed():
             try:
                 import sys as _sys
                 if str(_ROOT / "scripts") not in _sys.path:
                     _sys.path.insert(0, str(_ROOT / "scripts"))
                 from bucky_pattern_extractor import run as run_patterns
-                await asyncio.to_thread(run_patterns, True)
+                result = await asyncio.to_thread(run_patterns, True)
+
+                # 임계값 초과 패턴이 있으면 BRIEFING_CHANNEL_ID 로 알림
+                patterns = result.get("patterns", [])
+                high_freq = [p for p in patterns if p.get("count", 0) >= 5]
+                if high_freq and BRIEFING_CHANNEL_ID:
+                    channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
+                    if channel:
+                        top = high_freq[0]
+                        await channel.send(
+                            f"🚨 **[패턴 임계값 초과]**\n"
+                            f"패턴 `{top['pattern_key'][:40]}` — **{top['count']}회** 반복\n"
+                            f"💡 스킬 자동 제안이 생성되었습니다. `/analyze` 로 확인하세요."
+                        )
                 print("[Bot] 자동 패턴 분석 완료", flush=True)
             except Exception as e:
                 print(f"[Bot] 패턴 분석 오류: {e}", flush=True)
-            await asyncio.sleep(3600 * 6)  # 6시간 대기
+            await asyncio.sleep(3600 * 24)  # 다음 날 자정까지 24시간 대기
 
     async def _periodic_reflection_task(self) -> None:
         """매일 1회 자기 반성 자동 실행 (P2)."""
