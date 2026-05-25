@@ -868,6 +868,15 @@ document.getElementById('whOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeWebhookSettings();
 });
 
+// 기본 Webhook URL 자동 저장 (첫 로드 시)
+(function() {
+  const DEFAULT_WEBHOOK = 'https://discord.com/api/webhooks/1508364190203773078/QX88Hb8e7-TbSbSBY73HcBmTEKAblr_rTX0TUZCqZp-ErXRcIK7r5ZoXl8rojgaITLKC';
+  if (!localStorage.getItem('bucky-webhook')) {
+    localStorage.setItem('bucky-webhook', DEFAULT_WEBHOOK);
+    localStorage.setItem('bucky-wh-name', 'JH Dashboard');
+  }
+})();
+
 // ── Bucky Discord 연동 ─────────────────────────────────────────────
 function makeBuckyMsg(repo) {
   return `🤖 버키 작업 요청\n레포: ${repo.name}\n액션: ${repo.action}\n링크: ${repo.url}`;
