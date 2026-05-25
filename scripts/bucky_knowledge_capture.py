@@ -216,6 +216,23 @@ def handle_discord_msg(msg: str, author: str, tags: list[str]) -> Path:
     )
 
 
+# ── Discord 봇 호환 인터페이스 ────────────────────────────
+def capture_url(url: str, title: str = "", tags: list = None) -> Path:
+    fp = handle_url(url, title, tags or [])
+    update_handoff_log(fp.stem, fp, "URL")
+    return fp
+
+
+def capture_text(text: str, author: str = "", title: str = "", tags: list = None) -> Path:
+    if author:
+        fp = handle_discord_msg(text, author, tags or [])
+        update_handoff_log(fp.stem, fp, "DISCORD")
+    else:
+        fp = handle_text(text, title, tags or [])
+        update_handoff_log(fp.stem, fp, "TEXT")
+    return fp
+
+
 # ── CLI 진입점 ────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(

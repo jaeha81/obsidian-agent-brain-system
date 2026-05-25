@@ -259,8 +259,22 @@ def append_to_bucky_chat(author_name: str, user_text: str, reply_text: str) -> N
         print(f"[Bot] BUCKY_CHAT 기록 실패: {e}", flush=True)
 
 
+import re as _re
+
+_FILLER_PATTERN = _re.compile(
+    r"(?<!\w)(음+|어+|아+|그+|저+|그니까|그러니까|있잖아|있죠|있어요|뭔가)(?!\w)",
+    _re.IGNORECASE
+)
+
+
+def _postprocess_stt(text: str) -> str:
+    """Typeless 스타일 후처리: 필러 제거 + 중복 공백 정리."""
+    text = _FILLER_PATTERN.sub("", text)
+    return _re.sub(r"\s{2,}", " ", text).strip()
+
+
 async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
-    """Discord 음성 첨부파일(ogg/mp3/wav/m4a/webm) → Whisper STT → 텍스트 반환."""
+    """Discord 음성 첨부파일(ogg/mp3/wav/m4a/webm) → Whisper STT → AI 후처리 → 텍스트 반환."""
     data = await attachment.read()
     suffix = Path(attachment.filename).suffix or ".ogg"
     tmp_path = None
@@ -272,7 +286,8 @@ async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
         result = await asyncio.to_thread(
             lambda: model.transcribe(tmp_path, language="ko", fp16=False)
         )
-        return result.get("text", "").strip()
+        raw = result.get("text", "").strip()
+        return _postprocess_stt(raw)
     finally:
         if tmp_path:
             Path(tmp_path).unlink(missing_ok=True)
@@ -448,7 +463,7 @@ def _make_voice_sink_class():
                 result = await asyncio.to_thread(
                     lambda: model.transcribe(wav_path, language="ko", fp16=False)
                 )
-                text = result.get("text", "").strip()
+                text = _postprocess_stt(result.get("text", "").strip())
                 if not text or len(text) < 2:
                     return
 
@@ -902,6 +917,10 @@ class BuckyDiscordBot(discord.Client):
                 "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
                 "`!깃헙` — GitHub 레포 카탈로그 전체 업데이트\n"
                 "`!깃헙 [repo명]` — 특정 레포 상태 조회\n"
+                "`!상품화 <GitHub URL>` — 랜딩 페이지 + 결제 + Vercel 배포 통합 파이프라인\n"
+                "`!랜딩 <GitHub URL 또는 이름>` — 랜딩 페이지만 생성\n"
+                "`!배포 <경로>` — 프로젝트를 Vercel에 배포\n"
+                "`!저장 <URL 또는 텍스트>` / `!캡처` — Obsidian 지식베이스에 저장\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
                 f"TTS: {tts_status} | 실시간 수신: {recv_status}\n"
@@ -1107,6 +1126,103 @@ class BuckyDiscordBot(discord.Client):
                 except Exception as e:
                     await message.channel.send(f"⚠️ GitHub 명령 실패: {e}")
                     print(f"[Bot] GitHub 오류: {e}", flush=True)
+            return
+
+        # ── Track A: 상품화 파이프라인 (랜딩 + 결제 + 배포 통합) ─────────────────
+        # 사용법: !상품화 <github_url> [결제URL] [가격]
+        if content.startswith("!상품화") or content.startswith("!commercialize"):
+            parts = content.split(None, 3)
+            if len(parts) < 2:
+                await message.channel.send(
+                    "**사용법**: `!상품화 <GitHub URL> [결제URL] [가격]`\n"
+                    "예: `!상품화 https://github.com/user/repo https://buy.stripe.com/xxx ₩29,000/월`\n"
+                    "_결제URL 생략 시 랜딩 페이지만 생성_"
+                )
+                return
+            async with message.channel.typing():
+                try:
+                    _sys = __import__("sys")
+                    _sys.path.insert(0, str(Path(__file__).parent))
+                    from bucky_commercialize import run as commercialize_run
+                    repo_url = parts[1]
+                    pay_url = parts[2] if len(parts) > 2 else ""
+                    price = parts[3] if len(parts) > 3 else "₩29,000/월"
+                    await message.channel.send(f"🏭 **상품화 시작** — `{repo_url}`\n_랜딩 생성 → 결제 연동 → Vercel 배포_")
+                    result = await asyncio.to_thread(commercialize_run, repo_url, pay_url, price)
+                    name = result.get("config", {}).get("REPO_NAME", "?")
+                    lines = [f"✅ **{name}** 상품화 완료!"]
+                    if result.get("landing_path"):
+                        lines.append(f"📄 랜딩: `{Path(result['landing_path']).name}`")
+                    if result.get("url"):
+                        lines.append(f"🌐 {result['url']}")
+                    elif not result.get("deployed"):
+                        lines.append("ℹ️ Vercel 배포 생략 (vercel CLI 필요: `npm i -g vercel`)")
+                    await message.channel.send("\n".join(lines))
+                except Exception as e:
+                    await message.channel.send(f"❌ 상품화 실패: {e}")
+                    print(f"[Bot] 상품화 오류: {e}", flush=True)
+            return
+
+        # ── 랜딩 페이지 생성 ────────────────────────────────────────────────────
+        if content.startswith("!랜딩") or content.startswith("!landing"):
+            arg = content.split(None, 1)[1].strip() if len(content.split(None, 1)) > 1 else ""
+            async with message.channel.typing():
+                try:
+                    _sys = __import__("sys")
+                    _sys.path.insert(0, str(Path(__file__).parent))
+                    from bucky_landing_generator import generate, from_github_url
+                    if arg.startswith("http"):
+                        out = await asyncio.to_thread(from_github_url, arg)
+                    else:
+                        from bucky_landing_generator import DEFAULT_CONFIG
+                        cfg = {**DEFAULT_CONFIG, "REPO_NAME": arg or "MyProduct", "LOGO_CHAR": (arg or "M")[0].upper()}
+                        out = await asyncio.to_thread(generate, cfg, (arg or "product").lower())
+                    await message.channel.send(f"✅ 랜딩 페이지 생성 완료!\n📄 `{out}`\n`!배포 {out}` 로 Vercel에 배포하세요.")
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 랜딩 생성 실패: {e}")
+            return
+
+        # ── Vercel 배포 ──────────────────────────────────────────────────────────
+        if content.startswith("!배포") or content.startswith("!deploy"):
+            arg = content.split(None, 1)[1].strip() if len(content.split(None, 1)) > 1 else ""
+            async with message.channel.typing():
+                try:
+                    _sys = __import__("sys")
+                    _sys.path.insert(0, str(Path(__file__).parent))
+                    from bucky_vercel_deploy import deploy, deploy_landing_page
+                    if not arg:
+                        await message.channel.send("⚠️ 사용법: `!배포 <프로젝트_경로_또는_이름>`")
+                    elif arg.endswith(".html") and Path(arg).exists():
+                        repo_name = Path(arg).stem
+                        result = await asyncio.to_thread(deploy_landing_page, repo_name, Path(arg))
+                    else:
+                        result = await asyncio.to_thread(deploy, arg, "", True)
+                    if result.get("success"):
+                        await message.channel.send(f"✅ 배포 완료!\n🌐 {result.get('url', '')}")
+                    else:
+                        await message.channel.send(f"❌ 배포 실패: {result.get('error', '')[:300]}")
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 배포 오류: {e}")
+            return
+
+        # ── 지식 저장 (Knowledge Capture) ───────────────────────────────────────
+        if content.startswith("!저장") or content.startswith("!capture") or content.startswith("!캡처"):
+            arg = content.split(None, 1)[1].strip() if len(content.split(None, 1)) > 1 else ""
+            async with message.channel.typing():
+                try:
+                    _sys = __import__("sys")
+                    _sys.path.insert(0, str(Path(__file__).parent))
+                    from bucky_knowledge_capture import capture_url, capture_text
+                    if arg.startswith("http"):
+                        result = await asyncio.to_thread(capture_url, arg)
+                    elif arg:
+                        result = await asyncio.to_thread(capture_text, arg, message.author.name)
+                    else:
+                        await message.channel.send("⚠️ 사용법: `!저장 <URL 또는 텍스트>`")
+                        return
+                    await message.channel.send(f"✅ Obsidian 저장 완료!\n📝 `{result}`")
+                except Exception as e:
+                    await message.channel.send(f"⚠️ 저장 실패: {e}")
             return
 
         if len(content) < MIN_LENGTH:
