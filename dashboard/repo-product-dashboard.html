@@ -162,6 +162,21 @@
 
   footer { text-align: center; padding: 28px; color: var(--muted); font-size: 0.77rem; border-top: 1px solid var(--border); margin-top: 8px; }
 
+  /* Discord Webhook Modal */
+  .wh-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:400; align-items:center; justify-content:center; }
+  .wh-overlay.show { display:flex; }
+  .wh-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; width:460px; max-width:95vw; }
+  .wh-modal h2 { font-size:15px; font-weight:700; margin-bottom:10px; }
+  .wh-modal p { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:4px; }
+  .wh-modal label { font-size:12px; color:var(--muted); display:block; margin:12px 0 5px; }
+  .wh-modal input { width:100%; background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:8px 12px; color:var(--text); font-size:12px; font-family:monospace; }
+  .wh-modal input:focus { outline:none; border-color:var(--accent); }
+  .wh-btns { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+  .wh-btn { padding:6px 14px; border-radius:6px; border:1px solid #30363d; background:#21262d; color:var(--text); font-size:12px; cursor:pointer; transition:all .15s; }
+  .wh-btn:hover { background:#30363d; }
+  .wh-btn-save { background:var(--accent); color:#0d1117; border-color:var(--accent); font-weight:600; }
+  .wh-btn-save:hover { opacity:.85; }
+
   @media (max-width: 640px) {
     .grid { grid-template-columns: 1fr; padding: 12px; }
     header, .controls, .stats-bar { padding: 12px 16px; }
@@ -203,6 +218,7 @@
 </div>
 
 <div class="controls">
+  <button class="wh-btn" style="border-radius:20px;font-size:0.78rem" onclick="openWebhookSettings()">⚙️ Discord 웹훅</button>
   <button class="filter-btn active" data-filter="all" onclick="filter(this,'all')">전체</button>
   <button class="filter-btn" data-filter="tier1" onclick="filter(this,'tier1')">🟢 즉시 출시</button>
   <button class="filter-btn" data-filter="tier2" onclick="filter(this,'tier2')">🟡 개발 필요</button>
@@ -223,8 +239,26 @@
 
 <footer>
   Bucky Agent 상품화 분석 v2 · 완성도 × 시장성 점수 기반 · 체크 상태는 브라우저에 저장됩니다<br>
-  체크 후 "Bucky에게 전송" → Discord에 붙여넣기
+  ⚙️ Discord 웹훅 설정 → 체크 후 "Bucky에게 전송" 클릭 → Discord 채널로 자동 전송
 </footer>
+
+<!-- Discord Webhook Modal -->
+<div class="wh-overlay" id="whOverlay">
+  <div class="wh-modal">
+    <h2>⚙️ Discord Webhook 설정</h2>
+    <p>설정하면 버튼 클릭 시 Bucky Discord 채널로 메시지를 자동 전송합니다.<br>
+    Discord 채널 → 채널 편집 → 연동 → 웹후크 → 새 웹후크 → URL 복사</p>
+    <label>Discord Webhook URL</label>
+    <input type="url" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
+    <label>봇 이름 (선택, 기본: JH Dashboard)</label>
+    <input type="text" id="whName" placeholder="JH Dashboard">
+    <div style="margin-top:12px"><button class="wh-btn" onclick="testWebhook()">🧪 연결 테스트</button></div>
+    <div class="wh-btns">
+      <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
+      <button class="wh-btn wh-btn-save" onclick="saveWebhook()">저장</button>
+    </div>
+  </div>
+</div>
 
 <!-- Toast -->
 <div class="toast" id="toast">
@@ -236,7 +270,7 @@
 <div class="bucky-panel" id="buckyPanel">
   <span class="bucky-panel-text">🤖 Bucky 작업 명령 준비됨</span>
   <span class="bucky-panel-sub" id="buckyPanelSub"></span>
-  <button class="bucky-send-btn" onclick="sendAllToBucky()">모든 체크 항목 Discord 복사</button>
+  <button class="bucky-send-btn" onclick="sendAllToBucky()">🤖 Bucky에게 전송</button>
   <button class="bucky-close" onclick="closeBuckyPanel()">✕</button>
 </div>
 
@@ -785,19 +819,67 @@ function showToast(title, msg, duration=3500) {
   toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
+// ── Discord Webhook 설정 ──────────────────────────────────────────
+function openWebhookSettings() {
+  document.getElementById('whUrl').value = localStorage.getItem('bucky-webhook') || '';
+  document.getElementById('whName').value = localStorage.getItem('bucky-wh-name') || '';
+  document.getElementById('whOverlay').classList.add('show');
+}
+function closeWebhookSettings() {
+  document.getElementById('whOverlay').classList.remove('show');
+}
+function saveWebhook() {
+  localStorage.setItem('bucky-webhook', document.getElementById('whUrl').value.trim());
+  localStorage.setItem('bucky-wh-name', document.getElementById('whName').value.trim() || 'JH Dashboard');
+  closeWebhookSettings();
+  showToast('✅ Webhook 저장됨', '이제 버튼 클릭 시 Discord로 직접 전송됩니다');
+}
+async function testWebhook() {
+  const url = document.getElementById('whUrl').value.trim();
+  if (!url) { showToast('⚠️ URL 없음', 'Webhook URL을 먼저 입력하세요'); return; }
+  const name = document.getElementById('whName').value.trim() || 'JH Dashboard';
+  await postWebhook(url, name, '🧪 **대시보드 연결 테스트** — Bucky와 연결되었습니다!');
+}
+async function postWebhook(url, username, content) {
+  if (!url) {
+    showToast('⚙️ Webhook 미설정', '상단 "Discord 웹훅" 버튼으로 설정하세요');
+    return false;
+  }
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, username: username || 'JH Dashboard' })
+    });
+    if (r.ok) { showToast('📨 Discord 전송 완료', content.substring(0, 60) + '...'); return true; }
+    else { showToast('❌ 전송 실패', 'HTTP ' + r.status); return false; }
+  } catch(e) {
+    showToast('❌ 연결 오류', e.message);
+    return false;
+  }
+}
+document.getElementById('whOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeWebhookSettings();
+});
+
 // ── Bucky Discord 연동 ─────────────────────────────────────────────
 function makeBuckyMsg(repo) {
   return `🤖 버키 작업 요청\n레포: ${repo.name}\n액션: ${repo.action}\n링크: ${repo.url}`;
 }
 
-function sendToBucky(id) {
+async function sendToBucky(id) {
   const repo = repos.find(r => r.id === id);
-  const msg = makeBuckyMsg(repo);
-  navigator.clipboard.writeText(msg).then(() => {
-    showToast('🤖 Bucky 명령 복사됨!', `Discord에서 Bucky 채널에 붙여넣기 하세요.\n"${repo.name}" 작업 요청`);
-  }).catch(() => {
-    prompt('아래 텍스트를 Discord에 붙여넣기:', msg);
-  });
+  const url = localStorage.getItem('bucky-webhook');
+  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
+  const now = new Date().toLocaleString('ko-KR');
+  const content = `🤖 **Bucky 작업 요청**\n\n**레포**: \`${repo.name}\`\n**액션**: ${repo.action}\n**링크**: ${repo.url}\n**시각**: ${now}`;
+  if (url) {
+    await postWebhook(url, name, content);
+  } else {
+    navigator.clipboard.writeText(makeBuckyMsg(repo)).then(() => {
+      showToast('📋 복사됨 (Webhook 미설정)', 'Discord 채널에 붙여넣기 하세요');
+    }).catch(() => prompt('Discord에 붙여넣기:', makeBuckyMsg(repo)));
+  }
 }
 
 function copyAction(id) {
@@ -820,16 +902,22 @@ function updateBuckyPanel() {
   }
 }
 
-function sendAllToBucky() {
+async function sendAllToBucky() {
   const checked = repos.filter(r => r.checked);
   if (checked.length === 0) return;
-  const lines = checked.map((r, i) => `${i+1}. [${r.name}]\n   → ${r.action}`).join('\n\n');
-  const msg = `🤖 버키 일괄 작업 요청 (${checked.length}개)\n\n${lines}\n\n모든 항목을 우선순위순으로 진행해줘.`;
-  navigator.clipboard.writeText(msg).then(() => {
-    showToast(`🤖 ${checked.length}개 항목 Discord 복사됨!`, 'Bucky Discord 채널에 붙여넣기 → 일괄 작업 시작', 4000);
-  }).catch(() => {
-    prompt(`아래 텍스트를 Discord Bucky 채널에 붙여넣기 (${checked.length}개):`, msg);
-  });
+  const url = localStorage.getItem('bucky-webhook');
+  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
+  const lines = checked.map((r, i) => `${i+1}. \`${r.name}\`\n   → ${r.action}`).join('\n\n');
+  const now = new Date().toLocaleString('ko-KR');
+  const content = `🤖 **Bucky 일괄 작업 요청 (${checked.length}개)**\n\n${lines}\n\n> 모든 항목을 우선순위순으로 진행해줘. | ${now}`;
+  if (url) {
+    await postWebhook(url, name, content);
+  } else {
+    const plainMsg = `🤖 버키 일괄 작업 요청 (${checked.length}개)\n\n${checked.map((r,i)=>`${i+1}. [${r.name}]\n   → ${r.action}`).join('\n\n')}\n\n모든 항목을 우선순위순으로 진행해줘.`;
+    navigator.clipboard.writeText(plainMsg).then(() => {
+      showToast(`📋 ${checked.length}개 복사됨 (Webhook 미설정)`, 'Bucky Discord 채널에 붙여넣기 → 일괄 작업 시작', 4000);
+    }).catch(() => prompt(`Discord Bucky 채널에 붙여넣기 (${checked.length}개):`, plainMsg));
+  }
 }
 
 function closeBuckyPanel() {
