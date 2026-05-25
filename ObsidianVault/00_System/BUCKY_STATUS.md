@@ -1,6 +1,6 @@
 ---
 type: bucky-status
-updated: 2026-05-24T15:46:48.957Z
+updated: 2026-05-25T00:46:49.857Z
 pc: 집 PC
 hostname: P0517A-22H2T8
 username: user1
@@ -32,7 +32,7 @@ runtime: claude_cli
 ## Last Start Result
 
 - started: none
-- already_running: scripts/raw_import_watcher.py, scripts/codex_review_runner.py, scripts/agent_dispatcher.py
+- already_running: none
 - missing: none
 
 ## Rules
