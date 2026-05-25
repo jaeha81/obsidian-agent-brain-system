@@ -683,6 +683,34 @@ def _register_evolve_commands(tree: app_commands.CommandTree) -> None:
     tree.add_command(evolve_group)
 
 
+# ── /tasks · /report 슬래시 명령어 등록 ──────────────────────────────────────
+
+def _register_tasks_commands(tree: app_commands.CommandTree) -> None:
+    """세션 태스크 조회(/tasks) · 데일리 리포트 생성(/report) 등록."""
+
+    @tree.command(name="tasks", description="오늘 세션 태스크 현황 표시 (ClaudeCode / Codex / Bucky)")
+    async def cmd_tasks(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            tasks = await asyncio.to_thread(get_today_tasks)
+            text = format_task_list(tasks)
+            for chunk in split_message("**📋 세션 태스크**\n\n" + text):
+                await interaction.followup.send(chunk)
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ tasks 조회 오류: {e}")
+
+    @tree.command(name="report", description="오늘 데일리 리포트 생성 후 전송")
+    async def cmd_report(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            content, jh_path, obs_path = await asyncio.to_thread(generate_daily_report)
+            header = f"📊 **[데일리 리포트]** `{jh_path.name}`"
+            for chunk in split_message(header + "\n\n" + content[:3000]):
+                await interaction.followup.send(chunk)
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 리포트 생성 오류: {e}")
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -690,6 +718,7 @@ class BuckyDiscordBot(discord.Client):
         super().__init__(**kwargs)
         self.tree = app_commands.CommandTree(self)
         _register_evolve_commands(self.tree)
+        _register_tasks_commands(self.tree)
 
     async def setup_hook(self) -> None:
         # 슬래시 명령어 전역 동기화
@@ -863,6 +892,7 @@ class BuckyDiscordBot(discord.Client):
                 "`!tasks` / `!태스크` / `!현황` — 오늘 태스크 현황\n"
                 "`!태스크추가 <내용>` — 태스크 등록 및 배분\n"
                 "`!리포트` / `!report` — 데일리 리포트 생성\n"
+                "`!수집` / `!collect` — GPT+Claude 세션 수집 → 지식 정제 파이프라인\n"
                 "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
@@ -930,6 +960,27 @@ class BuckyDiscordBot(discord.Client):
                         await message.channel.send(chunk)
                 except Exception as e:
                     await message.channel.send(f"⚠️ 리포트 생성 실패: {e}")
+            return
+
+        if content in ("!수집", "!collect", "!파이프라인"):
+            async with message.channel.typing():
+                await message.channel.send("⚙️ 수집 파이프라인 시작 중... (GPT + Claude → 정제 → 갭 분석)")
+                try:
+                    import subprocess as _sp
+                    pipeline_script = str(Path(__file__).parent / "collection_pipeline.py")
+                    result = await asyncio.to_thread(
+                        lambda: _sp.run(
+                            [sys.executable, pipeline_script],
+                            capture_output=True, text=True, encoding="utf-8", timeout=600
+                        )
+                    )
+                    out = (result.stdout + result.stderr).strip()
+                    status = "✅ 완료" if result.returncode == 0 else f"⚠️ 일부 실패 (rc={result.returncode})"
+                    summary = out[-800:] if len(out) > 800 else out
+                    for chunk in split_message(f"📥 **파이프라인 {status}**\n```\n{summary}\n```"):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"❌ 파이프라인 실행 오류: {e}")
             return
 
         if content in ("!브리핑", "!briefing", "!뉴스"):
