@@ -267,9 +267,24 @@ _FILLER_PATTERN = _re.compile(
 )
 
 _URL_PATTERN = _re.compile(r'https?://[^\s<>"\']+')
+_YOUTUBE_PATTERN = _re.compile(r'(youtu\.be/|youtube\.com/watch\?|youtube\.com/shorts/)[\w?=&-]+')
 
 _CLAUDE_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 _STT_ENHANCE_ENABLED: bool = bool(_CLAUDE_API_KEY) and os.getenv("STT_AI_ENHANCE", "1").strip() not in {"0", "false", "no"}
+_NLP_ENABLED: bool = os.getenv("NLP_ENABLED", "1").strip() not in {"0", "false", "no"}
+
+# ── STT 고도화 + NLP 전처리기 선택적 임포트 ─────────────────────────────────
+_stt_enhance_fn = None
+_nlp_preprocess_fn = None
+try:
+    _scripts_dir = str(_ROOT / "scripts")
+    if _scripts_dir not in sys.path:
+        sys.path.insert(0, _scripts_dir)
+    from bucky_stt_enhancer import postprocess_for_bucky as _stt_enhance_fn  # type: ignore
+    from bucky_nlp_preprocessor import preprocess as _nlp_preprocess_fn  # type: ignore
+    print("[Bot] STT 고도화 + NLP 전처리기 로드 완료", flush=True)
+except Exception as _nlp_e:
+    print(f"[Bot] STT/NLP 모듈 로드 실패 (기본 후처리 사용): {_nlp_e}", flush=True)
 
 
 def _postprocess_stt(text: str) -> str:
@@ -279,11 +294,17 @@ def _postprocess_stt(text: str) -> str:
 
 
 def _postprocess_stt_claude(text: str) -> str:
-    """Claude API 기반 고급 STT 후처리 — Typeless 벤치마킹 구현.
+    """STT 고도화 — bucky_stt_enhancer(의도분류+명령어감지) 우선, 폴백: Claude API.
 
-    필러 제거 + 반복 문장 정리 + 의도 명확화.
-    API 실패 시 기본 regex 후처리로 폴백.
+    필러 제거 + 반복 문장 정리 + 의도 명확화 + 명령어 자동 감지.
     """
+    # Item 4: 고도화 STT 모듈 (의도분류 + 명령어 감지 포함)
+    if _stt_enhance_fn:
+        try:
+            return _stt_enhance_fn(text)
+        except Exception as _e:
+            print(f"[STT] 고도화 모듈 실패: {_e}", flush=True)
+
     if not _STT_ENHANCE_ENABLED or len(text) < 10:
         return _postprocess_stt(text)
 
@@ -327,16 +348,35 @@ STT 원문:
     return _postprocess_stt(text)
 
 
-async def _auto_capture_url_bg(url: str) -> None:
-    """URL을 백그라운드로 Obsidian에 캡처 — 조용히 처리, 실패해도 무시."""
+async def _auto_capture_url_bg(url: str, notify_channel=None) -> None:
+    """URL을 백그라운드로 Obsidian에 캡처 — YouTube는 전용 모듈로 처리."""
     try:
         import sys as _sys
         scripts_dir = str(Path(__file__).parent)
         if scripts_dir not in _sys.path:
             _sys.path.insert(0, scripts_dir)
-        from bucky_knowledge_capture import capture_url
-        saved = await asyncio.to_thread(capture_url, url)
-        print(f"[AutoCapture] 저장: {saved}", flush=True)
+
+        is_youtube = bool(_YOUTUBE_PATTERN.search(url))
+        if is_youtube:
+            from bucky_youtube_capture import capture_youtube
+            result = await asyncio.to_thread(capture_youtube, url)
+            if result["success"]:
+                msg = (
+                    f"📺 **YouTube 지식 캡처 완료!**\n"
+                    f"📝 {result['title']}\n"
+                    f"{'트랜스크립트 포함 ✅' if result['has_transcript'] else '트랜스크립트 없음'}\n"
+                    f"```\n{result['summary'][:300]}\n```" if result.get("summary") else ""
+                )
+                print(f"[AutoCapture] YouTube 저장: {result['filepath']}", flush=True)
+                if notify_channel:
+                    for chunk in split_message(msg):
+                        await notify_channel.send(chunk)
+            else:
+                print(f"[AutoCapture] YouTube 실패: {result.get('error')}", flush=True)
+        else:
+            from bucky_knowledge_capture import capture_url
+            saved = await asyncio.to_thread(capture_url, url)
+            print(f"[AutoCapture] 저장: {saved}", flush=True)
     except Exception as e:
         print(f"[AutoCapture] 실패 ({url[:50]}): {e}", flush=True)
 
@@ -632,9 +672,25 @@ def _read_knowledge_gap_tasks(limit: int = 10) -> list[dict]:
 
 
 async def ask_bucky(channel_id: str, user_message: str) -> str:
-    """Bucky Agent에 질문하고 답변 반환. Claude CLI 구독 경로만 사용."""
+    """Bucky Agent에 질문하고 답변 반환. NLP 전처리 후 Claude CLI 구독 경로 사용."""
     history = conversation_history[channel_id]
-    history.append({"role": "user", "content": user_message})
+
+    # Item 1: NLP 전처리 — COMMAND 의도 감지 시 구조화 힌트 삽입
+    nlp_hint = ""
+    if _nlp_preprocess_fn and _NLP_ENABLED and len(user_message) > 5:
+        try:
+            context_msgs = [m["content"] for m in history[-4:]]
+            nlp_result = _nlp_preprocess_fn(user_message, context_msgs)
+            action = nlp_result.get("action", "")
+            if action in ("BUILD", "DEPLOY", "FIX", "UPGRADE") and nlp_result.get("confidence", 0) >= 0.5:
+                router = nlp_result.get("agent_router", "")
+                target = nlp_result.get("target", "")
+                nlp_hint = f"[NLP: {action}→{router} | 대상:{target}] "
+        except Exception as _e:
+            print(f"[NLP] 전처리 실패: {_e}", flush=True)
+
+    enriched_message = nlp_hint + user_message if nlp_hint else user_message
+    history.append({"role": "user", "content": enriched_message})
 
     if len(history) > MAX_HISTORY:
         conversation_history[channel_id] = history[-MAX_HISTORY:]
@@ -1043,13 +1099,15 @@ class BuckyDiscordBot(discord.Client):
         content = message.content.strip()
         channel_id = str(message.channel.id)
 
-        # ── URL 자동 캡처 — 명령어가 아닌 메시지에서 URL 감지 시 Obsidian 백그라운드 저장 ──
+        # ── URL 자동 캡처 — YouTube는 알림 포함, 일반 URL은 조용히 처리 ──────────────
         if content and not content.startswith("!") and not content.startswith("/"):
             urls = _URL_PATTERN.findall(content)
             for url in urls:
-                asyncio.ensure_future(_auto_capture_url_bg(url))
+                is_yt = bool(_YOUTUBE_PATTERN.search(url))
+                notify_ch = message.channel if is_yt else None
+                asyncio.ensure_future(_auto_capture_url_bg(url, notify_ch))
 
-        # ── 음성 첨부파일 처리 ─────────────────────────────────────────────────
+        # ── 음성 첨부파일 처리 + NLP 전처리 ───────────────────────────────────────
         if VOICE_ENABLED and message.attachments:
             for att in message.attachments:
                 if att.content_type and att.content_type.startswith("audio/"):
@@ -1058,7 +1116,25 @@ class BuckyDiscordBot(discord.Client):
                             transcript = await transcribe_discord_audio(att)
                             if transcript:
                                 await message.channel.send(f"🎙️ **인식:** {transcript}")
-                                content = f"[음성] {transcript}" if not content else f"{content} [음성] {transcript}"
+                                # NLP 전처리 — 음성 명령 구조화
+                                if _NLP_ENABLED:
+                                    try:
+                                        import sys as _sys
+                                        if str(Path(__file__).parent) not in _sys.path:
+                                            _sys.path.insert(0, str(Path(__file__).parent))
+                                        from bucky_nlp_preprocessor import preprocess, format_for_discord as _nlp_fmt
+                                        nlp_result = await asyncio.to_thread(preprocess, transcript)
+                                        if nlp_result.get("confidence", 0) > 0.3 and nlp_result.get("action") != "EXPLAIN":
+                                            fmt = _nlp_fmt(nlp_result)
+                                            if fmt:
+                                                await message.channel.send(fmt)
+                                        content = nlp_result.get("structured_prompt", transcript)
+                                        content = f"[음성] {content}"
+                                    except Exception as _nlp_err:
+                                        print(f"[NLP] 전처리 오류: {_nlp_err}", flush=True)
+                                        content = f"[음성] {transcript}" if not content else f"{content} [음성] {transcript}"
+                                else:
+                                    content = f"[음성] {transcript}" if not content else f"{content} [음성] {transcript}"
                             else:
                                 await message.channel.send("⚠️ 음성을 인식하지 못했습니다.")
                         except Exception as e:
@@ -1445,22 +1521,40 @@ class BuckyDiscordBot(discord.Client):
                     await message.channel.send(f"⚠️ 배포 오류: {e}")
             return
 
-        # ── 지식 저장 (Knowledge Capture) ───────────────────────────────────────
+        # ── 지식 저장 (Knowledge Capture) — YouTube 전용 처리 포함 ─────────────────
         if content.startswith("!저장") or content.startswith("!capture") or content.startswith("!캡처"):
             arg = content.split(None, 1)[1].strip() if len(content.split(None, 1)) > 1 else ""
             async with message.channel.typing():
                 try:
                     _sys = __import__("sys")
                     _sys.path.insert(0, str(Path(__file__).parent))
-                    from bucky_knowledge_capture import capture_url, capture_text
-                    if arg.startswith("http"):
+                    if arg.startswith("http") and _YOUTUBE_PATTERN.search(arg):
+                        await message.channel.send("📺 YouTube 영상 분석 중... (트랜스크립트 + AI 요약)")
+                        from bucky_youtube_capture import capture_youtube
+                        yt_result = await asyncio.to_thread(capture_youtube, arg)
+                        if yt_result["success"]:
+                            reply_lines = [
+                                "✅ **YouTube 지식 저장 완료!**",
+                                f"📝 {yt_result['title']}",
+                                f"{'트랜스크립트 포함 ✅' if yt_result['has_transcript'] else '트랜스크립트 없음 ⚠️'}",
+                            ]
+                            if yt_result.get("summary"):
+                                reply_lines.append(f"```\n{yt_result['summary'][:300]}\n```")
+                            for chunk in split_message("\n".join(reply_lines)):
+                                await message.channel.send(chunk)
+                        else:
+                            await message.channel.send(f"⚠️ YouTube 캡처 실패: {yt_result.get('error', '')}")
+                    elif arg.startswith("http"):
+                        from bucky_knowledge_capture import capture_url
                         result = await asyncio.to_thread(capture_url, arg)
+                        await message.channel.send(f"✅ Obsidian 저장 완료!\n📝 `{result}`")
                     elif arg:
+                        from bucky_knowledge_capture import capture_text
                         result = await asyncio.to_thread(capture_text, arg, message.author.name)
+                        await message.channel.send(f"✅ Obsidian 저장 완료!\n📝 `{result}`")
                     else:
                         await message.channel.send("⚠️ 사용법: `!저장 <URL 또는 텍스트>`")
                         return
-                    await message.channel.send(f"✅ Obsidian 저장 완료!\n📝 `{result}`")
                 except Exception as e:
                     await message.channel.send(f"⚠️ 저장 실패: {e}")
             return
