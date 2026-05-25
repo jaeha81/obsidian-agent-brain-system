@@ -896,6 +896,9 @@ class BuckyDiscordBot(discord.Client):
                 "`!배분현황` — 대기 중인 배분 태스크 조회\n"
                 "`!리포트` / `!report` — 데일리 리포트 생성\n"
                 "`!수집` / `!collect` — GPT+Claude 세션 수집 → 지식 정제 파이프라인\n"
+                "`!위임 <내용>` / `!delegate` — 복잡한 작업을 서브에이전트에게 자동 분리 위임\n"
+                "`!에이전트` / `!agents` — 서브에이전트 역할 목록 확인\n"
+                "`!이관` / `!migrate` — Google Drive Agent Room → ObsidianVault 이관\n"
                 "`!브리핑` / `!briefing` / `!뉴스` — AI/기술 일일 브리핑 생성\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
@@ -1009,6 +1012,56 @@ class BuckyDiscordBot(discord.Client):
                         await message.channel.send(chunk)
                 except Exception as e:
                     await message.channel.send(f"❌ 파이프라인 실행 오류: {e}")
+            return
+
+        # ── 서브에이전트 위임 ───────────────────────────────────────────────────────
+        if content.startswith("!위임") or content.startswith("!delegate"):
+            body = content.split(None, 1)[1].strip() if len(content.split(None, 1)) > 1 else ""
+            if not body:
+                await message.channel.send("사용법: `!위임 <작업 내용>` — 복잡한 작업을 서브에이전트에게 분리 위임")
+                return
+            async with message.channel.typing():
+                try:
+                    from bucky_sub_agent_manager import delegate, summary_report
+                    result = await asyncio.to_thread(delegate, body)
+                    report = summary_report(result)
+                    for chunk in split_message(report):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"❌ 위임 실패: {e}")
+            return
+
+        if content in ("!이관", "!migrate", "!gdrive"):
+            async with message.channel.typing():
+                await message.channel.send("⚙️ Google Drive Agent Room 이관 시작 중...")
+                try:
+                    import subprocess as _sp
+                    migrator = str(Path(__file__).parent / "gdrive_agent_room_migrator.py")
+                    result = await asyncio.to_thread(
+                        lambda: _sp.run(
+                            [sys.executable, migrator],
+                            capture_output=True, text=True, encoding="utf-8", timeout=300
+                        )
+                    )
+                    out = (result.stdout + result.stderr).strip()[-800:]
+                    status = "✅ 완료" if result.returncode == 0 else f"⚠️ 실패 (rc={result.returncode})"
+                    for chunk in split_message(f"📦 **Agent Room 이관 {status}**\n```\n{out}\n```"):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"❌ 이관 오류: {e}")
+            return
+
+        if content in ("!에이전트", "!agents", "!roles"):
+            lines = [
+                "**서브에이전트 역할 분담**\n",
+                "🤖 **Bucky** — 조율(오케스트레이터), 지식 정제, 갭 분석, 브리핑",
+                "🛠️ **ClaudeCode** — 구현(코드 작성, 스크립트, 파일 생성, 수정)",
+                "🔍 **Codex** — 검토, 검수, 리뷰, 테스트 검증",
+                "📥 **Collector** — GPT/Claude/Codex 대화 수집 파이프라인",
+                "🧠 **Distiller** — 원시 대화 → 구조화 지식 변환\n",
+                "→ `!위임 <작업>` 으로 자동 분류 위임",
+            ]
+            await message.channel.send("\n".join(lines))
             return
 
         if content in ("!브리핑", "!briefing", "!뉴스"):
