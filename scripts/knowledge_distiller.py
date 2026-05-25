@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Knowledge Distiller
+Knowledge Distiller — Phase 2
 ObsidianVault/01_RAW/ 의 원시 대화 파일을 Claude API로 정제하여
 구조화된 지식 노트로 변환한다.
 
@@ -9,8 +9,10 @@ ObsidianVault/01_RAW/ 의 원시 대화 파일을 Claude API로 정제하여
 사용법:
     python knowledge_distiller.py               # 미처리 파일 전체 처리
     python knowledge_distiller.py --limit 5     # 최대 5개 처리
+    python knowledge_distiller.py --batch-size 3  # 3개씩 배치 처리
     python knowledge_distiller.py --dry-run     # 대상 목록만 출력 (API 미호출)
     python knowledge_distiller.py --reset       # 처리 이력 초기화
+    python knowledge_distiller.py --watch       # inbox 폴더 실시간 감시
 """
 
 import argparse
@@ -20,6 +22,7 @@ import os
 import re
 import sys
 import textwrap
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -28,12 +31,17 @@ import anthropic
 # ── 경로 설정 ──────────────────────────────────────────────────────────────────
 VAULT_BASE   = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 RAW_DIR      = VAULT_BASE / "01_RAW"
+INBOX_DIR    = RAW_DIR / "inbox"
 OUTPUT_BASE  = VAULT_BASE / "03_Knowledge" / "distilled"
 SCRIPTS_DIR  = Path(__file__).parent
 STATE_FILE   = SCRIPTS_DIR / ".distiller_state.json"
 
 MODEL        = "claude-sonnet-4-6"
 MAX_TOKENS   = 2048
+
+# 재시도 설정
+RETRY_MAX    = 3
+RETRY_BASE   = 2.0   # 초 (exponential backoff: 2, 4, 8)
 # ──────────────────────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = textwrap.dedent("""
@@ -110,10 +118,10 @@ def file_hash(path: Path) -> str:
 
 # ── 파일 탐색 ──────────────────────────────────────────────────────────────────
 
-def collect_raw_files() -> list[Path]:
+def collect_raw_files(include_inbox: bool = False) -> list[Path]:
     """
     01_RAW/ 하위의 .md 파일을 모두 수집한다.
-    패턴: 01_RAW/**/YYYY-MM-DD*.md  또는  01_RAW/**/*.md
+    include_inbox=True 이면 inbox 폴더도 포함.
     날짜순 정렬.
     """
     candidates: list[Path] = []
@@ -121,9 +129,23 @@ def collect_raw_files() -> list[Path]:
         # index.md, README.md 등 메타 파일 제외
         if md.name.lower() in ("index.md", "readme.md"):
             continue
+        # inbox는 별도 처리 — 기본 수집에서 제외
+        if not include_inbox and INBOX_DIR in md.parents:
+            continue
         candidates.append(md)
-    # 파일명 기준 정렬 (날짜 접두어가 있으면 자연스럽게 시간순)
     candidates.sort(key=lambda p: p.name)
+    return candidates
+
+
+def collect_inbox_files() -> list[Path]:
+    """inbox/ 폴더의 미처리 .md 파일 수집."""
+    if not INBOX_DIR.exists():
+        return []
+    candidates = [
+        md for md in INBOX_DIR.glob("*.md")
+        if md.name.lower() not in ("index.md", "readme.md")
+    ]
+    candidates.sort(key=lambda p: p.stat().st_mtime)
     return candidates
 
 
@@ -133,11 +155,9 @@ def extract_date_from_path(path: Path) -> str:
     없으면 오늘 날짜 반환.
     """
     date_pattern = re.compile(r"(\d{4}-\d{2}-\d{2})")
-    # 파일명 우선
     m = date_pattern.search(path.name)
     if m:
         return m.group(1)
-    # 부모 디렉터리
     for part in path.parts:
         m = date_pattern.search(part)
         if m:
@@ -150,7 +170,6 @@ def read_file_safe(path: Path, max_chars: int = 8000) -> str:
     for encoding in ("utf-8", "utf-8-sig", "cp949", "latin-1"):
         try:
             text = path.read_text(encoding=encoding, errors="replace")
-            # 너무 길면 앞부분만 사용
             if len(text) > max_chars:
                 text = text[:max_chars] + "\n\n[... 내용이 너무 길어 잘렸습니다 ...]"
             return text
@@ -159,11 +178,19 @@ def read_file_safe(path: Path, max_chars: int = 8000) -> str:
     return "[파일 읽기 실패]"
 
 
-# ── Claude API 호출 ────────────────────────────────────────────────────────────
+# ── Claude API 호출 (재시도 + 프롬프트 캐싱) ──────────────────────────────────
 
-def distill_with_claude(client: anthropic.Anthropic, file_path: Path, content: str, file_date: str) -> dict:
+def distill_with_claude(
+    client: anthropic.Anthropic,
+    file_path: Path,
+    content: str,
+    file_date: str,
+    stats: dict,
+) -> dict:
     """
     Claude API를 호출해 원시 파일에서 지식을 추출한다.
+    - system prompt에 cache_control 적용 (비용 절감)
+    - 실패 시 exponential backoff 3회 재시도
     반환: 파싱된 JSON dict
     """
     user_message = USER_PROMPT_TEMPLATE.format(
@@ -172,29 +199,58 @@ def distill_with_claude(client: anthropic.Anthropic, file_path: Path, content: s
         content=content,
     )
 
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=MAX_TOKENS,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_message}],
-    )
+    last_error: Exception | None = None
+    for attempt in range(1, RETRY_MAX + 1):
+        try:
+            response = client.messages.create(
+                model=MODEL,
+                max_tokens=MAX_TOKENS,
+                system=[
+                    {
+                        "type": "text",
+                        "text": SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                messages=[{"role": "user", "content": user_message}],
+            )
 
-    raw_text = response.content[0].text.strip()
+            # 토큰 사용량 누적
+            usage = response.usage
+            stats["input_tokens"]          += getattr(usage, "input_tokens", 0)
+            stats["output_tokens"]         += getattr(usage, "output_tokens", 0)
+            stats["cache_creation_tokens"] += getattr(usage, "cache_creation_input_tokens", 0)
+            stats["cache_read_tokens"]     += getattr(usage, "cache_read_input_tokens", 0)
 
-    # JSON 블록 추출 (```json ... ``` 또는 순수 JSON)
-    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_text, re.DOTALL)
-    if json_match:
-        raw_text = json_match.group(1)
-    elif raw_text.startswith("{"):
-        pass  # 이미 순수 JSON
-    else:
-        # JSON 블록이 없으면 { ... } 범위 추출 시도
-        start = raw_text.find("{")
-        end   = raw_text.rfind("}") + 1
-        if start != -1 and end > start:
-            raw_text = raw_text[start:end]
+            raw_text = response.content[0].text.strip()
 
-    return json.loads(raw_text)
+            # JSON 블록 추출
+            json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_text, re.DOTALL)
+            if json_match:
+                raw_text = json_match.group(1)
+            elif not raw_text.startswith("{"):
+                start = raw_text.find("{")
+                end   = raw_text.rfind("}") + 1
+                if start != -1 and end > start:
+                    raw_text = raw_text[start:end]
+
+            return json.loads(raw_text)
+
+        except (anthropic.RateLimitError, anthropic.APIConnectionError, anthropic.InternalServerError) as e:
+            last_error = e
+            if attempt < RETRY_MAX:
+                wait = RETRY_BASE ** attempt
+                print(f"  [RETRY {attempt}/{RETRY_MAX}] {type(e).__name__} — {wait:.0f}s 후 재시도")
+                time.sleep(wait)
+            else:
+                raise
+
+        except anthropic.APIError as e:
+            # 재시도해도 의미 없는 오류(4xx 등)는 즉시 raise
+            raise
+
+    # 여기까지 오면 마지막 에러를 재발생
+    raise last_error  # type: ignore[misc]
 
 
 # ── 출력 노트 생성 ─────────────────────────────────────────────────────────────
@@ -211,9 +267,7 @@ def build_output_note(
     source_path: Path,
     file_date: str,
 ) -> str:
-    """
-    추출 결과를 Obsidian Markdown 노트로 변환한다.
-    """
+    """추출 결과를 Obsidian Markdown 노트로 변환한다."""
     topics     = result.get("topics", [])
     confidence = result.get("confidence", 0.8)
     insights   = result.get("insights", [])
@@ -226,11 +280,7 @@ def build_output_note(
 
     insights_md = "\n".join(f"- {i}" for i in insights) if insights else "- (인사이트 없음)"
     related_md  = "\n".join(f"- {r}" for r in related)  if related  else "- (연관 지식 없음)"
-
-    if tasks:
-        tasks_md = "\n".join(tasks)
-    else:
-        tasks_md = "- (실행 태스크 없음)"
+    tasks_md    = "\n".join(tasks) if tasks else "- (실행 태스크 없음)"
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -273,7 +323,6 @@ def determine_output_path(file_date: str, source_path: Path) -> Path:
     except ValueError:
         ym = datetime.now().strftime("%Y-%m")
 
-    # slug: 소스 파일명에서 날짜 제거 후 사용
     stem = source_path.stem
     stem_clean = re.sub(r"^\d{4}-\d{2}-\d{2}[-_]?", "", stem).strip("-_")
     slug = slugify(stem_clean) if stem_clean else slugify(stem)
@@ -285,6 +334,145 @@ def determine_output_path(file_date: str, source_path: Path) -> Path:
 
     filename = f"{file_date}-{slug}.md"
     return output_dir / filename
+
+
+# ── 배치 처리 ──────────────────────────────────────────────────────────────────
+
+def process_batch(
+    client: anthropic.Anthropic,
+    batch: list[Path],
+    state: dict,
+    stats: dict,
+    batch_num: int,
+    total_batches: int,
+) -> tuple[int, int]:
+    """
+    배치(N개 파일) 처리.
+    반환: (success_count, fail_count)
+    """
+    success = 0
+    fail    = 0
+
+    print(f"\n[배치 {batch_num}/{total_batches}] {len(batch)}개 파일 처리 중...")
+
+    for idx, raw_file in enumerate(batch, 1):
+        global_idx = (batch_num - 1) * len(batch) + idx
+        rel_path   = raw_file.relative_to(VAULT_BASE)
+        file_date  = extract_date_from_path(raw_file)
+        print(f"  [{global_idx}] {rel_path}  (날짜: {file_date})")
+
+        content = read_file_safe(raw_file)
+        if content == "[파일 읽기 실패]":
+            print("    [SKIP] 파일 읽기 실패")
+            fail += 1
+            stats["failed"] += 1
+            continue
+
+        if len(content.strip()) < 30:
+            print("    [SKIP] 내용이 너무 짧음 (30자 미만)")
+            stats["skipped"] += 1
+            continue
+
+        try:
+            result      = distill_with_claude(client, raw_file, content, file_date, stats)
+            note_text   = build_output_note(result, raw_file, file_date)
+            output_path = determine_output_path(file_date, raw_file)
+
+            output_path.write_text(note_text, encoding="utf-8")
+            print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
+            print(f"         토픽: {result.get('topics', [])}  "
+                  f"인사이트: {len(result.get('insights', []))}개  "
+                  f"신뢰도: {result.get('confidence', '?')}")
+
+            state[str(raw_file)] = file_hash(raw_file)
+            save_state(state)
+            success += 1
+            stats["processed"] += 1
+
+        except json.JSONDecodeError as e:
+            print(f"    [FAIL] JSON 파싱 오류: {e}")
+            fail += 1
+            stats["failed"] += 1
+        except anthropic.APIError as e:
+            print(f"    [FAIL] Claude API 오류: {e}")
+            fail += 1
+            stats["failed"] += 1
+        except OSError as e:
+            print(f"    [FAIL] 파일 저장 오류: {e}")
+            fail += 1
+            stats["failed"] += 1
+
+    return success, fail
+
+
+# ── inbox 감시 ─────────────────────────────────────────────────────────────────
+
+def watch_inbox(client: anthropic.Anthropic, state: dict, poll_interval: int = 10) -> None:
+    """
+    inbox/ 폴더를 주기적으로 감시하여 새 파일이 생기면 자동 처리한다.
+    Ctrl+C로 종료.
+    """
+    INBOX_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"[WATCH] inbox 감시 시작: {INBOX_DIR}")
+    print(f"        폴링 간격: {poll_interval}초 | 종료: Ctrl+C\n")
+
+    seen: set[str] = set(str(f) for f in collect_inbox_files()
+                         if state.get(str(f)) == file_hash(f))
+
+    stats = _make_stats()
+    try:
+        while True:
+            inbox_files = collect_inbox_files()
+            new_files = [
+                f for f in inbox_files
+                if str(f) not in seen
+                and state.get(str(f)) != file_hash(f)
+            ]
+
+            if new_files:
+                print(f"[WATCH] 새 파일 {len(new_files)}개 감지")
+                for f in new_files:
+                    seen.add(str(f))
+
+                total_batches = 1
+                process_batch(client, new_files, state, stats, 1, total_batches)
+                _print_stats(stats)
+            else:
+                print(f"[WATCH] 대기 중... ({datetime.now().strftime('%H:%M:%S')})", end="\r")
+
+            time.sleep(poll_interval)
+
+    except KeyboardInterrupt:
+        print("\n[WATCH] 감시 종료.")
+        _print_stats(stats)
+
+
+# ── 통계 ───────────────────────────────────────────────────────────────────────
+
+def _make_stats() -> dict:
+    return {
+        "processed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cache_creation_tokens": 0,
+        "cache_read_tokens": 0,
+    }
+
+
+def _print_stats(stats: dict) -> None:
+    sep = "─" * 55
+    print(f"\n{sep}")
+    print(f"[통계] 처리: {stats['processed']}  실패: {stats['failed']}  건너뜀: {stats['skipped']}")
+    print(f"[토큰] 입력: {stats['input_tokens']:,}  출력: {stats['output_tokens']:,}")
+    if stats["cache_creation_tokens"] or stats["cache_read_tokens"]:
+        print(f"[캐시] 생성: {stats['cache_creation_tokens']:,}  재사용: {stats['cache_read_tokens']:,}")
+        total_in = stats["input_tokens"] + stats["cache_creation_tokens"] + stats["cache_read_tokens"]
+        if total_in > 0:
+            hit_rate = stats["cache_read_tokens"] / total_in * 100
+            print(f"       캐시 히트율: {hit_rate:.1f}%")
+    print(sep)
 
 
 # ── 메인 ──────────────────────────────────────────────────────────────────────
@@ -301,6 +489,13 @@ def parse_args() -> argparse.Namespace:
         help="처리할 최대 파일 수 (기본: 제한 없음)",
     )
     parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=5,
+        metavar="N",
+        help="배치당 파일 수 (기본: 5)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="대상 파일 목록만 출력하고 API는 호출하지 않음",
@@ -314,6 +509,23 @@ def parse_args() -> argparse.Namespace:
         "--force",
         action="store_true",
         help="이미 처리된 파일도 강제 재처리",
+    )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="inbox/ 폴더를 실시간 감시하여 새 파일 자동 처리",
+    )
+    parser.add_argument(
+        "--watch-interval",
+        type=int,
+        default=10,
+        metavar="SEC",
+        help="inbox 감시 폴링 간격(초, 기본: 10)",
+    )
+    parser.add_argument(
+        "--include-inbox",
+        action="store_true",
+        help="inbox/ 폴더도 일반 처리 대상에 포함",
     )
     return parser.parse_args()
 
@@ -341,23 +553,43 @@ def main() -> int:
         print("[INFO] 처리 이력을 초기화했습니다.")
     state = load_state()
 
+    # ── Claude 클라이언트 초기화 ───────────────────────────────────────────────
+    client = anthropic.Anthropic(api_key=api_key) if not args.dry_run else None  # type: ignore[assignment]
+
+    # ── watch 모드 ─────────────────────────────────────────────────────────────
+    if args.watch:
+        watch_inbox(client, state, poll_interval=args.watch_interval)
+        return 0
+
+    # ── inbox 폴더 보장 ────────────────────────────────────────────────────────
+    INBOX_DIR.mkdir(parents=True, exist_ok=True)
+
     # ── 대상 파일 수집 ─────────────────────────────────────────────────────────
-    all_files = collect_raw_files()
+    all_files = collect_raw_files(include_inbox=args.include_inbox)
+    if args.include_inbox:
+        # inbox 파일은 중복 없이 추가
+        inbox_files = collect_inbox_files()
+        existing_paths = {str(f) for f in all_files}
+        for f in inbox_files:
+            if str(f) not in existing_paths:
+                all_files.append(f)
+        all_files.sort(key=lambda p: p.name)
+
     if not all_files:
         print(f"[INFO] {RAW_DIR} 에서 .md 파일을 찾을 수 없습니다.")
         return 0
 
-    # 이미 처리된 파일 필터링
+    # 미처리 파일 필터링
     pending: list[Path] = []
-    skipped = 0
+    skipped_cache = 0
     for f in all_files:
         fhash = file_hash(f)
         if not args.force and state.get(str(f)) == fhash:
-            skipped += 1
+            skipped_cache += 1
             continue
         pending.append(f)
 
-    print(f"[INFO] 전체 {len(all_files)}개 파일 | 미처리 {len(pending)}개 | 건너뜀 {skipped}개")
+    print(f"[INFO] 전체 {len(all_files)}개 파일 | 미처리 {len(pending)}개 | 캐시 건너뜀 {skipped_cache}개")
 
     if not pending:
         print("[INFO] 처리할 파일이 없습니다. --reset 또는 --force 옵션을 사용하세요.")
@@ -373,67 +605,33 @@ def main() -> int:
         print("\n[DRY-RUN] 처리 예정 파일:")
         for i, f in enumerate(pending, 1):
             print(f"  {i:3}. {f.relative_to(VAULT_BASE)}")
+        batch_size = args.batch_size
+        total_batches = (len(pending) + batch_size - 1) // batch_size
+        print(f"\n  배치 크기: {batch_size}  →  총 {total_batches}개 배치")
         return 0
 
-    # ── Claude 클라이언트 초기화 ───────────────────────────────────────────────
-    client = anthropic.Anthropic(api_key=api_key)
+    # ── 배치 분할 처리 ─────────────────────────────────────────────────────────
+    batch_size    = max(1, args.batch_size)
+    batches       = [pending[i:i + batch_size] for i in range(0, len(pending), batch_size)]
+    total_batches = len(batches)
+    stats         = _make_stats()
 
-    # ── 파일별 처리 ────────────────────────────────────────────────────────────
-    success_count = 0
-    fail_count    = 0
+    print(f"[INFO] 배치 크기: {batch_size}  →  총 {total_batches}개 배치\n")
 
-    for idx, raw_file in enumerate(pending, 1):
-        rel_path  = raw_file.relative_to(VAULT_BASE)
-        file_date = extract_date_from_path(raw_file)
-        print(f"\n[{idx}/{len(pending)}] {rel_path}  (날짜: {file_date})")
+    total_success = 0
+    total_fail    = 0
 
-        content = read_file_safe(raw_file)
-        if content == "[파일 읽기 실패]":
-            print("  [SKIP] 파일 읽기 실패")
-            fail_count += 1
-            continue
-
-        # 내용이 너무 짧으면 건너뜀
-        if len(content.strip()) < 30:
-            print("  [SKIP] 내용이 너무 짧음 (30자 미만)")
-            fail_count += 1
-            continue
-
-        # Claude API 호출
-        try:
-            result      = distill_with_claude(client, raw_file, content, file_date)
-            note_text   = build_output_note(result, raw_file, file_date)
-            output_path = determine_output_path(file_date, raw_file)
-
-            output_path.write_text(note_text, encoding="utf-8")
-            print(f"  [OK]  → {output_path.relative_to(VAULT_BASE)}")
-            print(f"        토픽: {result.get('topics', [])}")
-            print(f"        인사이트: {len(result.get('insights', []))}개  "
-                  f"태스크: {len(result.get('tasks', []))}개  "
-                  f"신뢰도: {result.get('confidence', '?')}")
-
-            # 처리 완료 기록
-            state[str(raw_file)] = file_hash(raw_file)
-            save_state(state)
-            success_count += 1
-
-        except json.JSONDecodeError as e:
-            print(f"  [FAIL] Claude 응답 JSON 파싱 오류: {e}")
-            fail_count += 1
-        except anthropic.APIError as e:
-            print(f"  [FAIL] Claude API 오류: {e}")
-            fail_count += 1
-        except OSError as e:
-            print(f"  [FAIL] 파일 저장 오류: {e}")
-            fail_count += 1
+    for batch_num, batch in enumerate(batches, 1):
+        s, f = process_batch(client, batch, state, stats, batch_num, total_batches)
+        total_success += s
+        total_fail    += f
 
     # ── 결과 요약 ──────────────────────────────────────────────────────────────
-    print(f"\n{'─' * 50}")
-    print(f"[완료] 성공 {success_count}개 | 실패 {fail_count}개")
-    print(f"       출력 디렉터리: {OUTPUT_BASE}")
-    print(f"       처리 이력: {STATE_FILE}")
+    _print_stats(stats)
+    print(f"[완료] 출력 디렉터리: {OUTPUT_BASE}")
+    print(f"       처리 이력:     {STATE_FILE}")
 
-    return 0 if fail_count == 0 else 1
+    return 0 if total_fail == 0 else 1
 
 
 if __name__ == "__main__":
