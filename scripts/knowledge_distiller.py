@@ -32,11 +32,12 @@ import anthropic
 VAULT_BASE   = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 RAW_DIR      = VAULT_BASE / "01_RAW"
 INBOX_DIR    = RAW_DIR / "inbox"
-OUTPUT_BASE  = VAULT_BASE / "03_Knowledge" / "distilled"
+OUTPUT_BASE  = VAULT_BASE / "03_Knowledge" / "AI-Distilled"
 SCRIPTS_DIR  = Path(__file__).parent
-STATE_FILE   = SCRIPTS_DIR / ".distiller_state.json"
+STATE_FILE   = SCRIPTS_DIR / ".distiller_cache.json"
+RETRY_QUEUE  = SCRIPTS_DIR / ".distiller_retry_queue.json"
 
-MODEL        = "claude-sonnet-4-6"
+MODEL        = "claude-haiku-4-5"
 MAX_TOKENS   = 2048
 
 # 재시도 설정
@@ -114,6 +115,85 @@ def file_hash(path: Path) -> str:
     except OSError:
         return ""
     return hashlib.sha256(content).hexdigest()[:64]
+
+
+# ── 재시도 큐 관리 ─────────────────────────────────────────────────────────────
+
+def load_retry_queue() -> list:
+    if RETRY_QUEUE.exists():
+        try:
+            return json.loads(RETRY_QUEUE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return []
+    return []
+
+
+def save_retry_queue(queue: list) -> None:
+    RETRY_QUEUE.write_text(
+        json.dumps(queue, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def add_to_retry_queue(file_path: Path, error_msg: str) -> None:
+    queue = load_retry_queue()
+    queue = [e for e in queue if e.get("file") != str(file_path)]
+    queue.append({
+        "file": str(file_path),
+        "error": error_msg,
+        "queued_at": datetime.now().isoformat(),
+    })
+    save_retry_queue(queue)
+
+
+def remove_from_retry_queue(file_path: Path) -> None:
+    queue = load_retry_queue()
+    queue = [e for e in queue if e.get("file") != str(file_path)]
+    save_retry_queue(queue)
+
+
+def save_original_on_failure(raw_content: str, source_path: Path, file_date: str) -> Path:
+    """
+    API 실패 시 원본 내용을 저장 — 나중에 재처리 가능하도록.
+    경로: AI-Distilled/YYYY-MM/YYYY-MM-DD-<slug>-RAW.md
+    """
+    try:
+        dt = datetime.strptime(file_date, "%Y-%m-%d")
+        ym = dt.strftime("%Y-%m")
+    except ValueError:
+        ym = datetime.now().strftime("%Y-%m")
+
+    stem       = source_path.stem
+    stem_clean = re.sub(r"^\d{4}-\d{2}-\d{2}[-_]?", "", stem).strip("-_")
+    slug       = slugify(stem_clean) if stem_clean else slugify(stem) or "note"
+
+    output_dir = OUTPUT_BASE / ym
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    raw_path = output_dir / f"{file_date}-{slug}-RAW.md"
+    now_str  = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    raw_path.write_text(
+        textwrap.dedent(f"""
+            ---
+            source: {source_path.name}
+            date: {file_date}
+            original_file: "{source_path}"
+            distilled_at: {now_str}
+            status: api-failed
+            tags: [ai-distilled, retry-pending]
+            ---
+
+            > [!warning] API 정제 실패 — 원본 저장본
+            > 재처리 대기 중입니다.
+
+            ## 원본 내용
+
+            {raw_content}
+        """).lstrip(),
+        encoding="utf-8",
+    )
+    return raw_path
 
 
 # ── 파일 탐색 ──────────────────────────────────────────────────────────────────
@@ -279,8 +359,9 @@ def build_output_note(
     related_yaml = "[" + ", ".join(f'"{t}"' for t in related) + "]"
 
     insights_md = "\n".join(f"- {i}" for i in insights) if insights else "- (인사이트 없음)"
-    related_md  = "\n".join(f"- {r}" for r in related)  if related  else "- (연관 지식 없음)"
+    related_md  = "\n".join(f"- {r}" for r in related)  if related  else "- (연결 개념 없음)"
     tasks_md    = "\n".join(tasks) if tasks else "- (실행 태스크 없음)"
+    tags_md     = " ".join(f"#{t}" for t in topics)      if topics   else ""
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -290,8 +371,10 @@ def build_output_note(
         date: {file_date}
         original_file: "{source_path}"
         topics: {topics_yaml}
+        related: {related_yaml}
         confidence: {confidence}
         distilled_at: {now_str}
+        tags: [ai-distilled]
         ---
 
         > {summary}
@@ -300,13 +383,17 @@ def build_output_note(
 
         {insights_md}
 
-        ## 연관 지식
+        ## 연결 개념
 
         {related_md}
 
         ## 실행 가능한 태스크
 
         {tasks_md}
+
+        ## 태그
+
+        {tags_md}
 
         ---
         *자동 생성: knowledge_distiller.py — 원본: `{source_path.name}`*
@@ -386,15 +473,24 @@ def process_batch(
 
             state[str(raw_file)] = file_hash(raw_file)
             save_state(state)
+            remove_from_retry_queue(raw_file)
             success += 1
             stats["processed"] += 1
 
         except json.JSONDecodeError as e:
-            print(f"    [FAIL] JSON 파싱 오류: {e}")
+            err_msg = f"JSON 파싱 오류: {e}"
+            print(f"    [FAIL] {err_msg}")
+            raw_path = save_original_on_failure(content, raw_file, file_date)
+            add_to_retry_queue(raw_file, err_msg)
+            print(f"           원본 저장: {raw_path.name}")
             fail += 1
             stats["failed"] += 1
         except anthropic.APIError as e:
-            print(f"    [FAIL] Claude API 오류: {e}")
+            err_msg = f"API 오류: {e}"
+            print(f"    [FAIL] Claude {err_msg}")
+            raw_path = save_original_on_failure(content, raw_file, file_date)
+            add_to_retry_queue(raw_file, err_msg)
+            print(f"           원본 저장: {raw_path.name}")
             fail += 1
             stats["failed"] += 1
         except OSError as e:
@@ -503,7 +599,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--reset",
         action="store_true",
-        help="처리 이력(.distiller_state.json)을 초기화하고 모든 파일 재처리",
+        help="처리 이력(.distiller_cache.json)을 초기화하고 모든 파일 재처리",
+    )
+    parser.add_argument(
+        "--retry",
+        action="store_true",
+        help="재시도 큐(.distiller_retry_queue.json)의 파일만 처리",
     )
     parser.add_argument(
         "--force",
@@ -564,32 +665,48 @@ def main() -> int:
     # ── inbox 폴더 보장 ────────────────────────────────────────────────────────
     INBOX_DIR.mkdir(parents=True, exist_ok=True)
 
-    # ── 대상 파일 수집 ─────────────────────────────────────────────────────────
-    all_files = collect_raw_files(include_inbox=args.include_inbox)
-    if args.include_inbox:
-        # inbox 파일은 중복 없이 추가
-        inbox_files = collect_inbox_files()
-        existing_paths = {str(f) for f in all_files}
-        for f in inbox_files:
-            if str(f) not in existing_paths:
-                all_files.append(f)
-        all_files.sort(key=lambda p: p.name)
+    # ── --retry: 재시도 큐의 파일만 처리 ──────────────────────────────────────
+    if args.retry:
+        queue = load_retry_queue()
+        if not queue:
+            print("[INFO] 재시도 큐가 비어 있습니다.")
+            return 0
+        pending = [Path(e["file"]) for e in queue if Path(e["file"]).exists()]
+        missing = [e["file"] for e in queue if not Path(e["file"]).exists()]
+        if missing:
+            print(f"[WARN] 큐에 있지만 파일이 없음: {len(missing)}개 — 큐에서 제거")
+            for m in missing:
+                remove_from_retry_queue(Path(m))
+        print(f"[INFO] 재시도 큐: {len(pending)}개 파일")
+    else:
+        # ── 대상 파일 수집 ─────────────────────────────────────────────────────
+        all_files = collect_raw_files(include_inbox=args.include_inbox)
+        if args.include_inbox:
+            inbox_files = collect_inbox_files()
+            existing_paths = {str(f) for f in all_files}
+            for f in inbox_files:
+                if str(f) not in existing_paths:
+                    all_files.append(f)
+            all_files.sort(key=lambda p: p.name)
 
-    if not all_files:
-        print(f"[INFO] {RAW_DIR} 에서 .md 파일을 찾을 수 없습니다.")
-        return 0
+        if not all_files:
+            print(f"[INFO] {RAW_DIR} 에서 .md 파일을 찾을 수 없습니다.")
+            return 0
 
-    # 미처리 파일 필터링
-    pending: list[Path] = []
-    skipped_cache = 0
-    for f in all_files:
-        fhash = file_hash(f)
-        if not args.force and state.get(str(f)) == fhash:
-            skipped_cache += 1
-            continue
-        pending.append(f)
+        # 미처리 파일 필터링
+        pending = []
+        skipped_cache = 0
+        for f in all_files:
+            fhash = file_hash(f)
+            if not args.force and state.get(str(f)) == fhash:
+                skipped_cache += 1
+                continue
+            pending.append(f)
 
-    print(f"[INFO] 전체 {len(all_files)}개 파일 | 미처리 {len(pending)}개 | 캐시 건너뜀 {skipped_cache}개")
+        retry_count = len(load_retry_queue())
+        print(f"[INFO] 전체 {len(all_files)}개 파일 | 미처리 {len(pending)}개 | 캐시 건너뜀 {skipped_cache}개")
+        if retry_count:
+            print(f"[INFO] 재시도 대기 중인 파일: {retry_count}개 (--retry 옵션으로 처리)")
 
     if not pending:
         print("[INFO] 처리할 파일이 없습니다. --reset 또는 --force 옵션을 사용하세요.")
@@ -629,7 +746,10 @@ def main() -> int:
     # ── 결과 요약 ──────────────────────────────────────────────────────────────
     _print_stats(stats)
     print(f"[완료] 출력 디렉터리: {OUTPUT_BASE}")
-    print(f"       처리 이력:     {STATE_FILE}")
+    print(f"       캐시 파일:     {STATE_FILE}")
+    remaining_retry = len(load_retry_queue())
+    if remaining_retry:
+        print(f"       재시도 대기:  {remaining_retry}개 (--retry 옵션으로 재처리)")
 
     return 0 if total_fail == 0 else 1
 
