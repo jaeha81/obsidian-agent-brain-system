@@ -441,13 +441,43 @@ def _get_speaking_lock(guild_id: int) -> asyncio.Lock:
     return _speaking_locks[guild_id]
 
 
+def _oral_format(text: str) -> str:
+    """마크다운 응답 → TTS 구어체 변환. 코드블록·표·헤더 제거, 문장 추출."""
+    import re
+    lines = text.splitlines()
+    result = []
+    in_code = False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if re.match(r"^[-=|#]{3,}$", s) or s.startswith("|"):
+            continue
+        s = re.sub(r"[*`#_~>]", "", s)
+        s = re.sub(r"^[-*•]\s+", "", s)
+        s = re.sub(r"^\d+\.\s+", "", s).strip()
+        if s:
+            result.append(s)
+    combined = " ".join(result)
+    if len(combined) > 220:
+        snippet = combined[:220]
+        last = max(snippet.rfind("다."), snippet.rfind("요."), snippet.rfind("요!"), snippet.rfind("니다."))
+        if last > 60:
+            combined = snippet[: last + 2]
+        else:
+            combined = snippet.rstrip() + "…"
+    return combined.strip()
+
+
 async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
     """텍스트 → gTTS MP3 → FFmpegOpusAudio → 음성 채널 재생 (opus DLL 불필요)."""
     if not _gtts_available or not vc or not vc.is_connected():
         return
-    import re as _re
-    clean = _re.sub(r"[*`#_~>|]", "", text)[:500]
-    if not clean.strip():
+    clean = _oral_format(text)
+    if not clean:
         return
 
     async with _get_speaking_lock(guild_id):
