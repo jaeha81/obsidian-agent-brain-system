@@ -19,5 +19,7 @@
   "remotely-save",
   "smart-connections",
   "table-editor-obsidian",
-  "templater-obsidian"
+  "templater-obsidian",
+  "obsidian-meta-bind-plugin",
+  "obsidian-buttons"
 ]
