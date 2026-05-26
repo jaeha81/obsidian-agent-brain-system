@@ -71,7 +71,8 @@ class WorkerPool:
     def __init__(self, pool_size: int = POOL_SIZE):
         self._semaphore        = asyncio.Semaphore(pool_size)
         self._discord_client   = None
-        self._status_channel_id: str = os.getenv("BUCKY_STATUS_CHANNEL_ID", "").strip()
+        self._status_channel_id: str  = os.getenv("BUCKY_STATUS_CHANNEL_ID", "").strip()
+        self._results_channel_id: str = ""
         self._active: dict[str, asyncio.Task] = {}
 
         # 현황판
@@ -89,6 +90,9 @@ class WorkerPool:
 
     def set_board_message(self, msg_id: int) -> None:
         self._board_msg_id = msg_id
+
+    def set_results_channel(self, channel_id: str) -> None:
+        self._results_channel_id = channel_id.strip()
 
     def hydrate_from_db(self) -> None:
         """봇 재시작 시 SQLite 미완료 태스크를 registry에 로드 (Codex P2 반영)."""
@@ -110,7 +114,8 @@ class WorkerPool:
             print(f"[WorkerPool] hydrate 실패: {e}", flush=True)
 
     def register_task(self, task: dict, thread_id: int | None = None,
-                      origin_channel_id: int | None = None) -> None:
+                      origin_channel_id: int | None = None,
+                      requester_id: int | None = None) -> None:
         self._task_registry[task["id"]] = {
             "agent":             task.get("agent", "bucky"),
             "title":             _sanitize(task.get("title", task.get("body", "?")), 50),
@@ -119,6 +124,7 @@ class WorkerPool:
             "ended_at":          None,
             "thread_id":         thread_id,
             "origin_channel_id": origin_channel_id,
+            "requester_id":      requester_id,
         }
 
     # ── 채널 resolve ─────────────────────────────────────────────────────────
@@ -315,7 +321,10 @@ class WorkerPool:
                     await self._send_status(f"✅ `{tid}` {AGENT_LABEL} **{title}** 완료\n> {summary}")
                     if reply_ch:
                         try:
-                            full = f"✅ `{tid[-6:]}` **{title}** 완료\n\n{result}"
+                            reg = self._task_registry.get(tid, {})
+                            requester_id = reg.get("requester_id")
+                            mention = f"<@{requester_id}> " if requester_id else ""
+                            full = f"{mention}✅ `{tid[-6:]}` **{title}** 완료\n\n{result}"
                             for i in range(0, len(full), 1900):
                                 await reply_ch.send(full[i:i+1900])
                         except Exception:

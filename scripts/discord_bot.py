@@ -98,6 +98,12 @@ BRIEFING_CHANNEL_ID: str = os.getenv("BRIEFING_CHANNEL_ID", "")
 BRIEFING_TIME: str = os.getenv("BRIEFING_TIME", "09:00")  # HH:MM 로컬 시각
 BUCKY_STATUS_CHANNEL_ID: str = os.getenv("BUCKY_STATUS_CHANNEL_ID", "").strip()
 
+# ── JH 채널 체계 ───────────────────────────────────────────────────────────────
+JH_CHAT_CHANNEL_ID: str    = os.getenv("JH_CHAT_CHANNEL_ID", "").strip()
+JH_TASKS_CHANNEL_ID: str   = os.getenv("JH_TASKS_CHANNEL_ID", "").strip()
+JH_STATUS_CHANNEL_ID: str  = os.getenv("JH_STATUS_CHANNEL_ID", "").strip()
+JH_RESULTS_CHANNEL_ID: str = os.getenv("JH_RESULTS_CHANNEL_ID", "").strip()
+
 # ── 환경변수 ───────────────────────────────────────────────────────────────────
 
 TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
@@ -1564,6 +1570,69 @@ async def _init_status_board(client, pool) -> None:
         print(f"[WorkerPool] 현황판 초기화 실패: {e}", flush=True)
 
 
+async def _init_jh_channels(client) -> None:
+    """jh-chat / jh-tasks / jh-status / jh-results 채널 자동 생성."""
+    global JH_CHAT_CHANNEL_ID, JH_TASKS_CHANNEL_ID, JH_STATUS_CHANNEL_ID, JH_RESULTS_CHANNEL_ID
+    if not client.guilds:
+        return
+    guild = client.guilds[0]
+    _specs = [
+        ("jh-chat",    "JH_CHAT_CHANNEL_ID",    "💬 JH ↔ Bucky 대화 전용"),
+        ("jh-tasks",   "JH_TASKS_CHANNEL_ID",   "📋 태스크 지시 전용 — Claude 없이 즉시 배정"),
+        ("jh-status",  "JH_STATUS_CHANNEL_ID",  "📊 태스크 현황판 (자동 갱신)"),
+        ("jh-results", "JH_RESULTS_CHANNEL_ID", "✅ 완료 결과 수신 · @멘션 알림"),
+    ]
+    _globals = globals()
+    for ch_name, env_key, topic in _specs:
+        if _globals[env_key]:
+            continue
+        existing = discord.utils.get(guild.text_channels, name=ch_name)
+        if existing:
+            _globals[env_key] = str(existing.id)
+            print(f"[Setup] #{ch_name} 발견: {existing.id}", flush=True)
+        else:
+            try:
+                new_ch = await guild.create_text_channel(ch_name, topic=topic)
+                _globals[env_key] = str(new_ch.id)
+                await new_ch.send(f"✅ **#{ch_name}** 자동 생성됨\n{topic}")
+                print(f"[Setup] #{ch_name} 생성: {new_ch.id}", flush=True)
+            except discord.Forbidden:
+                print(f"[Setup] #{ch_name} 생성 실패: 권한 없음", flush=True)
+    # jh-status를 bucky-status 대신 현황판으로 사용
+    if JH_STATUS_CHANNEL_ID and not BUCKY_STATUS_CHANNEL_ID:
+        globals()["BUCKY_STATUS_CHANNEL_ID"] = JH_STATUS_CHANNEL_ID
+
+
+async def _handle_jh_tasks(message: Message) -> None:
+    """#jh-tasks 전용 핸들러 — Claude 거치지 않고 즉시 태스크 배정."""
+    content = message.content.strip()
+
+    if content in ("!현황", "!status", "!tasks"):
+        pool = _get_worker_pool()
+        await message.channel.send(pool.get_board_text())
+        return
+
+    task_body = content.removeprefix("!task").strip() or content
+    if not task_body:
+        await message.channel.send("📋 태스크 내용을 입력하세요.\n예: `개발건 A — login API 구현`")
+        return
+
+    task = tq.add(task_body[:80], task_body, source="jh-tasks")
+    results_ch_id = int(JH_RESULTS_CHANNEL_ID) if JH_RESULTS_CHANNEL_ID else None
+    pool = _get_worker_pool()
+    pool.register_task(task, origin_channel_id=results_ch_id,
+                       requester_id=int(message.author.id))
+    asyncio.ensure_future(pool.run_one(task))
+
+    _LABEL = {"claude": "🧠 Claude", "codex": "⚡ Codex", "bucky": "🤖 Bucky"}
+    label = _LABEL.get(task["agent"], task["agent"].upper())
+    results_hint = f" → <#{JH_RESULTS_CHANNEL_ID}>" if JH_RESULTS_CHANNEL_ID else ""
+    await message.channel.send(
+        f"✅ `{task['id'][-6:]}` {label} 배정 완료{results_hint}\n"
+        f"> {task_body[:80]}{'...' if len(task_body) > 80 else ''}"
+    )
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -1818,11 +1887,16 @@ class BuckyDiscordBot(discord.Client):
                 except discord.Forbidden:
                     print("[Setup] #bucky-status 채널 생성 실패: 권한 없음", flush=True)
 
+        # ── JH 채널 자동 생성 ─────────────────────────────────────────────────────
+        await _init_jh_channels(self)
+
         # ── 워커풀 초기화 ─────────────────────────────────────────────────────────
         if _WORKER_POOL_ENABLED:
             pool = _get_worker_pool()
             pool.set_discord(self)
             pool.hydrate_from_db()
+            if JH_RESULTS_CHANNEL_ID:
+                pool.set_results_channel(JH_RESULTS_CHANNEL_ID)
             pool_size = int(os.getenv("WORKER_POOL_SIZE", "5"))
             status_ch = f"채널 {BUCKY_STATUS_CHANNEL_ID}" if BUCKY_STATUS_CHANNEL_ID else "미설정"
             print(f"[WorkerPool] 초기화 완료: 최대 {pool_size}개 동시 실행 | 상태채널: {status_ch}", flush=True)
@@ -1871,6 +1945,11 @@ class BuckyDiscordBot(discord.Client):
 
         content = message.content.strip()
         channel_id = str(message.channel.id)
+
+        # ── #jh-tasks: Claude 없이 즉시 태스크 배정 ─────────────────────────────────
+        if JH_TASKS_CHANNEL_ID and channel_id == JH_TASKS_CHANNEL_ID:
+            await _handle_jh_tasks(message)
+            return
 
         # ── URL 자동 캡처 — YouTube는 알림 포함, 일반 URL은 조용히 처리 ──────────────
         if content and not content.startswith("!") and not content.startswith("/"):
