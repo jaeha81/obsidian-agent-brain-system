@@ -1700,6 +1700,31 @@ class BuckyDiscordBot(discord.Client):
         print(f"음성(TTS 출력): {tts_status}", flush=True)
         print(f"음성(실시간 수신): {recv_status}", flush=True)
 
+        # ── #bucky-status 채널 자동 생성 ──────────────────────────────────────────
+        global BUCKY_STATUS_CHANNEL_ID
+        if not BUCKY_STATUS_CHANNEL_ID and self.guilds:
+            guild = self.guilds[0]
+            existing = discord.utils.get(guild.text_channels, name="bucky-status")
+            if existing:
+                BUCKY_STATUS_CHANNEL_ID = str(existing.id)
+                print(f"[Setup] #bucky-status 채널 발견: {existing.id}", flush=True)
+            else:
+                try:
+                    new_ch = await guild.create_text_channel(
+                        "bucky-status",
+                        topic="🤖 Bucky 태스크 현황판 — 자동 생성됨",
+                        reason="Bucky WorkerPool 상태 채널 자동 생성",
+                    )
+                    BUCKY_STATUS_CHANNEL_ID = str(new_ch.id)
+                    await new_ch.send(
+                        "🤖 **Bucky 상태 채널 자동 생성 완료**\n"
+                        "이 채널에서 모든 태스크 현황을 실시간 추적합니다.\n"
+                        "`.env`에 `BUCKY_STATUS_CHANNEL_ID=" + str(new_ch.id) + "` 추가를 권장합니다."
+                    )
+                    print(f"[Setup] #bucky-status 채널 생성: {new_ch.id}", flush=True)
+                except discord.Forbidden:
+                    print("[Setup] #bucky-status 채널 생성 실패: 권한 없음", flush=True)
+
         # ── 워커풀 초기화 ─────────────────────────────────────────────────────────
         if _WORKER_POOL_ENABLED:
             pool = _get_worker_pool()
