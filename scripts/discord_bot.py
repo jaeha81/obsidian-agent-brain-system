@@ -44,6 +44,9 @@ import yaml
 from discord import Intents, Message, app_commands
 from dotenv import load_dotenv
 
+import json as _json_mod
+import subprocess as _subprocess_mod
+
 from bucky_client import BuckyError, run_bucky
 from bucky_briefing import generate_briefing
 from task_tracker import add_task, format_task_list, get_today_tasks
@@ -77,6 +80,34 @@ WHISPER_MODEL_NAME: str = os.getenv("WHISPER_MODEL", "small")
 VOICE_CHANNEL_ENABLED: bool = os.getenv("VOICE_CHANNEL_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
 TTS_LANG: str = os.getenv("TTS_LANG", "ko")
 VOICE_RECV_ENABLED: bool = os.getenv("VOICE_RECV_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
+
+# ── Windows libopus 자동 감지 및 로드 ──────────────────────────────────────────
+def _try_load_opus() -> bool:
+    """Windows에서 libopus DLL 자동 탐색 후 로드. 실패 시 False 반환."""
+    import ctypes, glob as _glob
+    candidates = [
+        str(_ROOT / "opus.dll"),
+        str(_ROOT / "libopus.dll"),
+        "opus", "libopus",
+        "opus-0", "libopus-0",
+    ]
+    # scripts 폴더 내 DLL도 탐색
+    candidates += _glob.glob(str(_ROOT / "*.dll"))
+    for name in candidates:
+        try:
+            discord.opus.load_opus(name)
+            print(f"[Bot] libopus 로드 성공: {name}", flush=True)
+            return True
+        except Exception:
+            pass
+    print("[Bot] ⚠️ libopus 미발견 — 음성 채널 비활성화. opus.dll을 프로젝트 루트에 배치하세요.", flush=True)
+    print("[Bot]   다운로드: https://github.com/xiph/opus/releases (Windows x64 binary)", flush=True)
+    return False
+
+if VOICE_CHANNEL_ENABLED and sys.platform == "win32" and not discord.opus.is_loaded():
+    if not _try_load_opus():
+        # opus DLL 없어도 PyAV + FFmpegOpusAudio로 동작 가능 — 비활성화하지 않음
+        print("[Bot] libopus DLL 없음 — PyAV(수신) + FFmpegOpusAudio(TTS)로 대체 동작", flush=True)
 
 # Whisper 선택적 임포트 — 미설치 시 음성 기능만 비활성화, 봇은 정상 동작
 if VOICE_ENABLED:
@@ -411,10 +442,9 @@ def _get_speaking_lock(guild_id: int) -> asyncio.Lock:
 
 
 async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
-    """텍스트 → gTTS MP3 → FFmpegPCMAudio → 음성 채널 재생."""
+    """텍스트 → gTTS MP3 → FFmpegOpusAudio → 음성 채널 재생 (opus DLL 불필요)."""
     if not _gtts_available or not vc or not vc.is_connected():
         return
-    # 마크다운 특수문자 제거 (TTS 자연스럽게)
     import re as _re
     clean = _re.sub(r"[*`#_~>|]", "", text)[:500]
     if not clean.strip():
@@ -439,7 +469,9 @@ async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
                 Path(path_ref).unlink(missing_ok=True)
                 asyncio.get_event_loop().call_soon_threadsafe(done_event.set)
 
-            vc.play(discord.FFmpegPCMAudio(tmp_path), after=_after)
+            # FFmpegOpusAudio: ffmpeg이 opus 인코딩 담당 → libopus DLL 불필요
+            audio_src = await discord.FFmpegOpusAudio.from_probe(tmp_path)
+            vc.play(audio_src, after=_after)
             await asyncio.wait_for(done_event.wait(), timeout=60)
             tmp_path = None  # after callback이 삭제 담당
         except asyncio.TimeoutError:
@@ -517,15 +549,16 @@ def _make_voice_sink_class():
                 self._loop = asyncio.get_event_loop()
 
         def wants_opus(self) -> bool:
-            return False
+            # True = raw opus frames (DLL 불필요), PyAV로 디코딩
+            return True
 
         def write(self, user, data) -> None:  # type: ignore
-            # user=None은 Discord가 SSRC→멤버 매핑 전 상태 — uid=0으로 계속 처리
             uid = user.id if user is not None else 0
-            pcm = data.pcm if hasattr(data, "pcm") else bytes(data) if data else b""
-            if not pcm:
+            # wants_opus=True → data는 raw opus 패킷 bytes
+            opus_pkt = bytes(data) if data else b""
+            if not opus_pkt:
                 return
-            self._chunks[uid].append(pcm)
+            self._chunks[uid].append(opus_pkt)
             if len(self._chunks[uid]) == 1:
                 name = user.display_name if user is not None else "Unknown"
                 print(f"[VoiceSink] 음성 수신 시작: {name}", flush=True)
@@ -558,10 +591,24 @@ def _make_voice_sink_class():
 
         async def _handle_audio(self, user, chunks: list[bytes]) -> None:
             import wave
-            pcm = b"".join(chunks)
+            import av as _av  # PyAV — opus DLL 없이 디코딩
+            wav_path = None
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 wav_path = f.name
             try:
+                # raw opus 패킷 → PCM via PyAV (libopus DLL 불필요)
+                codec_ctx = _av.CodecContext.create("libopus", "r")
+                codec_ctx.sample_rate = 48000
+                pcm_frames: list[bytes] = []
+                for opus_pkt in chunks:
+                    pkt = _av.Packet(opus_pkt)
+                    for audio_frame in codec_ctx.decode(pkt):
+                        pcm_frames.append(
+                            audio_frame.to_ndarray(format="s16", layout="stereo").tobytes()
+                        )
+                pcm = b"".join(pcm_frames)
+                if not pcm:
+                    return
                 with wave.open(wav_path, "wb") as wf:
                     wf.setnchannels(2)
                     wf.setsampwidth(2)
@@ -671,6 +718,40 @@ def _read_knowledge_gap_tasks(limit: int = 10) -> list[dict]:
     return results[-limit:]
 
 
+_RAG_SCRIPT = _ROOT / "scripts" / "vault_rag.py"
+
+
+def _get_rag_context(query: str, top_k: int = 3) -> str:
+    """vault_rag.py를 통해 쿼리와 관련된 Vault 지식을 가져온다."""
+    if not _RAG_SCRIPT.exists():
+        return ""
+    try:
+        result = _subprocess_mod.run(
+            ["python", str(_RAG_SCRIPT), "search", query, "--top", str(top_k), "--json"],
+            capture_output=True, text=True, encoding="utf-8", timeout=15,
+            cwd=str(_ROOT),
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return ""
+        hits = _json_mod.loads(result.stdout)
+        if not hits:
+            return ""
+        lines = ["[Vault 관련 지식]"]
+        for h in hits:
+            sim = h.get("similarity", 0)
+            if sim < 0.3:
+                continue
+            src = h.get("source", "")
+            section = h.get("section", "")
+            preview = h.get("preview", "")[:200]
+            header = f"• {src}" + (f" > {section}" if section else "")
+            lines.append(header)
+            lines.append(f"  {preview}")
+        return "\n".join(lines) if len(lines) > 1 else ""
+    except Exception:
+        return ""
+
+
 async def ask_bucky(channel_id: str, user_message: str) -> str:
     """Bucky Agent에 질문하고 답변 반환. NLP 전처리 후 Claude CLI 구독 경로 사용."""
     history = conversation_history[channel_id]
@@ -699,10 +780,16 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
     transcript = "\n".join(
         f"{item['role'].title()}: {item['content']}" for item in history
     )
+
+    # RAG: 사용자 메시지와 관련된 Vault 지식 자동 주입
+    rag_context = await asyncio.to_thread(_get_rag_context, user_message)
+    rag_block = f"\n\n{rag_context}" if rag_context else ""
+
     prompt = (
         "# Discord 대화\n\n"
         f"{BUCKY_SYSTEM_PROMPT}\n\n"
-        "답변은 한국어로. 명령이 없으면 간결하게.\n\n"
+        "답변은 한국어로. 명령이 없으면 간결하게."
+        f"{rag_block}\n\n"
         f"{transcript}"
     )
     reply = await asyncio.to_thread(run_bucky, prompt)
@@ -1008,35 +1095,135 @@ def _register_analyze_commands(tree: app_commands.CommandTree) -> None:
             print(f"[NLP] 오류: {e}", flush=True)
 
 
+# ── Wishket 모바일 대시보드 UI ────────────────────────────────────────────────
+
+class WishketDashboardView(discord.ui.View):
+    """공고 카드를 한 장씩 넘기며 지원 승인/건너뜀 선택 — 모바일 최적화."""
+
+    def __init__(self, projects: list[dict], channel: discord.abc.Messageable) -> None:
+        super().__init__(timeout=600)  # 10분
+        self.projects = projects
+        self.channel = channel
+        self.idx = 0
+        self._refresh_buttons()
+
+    def _refresh_buttons(self) -> None:
+        self.clear_items()
+        if not self.projects:
+            return
+        p = self.projects[self.idx]
+
+        apply_btn = discord.ui.Button(
+            label=f"✅ 지원하기 ({self.idx + 1}/{len(self.projects)})",
+            style=discord.ButtonStyle.success,
+            custom_id="wk_apply",
+        )
+        apply_btn.callback = self._on_apply
+
+        skip_btn = discord.ui.Button(
+            label="⏭️ 건너뜀",
+            style=discord.ButtonStyle.secondary,
+            custom_id="wk_skip",
+        )
+        skip_btn.callback = self._on_skip
+
+        link = p.get("link", "")
+        if link and link.startswith("http"):
+            link_btn = discord.ui.Button(
+                label="🔗 공고 보기",
+                style=discord.ButtonStyle.link,
+                url=link,
+            )
+            self.add_item(link_btn)
+
+        self.add_item(apply_btn)
+        self.add_item(skip_btn)
+
+    def _make_embed(self) -> discord.Embed:
+        p = self.projects[self.idx]
+        source_tag = "📧 Gmail" if p.get("source") == "gmail" else "🌐 Web"
+        embed = discord.Embed(
+            title=p["title"][:256],
+            url=p.get("link") or discord.utils.MISSING,
+            color=0x00B4D8,
+        )
+        embed.add_field(name="💰 예산", value=p.get("budget", "미정"), inline=True)
+        embed.add_field(name="출처", value=source_tag, inline=True)
+        if p.get("description"):
+            embed.add_field(name="📝 요약", value=p["description"][:300], inline=False)
+        embed.set_footer(text=f"{self.idx + 1} / {len(self.projects)}  |  Wishket 대시보드")
+        return embed
+
+    async def _on_apply(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        p = self.projects[self.idx]
+
+        import sys as _sys
+        if str(Path(__file__).parent) not in _sys.path:
+            _sys.path.insert(0, str(Path(__file__).parent))
+
+        try:
+            from wishket_proposal_generator import generate_proposal_via_claude, save_proposal
+            from bucky_wishket_agent import record_bid
+
+            proposal_text = await asyncio.to_thread(generate_proposal_via_claude, p)
+            proposal_path = await asyncio.to_thread(save_proposal, p, proposal_text)
+            await asyncio.to_thread(record_bid, p, str(proposal_path))
+
+            preview = proposal_text[:800] + "\n..." if len(proposal_text) > 800 else proposal_text
+            await interaction.followup.send(
+                f"✅ **제안서 생성 완료!**\n**{p['title']}** ({p.get('budget', '미정')})\n\n{preview}"
+            )
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 제안서 생성 오류: {e}")
+
+        self._advance()
+        if self.projects:
+            await interaction.message.edit(embed=self._make_embed(), view=self)
+        else:
+            await interaction.message.edit(content="✅ 모든 공고 검토 완료!", embed=None, view=None)
+
+    async def _on_skip(self, interaction: discord.Interaction) -> None:
+        self._advance()
+        if self.projects:
+            await interaction.response.edit_message(embed=self._make_embed(), view=self)
+        else:
+            await interaction.response.edit_message(content="✅ 모든 공고 검토 완료!", embed=None, view=None)
+
+    def _advance(self) -> None:
+        self.projects.pop(self.idx)
+        if self.projects:
+            self.idx = self.idx % len(self.projects)
+            self._refresh_buttons()
+
+
 # ── /wishket 슬래시 명령어 등록 ──────────────────────────────────────────────
 
 def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
-    """/wishket (공고 수집+제안서 생성) · /wishket_stats · /wishket_won 등록."""
+    """/wishket · /wishket_stats · /wishket_won 등록."""
     import sys as _sys
     _sys.path.insert(0, str(Path(__file__).parent))
 
-    @tree.command(name="wishket", description="Wishket 공고 자동 수집 + 제안서 생성 + 수익 파이프라인 실행")
+    @tree.command(name="wishket", description="Wishket 공고 스캔 (웹+Gmail) + 모바일 승인 대시보드")
     async def cmd_wishket(interaction: discord.Interaction) -> None:
         await interaction.response.defer(thinking=True)
         try:
-            from bucky_wishket_agent import run_full_pipeline, format_stats_message
-            result = await asyncio.get_event_loop().run_in_executor(None, run_full_pipeline)
+            from bucky_wishket_agent import scan_projects, format_stats_message, get_stats
 
-            if result["status"] == "no_projects":
-                await interaction.followup.send("📭 조건에 맞는 공고가 없습니다. 키워드나 예산 조건을 확인하세요.")
+            projects = await asyncio.to_thread(scan_projects)
+
+            if not projects:
+                await interaction.followup.send(
+                    "📭 새로운 공고 없음\n" + format_stats_message(get_stats())
+                )
                 return
 
-            lines = [f"**Wishket 파이프라인 완료** — {result['count']}개 제안서 생성\n"]
-            for p in result["proposals"][:3]:
-                lines.append(f"**{p['title']}** ({p['budget']})")
-                lines.append(f"> {p['preview'][:150]}...")
-                lines.append("")
-
-            if len(result["proposals"]) > 3:
-                lines.append(f"_외 {len(result['proposals'])-3}개..._\n")
-
-            lines.append(format_stats_message(result.get("stats", {})))
-            await interaction.followup.send("\n".join(lines)[:2000])
+            view = WishketDashboardView(list(projects), interaction.channel)
+            msg = await interaction.followup.send(
+                f"**Wishket 신규 공고 {len(projects)}개** — 카드를 넘기며 지원 여부를 결정하세요",
+                embed=view._make_embed(),
+                view=view,
+            )
         except Exception as e:
             await interaction.followup.send(f"⚠️ Wishket 오류: {e}")
             print(f"[Wishket] 오류: {e}", flush=True)
@@ -1046,8 +1233,7 @@ def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
         await interaction.response.defer(thinking=True)
         try:
             from bucky_wishket_agent import get_stats, format_stats_message
-            stats = get_stats()
-            await interaction.followup.send(format_stats_message(stats))
+            await interaction.followup.send(format_stats_message(get_stats()))
         except Exception as e:
             await interaction.followup.send(f"⚠️ 통계 조회 오류: {e}")
 
@@ -1066,11 +1252,9 @@ def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
             from bucky_wishket_agent import mark_won, get_stats, format_stats_message
             ok = mark_won(project_title, revenue_wan)
             if ok:
-                stats = get_stats()
                 await interaction.followup.send(
-                    f"낙찰 기록 완료!\n"
-                    f"**{project_title}** — {revenue_wan}만원\n\n"
-                    + format_stats_message(stats)
+                    f"낙찰 기록 완료!\n**{project_title}** — {revenue_wan}만원\n\n"
+                    + format_stats_message(get_stats())
                 )
             else:
                 await interaction.followup.send(f"⚠️ '{project_title}'에 해당하는 대기 중 공고를 찾지 못했습니다.")
@@ -1303,9 +1487,14 @@ class BuckyDiscordBot(discord.Client):
             return
 
         author_id = str(message.author.id)
-        if not _is_user_allowed(author_id):
+        # 웹훅/Discord 앱(봇)은 서버 관리자가 설정한 신뢰된 소스이므로 자동 허용
+        is_webhook = bool(getattr(message, "webhook_id", None))
+        is_bot_app = getattr(message.author, "bot", False)
+        if not _is_user_allowed(author_id) and not is_webhook and not is_bot_app:
+            print(f"[Bot] 접근 차단: {message.author.name} (ID: {author_id})", flush=True)
             await message.channel.send(
-                f"⛔ `{message.author.name}` — 접근 권한이 없습니다. 관리자에게 문의하세요."
+                f"⛔ `{message.author.name}` — 접근 권한이 없습니다.\n"
+                f"관리자가 이 ID를 `discord_users.yaml`에 추가해야 합니다: `{author_id}`"
             )
             return
 
@@ -1337,7 +1526,7 @@ class BuckyDiscordBot(discord.Client):
                                             _sys.path.insert(0, str(Path(__file__).parent))
                                         from bucky_nlp_preprocessor import preprocess, format_for_discord as _nlp_fmt
                                         nlp_result = await asyncio.to_thread(preprocess, transcript)
-                                        if nlp_result.get("confidence", 0) > 0.3 and nlp_result.get("action") != "EXPLAIN":
+                                        if False:  # NLP 포맷 Discord 전송 비활성화 (중복 메시지 방지)
                                             fmt = _nlp_fmt(nlp_result)
                                             if fmt:
                                                 await message.channel.send(fmt)
@@ -1354,6 +1543,50 @@ class BuckyDiscordBot(discord.Client):
                             await message.channel.send(f"⚠️ 음성 인식 실패: {e}")
                             print(f"[Bot] STT 오류: {e}", flush=True)
                     break  # 첫 번째 음성 파일만 처리
+
+        # ── 이미지 첨부파일 처리 (Vision 분석 → Obsidian 저장) ─────────────────────
+        if message.attachments:
+            try:
+                import sys as _sys
+                if str(Path(__file__).parent) not in _sys.path:
+                    _sys.path.insert(0, str(Path(__file__).parent))
+                from discord_vision_processor import process_image_attachment, is_image_attachment
+                image_atts = [a for a in message.attachments if is_image_attachment(a)]
+            except ImportError as _ve:
+                image_atts = []
+                print(f"[Vision] 모듈 로드 실패: {_ve}", flush=True)
+
+            if image_atts:
+                async with message.channel.typing():
+                    channel_name = getattr(message.channel, "name", channel_id)
+                    author_name = message.author.name
+                    summaries = []
+                    for att in image_atts[:20]:  # 최대 20장
+                        try:
+                            vr = await process_image_attachment(att, content, channel_name, author_name)
+                            if vr["ok"]:
+                                summaries.append(vr["summary"])
+                                print(f"[Vision] 저장 완료: {vr['vault_path']}", flush=True)
+                            else:
+                                print(f"[Vision] 처리 실패: {vr['error']}", flush=True)
+                        except Exception as _img_err:
+                            print(f"[Vision] 처리 오류: {_img_err}", flush=True)
+
+                    if summaries:
+                        # 이미지 요약을 Bucky 대화 컨텍스트에 포함
+                        img_context = "\n".join(f"[이미지 {i+1}] {s}" for i, s in enumerate(summaries))
+                        if content:
+                            content = f"{content}\n\n{img_context}"
+                        else:
+                            content = f"[이미지 첨부]\n{img_context}"
+                        await message.channel.send(
+                            f"📸 **이미지 {len(summaries)}장 분석 완료** — Obsidian 저장 완료\n"
+                            f">{summaries[0][:120]}{'...' if len(summaries[0]) > 120 else ''}"
+                        )
+                    elif image_atts:
+                        # Vision 실패해도 URL 컨텍스트 유지
+                        urls_txt = "\n".join(a.url for a in image_atts)
+                        content = f"{content}\n[이미지 첨부 — Vision 분석 불가]\n{urls_txt}" if content else f"[이미지 첨부]\n{urls_txt}"
 
         # ── 내장 명령어 ────────────────────────────────────────────────────────
         if content == "!debug":
