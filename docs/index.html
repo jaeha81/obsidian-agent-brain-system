@@ -361,6 +361,17 @@ const repos = [
     action: 'v2와 차별화 후 Arki 브랜드로 독립 출시 또는 v2 통합'
   },
 
+  {
+    id: 'sniper-buying-dashboard',
+    name: 'sniper-buying-dashboard',
+    url: 'https://github.com/jaeha81/sniper-buying-dashboard',
+    desc: '스나이퍼 구매대행 플랫폼 MVP — iHerb·Amazon 소싱, 스나이퍼 스코어(8지표 100점) 기반 검증, 마진율 계산, 통관리스크 분석.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'commerce',
+    completion: 70, market: 82,
+    reason: '해외직구 구매대행 성장 시장, Vercel 배포 완료, 스코어링 차별화',
+    action: 'Supabase 연동 + 실결제 붙이면 즉시 수익화 가능'
+  },
+
   // ─── TIER 2: 개발 필요 ──────────────────────────────────────────
   {
     id: 'AgentDeck',
@@ -962,9 +973,62 @@ function closeBuckyPanel() {
   document.getElementById('buckyPanel').classList.remove('show');
 }
 
-// ── 초기 렌더 ────────────────────────────────────────────────────
-renderAll();
-updateBuckyPanel();
+// ── GitHub API 전체 레포 동적 로드 ───────────────────────────────
+async function fetchAllGithubRepos() {
+  let all = [];
+  let page = 1;
+  try {
+    while (true) {
+      const res = await fetch(`https://api.github.com/users/jaeha81/repos?per_page=100&page=${page}&sort=updated`);
+      if (!res.ok) break;
+      const data = await res.json();
+      if (!data.length) break;
+      all = all.concat(data);
+      if (data.length < 100) break;
+      page++;
+    }
+  } catch(e) { /* 네트워크 오류 시 정적 데이터만 사용 */ }
+  return all;
+}
+
+async function init() {
+  renderAll();
+  updateBuckyPanel();
+
+  const ghRepos = await fetchAllGithubRepos();
+  if (!ghRepos.length) return;
+
+  const existingIds = new Set(repos.map(r => r.id));
+  let added = 0;
+  ghRepos.forEach(gr => {
+    if (!existingIds.has(gr.name)) {
+      repos.push({
+        id: gr.name,
+        name: gr.name,
+        url: gr.html_url,
+        desc: gr.description || '설명 없음 — Bucky 분석 필요',
+        lang: gr.language || '—',
+        status: 'active',
+        tier: 3,
+        cat: 'saas',
+        completion: 0,
+        market: 0,
+        reason: '분석 미완료',
+        action: '🤖 Bucky 분석 요청'
+      });
+      added++;
+    }
+  });
+
+  const total = repos.length;
+  document.getElementById('repoCount').textContent = total;
+  document.getElementById('totalCount').textContent = total;
+
+  if (added > 0) renderAll();
+  updateBuckyPanel();
+}
+
+init();
 </script>
 </body>
 </html>
