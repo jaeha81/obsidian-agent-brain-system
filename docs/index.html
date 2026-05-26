@@ -289,12 +289,13 @@
 <script>
 const repos = [
   // ─── TIER 1: 즉시 출시 가능 ───────────────────────────────────
+  // ─── TIER 1: 즉시 출시 가능 ────────────────────────────────────
   {
     id: 'jh-estimate-system',
     name: 'jh-estimate-system',
     url: 'https://github.com/jaeha81/jh-estimate-system',
     desc: '건설/인테리어 AI 견적 시스템. 공종 자동 분류, 물량 산출, PDF 보고서 생성. B2B 건설사 타깃.',
-    lang: 'Python', status: 'active', tier: 1,
+    lang: 'Python', status: 'active', tier: 1, cat: 'interior',
     completion: 85, market: 90,
     reason: '특화 니치 시장, 경쟁 적음, 완성도 높음',
     action: '랜딩페이지 + 유료 플랜 설정 후 즉시 출시 (건설사 B2B)'
@@ -304,7 +305,7 @@ const repos = [
     name: 'codex-medipic-v2-app',
     url: 'https://github.com/jaeha81/codex-medipic-v2-app',
     desc: 'Medipic v2 — AI 기반 의료 이미지 분석 앱. 피부과·성형외과 특화.',
-    lang: 'TypeScript', status: 'active', tier: 1,
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'interior',
     completion: 80, market: 85,
     reason: '의료 AI 고수요 시장, 규제 낮은 뷰티의료 분야, v2 완성도',
     action: 'SaaS 플랜 설정 + 의료기관 파일럿 제안'
@@ -314,7 +315,7 @@ const repos = [
     name: 'jh-CapitalBridge-Intelligence',
     url: 'https://github.com/jaeha81/jh-CapitalBridge-Intelligence',
     desc: '캐피털브릿지 인텔리전스 — 금융 데이터 분석 및 투자 인사이트 플랫폼.',
-    lang: 'TypeScript', status: 'active', tier: 1,
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'finance',
     completion: 75, market: 88,
     reason: '금융 AI 고부가가치, 엔터프라이즈 타깃, 경쟁 차별화 가능',
     action: '데모 환경 구축 + 금융사/VC BD 접촉'
@@ -324,7 +325,7 @@ const repos = [
     name: 'sketchflow-final',
     url: 'https://github.com/jaeha81/sketchflow-final',
     desc: '스케치플로우 — 디자인 워크플로우 자동화 도구. Figma 연동 지원.',
-    lang: 'TypeScript', status: 'active', tier: 1,
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'saas',
     completion: 78, market: 80,
     reason: '디자이너 수요 높음, SaaS 전환 구조 명확, Product Hunt 적합',
     action: 'Vercel 배포 후 Product Hunt 등록'
@@ -334,7 +335,7 @@ const repos = [
     name: 'jh-outsource-system',
     url: 'https://github.com/jaeha81/jh-outsource-system',
     desc: '외주 프로젝트 통합 관리 시스템. 클라이언트 관리, 계약, 정산 자동화.',
-    lang: 'TypeScript', status: 'active', tier: 1,
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'saas',
     completion: 72, market: 82,
     reason: '프리랜서/에이전시 범용 수요, 즉시 사용 가능 수준',
     action: 'SaaS 전환 + 프리랜서 커뮤니티 홍보'
@@ -344,7 +345,7 @@ const repos = [
     name: 'Seou-up-Microblading-APP',
     url: 'https://github.com/jaeha81/Seou-up-Microblading-APP',
     desc: '서울업 마이크로블레이딩 앱 — 뷰티/반영구 화장 클리닉 전용 예약·관리 앱.',
-    lang: 'TypeScript', status: 'active', tier: 1,
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'interior',
     completion: 70, market: 75,
     reason: '특화 버티컬 SaaS, 국내 뷰티 클리닉 시장 진입 최적화',
     action: '뷰티 클리닉 대상 B2B SaaS 출시 (월정액)'
@@ -354,19 +355,19 @@ const repos = [
     name: 'arki-Build-medipic-app-',
     url: 'https://github.com/jaeha81/arki-Build-medipic-app-',
     desc: 'Arki Medipic 앱 빌드 — 의료 이미지 분석 Arki 브랜드 빌드.',
-    lang: 'TypeScript', status: 'active', tier: 1,
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'interior',
     completion: 65, market: 78,
     reason: 'Medipic 생태계 확장, Arki 브랜드 독립 출시 가능',
     action: 'v2와 차별화 후 Arki 브랜드로 독립 출시 또는 v2 통합'
   },
 
-  // ─── TIER 2: 개발 필요 ────────────────────────────────────────
+  // ─── TIER 2: 개발 필요 ──────────────────────────────────────────
   {
     id: 'AgentDeck',
     name: 'AgentDeck',
     url: 'https://github.com/jaeha81/AgentDeck',
     desc: 'AI 에이전트 관리 대시보드 UI — 멀티에이전트 모니터링 및 제어 인터페이스.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
     completion: 65, market: 88,
     reason: '에이전트 오케스트레이션 수요 급증, 타이밍 매우 좋음',
     action: 'Bucky 시스템과 통합 후 SaaS 패키징 → 에이전트 관리 B2B'
@@ -376,7 +377,7 @@ const repos = [
     name: 'JH-AI-Dev-Nexus',
     url: 'https://github.com/jaeha81/JH-AI-Dev-Nexus',
     desc: 'AI 개발 넥서스 — 다중 AI 모델 라우팅 및 통합 개발 플랫폼.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
     completion: 60, market: 85,
     reason: 'AI API 라우팅 수요 폭발적, 완성도 보강 필요',
     action: 'API 게이트웨이 기능 완성 후 개발자 타깃 출시'
@@ -386,7 +387,7 @@ const repos = [
     name: 'arki-Build-Project-Medicare',
     url: 'https://github.com/jaeha81/arki-Build-Project-Medicare',
     desc: 'Arki Medicare — 의료 플랫폼 통합 빌드 (예약·차트·청구 연동).',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
     completion: 60, market: 82,
     reason: '의료 플랫폼 고부가가치, MVP 완성 시 즉시 파일럿 가능',
     action: 'MVP 완성 후 의료기관 파일럿 → EMR 연동'
@@ -396,7 +397,7 @@ const repos = [
     name: 'marketingskills-agents',
     url: 'https://github.com/jaeha81/marketingskills-agents',
     desc: '마케팅 스킬 에이전트 시스템 — AI 기반 마케팅 전략 수립 및 콘텐츠 생성.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
     completion: 55, market: 82,
     reason: '마케팅 AI 수요 높음, 캠페인 자동화 파이프라인 고도화 필요',
     action: '캠페인 자동화 시나리오 추가 후 에이전시 타깃'
@@ -406,7 +407,7 @@ const repos = [
     name: 'Wishket-Dev-Prompt-Converter',
     url: 'https://github.com/jaeha81/Wishket-Dev-Prompt-Converter',
     desc: 'Wishket 개발 요청서를 AI 프롬프트로 자동 변환. 개발자 생산성 향상 도구.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
     completion: 65, market: 75,
     reason: 'Wishket 플랫폼 연동 필요, 범용 RFP 변환으로 확장 가능',
     action: '범용 RFP → AI 프롬프트 변환으로 확장 후 출시'
@@ -416,7 +417,7 @@ const repos = [
     name: 'jh-Jarvis',
     url: 'https://github.com/jaeha81/jh-Jarvis',
     desc: 'JH Jarvis AI 개인 비서 시스템 — 음성/텍스트 멀티모달 AI 어시스턴트.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
     completion: 70, market: 78,
     reason: 'AI 어시스턴트 경쟁 치열, 건설/법률 특화 차별화 필요',
     action: '버티컬(건설/법률) 집중 후 산업별 특화 어시스턴트로 재포지셔닝'
@@ -426,7 +427,7 @@ const repos = [
     name: 'jh-mobile-second-brain',
     url: 'https://github.com/jaeha81/jh-mobile-second-brain',
     desc: '모바일 세컨드 브레인 앱 — Obsidian 연동 모바일 지식 관리 솔루션.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
     completion: 55, market: 80,
     reason: 'PKM 시장 성장 중, 모바일 Obsidian 갭 존재',
     action: '핵심 기능 완성 후 App Store/Play Store 출시'
@@ -436,7 +437,7 @@ const repos = [
     name: 'jh-harnessFramework-dashboard',
     url: 'https://github.com/jaeha81/jh-harnessFramework-dashboard',
     desc: '하네스 프레임워크 대시보드 — Claude Code 하네스 시스템 모니터링 UI.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
     completion: 68, market: 72,
     reason: 'Claude Code 사용자 타깃 특화 도구, 커뮤니티 공개 가능',
     action: '공개 배포 후 Claude Code 커뮤니티 홍보'
@@ -446,7 +447,7 @@ const repos = [
     name: 'JH-BuildFlow',
     url: 'https://github.com/jaeha81/JH-BuildFlow',
     desc: '빌드플로우 — CI/CD 파이프라인 시각화 및 자동화 관리 시스템.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
     completion: 60, market: 72,
     reason: 'DevOps 도구 포화 상태, AI 자동 최적화로 차별화 필요',
     action: 'AI 자동 최적화 기능 추가 후 재포지셔닝'
@@ -456,7 +457,7 @@ const repos = [
     name: 'jh-WishDash',
     url: 'https://github.com/jaeha81/jh-WishDash',
     desc: 'Wishket 대시보드 — Wishket 플랫폼 통합 프리랜서 관리 대시보드.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
     completion: 60, market: 70,
     reason: 'Wishket 종속적, 범용 프리랜서 대시보드로 확장 가능',
     action: '다중 플랫폼(Wishket+크몽+탈잉) 통합 대시보드로 재설계'
@@ -466,7 +467,7 @@ const repos = [
     name: 'codex-medipic-app',
     url: 'https://github.com/jaeha81/codex-medipic-app',
     desc: 'Medipic 앱 v1 (Codex 빌드) — 의료 이미지 분석 v1 버전.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
     completion: 65, market: 70,
     reason: 'v2와 중복, v1 기능 v2로 통합 또는 라이트 버전 분리 필요',
     action: 'v2로 합병 또는 라이트(무료) 버전으로 분리 출시'
@@ -476,7 +477,7 @@ const repos = [
     name: 'codex-better-space',
     url: 'https://github.com/jaeha81/codex-better-space',
     desc: 'Better Space — 공간/인테리어 AI 시각화 및 설계 도구.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
     completion: 55, market: 72,
     reason: '공간 AI 틈새 시장, AR 인테리어 시각화 추가 시 경쟁력',
     action: '3D/AR 인테리어 시각화 기능 추가 후 앱 출시'
@@ -486,7 +487,7 @@ const repos = [
     name: 'arki-3d-APP',
     url: 'https://github.com/jaeha81/arki-3d-APP',
     desc: 'Arki 3D 앱 — 건축/인테리어 3D 시각화 AI 앱.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
     completion: 60, market: 75,
     reason: '3D 시각화 AI 수요 증가, 건축 시장 니치 진입 가능',
     action: 'WebGL 성능 최적화 후 건축/인테리어 사무소 타깃 출시'
@@ -496,7 +497,7 @@ const repos = [
     name: 'JH-IDEAGO-APP',
     url: 'https://github.com/jaeha81/JH-IDEAGO-APP',
     desc: 'IDEAGO 앱 — AI 기반 아이디어 생성 및 발전 관리 앱.',
-    lang: 'TypeScript', status: 'active', tier: 2,
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
     completion: 55, market: 68,
     reason: 'PKM/아이디어 앱 경쟁 치열, AI 발전 기능으로 차별화',
     action: 'AI 아이디어 발전 + 연결 기능 추가 후 크리에이터 타깃'
@@ -506,7 +507,7 @@ const repos = [
     name: 'bitmex-ai-bot',
     url: 'https://github.com/jaeha81/bitmex-ai-bot',
     desc: 'BitMEX AI 트레이딩 봇 — 자동 매매 전략 및 리스크 관리.',
-    lang: 'JavaScript', status: 'active', tier: 2,
+    lang: 'JavaScript', status: 'active', tier: 2, cat: 'finance',
     completion: 70, market: 68,
     reason: '규제 리스크 존재, 백테스팅/검증 데이터 필요',
     action: '페이퍼트레이딩 검증 + 법적 검토 후 구독형 서비스 전환'
@@ -516,7 +517,7 @@ const repos = [
     name: 'jh-free-ott-hub',
     url: 'https://github.com/jaeha81/jh-free-ott-hub',
     desc: '무료 OTT 허브 — 합법 무료 스트리밍 콘텐츠 큐레이션 플랫폼.',
-    lang: 'Python', status: 'active', tier: 2,
+    lang: 'Python', status: 'active', tier: 2, cat: 'saas',
     completion: 60, market: 68,
     reason: '저작권 리스크 관리 필요, 합법 콘텐츠 큐레이션으로 방향 전환 가능',
     action: '합법 무료 콘텐츠 API 연동 후 큐레이션 커뮤니티 서비스로 출시'
@@ -526,7 +527,7 @@ const repos = [
     name: 'sisyphus-dashboard-desktop',
     url: 'https://github.com/jaeha81/sisyphus-dashboard-desktop',
     desc: 'Sisyphus 대시보드 데스크탑 앱 (Electron) — 프로젝트 관리 대시보드.',
-    lang: 'HTML', status: 'active', tier: 2,
+    lang: 'HTML', status: 'active', tier: 2, cat: 'saas',
     completion: 65, market: 60,
     reason: 'Electron 앱 배포 복잡, 웹 버전 전환 시 SaaS 적합',
     action: '웹 버전 전환 후 SaaS 패키징 → 프리랜서/팀 타깃'
@@ -536,19 +537,19 @@ const repos = [
     name: 'jH-Remote-DevCore',
     url: 'https://github.com/jaeha81/jH-Remote-DevCore',
     desc: '원격 개발 코어 시스템 — 리모트 환경 통합 개발 및 배포 자동화.',
-    lang: 'JavaScript', status: 'active', tier: 2,
+    lang: 'JavaScript', status: 'active', tier: 2, cat: 'saas',
     completion: 62, market: 65,
     reason: '원격 근무 인프라 수요, 개발자 도구로 차별화 가능',
     action: '핵심 기능 정의 + 개발자 CLI 도구로 출시'
   },
 
-  // ─── TIER 3: 인프라/보류 ─────────────────────────────────────
+  // ─── TIER 3: 인프라/보류 ────────────────────────────────────────
   {
     id: 'obsidian-agent-brain-system',
     name: 'obsidian-agent-brain-system',
     url: 'https://github.com/jaeha81/obsidian-agent-brain-system',
     desc: '이 레포 — Obsidian 에이전트 브레인 시스템. Bucky AI 인프라 + 지식 관리.',
-    lang: 'Python', status: 'active', tier: 3,
+    lang: 'Python', status: 'active', tier: 3, cat: 'ai',
     completion: 85, market: 65,
     reason: '내부 인프라, "AI Brain OS"로 패키징 시 상품화 가능',
     action: 'SaaS화 검토 — 개인 AI 지식 OS 패키징 (장기)'
@@ -558,7 +559,7 @@ const repos = [
     name: 'agent_factory',
     url: 'https://github.com/jaeha81/agent_factory',
     desc: '에이전트 팩토리 — AI 에이전트 자동 생성 및 배포 시스템.',
-    lang: 'Python', status: 'active', tier: 3,
+    lang: 'Python', status: 'active', tier: 3, cat: 'ai',
     completion: 65, market: 75,
     reason: '잠재력 높음, GUI 추가 시 Tier 2 승격 가능',
     action: '노코드 GUI 추가 후 에이전트 빌더로 출시 검토'
@@ -568,7 +569,7 @@ const repos = [
     name: 'JH-Agent-Room',
     url: 'https://github.com/jaeha81/JH-Agent-Room',
     desc: 'AgentBus 메시지 버스 — 에이전트 간 통신 인프라. Discord 연동.',
-    lang: 'JavaScript', status: 'active', tier: 3,
+    lang: 'JavaScript', status: 'active', tier: 3, cat: 'ai',
     completion: 78, market: 55,
     reason: '내부 인프라, npm 패키지화 시 오픈소스 기여 가능',
     action: 'npm 패키지화 후 오픈소스 공개 고려'
@@ -578,7 +579,7 @@ const repos = [
     name: 'today-plus-obsidian-archiver',
     url: 'https://github.com/jaeha81/today-plus-obsidian-archiver',
     desc: 'Obsidian 일일 아카이버 자동화 — 데일리 노트 처리 및 정리 파이프라인.',
-    lang: 'Python', status: 'active', tier: 3,
+    lang: 'Python', status: 'active', tier: 3, cat: 'ai',
     completion: 80, market: 52,
     reason: 'Obsidian 플러그인 생태계 타깃 가능, 완성도 높음',
     action: 'Obsidian Community Plugin으로 출시 검토'
@@ -588,7 +589,7 @@ const repos = [
     name: 'arkistore_system',
     url: 'https://github.com/jaeha81/arkistore_system',
     desc: 'Arki 스토어 시스템 — Arki 생태계 백엔드 인프라.',
-    lang: 'Python', status: 'active', tier: 3,
+    lang: 'Python', status: 'active', tier: 3, cat: 'commerce',
     completion: 55, market: 62,
     reason: 'Arki 생태계 인프라, 상품화 전 시스템 통합 필요',
     action: 'Arki 생태계 통합 백엔드로 구성 후 API화'
@@ -598,7 +599,7 @@ const repos = [
     name: 'JH-Chrome-Remote-Desktop',
     url: 'https://github.com/jaeha81/JH-Chrome-Remote-Desktop',
     desc: 'Chrome 원격 데스크탑 보조 도구 — 원격 환경 자동화 헬퍼.',
-    lang: 'Python', status: 'active', tier: 3,
+    lang: 'Python', status: 'active', tier: 3, cat: 'saas',
     completion: 65, market: 55,
     reason: 'Chrome 원격 데스크탑 종속, 범위 제한적',
     action: '원격 근무 도구 패키지로 통합 또는 보관'
@@ -608,7 +609,7 @@ const repos = [
     name: 'H-Sisyphus-handoff',
     url: 'https://github.com/jaeha81/H-Sisyphus-handoff',
     desc: 'Sisyphus 핸드오프 도구 — 프로젝트 인계 문서 자동화.',
-    lang: 'HTML', status: 'active', tier: 3,
+    lang: 'HTML', status: 'active', tier: 3, cat: 'saas',
     completion: 50, market: 52,
     reason: '핸드오프 특화, 사용 사례 제한적',
     action: 'Sisyphus 대시보드 내 인프라로 통합'
@@ -618,7 +619,7 @@ const repos = [
     name: 'upload-auto-netlify',
     url: 'https://github.com/jaeha81/upload-auto-netlify',
     desc: 'Netlify 자동 업로드 도구 — 배포 자동화 CLI.',
-    lang: 'JavaScript', status: 'active', tier: 3,
+    lang: 'JavaScript', status: 'active', tier: 3, cat: 'saas',
     completion: 70, market: 48,
     reason: 'Netlify 종속적, 범용 배포 CLI로 확장 시 가치 증가',
     action: '범용 배포 자동화 CLI로 확장 후 npm 공개'
@@ -628,7 +629,7 @@ const repos = [
     name: 'jh-android-studio',
     url: 'https://github.com/jaeha81/jh-android-studio',
     desc: 'Android Studio 환경 설정 자동화 스크립트 (PowerShell).',
-    lang: 'PowerShell', status: 'active', tier: 3,
+    lang: 'PowerShell', status: 'active', tier: 3, cat: 'saas',
     completion: 40, market: 42,
     reason: '개발 환경 설정 도구, 범위 제한적',
     action: '개발 환경 자동화 패키지로 보관'
@@ -638,7 +639,7 @@ const repos = [
     name: 'jh-perfect-grop',
     url: 'https://github.com/jaeha81/jh-perfect-grop',
     desc: 'Perfect Group 프로젝트 — 그룹/팀 관리 실험 앱.',
-    lang: 'JavaScript', status: 'active', tier: 3,
+    lang: 'JavaScript', status: 'active', tier: 3, cat: 'saas',
     completion: 45, market: 52,
     reason: '목적 불명확, 재정의 필요',
     action: '원래 목적 재검토 후 발전 or 아카이브 결정'
@@ -648,7 +649,7 @@ const repos = [
     name: 'arki-medipic',
     url: 'https://github.com/jaeha81/arki-medipic',
     desc: 'Arki Medipic 초기 버전 — 의료 이미지 분석 프로토타입.',
-    lang: '—', status: 'active', tier: 3,
+    lang: '—', status: 'active', tier: 3, cat: 'interior',
     completion: 30, market: 48,
     reason: '초기 단계, arki-Build-medipic-app- 으로 발전',
     action: 'arki-Build-medipic-app- 으로 통합 후 아카이브'
@@ -658,7 +659,7 @@ const repos = [
     name: 'JH-ICON',
     url: 'https://github.com/jaeha81/JH-ICON',
     desc: 'JH 아이콘 리소스 모음 — 프로젝트 공용 UI 아이콘 에셋.',
-    lang: '—', status: 'active', tier: 3,
+    lang: '—', status: 'active', tier: 3, cat: 'saas',
     completion: 70, market: 38,
     reason: '아이콘 에셋, 직접 상품화 어려움',
     action: '디자인 시스템 번들 or npm 아이콘 패키지 공개'
@@ -668,7 +669,7 @@ const repos = [
     name: 'claude-projects-jh',
     url: 'https://github.com/jaeha81/claude-projects-jh',
     desc: 'Claude 프로젝트 설정 레포 — CLAUDE.md, 스킬, 설정 파일 관리.',
-    lang: '—', status: 'active', tier: 3,
+    lang: '—', status: 'active', tier: 3, cat: 'ai',
     completion: 80, market: 32,
     reason: '내부 Claude 설정, 커뮤니티 템플릿으로 공개 가능',
     action: '템플릿 레포로 공개 후 Claude Code 커뮤니티 기여'
@@ -678,7 +679,7 @@ const repos = [
     name: 'cookie-hertz-platformSAMPLE',
     url: 'https://github.com/jaeha81/cookie-hertz-platformSAMPLE',
     desc: 'Cookie Hertz 플랫폼 샘플 — 실험적 플랫폼 프로토타입.',
-    lang: '—', status: 'active', tier: 3,
+    lang: '—', status: 'active', tier: 3, cat: 'saas',
     completion: 30, market: 38,
     reason: '샘플/프로토타입, 방향 미결정',
     action: '원래 목적 재검토 후 아카이브 또는 발전 결정'
@@ -688,7 +689,7 @@ const repos = [
     name: 'docs',
     url: 'https://github.com/jaeha81/docs',
     desc: '문서 레포 — 프로젝트 공용 문서 및 가이드 (MDX).',
-    lang: 'MDX', status: 'stale', tier: 3,
+    lang: 'MDX', status: 'stale', tier: 3, cat: 'saas',
     completion: 40, market: 28,
     reason: '유지보수 낮음, 각 레포 README로 대체 가능',
     action: '각 레포 README 개선으로 대체 후 아카이브'
@@ -733,6 +734,11 @@ function renderCard(r) {
     <div class="tags">
       ${r.lang !== '—' ? `<span class="tag tag-lang">${r.lang}</span>` : ''}
       <span class="tag ${r.status === 'active' ? 'tag-active' : 'tag-stale'}">${r.status === 'active' ? '🟢 active' : '🟡 stale'}</span>
+      ${r.cat === 'ai' ? '<span class="tag" style="background:rgba(188,140,255,0.12);color:#bc8cff;border:1px solid rgba(188,140,255,0.28)">🤖 AI/에이전트</span>' : ''}
+      ${r.cat === 'interior' ? '<span class="tag" style="background:rgba(255,166,87,0.12);color:#ffa657;border:1px solid rgba(255,166,87,0.28)">🏗️ 인테리어</span>' : ''}
+      ${r.cat === 'commerce' ? '<span class="tag" style="background:rgba(63,185,80,0.12);color:#3fb950;border:1px solid rgba(63,185,80,0.28)">🛍️ 커머스</span>' : ''}
+      ${r.cat === 'saas' ? '<span class="tag" style="background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.28)">💼 SaaS</span>' : ''}
+      ${r.cat === 'finance' ? '<span class="tag" style="background:rgba(57,208,216,0.12);color:#39d0d8;border:1px solid rgba(57,208,216,0.28)">💹 파이낸스</span>' : ''}
     </div>
     <div class="reason-box">
       💡 <strong>이유:</strong> ${r.reason}<br>
@@ -812,7 +818,7 @@ function filter(btn, type) {
 function search(val) { currentSearch = val.toLowerCase(); applyFilters(); }
 
 function applyFilters() {
-  getSorted().forEach((r, i) => {
+  getSorted().forEach((r) => {
     const card = document.getElementById(`card-${r.id}`);
     if (!card) return;
     let show = true;
@@ -821,7 +827,12 @@ function applyFilters() {
     else if (currentFilter === 'tier3') show = r.tier === 3;
     else if (currentFilter === 'checked') show = r.checked;
     else if (currentFilter === 'unchecked') show = !r.checked;
-    if (currentSearch && !(r.name.toLowerCase().includes(currentSearch) || r.desc.toLowerCase().includes(currentSearch))) show = false;
+    else if (currentFilter === 'cat-ai') show = r.cat === 'ai';
+    else if (currentFilter === 'cat-interior') show = r.cat === 'interior';
+    else if (currentFilter === 'cat-commerce') show = r.cat === 'commerce';
+    else if (currentFilter === 'cat-saas') show = r.cat === 'saas';
+    else if (currentFilter === 'cat-finance') show = r.cat === 'finance';
+    if (currentSearch && !(r.name.toLowerCase().includes(currentSearch) || r.desc.toLowerCase().includes(currentSearch) || (r.cat||'').includes(currentSearch))) show = false;
     card.classList.toggle('hidden', !show);
   });
 }

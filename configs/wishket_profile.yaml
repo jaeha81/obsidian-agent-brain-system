@@ -44,3 +44,5 @@ keywords:
 # 자동 스캔 스케줄
 auto_scan_hour: 8         # 매일 몇 시에 스캔 (0-23)
 auto_scan_minute: 30      # 분 (0-59)
+# scan_interval_hours: 0 → 하루 1회 지정 시각, N → N시간마다 반복 (예: 2 = 2시간 간격)
+scan_interval_hours: 0
