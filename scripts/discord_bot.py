@@ -255,6 +255,32 @@ MAX_HISTORY = 20
 
 # ── 유틸 ───────────────────────────────────────────────────────────────────────
 
+_THINKING_STAGES = [
+    (0,  "🔍 RAG 지식 검색 중"),
+    (6,  "🧠 Claude 응답 생성 중"),
+    (20, "📝 응답 마무리 중"),
+    (60, "⏳ 복잡한 작업 처리 중"),
+]
+
+
+async def _animate_thinking(msg: "discord.Message", stop_event: "asyncio.Event") -> None:
+    """thinking 메시지를 3초마다 단계·경과시간으로 업데이트한다."""
+    elapsed = 0
+    while not stop_event.is_set():
+        await asyncio.sleep(3)
+        if stop_event.is_set():
+            break
+        elapsed += 3
+        label = _THINKING_STAGES[0][1]
+        for threshold, stage_label in _THINKING_STAGES:
+            if elapsed >= threshold:
+                label = stage_label
+        try:
+            await msg.edit(content=f"{label}... _(⏱ {elapsed}초)_")
+        except Exception:
+            break
+
+
 def split_message(text: str, limit: int = 1900) -> list[str]:
     """Discord 2000자 제한 대응. 줄 단위 분할 후 초과 줄은 고정 길이로 재분할."""
     if len(text) <= limit:
@@ -718,8 +744,14 @@ def _make_voice_sink_class():
 
                 display_name = user.display_name if user is not None else "음성"
                 await ch.send(f"🎙️ **{display_name}:** {text}")
-                thinking_msg = await ch.send("🤔 생각 중...")
-                reply = await ask_bucky(str(self.guild_id), text)
+                thinking_msg = await ch.send("🔍 RAG 지식 검색 중... _(⏱ 0초)_")
+                _stop = asyncio.Event()
+                _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
+                try:
+                    reply = await ask_bucky(str(self.guild_id), text)
+                finally:
+                    _stop.set()
+                    _anim.cancel()
                 voice_chunks = split_message(reply)
                 await thinking_msg.edit(content=voice_chunks[0])
                 for chunk in voice_chunks[1:]:
@@ -1756,6 +1788,7 @@ async def _handle_jh_tasks(message: Message) -> None:
 class BuckyDiscordBot(discord.Client):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        self._auto_joined: bool = False
         self.tree = app_commands.CommandTree(self)
         _register_evolve_commands(self.tree)
         _register_tasks_commands(self.tree)
@@ -2027,7 +2060,7 @@ class BuckyDiscordBot(discord.Client):
         # ── 자동 음성 채널 입장 (AUTO_JOIN_VOICE_CHANNEL_ID 설정 시) ──────────────
         auto_join_ch_id = os.getenv("AUTO_JOIN_VOICE_CHANNEL_ID", "").strip()
         auto_join_text_ch_id = os.getenv("AUTO_JOIN_TEXT_CHANNEL_ID", "").strip()
-        if auto_join_ch_id and VOICE_CHANNEL_ENABLED:
+        if auto_join_ch_id and VOICE_CHANNEL_ENABLED and not self._auto_joined:
             await asyncio.sleep(2)  # 게이트웨이 안정화 대기
             try:
                 vc_channel = self.get_channel(int(auto_join_ch_id))
@@ -2035,6 +2068,7 @@ class BuckyDiscordBot(discord.Client):
                 if vc_channel and isinstance(vc_channel, discord.VoiceChannel):
                     guild_id = vc_channel.guild.id
                     await _join_voice_channel(vc_channel, text_channel, guild_id)
+                    self._auto_joined = True
                     print(f"[Voice] 자동 입장: {vc_channel.name}", flush=True)
                     if text_channel:
                         await text_channel.send(f"🎙️ `{vc_channel.name}` 음성 채널에 자동 입장했습니다. 말씀하세요!")
@@ -2850,7 +2884,9 @@ class BuckyDiscordBot(discord.Client):
                 return
 
             # 단일 태스크 — 기존 경로
-            thinking_msg = await message.channel.send("🤔 생각 중...")
+            thinking_msg = await message.channel.send("🔍 RAG 지식 검색 중... _(⏱ 0초)_")
+            _stop = asyncio.Event()
+            _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
             try:
                 reply = await ask_bucky(channel_id, content)
             except BuckyError as e:
@@ -2859,6 +2895,9 @@ class BuckyDiscordBot(discord.Client):
             except Exception as e:
                 reply = f"⚠️ 오류: {e}"
                 print(f"[Bot] Error: {e}", flush=True)
+            finally:
+                _stop.set()
+                _anim.cancel()
 
             chunks = split_message(reply)
             await thinking_msg.edit(content=chunks[0])
