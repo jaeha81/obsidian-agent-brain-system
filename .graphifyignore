@@ -40,14 +40,33 @@ private/
 logs/
 
 # Local cache
+graphify-out/
 graphify-out/cache/
 graphify-out/cost.json
 graphify-out/manifest.json
+ObsidianVault/graphify-out/
 
-# Obsidian raw overload prevention
-01_RAW/Misc/
-01_RAW/Screenshots/
-01_RAW/Errors/
+# Obsidian internals and generated graph layers
+.obsidian/
+ObsidianVault/.obsidian/
+ObsidianVault/07_Reports/infranodus/
+ObsidianVault/09_Archive/**/infranodus/
+ObsidianVault/09_Archive/**/output/
+
+# Obsidian operational / raw overload prevention
+01_RAW/
+ObsidianVault/01_RAW/
+10_AgentBus/
+ObsidianVault/10_AgentBus/
+09_Archive/
+ObsidianVault/09_Archive/
+00_UPGRADE/
+ObsidianVault/00_UPGRADE/
+RAW_IMPORT/
+backups/
+exports/
+logs/
+runtime/
 
 # LegalizeKR full law repository should not be blindly indexed
 external_data/legalize-kr/

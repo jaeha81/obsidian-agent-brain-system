@@ -1,0 +1,42 @@
+# Obsidian internals
+.obsidian/
+graphify-out/
+
+# Generated / derived analysis layers
+07_Reports/infranodus/
+09_Archive/**/infranodus/
+09_Archive/**/output/
+
+# Operational, raw, and archive folders that overwhelm knowledge graphs
+01_RAW/
+09_Archive/
+10_AgentBus/
+00_UPGRADE/
+Inbox/DiscordCaptures/
+
+# Local/cache/build noise
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+coverage/
+logs/
+runtime/
+
+# Secrets and credentials
+.env
+.env.*
+token.txt
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+private/

@@ -83,6 +83,16 @@ Applied rules:
 - Claude and Codex do not directly edit the same daily Markdown report; append-only JSONL/source logs are preferred.
 - Parallel work should use task locks when target paths overlap.
 
+## Knowledge Graph Evolution
+
+Bucky is responsible for keeping the Obsidian knowledge graph useful, not merely populated.
+
+- Before vault organization or system-evolution work, check the Obsidian Graph View and the latest `ObsidianVault/graphify-out/GRAPH_REPORT.md`.
+- Use Graphify to find noisy source paths, disconnected clusters, duplicate derived outputs, and missing bridge notes.
+- Keep graph noise hidden by default: `.obsidian/`, `01_RAW/`, `09_Archive/`, `10_AgentBus/`, `00_UPGRADE/`, `graphify-out/`, and `Inbox/DiscordCaptures/`.
+- After Graphify rebuilds, run `python scripts/graphify_hygiene_check.py ObsidianVault/graphify-out/graph.json`.
+- Improve the graph with meaningful bridge/index/routing notes. Do not add fake links only to make the graph visually dense.
+
 ## Optional Hermes API Mode
 
 Hermes CLI remains available as an alternative API/provider runtime:

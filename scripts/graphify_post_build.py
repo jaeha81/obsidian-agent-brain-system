@@ -51,7 +51,10 @@ def load_graph_stats(graph_dir: Path) -> dict:
     stats["edges"] = len(links)
     stats["isolated"] = count_isolated(nodes, links)
 
-    if analysis_file.exists():
+    graph_communities = {n.get("community") for n in nodes if "community" in n}
+    if graph_communities:
+        stats["clusters"] = len(graph_communities)
+    elif analysis_file.exists():
         with analysis_file.open(encoding="utf-8") as f:
             analysis = json.load(f)
         stats["clusters"] = len(analysis.get("communities", {}))

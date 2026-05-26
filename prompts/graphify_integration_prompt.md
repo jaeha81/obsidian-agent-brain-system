@@ -63,6 +63,12 @@ Use template: `templates/graphify_context_pack_template.md`
 1. Write build log to `07_Reports/graphify_build_{YYYYMMDD}_{PROJECT}.md`
 2. Update `06_Context_Packs/Graphify/{PROJECT}_graphify_pack.md`
 3. Check `external_data/graphify_selected/{PROJECT}/` for size (warn if >500MB)
+4. Run `python scripts/graphify_hygiene_check.py {PROJECT}/graphify-out/graph.json` and stop if it fails
+
+## Vault Hygiene Guard
+- For ObsidianVault builds, keep a `.graphifyignore` inside `ObsidianVault/`; the repo-root ignore file is not enough when the scan root is the vault.
+- A clean vault graph must not include `.obsidian/`, `01_RAW/`, `09_Archive/`, `10_AgentBus/`, `00_UPGRADE/`, `graphify-out/`, or `Inbox/DiscordCaptures/`.
+- If these folders appear in `source_file`, the graph is polluted. Fix ignore rules and rebuild before using the report.
 
 ## Security
 - Do NOT include `external_data/graphify_selected/` in git commits

@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS = {
   chatBridgeScript: "scripts/bucky_chat_once.py",
   chatTimeoutSeconds: 900,
   startupDelayMs: 2500,
+  startupRetryCount: 2,
+  startupRetryDelayMs: 4000,
   chatModel: "sonnet",    // sonnet | opus | haiku
   toolMode: "safe",       // safe (no tools) | auto (dangerously-skip-permissions)
   scripts: [
@@ -37,6 +39,7 @@ class BuckyAgentPlugin extends Plugin {
     this.pc = this.detectPc();
     this.lastStartResult = { started: [], alreadyRunning: [], missing: [] };
     this.chatMessages = [];
+    this.startupTimers = [];
     this.statusBar = this.addStatusBarItem();
     this.statusBar.addClass("bucky-agent-status");
 
@@ -59,7 +62,7 @@ class BuckyAgentPlugin extends Plugin {
     this.addCommand({
       id: "bucky-start",
       name: "Bucky: start agent line",
-      callback: async () => this.startBucky(true),
+      callback: async () => this.activateAgentLine(true),
     });
 
     this.addCommand({
@@ -96,22 +99,9 @@ class BuckyAgentPlugin extends Plugin {
     this.addSettingTab(new BuckySettingTab(this.app, this));
     await this.refreshStatus(false);
 
-    if (this.settings.autoStart) {
-      this.startTimer = window.setTimeout(() => {
-        this.startBucky(false);
-      }, this.settings.startupDelayMs);
-    }
-
-    if (this.settings.autoOpenChat) {
-      this.app.workspace.onLayoutReady(() => {
-        this.chatTimer = window.setTimeout(() => {
-          this.activateChatView();
-        }, this.settings.startupDelayMs + 800);
-        this.chatFocusTimer = window.setTimeout(() => {
-          this.activateChatView();
-        }, this.settings.startupDelayMs + 5000);
-      });
-    }
+    this.app.workspace.onLayoutReady(() => {
+      this.activateAgentLine(false);
+    });
 
     this.refreshTimer = window.setInterval(() => {
       this.refreshStatus(false);
@@ -119,9 +109,7 @@ class BuckyAgentPlugin extends Plugin {
   }
 
   onunload() {
-    if (this.startTimer) window.clearTimeout(this.startTimer);
-    if (this.chatTimer) window.clearTimeout(this.chatTimer);
-    if (this.chatFocusTimer) window.clearTimeout(this.chatFocusTimer);
+    for (const timer of this.startupTimers || []) window.clearTimeout(timer);
     if (this.refreshTimer) window.clearInterval(this.refreshTimer);
     this.app.workspace.detachLeavesOfType(BUCKY_CHAT_VIEW);
     const views = this.app.workspace.getLeavesOfType(BUCKY_CHAT_VIEW).map(l => l.view);
@@ -196,6 +184,50 @@ class BuckyAgentPlugin extends Plugin {
     }
   }
 
+  async activateAgentLine(showNotice) {
+    const startupDelay = Number(this.settings.startupDelayMs || DEFAULT_SETTINGS.startupDelayMs);
+
+    if (this.settings.autoStart) {
+      this.queueStartupTask(async () => {
+        await this.startBucky(showNotice);
+        await this.retryMissingScripts();
+      }, startupDelay);
+    }
+
+    if (this.settings.autoOpenChat) {
+      this.queueStartupTask(async () => this.activateChatView(), startupDelay + 800);
+      this.queueStartupTask(async () => this.activateChatView(), startupDelay + 5000);
+    }
+  }
+
+  queueStartupTask(callback, delayMs) {
+    const timer = window.setTimeout(async () => {
+      try {
+        await callback();
+      } catch (error) {
+        console.error("Bucky startup task failed", error);
+        new Notice(`Bucky startup failed: ${error.message || error}`);
+      }
+    }, Math.max(0, Number(delayMs) || 0));
+    this.startupTimers.push(timer);
+    return timer;
+  }
+
+  async retryMissingScripts() {
+    const retryCount = Number(this.settings.startupRetryCount || DEFAULT_SETTINGS.startupRetryCount);
+    const retryDelay = Number(this.settings.startupRetryDelayMs || DEFAULT_SETTINGS.startupRetryDelayMs);
+
+    for (let attempt = 0; attempt < retryCount; attempt += 1) {
+      const status = await this.getRuntimeStatus();
+      if (Object.values(status).every(Boolean)) return;
+
+      await new Promise(resolve => {
+        this.queueStartupTask(resolve, retryDelay);
+      });
+      await this.startBucky(false);
+    }
+  }
+
   addChatMessage(role, text) {
     const message = {
       role,
@@ -235,6 +267,176 @@ class BuckyAgentPlugin extends Plugin {
     const reply = await this.runChatBridge(idePrompt);
     await this.appendChatTranscript(originalPrompt || idePrompt, reply);
     return reply;
+  }
+
+  async tryHandleObsidianCommand(text) {
+    const trimmed = String(text || "").trim();
+    if (!trimmed.startsWith("/")) return null;
+    return this.runObsidianCommand(trimmed);
+  }
+
+  async runObsidianCommand(input) {
+    const firstSpace = input.search(/\s/);
+    const command = (firstSpace === -1 ? input : input.slice(0, firstSpace)).toLowerCase();
+    const rest = firstSpace === -1 ? "" : input.slice(firstSpace + 1).trim();
+
+    switch (command) {
+      case "/help":
+        return [
+          "Obsidian control commands:",
+          "- `/open <note-path>`",
+          "- `/new <note-path> [content]`",
+          "- `/append <note-path|.> <content>`",
+          "- `/search <query>`",
+          "- `/today`",
+          "- `/agentbus <request>`",
+          "",
+          "Guarded commands require explicit approval: `/delete`, `/move`, `/rename`, `/discord`.",
+        ].join("\n");
+      case "/open":
+        return this.controlOpen(rest);
+      case "/new":
+        return this.controlNew(rest);
+      case "/append":
+        return this.controlAppend(rest);
+      case "/search":
+        return this.controlSearch(rest);
+      case "/today":
+        return this.controlToday();
+      case "/agentbus":
+        return this.controlAgentBus(rest);
+      case "/delete":
+      case "/move":
+      case "/rename":
+      case "/discord":
+        return `Approval required: ${command} is not executed from chat. Ask explicitly if you want this action.`;
+      default:
+        return null;
+    }
+  }
+
+  parsePathAndBody(rest) {
+    const match = String(rest || "").trim().match(/^"([^"]+)"\s*([\s\S]*)$|^(\S+)\s*([\s\S]*)$/);
+    if (!match) return { rawPath: "", body: "" };
+    return {
+      rawPath: match[1] || match[3] || "",
+      body: (match[2] || match[4] || "").trim(),
+    };
+  }
+
+  normalizeVaultPath(rawPath, options = {}) {
+    let vaultPath = String(rawPath || "").trim().replace(/\\/g, "/").replace(/^\/+/, "");
+    if (!vaultPath) throw new Error("Missing note path.");
+    if (/^[A-Za-z]:\//.test(vaultPath) || vaultPath.split("/").includes("..")) {
+      throw new Error("Only relative vault paths are allowed.");
+    }
+    if (options.markdown !== false && !path.extname(vaultPath)) vaultPath += ".md";
+    return vaultPath;
+  }
+
+  async openVaultFile(vaultPath) {
+    const file = this.app.vault.getAbstractFileByPath(vaultPath);
+    if (!file) throw new Error(`Note not found: ${vaultPath}`);
+    await this.app.workspace.getLeaf(false).openFile(file);
+  }
+
+  async controlOpen(rest) {
+    const vaultPath = this.normalizeVaultPath(rest);
+    await this.openVaultFile(vaultPath);
+    return `Opened note: ${vaultPath}`;
+  }
+
+  async controlNew(rest) {
+    const { rawPath, body } = this.parsePathAndBody(rest);
+    const vaultPath = this.normalizeVaultPath(rawPath);
+    if (await this.app.vault.adapter.exists(vaultPath)) {
+      await this.openVaultFile(vaultPath);
+      return `Note already exists, opened it instead: ${vaultPath}`;
+    }
+    await this.ensureParentFolder(vaultPath);
+    await this.app.vault.create(vaultPath, body || `# ${path.basename(vaultPath, ".md")}\n`);
+    await this.openVaultFile(vaultPath);
+    return `Created note: ${vaultPath}`;
+  }
+
+  async controlAppend(rest) {
+    const { rawPath, body } = this.parsePathAndBody(rest);
+    if (!body) throw new Error("Missing append content.");
+
+    let vaultPath = rawPath;
+    if (!vaultPath || vaultPath === ".") {
+      const active = this.app.workspace.getActiveFile();
+      if (!active) throw new Error("No active note to append to.");
+      vaultPath = active.path;
+    } else {
+      vaultPath = this.normalizeVaultPath(vaultPath);
+    }
+
+    await this.ensureParentFolder(vaultPath);
+    if (await this.app.vault.adapter.exists(vaultPath)) {
+      const existing = await this.app.vault.adapter.read(vaultPath);
+      await this.app.vault.adapter.write(vaultPath, `${existing.trimEnd()}\n\n${body}\n`);
+    } else {
+      await this.app.vault.create(vaultPath, `${body}\n`);
+    }
+    await this.openVaultFile(vaultPath);
+    return `Appended to note: ${vaultPath}`;
+  }
+
+  async controlSearch(rest) {
+    const query = String(rest || "").trim().toLowerCase();
+    if (!query) throw new Error("Missing search query.");
+    const results = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (results.length >= 10) break;
+      const pathHit = file.path.toLowerCase().includes(query);
+      if (pathHit) {
+        results.push(file.path);
+        continue;
+      }
+      const content = await this.app.vault.cachedRead(file);
+      if (content.toLowerCase().includes(query)) results.push(file.path);
+    }
+    return results.length ? `Search results:\n${results.map(item => `- ${item}`).join("\n")}` : "No matching notes found.";
+  }
+
+  async controlToday() {
+    const now = new Date();
+    const yyyy = String(now.getFullYear());
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const vaultPath = `01_Daily/${yyyy}-${mm}-${dd}.md`;
+    if (!(await this.app.vault.adapter.exists(vaultPath))) {
+      await this.ensureParentFolder(vaultPath);
+      await this.app.vault.create(vaultPath, `# ${yyyy}-${mm}-${dd}\n\n`);
+    }
+    await this.openVaultFile(vaultPath);
+    return `Opened today's note: ${vaultPath}`;
+  }
+
+  async controlAgentBus(rest) {
+    const request = String(rest || "").trim();
+    if (!request) throw new Error("Missing AgentBus request.");
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\./g, "").replace("T", "-").replace("Z", "");
+    const vaultPath = `10_AgentBus/inbox/${stamp}-bucky-control.md`;
+    const body = [
+      "---",
+      "from: Bucky",
+      "status: pending",
+      "source: obsidian-control",
+      `created: ${now.toISOString()}`,
+      "---",
+      "",
+      "# Bucky Control Request",
+      "",
+      request,
+      "",
+    ].join("\n");
+    await this.ensureParentFolder(vaultPath);
+    await this.app.vault.create(vaultPath, body);
+    await this.openVaultFile(vaultPath);
+    return `Created AgentBus request: ${vaultPath}`;
   }
 
   runChatBridge(userText) {
@@ -808,8 +1010,11 @@ class BuckyChatView extends ItemView {
     this.renderMessages();
 
     try {
-      const idePrompt = await this.buildIdePrompt(prompt, attachFile);
-      const reply = await this.plugin.sendChat(idePrompt, prompt);
+      const controlReply = await this.plugin.tryHandleObsidianCommand(prompt);
+      const reply = controlReply === null
+        ? await this.plugin.sendChat(await this.buildIdePrompt(prompt, attachFile), prompt)
+        : controlReply;
+      if (controlReply !== null) await this.plugin.appendChatTranscript(prompt, reply);
       thinkingMsg.text = reply;
       thinkingMsg.role = "bucky";
     } catch (error) {

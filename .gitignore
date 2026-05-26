@@ -29,10 +29,12 @@ data_sources/
 
 # Obsidian Vault (stored in Google Drive; only Bucky bootstrap and system docs are tracked)
 ObsidianVault/*
+!ObsidianVault/.graphifyignore
 !ObsidianVault/.obsidian/
 ObsidianVault/.obsidian/*
 !ObsidianVault/.obsidian/app.json
 !ObsidianVault/.obsidian/community-plugins.json
+!ObsidianVault/.obsidian/graph.json
 !ObsidianVault/.obsidian/plugins/
 ObsidianVault/.obsidian/plugins/*
 !ObsidianVault/.obsidian/plugins/bucky-agent/
@@ -125,3 +127,7 @@ logs/
 runtime/
 .rag/
 scripts/.codex_collector_state.json
+
+# Subtitle/caption files
+*.vtt
+*.orig.vtt
