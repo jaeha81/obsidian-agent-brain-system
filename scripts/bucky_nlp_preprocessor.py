@@ -185,7 +185,7 @@ class NLPPreprocessor:
             parts.append(f"스타일: {style}")
         parts.append(f"\n원문: {raw}")
 
-        return " | ".join(parts[:3]) + parts[-1]
+        return " | ".join(parts[:-1]) + parts[-1]
 
     # ── Claude API 강화 처리 (선택적) ─────────────────────────────────────────
 

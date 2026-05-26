@@ -2,7 +2,7 @@
 """
 Bucky Wishket Agent — 오케스트레이터
 
-스크래핑 → 제안서 생성 → Discord 보고 → 수익 트래킹 파이프라인.
+스크래핑(웹+Gmail) → 중복 제거 → 제안서 생성 → Discord 보고 → 수익 트래킹 파이프라인.
 Discord 슬래시 명령어 `/wishket` 또는 단독 실행 모두 지원.
 """
 
@@ -29,6 +29,25 @@ def save_tracker(data: dict) -> None:
     TRACKER_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _get_seen_links() -> set[str]:
+    """tracker.json에 이미 기록된 링크 집합."""
+    tracker = load_tracker()
+    return {bid.get("link", "").rstrip("/") for bid in tracker.get("bids", []) if bid.get("link")}
+
+
+def dedup_projects(projects: list[dict]) -> list[dict]:
+    """링크 기준 중복 제거 (tracker 기록 + 이번 배치 내부)."""
+    seen = _get_seen_links()
+    result: list[dict] = []
+    batch_seen: set[str] = set()
+    for p in projects:
+        norm = p.get("link", "").rstrip("/")
+        if norm and norm not in seen and norm not in batch_seen:
+            batch_seen.add(norm)
+            result.append(p)
+    return result
+
+
 def record_bid(project: dict, proposal_file: str) -> None:
     tracker = load_tracker()
     tracker["bids"].append(
@@ -50,12 +69,13 @@ def record_bid(project: dict, proposal_file: str) -> None:
 
 def get_stats() -> dict:
     tracker = load_tracker()
-    stats = tracker["stats"].copy()
-    stats["total_bids"] = len(tracker["bids"])
-    stats["won"] = sum(1 for b in tracker["bids"] if b.get("status") == "won")
-    stats["revenue_wan"] = sum(b.get("revenue_wan", 0) for b in tracker["bids"])
-    stats["pending"] = sum(1 for b in tracker["bids"] if b.get("status") == "submitted")
-    return stats
+    bids = tracker.get("bids", [])
+    return {
+        "total_bids": len(bids),
+        "won": sum(1 for b in bids if b.get("status") == "won"),
+        "pending": sum(1 for b in bids if b.get("status") == "submitted"),
+        "revenue_wan": sum(b.get("revenue_wan", 0) for b in bids),
+    }
 
 
 def format_stats_message(stats: dict) -> str:
@@ -69,33 +89,59 @@ def format_stats_message(stats: dict) -> str:
     )
 
 
+def scan_projects(max_pages: int = 2) -> list[dict]:
+    """웹 스크래핑 + Gmail 이메일 합산 후 중복 제거."""
+    import sys
+    if str(Path(__file__).parent) not in sys.path:
+        sys.path.insert(0, str(Path(__file__).parent))
+
+    from wishket_scraper import fetch_projects, save_projects
+    from wishket_gmail_scraper import fetch_wishket_emails
+
+    print("[WishketAgent] 공고 수집 시작 (웹 + 네이버 메일)")
+
+    web_projects = fetch_projects(max_pages=max_pages)
+    gmail_projects = fetch_wishket_emails()
+
+    all_projects = dedup_projects(web_projects + gmail_projects)
+
+    if all_projects:
+        save_projects(all_projects)
+        print(f"[WishketAgent] 신규 공고: {len(all_projects)}개 (웹:{len(web_projects)} 네이버:{len(gmail_projects)})")
+    else:
+        print("[WishketAgent] 신규 공고 없음")
+
+    return all_projects
+
+
 def run_full_pipeline(max_pages: int = 2) -> dict:
     """스크래핑 → 제안서 생성 → 트래커 기록."""
-    from wishket_scraper import run as scrape
-    from wishket_proposal_generator import run as generate
+    import sys
+    if str(Path(__file__).parent) not in sys.path:
+        sys.path.insert(0, str(Path(__file__).parent))
 
-    print("[WishketAgent] 파이프라인 시작")
+    from wishket_proposal_generator import generate_proposals
 
-    # 1. 스크래핑
-    projects, json_path = scrape()
+    projects = scan_projects(max_pages=max_pages)
     if not projects:
-        return {"status": "no_projects", "count": 0, "proposals": []}
+        return {"status": "no_projects", "count": 0, "proposals": [], "projects": []}
 
-    # 2. 제안서 생성
-    results = generate(projects)
+    results = generate_proposals(projects)
 
-    # 3. 트래커 기록
     for r in results:
         record_bid(r["project"], r["file"])
 
     stats = get_stats()
-    summary = {
+    return {
         "status": "ok",
         "count": len(results),
+        "projects": projects,
         "proposals": [
             {
                 "title": r["project"]["title"],
                 "budget": r["project"]["budget"],
+                "link": r["project"].get("link", ""),
+                "source": r["project"].get("source", "web"),
                 "file": r["file"],
                 "preview": r["proposal"][:200] + "..." if len(r["proposal"]) > 200 else r["proposal"],
             }
@@ -103,9 +149,6 @@ def run_full_pipeline(max_pages: int = 2) -> dict:
         ],
         "stats": stats,
     }
-
-    print(f"[WishketAgent] 완료 — {len(results)}개 제안서 생성")
-    return summary
 
 
 def mark_won(project_title: str, revenue_wan: int) -> bool:
@@ -127,8 +170,10 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1 and sys.argv[1] == "stats":
-        stats = get_stats()
-        print(format_stats_message(stats))
+        print(format_stats_message(get_stats()))
+    elif len(sys.argv) > 1 and sys.argv[1] == "scan":
+        projects = scan_projects()
+        print(f"신규 공고: {len(projects)}개")
     elif len(sys.argv) > 1 and sys.argv[1] == "won":
         title = sys.argv[2] if len(sys.argv) > 2 else ""
         revenue = int(sys.argv[3]) if len(sys.argv) > 3 else 0

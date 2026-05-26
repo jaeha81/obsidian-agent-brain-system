@@ -19,7 +19,9 @@ import re
 CHATGPT_URL = "https://chatgpt.com/c/6a13070b-b458-8324-ac34-1ae2efd70a4c"
 VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 OUTPUT_DIR = VAULT_BASE / "04_Wiki" / "daily-plus"
-PROFILE_DIR = Path(os.environ.get("USERPROFILE", "~")) / ".playwright-daily-plus"
+PROFILE_DIR = Path(os.environ.get("USERPROFILE", "~")) / ".playwright-gpt-sessions"
+BROWSER_CHANNEL = os.environ.get("GPT_COLLECTOR_BROWSER_CHANNEL", "msedge")
+HEADLESS = os.environ.get("GPT_COLLECTOR_HEADLESS", "0").lower() in ("1", "true", "yes")
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -54,7 +56,7 @@ async def login_mode():
         context = await p.chromium.launch_persistent_context(
             user_data_dir=str(PROFILE_DIR),
             headless=False,
-            channel="chromium",  # Playwright 번들 Chromium 사용 (Chrome 충돌 방지)
+            channel=BROWSER_CHANNEL,
         )
         page = await context.new_page()
         await page.goto("https://chatgpt.com/", wait_until="domcontentloaded")
@@ -95,8 +97,8 @@ async def collect_mode(force: bool = False):
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
             user_data_dir=str(PROFILE_DIR),
-            headless=True,
-            channel="chromium",
+            headless=HEADLESS,
+            channel=BROWSER_CHANNEL,
             args=["--disable-blink-features=AutomationControlled"],
         )
 

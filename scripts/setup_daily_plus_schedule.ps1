@@ -4,12 +4,13 @@
 $taskName   = "BuckyDailyPlus"
 $scriptPath = "G:\내 드라이브\obsidian-agent-brain-system\scripts\chatgpt_daily_collector.py"
 $workDir    = "G:\내 드라이브\obsidian-agent-brain-system\scripts"
+$pythonExe  = "C:\Users\설계4\AppData\Local\Programs\Python\Python311\python.exe"
 
 # 기존 작업 삭제 (재등록)
 Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
 
 $action = New-ScheduledTaskAction `
-    -Execute "python" `
+    -Execute $pythonExe `
     -Argument "`"$scriptPath`" --collect" `
     -WorkingDirectory $workDir
 
@@ -34,10 +35,10 @@ Write-Host "[INFO] 작업명: $taskName"
 Write-Host ""
 Write-Host "=== 사용법 ==="
 Write-Host "1. 최초 로그인 (1회만):"
-Write-Host "   python `"$scriptPath`" --login"
+Write-Host "   `"$pythonExe`" `"$scriptPath`" --login"
 Write-Host ""
 Write-Host "2. 수동 즉시 수집:"
-Write-Host "   python `"$scriptPath`" --collect"
+Write-Host "   `"$pythonExe`" `"$scriptPath`" --collect"
 Write-Host ""
 Write-Host "3. Task Scheduler에서 즉시 실행:"
 Write-Host "   Start-ScheduledTask -TaskName $taskName"

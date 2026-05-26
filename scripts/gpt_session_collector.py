@@ -28,6 +28,7 @@ VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault
 OUTPUT_BASE = VAULT_BASE / "01_RAW" / "gpt-sessions"
 PROFILE_DIR = Path(os.environ.get("USERPROFILE", "~")) / ".playwright-gpt-sessions"
 STATE_FILE = Path(__file__).parent / ".gpt_collector_state.json"
+BROWSER_CHANNEL = os.environ.get("GPT_COLLECTOR_BROWSER_CHANNEL", "msedge")
 
 # ChatGPT 비공식 API 엔드포인트
 API_BASE = "https://chatgpt.com/backend-api"
@@ -345,7 +346,7 @@ async def login_mode():
         context = await p.chromium.launch_persistent_context(
             user_data_dir=str(PROFILE_DIR),
             headless=False,
-            channel="chromium",
+            channel=BROWSER_CHANNEL,
         )
         page = await context.new_page()
         await page.goto("https://chatgpt.com/", wait_until="domcontentloaded")
@@ -389,7 +390,7 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
         context = await p.chromium.launch_persistent_context(
             user_data_dir=str(PROFILE_DIR),
             headless=True,
-            channel="chromium",
+            channel=BROWSER_CHANNEL,
             args=["--disable-blink-features=AutomationControlled"],
         )
 

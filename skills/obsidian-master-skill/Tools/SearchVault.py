@@ -4,7 +4,7 @@
 Commands:
   status   - Check REST API connectivity
   auth     - Verify API key
-  search   - Search vault (--type dataview|content|jsonlogic)
+  search   - Search vault (--type dataview|content|jsonlogic|semantic)
 
 Environment:
   OBSIDIAN_API_KEY   - REST API bearer token
@@ -148,9 +148,24 @@ def auth():
         click.echo(f"Connection error: {e}")
 
 
+def _semantic_search(query: str, top_k: int = 5) -> list[dict]:
+    """vault_rag.py를 통한 의미 기반 검색."""
+    import subprocess
+    rag_script = Path(__file__).parent.parent.parent / "scripts" / "vault_rag.py"
+    if not rag_script.exists():
+        raise click.ClickException(f"vault_rag.py 없음: {rag_script}")
+    result = subprocess.run(
+        ["python", str(rag_script), "search", query, "--top", str(top_k), "--json"],
+        capture_output=True, text=True, encoding="utf-8",
+    )
+    if result.returncode != 0:
+        raise click.ClickException(f"RAG 검색 오류: {result.stderr[:200]}")
+    return json.loads(result.stdout) if result.stdout.strip() else []
+
+
 @cli.command()
 @click.argument("query", required=False)
-@click.option("--type", "search_type", type=click.Choice(["dataview", "content", "jsonlogic"]), default="content")
+@click.option("--type", "search_type", type=click.Choice(["dataview", "content", "jsonlogic", "semantic"]), default="content")
 @click.option("--query", "query_opt", help="Search query (alternative to positional arg)")
 @click.option("--folder", help="Limit search to folder")
 @click.option("--tags", help="Filter by tags (comma-separated)")
@@ -207,6 +222,19 @@ def search(query, search_type, query_opt, folder, tags, as_json, as_table, limit
             results = results[:limit]
         else:
             results = _direct_content_search(q, folder=folder, limit=limit)
+
+    elif search_type == "semantic":
+        sem_results = _semantic_search(q, top_k=limit)
+        results = [
+            {
+                "path": r["source"],
+                "title": r["title"],
+                "section": r["section"],
+                "similarity": r["similarity"],
+                "matches": [{"line": 0, "text": r["preview"]}],
+            }
+            for r in sem_results
+        ]
     else:
         raise click.ClickException(f"Unknown search type: {search_type}")
 
