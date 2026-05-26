@@ -330,8 +330,9 @@ class WorkerPool:
                             requester_id = reg.get("requester_id")
                             mention = f"<@{requester_id}> " if requester_id else ""
                             full = f"{mention}✅ `{tid[-6:]}` **{title}** 완료\n\n{result}"
+                            _user_mentions = discord.AllowedMentions(users=True)
                             for i in range(0, len(full), 1900):
-                                await reply_ch.send(full[i:i+1900])
+                                await reply_ch.send(full[i:i+1900], allowed_mentions=_user_mentions)
                         except Exception:
                             pass
 

@@ -1641,7 +1641,7 @@ async def _dispatch_task(message: Message, task_body: str) -> None:
     pool = _get_worker_pool()
     pool.register_task(task, origin_channel_id=results_ch_id,
                        requester_id=int(message.author.id))
-    asyncio.ensure_future(pool.run_one(task))
+    pool.submit(task)
     _LABEL = {"claude": "🧠 Claude", "codex": "⚡ Codex", "bucky": "🤖 Bucky"}
     label = _LABEL.get(task["agent"], task["agent"].upper())
     results_hint = f" → <#{JH_RESULTS_CHANNEL_ID}>" if JH_RESULTS_CHANNEL_ID else ""
@@ -1681,7 +1681,7 @@ async def _handle_jh_tasks(message: Message) -> None:
                 st["task_id"] = task["id"]
                 pool.register_task(task, origin_channel_id=results_ch_id,
                                    requester_id=int(message.author.id))
-                asyncio.ensure_future(pool.run_one(task))
+                pool.submit(task)
                 _LABEL = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}
                 icon = _LABEL.get(task["agent"], "▶")
                 lines.append(f"{icon} `{task['id'][-6:]}` {st['body'][:60]}")

@@ -154,25 +154,29 @@ def get_recent_facts(limit: int = 20) -> list[dict]:
     return [{"category": r["category"], "fact": r["fact"], "ts": r["ts"]} for r in rows]
 
 
+_ctx_lock = threading.Lock()
+
+
 def append_to_context(facts: list[dict]) -> None:
     """추출된 사실을 BUCKY_CONTEXT.md 자동학습 섹션에 추가."""
     if not facts or not CONTEXT_FILE.exists():
         return
-    try:
-        content = CONTEXT_FILE.read_text(encoding="utf-8")
-        section = "\n\n## 🧠 자동 학습된 사실 (Auto-Memory)\n\n"
-        new_lines = []
-        now = datetime.now().strftime("%Y-%m-%d %H:%M")
-        for f in facts:
-            icon = {"project": "🚀", "goal": "🎯", "tech": "⚙️", "instruction": "📌"}.get(f.get("category", ""), "•")
-            new_lines.append(f"- {icon} [{now}] {f['fact']}")
+    with _ctx_lock:
+        try:
+            content = CONTEXT_FILE.read_text(encoding="utf-8")
+            section = "\n\n## 🧠 자동 학습된 사실 (Auto-Memory)\n\n"
+            new_lines = []
+            now = datetime.now().strftime("%Y-%m-%d %H:%M")
+            for f in facts:
+                icon = {"project": "🚀", "goal": "🎯", "tech": "⚙️", "instruction": "📌"}.get(f.get("category", ""), "•")
+                new_lines.append(f"- {icon} [{now}] {f['fact']}")
 
-        if "## 🧠 자동 학습된 사실" in content:
-            content = content + "\n".join(new_lines) + "\n"
-        else:
-            content = content + section + "\n".join(new_lines) + "\n"
+            if "## 🧠 자동 학습된 사실" in content:
+                content = content + "\n".join(new_lines) + "\n"
+            else:
+                content = content + section + "\n".join(new_lines) + "\n"
 
-        CONTEXT_FILE.write_text(content, encoding="utf-8")
-        print(f"[Memory] {len(facts)}개 사실 → BUCKY_CONTEXT 기록", flush=True)
+            CONTEXT_FILE.write_text(content, encoding="utf-8")
+            print(f"[Memory] {len(facts)}개 사실 → BUCKY_CONTEXT 기록", flush=True)
     except Exception as e:
         print(f"[Memory] context 기록 실패: {e}", flush=True)
