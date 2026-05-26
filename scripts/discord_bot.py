@@ -712,8 +712,11 @@ def _make_voice_sink_class():
 
                 display_name = user.display_name if user is not None else "음성"
                 await ch.send(f"🎙️ **{display_name}:** {text}")
+                thinking_msg = await ch.send("🤔 생각 중...")
                 reply = await ask_bucky(str(self.guild_id), text)
-                for chunk in split_message(reply):
+                voice_chunks = split_message(reply)
+                await thinking_msg.edit(content=voice_chunks[0])
+                for chunk in voice_chunks[1:]:
                     await ch.send(chunk)
 
                 vc = _voice_clients.get(self.guild_id)
@@ -803,6 +806,21 @@ def _read_knowledge_gap_tasks(limit: int = 10) -> list[dict]:
 
 _RAG_SCRIPT = _ROOT / "scripts" / "vault_rag.py"
 
+_SIMPLE_MSG_RE = _re.compile(
+    r'^(안녕|ㅎㅇ|ㅋ+|ㅎ+|네|예|아니|맞아|ok|okay|hi|hello|thanks|고마워|감사|ㄴㄴ|응|어+|음+|그래|알겠|ㅇㅇ)',
+    _re.IGNORECASE,
+)
+
+
+def _should_skip_rag(message: str) -> bool:
+    """짧거나 단순한 메시지는 RAG 생략 — 응답 속도 1~3초 개선."""
+    msg = message.strip()
+    if len(msg) < 20:
+        return True
+    if _SIMPLE_MSG_RE.match(msg):
+        return True
+    return False
+
 
 def _get_rag_context(query: str, top_k: int = 3) -> str:
     """vault_rag.py를 통해 쿼리와 관련된 Vault 지식을 가져온다."""
@@ -864,9 +882,12 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
         f"{item['role'].title()}: {item['content']}" for item in history
     )
 
-    # RAG: 사용자 메시지와 관련된 Vault 지식 자동 주입
-    rag_context = await asyncio.to_thread(_get_rag_context, user_message)
-    rag_block = f"\n\n{rag_context}" if rag_context else ""
+    # RAG: 단순 메시지는 생략, 지식 쿼리만 실행
+    if _should_skip_rag(user_message):
+        rag_block = ""
+    else:
+        rag_context = await asyncio.to_thread(_get_rag_context, user_message)
+        rag_block = f"\n\n{rag_context}" if rag_context else ""
 
     bucky_context = _load_bucky_context()
     prompt = (
@@ -2627,17 +2648,19 @@ class BuckyDiscordBot(discord.Client):
                 return
 
             # 단일 태스크 — 기존 경로
-            async with message.channel.typing():
-                try:
-                    reply = await ask_bucky(channel_id, content)
-                except BuckyError as e:
-                    reply = f"⚠️ Bucky 오류: {e}"
-                    print(f"[Bot] BuckyError: {e}", flush=True)
-                except Exception as e:
-                    reply = f"⚠️ 오류: {e}"
-                    print(f"[Bot] Error: {e}", flush=True)
+            thinking_msg = await message.channel.send("🤔 생각 중...")
+            try:
+                reply = await ask_bucky(channel_id, content)
+            except BuckyError as e:
+                reply = f"⚠️ Bucky 오류: {e}"
+                print(f"[Bot] BuckyError: {e}", flush=True)
+            except Exception as e:
+                reply = f"⚠️ 오류: {e}"
+                print(f"[Bot] Error: {e}", flush=True)
 
-            for chunk in split_message(reply):
+            chunks = split_message(reply)
+            await thinking_msg.edit(content=chunks[0])
+            for chunk in chunks[1:]:
                 await message.channel.send(chunk)
 
             # 음성 채널 TTS 재생 (입장 중인 경우)
