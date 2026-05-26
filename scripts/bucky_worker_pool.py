@@ -316,6 +316,11 @@ class WorkerPool:
                     if tid in self._task_registry:
                         self._task_registry[tid].update(status="done", ended_at=datetime.now())
                     asyncio.ensure_future(self._update_board())
+                    try:
+                        import goal_tracker as gt
+                        gt.mark_task(tid, "done")
+                    except Exception:
+                        pass
 
                     summary = result[:150] + ("..." if len(result) > 150 else "")
                     await self._send_status(f"✅ `{tid}` {AGENT_LABEL} **{title}** 완료\n> {summary}")

@@ -1603,27 +1603,14 @@ async def _init_jh_channels(client) -> None:
         globals()["BUCKY_STATUS_CHANNEL_ID"] = JH_STATUS_CHANNEL_ID
 
 
-async def _handle_jh_tasks(message: Message) -> None:
-    """#jh-tasks 전용 핸들러 — Claude 거치지 않고 즉시 태스크 배정."""
-    content = message.content.strip()
-
-    if content in ("!현황", "!status", "!tasks"):
-        pool = _get_worker_pool()
-        await message.channel.send(pool.get_board_text())
-        return
-
-    task_body = content.removeprefix("!task").strip() or content
-    if not task_body:
-        await message.channel.send("📋 태스크 내용을 입력하세요.\n예: `개발건 A — login API 구현`")
-        return
-
+async def _dispatch_task(message: Message, task_body: str) -> None:
+    """태스크 단건 큐 투입 + 배정 확인 메시지."""
     task = tq.add(task_body[:80], task_body, source="jh-tasks")
     results_ch_id = int(JH_RESULTS_CHANNEL_ID) if JH_RESULTS_CHANNEL_ID else None
     pool = _get_worker_pool()
     pool.register_task(task, origin_channel_id=results_ch_id,
                        requester_id=int(message.author.id))
     asyncio.ensure_future(pool.run_one(task))
-
     _LABEL = {"claude": "🧠 Claude", "codex": "⚡ Codex", "bucky": "🤖 Bucky"}
     label = _LABEL.get(task["agent"], task["agent"].upper())
     results_hint = f" → <#{JH_RESULTS_CHANNEL_ID}>" if JH_RESULTS_CHANNEL_ID else ""
@@ -1631,6 +1618,106 @@ async def _handle_jh_tasks(message: Message) -> None:
         f"✅ `{task['id'][-6:]}` {label} 배정 완료{results_hint}\n"
         f"> {task_body[:80]}{'...' if len(task_body) > 80 else ''}"
     )
+    return task
+
+
+async def _handle_jh_tasks(message: Message) -> None:
+    """#jh-tasks 전용 핸들러 — Claude 거치지 않고 즉시 태스크 배정."""
+    content = message.content.strip()
+
+    # ── 현황 ──────────────────────────────────────────────────────────────────
+    if content in ("!현황", "!status", "!tasks"):
+        pool = _get_worker_pool()
+        await message.channel.send(pool.get_board_text())
+        return
+
+    # ── 골모드: 목표 설정 ──────────────────────────────────────────────────────
+    if content.startswith("!골 ") or content.startswith("!goal "):
+        goal = content.split(None, 1)[1].strip()
+        if not goal:
+            await message.channel.send("사용법: `!골 <목표 설명>`")
+            return
+        thinking = await message.channel.send(f"🎯 **골모드 시작** — 목표 분석 중...\n> {goal}")
+        try:
+            import goal_tracker as gt
+            subtasks = await asyncio.to_thread(gt.decompose, goal)
+            data = gt.set_goal(goal, subtasks)
+            lines = [f"🎯 **목표 설정 완료** — `{len(subtasks)}개 서브태스크` 자동 분해\n> {goal}\n"]
+            results_ch_id = int(JH_RESULTS_CHANNEL_ID) if JH_RESULTS_CHANNEL_ID else None
+            pool = _get_worker_pool()
+            for st in data["subtasks"]:
+                task = tq.add(st["body"][:80], st["body"], source="goal")
+                st["task_id"] = task["id"]
+                pool.register_task(task, origin_channel_id=results_ch_id,
+                                   requester_id=int(message.author.id))
+                asyncio.ensure_future(pool.run_one(task))
+                _LABEL = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}
+                icon = _LABEL.get(task["agent"], "▶")
+                lines.append(f"{icon} `{task['id'][-6:]}` {st['body'][:60]}")
+            gt.save(data)
+            await thinking.edit(content="\n".join(lines))
+        except Exception as e:
+            await thinking.edit(content=f"⚠️ 골모드 오류: {e}")
+        return
+
+    # ── 골모드: 상태 확인 ─────────────────────────────────────────────────────
+    if content in ("!골상태", "!골", "!goal"):
+        try:
+            import goal_tracker as gt
+            await message.channel.send(gt.status_text())
+        except Exception as e:
+            await message.channel.send(f"⚠️ {e}")
+        return
+
+    # ── 골모드: 포커스 ON/OFF ─────────────────────────────────────────────────
+    if content in ("!골포커스", "!focus"):
+        try:
+            import goal_tracker as gt
+            current = gt.is_focus()
+            gt.set_focus(not current)
+            state = "ON 🎯 목표 외 태스크 거절" if not current else "OFF"
+            await message.channel.send(f"포커스모드 {state}")
+        except Exception as e:
+            await message.channel.send(f"⚠️ {e}")
+        return
+
+    # ── 골모드: 목표 종료 ─────────────────────────────────────────────────────
+    if content in ("!골종료", "!골완료"):
+        try:
+            import goal_tracker as gt
+            data = gt.load()
+            goal_name = data["goal"] if data else "없음"
+            gt.clear()
+            await message.channel.send(f"✅ 골모드 종료: `{goal_name}`")
+        except Exception as e:
+            await message.channel.send(f"⚠️ {e}")
+        return
+
+    # ── 일반 태스크 배정 ──────────────────────────────────────────────────────
+    task_body = content.removeprefix("!task").strip() or content
+    if not task_body:
+        await message.channel.send("📋 태스크 내용을 입력하세요.\n예: `개발건 A — login API 구현`")
+        return
+
+    # 포커스 모드: 목표 연관도 체크
+    try:
+        import goal_tracker as gt
+        if gt.is_focus():
+            data = gt.load()
+            goal = data["goal"] if data else ""
+            goal_keywords = set(goal.lower().split())
+            task_keywords = set(task_body.lower().split())
+            if goal_keywords and not goal_keywords & task_keywords:
+                await message.channel.send(
+                    f"🎯 **포커스모드 ON** — 현재 목표와 무관한 태스크\n"
+                    f"> 목표: {goal}\n"
+                    f"`!골포커스` 로 포커스 해제 후 진행 가능"
+                )
+                return
+    except Exception:
+        pass
+
+    await _dispatch_task(message, task_body)
 
 
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
