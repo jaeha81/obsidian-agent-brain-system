@@ -195,6 +195,24 @@ BUCKY_SYSTEM_PROMPT: str = os.getenv(
     "사용자의 요청에 간결하고 정확하게 한국어로 답변합니다.",
 )
 
+# ── 동적 컨텍스트 로더 (BUCKY_CONTEXT.md, 5분 캐시) ─────────────────────────
+_CONTEXT_FILE = Path(__file__).parent.parent / "ObsidianVault" / "00_System" / "BUCKY_CONTEXT.md"
+_context_cache: dict = {"text": "", "loaded_at": 0.0}
+_CONTEXT_TTL = 300  # 5분
+
+def _load_bucky_context() -> str:
+    import time
+    now = time.time()
+    if now - _context_cache["loaded_at"] < _CONTEXT_TTL and _context_cache["text"]:
+        return _context_cache["text"]
+    try:
+        text = _CONTEXT_FILE.read_text(encoding="utf-8")
+        _context_cache["text"] = text
+        _context_cache["loaded_at"] = now
+        return text
+    except Exception:
+        return BUCKY_SYSTEM_PROMPT
+
 # ── 사용자 접근제어 ─────────────────────────────────────────────────────────────
 
 _USERS_CONFIG_PATH = _ROOT / "configs" / "discord_users.yaml"
@@ -850,10 +868,14 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
     rag_context = await asyncio.to_thread(_get_rag_context, user_message)
     rag_block = f"\n\n{rag_context}" if rag_context else ""
 
+    bucky_context = _load_bucky_context()
     prompt = (
+        "# Bucky 운영 컨텍스트\n\n"
+        f"{bucky_context}\n\n"
+        "---\n\n"
         "# Discord 대화\n\n"
-        f"{BUCKY_SYSTEM_PROMPT}\n\n"
-        "답변은 한국어로. 명령이 없으면 간결하게."
+        "위 컨텍스트를 기반으로 아래 대화에 답변한다. "
+        "실행 작업이면 '요약→실행안→저장위치→다음행동' 순서로, 단순 질문이면 간결하게."
         f"{rag_block}\n\n"
         f"{transcript}"
     )
@@ -1476,6 +1498,51 @@ def _register_codex_commands(tree: app_commands.CommandTree) -> None:
     tree.add_command(codex_group)
 
 
+# ── 현황판 초기화 헬퍼 ────────────────────────────────────────────────────────────
+
+async def _init_status_board(client, pool) -> None:
+    """#bucky-status 채널에서 현황판 메시지를 찾거나 새로 생성하고 pool에 등록."""
+    if not BUCKY_STATUS_CHANNEL_ID:
+        return
+    try:
+        ch = client.get_channel(int(BUCKY_STATUS_CHANNEL_ID))
+        if not ch:
+            return
+
+        # 기존 핀 메시지 탐색 (봇이 보낸 것 중 "현황판" 키워드 포함)
+        board_msg = None
+        try:
+            async for pin in ch.pins():
+                if pin.author == client.user and "현황판" in pin.content:
+                    board_msg = pin
+                    break
+        except Exception:
+            pass
+
+        # 기존 핀 없으면 최근 메시지에서 탐색
+        if not board_msg:
+            try:
+                async for msg in ch.history(limit=20):
+                    if msg.author == client.user and "현황판" in msg.content:
+                        board_msg = msg
+                        break
+            except Exception:
+                pass
+
+        # 그래도 없으면 새 메시지 전송
+        if not board_msg:
+            board_msg = await ch.send(pool.get_board_text())
+            try:
+                await board_msg.pin()
+            except Exception:
+                pass
+
+        pool.set_board_message(board_msg.id)
+        print(f"[WorkerPool] 현황판 등록 완료: msg_id={board_msg.id}", flush=True)
+    except Exception as e:
+        print(f"[WorkerPool] 현황판 초기화 실패: {e}", flush=True)
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -1691,6 +1758,11 @@ class BuckyDiscordBot(discord.Client):
         voice_status = f"ON ({WHISPER_MODEL_NAME})" if VOICE_ENABLED else "OFF"
         tts_status = f"ON ({TTS_LANG})" if _gtts_available else "OFF"
         recv_status = "ON" if _voice_recv else "OFF"
+        try:
+            from pc_identity import print_identity
+            print_identity()
+        except ImportError:
+            pass
         print(f"Bot ready: {self.user} [{mode}]", flush=True)
         print(f"Guilds joined: {guilds}", flush=True)
         print(f"Watching channels: {ALLOWED_CHANNELS or 'ALL'}", flush=True)
@@ -1729,9 +1801,15 @@ class BuckyDiscordBot(discord.Client):
         if _WORKER_POOL_ENABLED:
             pool = _get_worker_pool()
             pool.set_discord(self)
+            pool.hydrate_from_db()
             pool_size = int(os.getenv("WORKER_POOL_SIZE", "5"))
             status_ch = f"채널 {BUCKY_STATUS_CHANNEL_ID}" if BUCKY_STATUS_CHANNEL_ID else "미설정"
             print(f"[WorkerPool] 초기화 완료: 최대 {pool_size}개 동시 실행 | 상태채널: {status_ch}", flush=True)
+            _board_task = asyncio.create_task(_init_status_board(self, pool))
+            _board_task.add_done_callback(
+                lambda t: print(f"[WorkerPool] 현황판 초기화 태스크 예외: {t.exception()}", flush=True)
+                if not t.cancelled() and t.exception() else None
+            )
 
         # ── 자동 음성 채널 입장 (AUTO_JOIN_VOICE_CHANNEL_ID 설정 시) ──────────────
         auto_join_ch_id = os.getenv("AUTO_JOIN_VOICE_CHANNEL_ID", "").strip()
@@ -2034,7 +2112,8 @@ class BuckyDiscordBot(discord.Client):
 
         if content in ("!tasks", "!태스크", "!현황"):
             if _WORKER_POOL_ENABLED and tq:
-                task_text = await asyncio.to_thread(tq.format_dashboard)
+                pool = _get_worker_pool()
+                task_text = pool.get_board_text()
             else:
                 task_text = format_task_list()
             for chunk in split_message(task_text):
@@ -2073,12 +2152,32 @@ class BuckyDiscordBot(discord.Client):
                 if _WORKER_POOL_ENABLED and tq:
                     task = await asyncio.to_thread(tq.add, body[:60], body, None, "discord")
                     agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}.get(task["agent"], "")
+                    tid = task["id"]
+                    title_short = task["title"][:40]
+
+                    # 스레드 생성 — 결과 격리용
+                    thread = None
+                    try:
+                        thread = await message.channel.create_thread(
+                            name=f"[{tid[-6:]}] {title_short}",
+                            message=None,
+                            auto_archive_duration=60,
+                            type=discord.ChannelType.public_thread,
+                        )
+                    except Exception as _te:
+                        print(f"[Bot] 스레드 생성 실패 (폴백: 메인채널): {_te}", flush=True)
+
+                    thread_mention = f" → {thread.mention}" if thread else ""
                     await message.channel.send(
-                        f"📥 `{task['id']}` {agent_icon} **{task['title']}**\n"
-                        f"→ `{task['agent'].upper()}` 배정 · 백그라운드 실행 시작"
+                        f"📥 `{tid}` {agent_icon} **{task['title']}**\n"
+                        f"→ `{task['agent'].upper()}` 배정 · 백그라운드 실행 시작{thread_mention}"
                     )
                     pool = _get_worker_pool()
-                    pool.submit(task, reply_channel=message.channel)
+                    pool.submit(
+                        task,
+                        thread_id=thread.id if thread else None,
+                        reply_channel=message.channel,
+                    )
                 else:
                     task = await asyncio.to_thread(add_task, body[:40], body, None, "discord")
                     await message.channel.send(
@@ -2133,7 +2232,13 @@ class BuckyDiscordBot(discord.Client):
                 task = await asyncio.to_thread(dispatch_task, body, "discord")
                 agent = task.get("agent", "unknown")
                 task_id = task.get("id", "?")
-                agent_emoji = {"claude": "🤖", "codex": "🔍", "collector": "📥", "distiller": "🧠", "gap": "🔎", "reporter": "📊"}.get(agent, "📋")
+                agent_emoji = {
+                    "claude": "🤖", "codex": "🔍", "collector": "📥",
+                    "distiller": "🧠", "gap": "🔎", "reporter": "📊",
+                    "gemini-research": "🔭", "gemini-rag": "📚",
+                    "gemini-multimodal": "🖼️", "gemini-content": "✍️",
+                    "gemini-validator": "🛡️",
+                }.get(agent, "📋")
                 await message.channel.send(
                     f"{agent_emoji} **[{agent}] 배분 완료**\n"
                     f"태스크 ID: `{task_id}`\n"
@@ -2190,6 +2295,32 @@ class BuckyDiscordBot(discord.Client):
                     await message.channel.send(f"❌ 위임 실패: {e}")
             return
 
+        # ── 컨텍스트 조회 / 업데이트 ─────────────────────────────────────────────
+        if content in ("!컨텍스트", "!context"):
+            try:
+                ctx = _load_bucky_context()
+                preview = ctx[:1200] + ("\n...(이하 생략)" if len(ctx) > 1200 else "")
+                await message.channel.send(f"📋 **BUCKY_CONTEXT.md 현재 내용:**\n```\n{preview}\n```")
+            except Exception as e:
+                await message.channel.send(f"❌ 컨텍스트 로드 실패: {e}")
+            return
+
+        if content.startswith("!컨텍스트 업데이트 ") or content.startswith("!context update "):
+            update_body = content.split(None, 2)[2].strip() if len(content.split(None, 2)) > 2 else ""
+            if not update_body:
+                await message.channel.send("사용법: `!컨텍스트 업데이트 <추가할 내용>`")
+                return
+            try:
+                existing = _CONTEXT_FILE.read_text(encoding="utf-8")
+                from datetime import datetime as _dt
+                append_text = f"\n\n> [{_dt.now().strftime('%Y-%m-%d %H:%M')} 업데이트]\n> {update_body}\n"
+                _CONTEXT_FILE.write_text(existing + append_text, encoding="utf-8")
+                _context_cache["loaded_at"] = 0.0  # 캐시 무효화
+                await message.channel.send(f"✅ 컨텍스트 업데이트 완료:\n> {update_body[:200]}")
+            except Exception as e:
+                await message.channel.send(f"❌ 업데이트 실패: {e}")
+            return
+
         if content in ("!이관", "!migrate", "!gdrive"):
             async with message.channel.typing():
                 await message.channel.send("⚙️ Google Drive Agent Room 이관 시작 중...")
@@ -2212,15 +2343,51 @@ class BuckyDiscordBot(discord.Client):
 
         if content in ("!에이전트", "!agents", "!roles"):
             lines = [
-                "**서브에이전트 역할 분담**\n",
-                "🤖 **Bucky** — 조율(오케스트레이터), 지식 정제, 갭 분석, 브리핑",
-                "🛠️ **ClaudeCode** — 구현(코드 작성, 스크립트, 파일 생성, 수정)",
-                "🔍 **Codex** — 검토, 검수, 리뷰, 테스트 검증",
+                "**🧠 에이전트 역할 분담 (버키 오케스트레이터)**\n",
+                "**[코어 에이전트]**",
+                "🤖 **Bucky** — 의도판단, 작업배분, 최종승인, Obsidian 기록",
+                "🛠️ **ClaudeCode** — 시스템설계, 긴 문서, 전략, 워크플로",
+                "🔍 **Codex** — 코드작성, 디버깅, 자동화 스크립트, API 연결",
                 "📥 **Collector** — GPT/Claude/Codex 대화 수집 파이프라인",
                 "🧠 **Distiller** — 원시 대화 → 구조화 지식 변환\n",
-                "→ `!위임 <작업>` 으로 자동 분류 위임",
+                "**[Gemini 보조 전문가]** (`!gemini <역할> <내용>`으로 직접 호출)",
+                "🔭 **Gemini-Research** — 웹/시장/기술 리서치, 출처 기반 요약 | 키워드: 검색해, 리서치, 최신, 시장조사",
+                "📚 **Gemini-RAG** — Obsidian Vault 검색·요약·재구성 | 키워드: vault, 노트에서, 기록에서",
+                "🖼️ **Gemini-Multimodal** — 이미지·도면·현장사진 분석 | 키워드: 이미지 분석, 사진 분석, 도면",
+                "✍️ **Gemini-Content** — 블로그·쇼츠·광고문구·영상프롬프트 | 키워드: 블로그, 유튜브, 쇼츠, 콘텐츠",
+                "🛡️ **Gemini-Validator** — Claude/Codex 산출물 교차검증 | 키워드: 교차검증, 리스크 점검, 이중검토\n",
+                "→ `!배분 <작업>` 자동분류 | `!gemini research 검색할 내용` 직접호출",
             ]
             await message.channel.send("\n".join(lines))
+            return
+
+        # ── Gemini 직접 호출 ─────────────────────────────────────────────────
+        if content.startswith("!gemini "):
+            parts = content.split(None, 2)
+            if len(parts) < 3:
+                await message.channel.send(
+                    "사용법: `!gemini <역할> <내용>`\n"
+                    "역할: `research` | `rag` | `multimodal` | `content` | `validator`"
+                )
+                return
+            gemini_role = parts[1].lower()
+            gemini_prompt = parts[2].strip()
+            valid_roles = {"research", "rag", "multimodal", "content", "validator"}
+            if gemini_role not in valid_roles:
+                await message.channel.send(f"❌ 알 수 없는 역할: `{gemini_role}`\n가능: {', '.join(sorted(valid_roles))}")
+                return
+            role_emoji = {"research": "🔭", "rag": "📚", "multimodal": "🖼️", "content": "✍️", "validator": "🛡️"}
+            emoji = role_emoji.get(gemini_role, "🤖")
+            async with message.channel.typing():
+                try:
+                    sys.path.insert(0, str(Path(__file__).parent))
+                    from gemini_client import run_gemini
+                    result = await asyncio.to_thread(run_gemini, gemini_role, gemini_prompt)
+                    header = f"{emoji} **[Gemini-{gemini_role.capitalize()}]**\n"
+                    for chunk in split_message(header + result):
+                        await message.channel.send(chunk)
+                except Exception as e:
+                    await message.channel.send(f"❌ Gemini 오류: {e}")
             return
 
         if content in ("!브리핑", "!briefing", "!뉴스"):
