@@ -1,0 +1,22 @@
+{
+  "collapse-filter": false,
+  "search": "-path:.obsidian -path:.git -path:external_data -path:RAW_IMPORT -path:backups -path:logs -path:runtime -path:graphify-out -path:ObsidianVault/graphify-out -path:ObsidianVault/01_RAW -path:ObsidianVault/09_Archive -path:ObsidianVault/10_AgentBus -path:ObsidianVault/Inbox -path:ObsidianVault/00_UPGRADE",
+  "showTags": true,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [],
+  "collapse-display": false,
+  "showArrow": true,
+  "textFadeMultiplier": 2.2,
+  "nodeSizeMultiplier": 1.72057291666667,
+  "lineSizeMultiplier": 0.265885416666667,
+  "collapse-forces": false,
+  "centerStrength": 0,
+  "repelStrength": 17.1354166666667,
+  "linkStrength": 0.565104166666667,
+  "linkDistance": 30,
+  "scale": 0.01095299138887578,
+  "close": false
+}

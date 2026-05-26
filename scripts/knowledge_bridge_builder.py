@@ -84,6 +84,13 @@ def _relative_source(path: Path, vault: Path) -> str:
         return path.as_posix()
 
 
+def content_root(vault: Path) -> Path:
+    nested = vault / "ObsidianVault"
+    if nested.is_dir() and (nested / "03_Knowledge").is_dir():
+        return nested
+    return vault
+
+
 def _wikilink_path(path: Path, vault: Path) -> str:
     rel = _relative_source(path, vault)
     if rel.lower().endswith(".md"):
@@ -107,8 +114,9 @@ def classify_hubs(text: str, source_path: Path) -> tuple[str, ...]:
 
 def iter_source_notes(vault: Path) -> list[Path]:
     notes: list[Path] = []
+    base = content_root(vault)
     for source_dir in SOURCE_DIRS:
-        root = vault / source_dir
+        root = base / source_dir
         if not root.exists():
             continue
         notes.extend(
@@ -174,14 +182,16 @@ def bridge_path(candidate: BridgeCandidate, vault: Path) -> Path:
 
 
 def _existing_note_stems(vault: Path) -> set[str]:
-    return {p.stem.lower() for p in vault.rglob("*.md") if "graphify-out" not in p.parts}
+    base = content_root(vault)
+    return {p.stem.lower() for p in base.rglob("*.md") if "graphify-out" not in p.parts}
 
 
 def _all_graph_notes(vault: Path) -> list[Path]:
     excluded = {".obsidian", "graphify-out"}
+    base = content_root(vault)
     return sorted(
         (
-            p for p in vault.rglob("*.md")
+            p for p in base.rglob("*.md")
             if p.is_file() and not any(part in excluded for part in p.parts)
         ),
         key=lambda p: p.as_posix().lower(),
@@ -191,6 +201,8 @@ def _all_graph_notes(vault: Path) -> list[Path]:
 def _resolve_wikilink(link: str, vault: Path, by_stem: dict[str, Path], by_rel: dict[str, Path]) -> Path | None:
     clean = link.strip()
     rel_key = clean.replace("\\", "/").removesuffix(".md").lower()
+    if "/" in rel_key:
+        return by_rel.get(rel_key)
     if rel_key in by_rel:
         return by_rel[rel_key]
     return by_stem.get(Path(clean).stem.lower())
@@ -204,7 +216,10 @@ def find_isolated_notes(vault: Path) -> list[Path]:
     outbound: dict[Path, int] = {p: 0 for p in notes}
 
     for note in notes:
-        content = note.read_text(encoding="utf-8", errors="ignore")
+        try:
+            content = note.read_text(encoding="utf-8", errors="ignore")
+        except FileNotFoundError:
+            continue
         for raw_link in WIKILINK_RE.findall(content):
             target = _resolve_wikilink(raw_link, vault, by_stem, by_rel)
             if target is None or target == note:
@@ -244,8 +259,9 @@ This hub gives bridge notes a stable, functional graph target for system knowled
 
 def ensure_hub_notes(vault: Path, dry_run: bool = False) -> list[Path]:
     vault = vault.resolve()
+    base = content_root(vault)
     existing = _existing_note_stems(vault)
-    hub_root = vault / HUB_DIR
+    hub_root = base / HUB_DIR
     created: list[Path] = []
 
     for hub in HUB_LINKS:
@@ -291,9 +307,13 @@ This index connects previously isolated source notes into the knowledge base wit
 
 def connect_isolated_notes(vault: Path, batch_size: int = 80, dry_run: bool = False) -> dict[str, int]:
     vault = vault.resolve()
+    base = content_root(vault)
     ensure_hub_notes(vault, dry_run=dry_run)
+    index_root = base / BRIDGE_INDEX_DIR
+    if not dry_run and index_root.exists():
+        for old_index in index_root.glob("knowledge-bridge-index-*.md"):
+            old_index.unlink()
     isolated = find_isolated_notes(vault)
-    index_root = vault / BRIDGE_INDEX_DIR
     created = 0
     if not dry_run and isolated:
         index_root.mkdir(parents=True, exist_ok=True)
@@ -307,6 +327,7 @@ def connect_isolated_notes(vault: Path, batch_size: int = 80, dry_run: bool = Fa
 
 def build_knowledge_bridges(vault: Path, limit: int = 100, dry_run: bool = False) -> BridgeResult:
     vault = vault.resolve()
+    base = content_root(vault)
     ensure_hub_notes(vault, dry_run=dry_run)
     candidates: list[BridgeCandidate] = []
     for note in iter_source_notes(vault):
@@ -316,7 +337,7 @@ def build_knowledge_bridges(vault: Path, limit: int = 100, dry_run: bool = False
         if len(candidates) >= limit:
             break
 
-    output_dir = vault / BRIDGE_DIR
+    output_dir = base / BRIDGE_DIR
     created = 0
     skipped_existing = 0
     if not dry_run and candidates:
@@ -338,7 +359,7 @@ def build_knowledge_bridges(vault: Path, limit: int = 100, dry_run: bool = False
 
 
 def verify_bridge_notes(vault: Path) -> list[Path]:
-    bridge_root = vault / BRIDGE_DIR
+    bridge_root = content_root(vault) / BRIDGE_DIR
     if not bridge_root.exists():
         return []
     failures: list[Path] = []

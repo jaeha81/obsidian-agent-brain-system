@@ -64,6 +64,7 @@ ObsidianVault/03_Projects/*
 /.obsidian/*
 !/.obsidian/app.json
 !/.obsidian/community-plugins.json
+!/.obsidian/graph.json
 !/.obsidian/plugins/
 /.obsidian/plugins/*
 !/.obsidian/plugins/bucky-agent/

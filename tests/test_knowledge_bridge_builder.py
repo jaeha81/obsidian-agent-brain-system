@@ -66,6 +66,24 @@ class KnowledgeBridgeBuilderTests(unittest.TestCase):
             self.assertIn("[[Bucky]]", graphify)
             self.assertIn("[[JH System]]", graphify)
 
+    def test_connect_isolated_notes_creates_indexes_linking_every_orphan(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = Path(tmp) / "ObsidianVault"
+            write_note(vault / "01_RAW" / "a.md", "raw note")
+            write_note(vault / "09_Archive" / "b.md", "archive note")
+            write_note(vault / "03_Knowledge" / "existing.md", "[[Bucky]]")
+
+            result = kbb.connect_isolated_notes(vault, batch_size=1, dry_run=False)
+
+            self.assertEqual(result["isolated"], 2)
+            self.assertEqual(result["created"], 2)
+            index_files = sorted((vault / "03_Knowledge" / "bridge-indexes").glob("*.md"))
+            self.assertEqual(len(index_files), 2)
+            merged = "\n".join(path.read_text(encoding="utf-8") for path in index_files)
+            self.assertIn("[[01_RAW/a|a]]", merged)
+            self.assertIn("[[09_Archive/b|b]]", merged)
+            self.assertIn("[[JH System]]", merged)
+
 
 if __name__ == "__main__":
     unittest.main()
