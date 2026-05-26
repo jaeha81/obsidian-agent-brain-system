@@ -117,3 +117,9 @@ plan2.md
 
 # Token/secret files (never commit)
 token.txt
+
+# Runtime/log directories (local only, not tracked)
+logs/
+runtime/
+.rag/
+scripts/.codex_collector_state.json
