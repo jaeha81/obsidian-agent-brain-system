@@ -861,7 +861,13 @@ def _get_rag_context(query: str, top_k: int = 3) -> str:
 
 async def ask_bucky(channel_id: str, user_message: str) -> str:
     """Bucky Agent에 질문하고 답변 반환. NLP 전처리 후 Claude CLI 구독 경로 사용."""
-    history = conversation_history[channel_id]
+    try:
+        import bucky_memory as _mem
+        history = _mem.load_history(channel_id)
+        _use_mem = True
+    except Exception:
+        history = conversation_history[channel_id]
+        _use_mem = False
 
     # Item 1: NLP 전처리 — COMMAND 의도 감지 시 구조화 힌트 삽입
     nlp_hint = ""
@@ -878,11 +884,15 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
             print(f"[NLP] 전처리 실패: {_e}", flush=True)
 
     enriched_message = nlp_hint + user_message if nlp_hint else user_message
-    history.append({"role": "user", "content": enriched_message})
 
-    if len(history) > MAX_HISTORY:
-        conversation_history[channel_id] = history[-MAX_HISTORY:]
-        history = conversation_history[channel_id]
+    if _use_mem:
+        await asyncio.to_thread(_mem.save_message, channel_id, "user", enriched_message)
+        history.append({"role": "user", "content": enriched_message})
+    else:
+        history.append({"role": "user", "content": enriched_message})
+        if len(history) > MAX_HISTORY:
+            conversation_history[channel_id] = history[-MAX_HISTORY:]
+            history = conversation_history[channel_id]
 
     transcript = "\n".join(
         f"{item['role'].title()}: {item['content']}" for item in history
@@ -907,8 +917,29 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
         f"{transcript}"
     )
     reply = await asyncio.to_thread(run_bucky, prompt)
-    history.append({"role": "assistant", "content": reply})
+
+    if _use_mem:
+        await asyncio.to_thread(_mem.save_message, channel_id, "assistant", reply)
+        # 5번째 교환마다 백그라운드 사실 추출
+        total = len(history) + 1
+        if total % 10 == 0:
+            asyncio.ensure_future(_extract_and_learn(transcript + f"\nAssistant: {reply}"))
+    else:
+        history.append({"role": "assistant", "content": reply})
+
     return reply
+
+
+async def _extract_and_learn(conversation: str) -> None:
+    """대화에서 사실 추출 → BUCKY_CONTEXT 자동 기록 (백그라운드)."""
+    try:
+        import bucky_memory as _mem
+        facts = await asyncio.to_thread(_mem.extract_facts, conversation)
+        if facts:
+            await asyncio.to_thread(_mem.save_facts, facts, "auto")
+            await asyncio.to_thread(_mem.append_to_context, facts)
+    except Exception as e:
+        print(f"[Memory] 자동 학습 실패: {e}", flush=True)
 
 
 # ── /evolve 슬래시 명령어 등록 ────────────────────────────────────────────────
@@ -2195,6 +2226,11 @@ class BuckyDiscordBot(discord.Client):
 
         if content == "!reset":
             conversation_history[channel_id].clear()
+            try:
+                import bucky_memory as _mem
+                await asyncio.to_thread(_mem.clear_history, channel_id)
+            except Exception:
+                pass
             await message.channel.send("🔄 대화 기록을 초기화했습니다.")
             return
 
