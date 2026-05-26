@@ -1291,6 +1291,80 @@ def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
         except Exception as e:
             await interaction.followup.send(f"⚠️ 낙찰 기록 오류: {e}")
 
+    @tree.command(name="wishket_reply", description="이메일 자동응답 — 스캔/발송/취소/목록")
+    @app_commands.describe(
+        action="scan(스캔) | send(발송) | cancel(취소) | list(목록)",
+        email_id="발송/취소 시 이메일 ID (send/cancel 시 필수)",
+    )
+    async def cmd_wishket_reply(
+        interaction: discord.Interaction,
+        action: str = "scan",
+        email_id: str = "",
+    ) -> None:
+        await interaction.response.defer(thinking=True)
+        import sys as _sys
+        if str(Path(__file__).parent) not in _sys.path:
+            _sys.path.insert(0, str(Path(__file__).parent))
+
+        try:
+            from wishket_email_responder import (
+                run as responder_run,
+                list_pending,
+                send_reply_playwright,
+                load_pending,
+                save_pending,
+            )
+
+            if action == "scan":
+                result = await asyncio.to_thread(responder_run)
+                if result["count"] == 0:
+                    await interaction.followup.send("📭 신규 클라이언트 이메일 없음")
+                else:
+                    await interaction.followup.send(
+                        f"📨 **{result['count']}개** 클라이언트 이메일 감지 — 위에서 승인/취소하세요"
+                    )
+
+            elif action == "send":
+                if not email_id:
+                    await interaction.followup.send("⚠️ email_id 를 입력하세요")
+                    return
+                ok = await send_reply_playwright(email_id)
+                await interaction.followup.send(
+                    f"✅ 발송 완료: `{email_id}`" if ok else f"⚠️ 발송 실패: `{email_id}` — 수동 처리 필요"
+                )
+
+            elif action == "cancel":
+                if not email_id:
+                    await interaction.followup.send("⚠️ email_id 를 입력하세요")
+                    return
+                data = load_pending()
+                before = len(data["pending"])
+                data["pending"] = [r for r in data["pending"] if r["id"] != email_id]
+                if len(data["pending"]) < before:
+                    save_pending(data)
+                    await interaction.followup.send(f"❌ 취소 완료: `{email_id}`")
+                else:
+                    await interaction.followup.send(f"⚠️ ID 없음: `{email_id}`")
+
+            elif action == "list":
+                data = load_pending()
+                pending = data.get("pending", [])
+                if not pending:
+                    await interaction.followup.send("📭 대기 중인 초안 없음")
+                else:
+                    lines = [f"**대기 중 이메일 초안 {len(pending)}개:**"]
+                    for r in pending[:10]:
+                        lines.append(
+                            f"• `{r['id']}` — **{r['subject'][:40]}** (from {r['sender'][:30]})"
+                        )
+                    await interaction.followup.send("\n".join(lines))
+
+            else:
+                await interaction.followup.send("⚠️ action: scan | send | cancel | list 중 선택")
+
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ wishket_reply 오류: {e}")
+
 
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
@@ -1397,50 +1471,74 @@ class BuckyDiscordBot(discord.Client):
             await asyncio.sleep(3600 * 24)  # 24시간 대기
 
     async def _wishket_auto_scan_task(self) -> None:
-        """매일 오전 8:30 Wishket 공고 자동 스캔 + 제안서 생성."""
+        """Wishket 공고 자동 스캔 + 모바일 승인 버튼 UI 전송."""
         await self.wait_until_ready()
 
-        # profile에서 스캔 시각 로드
+        # profile에서 스캔 시각 및 주기 로드
         try:
             import yaml as _yaml
             _profile = _yaml.safe_load((_ROOT / "configs" / "wishket_profile.yaml").read_text(encoding="utf-8")) or {}
             _h = int(_profile.get("auto_scan_hour", 8))
             _m = int(_profile.get("auto_scan_minute", 30))
+            # scan_interval_hours: 0 = 하루 1회(지정 시각), N = N시간마다 반복
+            _interval_h = int(_profile.get("scan_interval_hours", 0))
         except Exception:
-            _h, _m = 8, 30
+            _h, _m, _interval_h = 8, 30, 0
 
-        now = datetime.now()
-        next_run = now.replace(hour=_h, minute=_m, second=0, microsecond=0)
-        if next_run <= now:
-            next_run += timedelta(days=1)
-        print(f"[WishketAuto] 다음 스캔: {next_run.strftime('%Y-%m-%d %H:%M')}", flush=True)
-        await asyncio.sleep((next_run - now).total_seconds())
+        if _interval_h > 0:
+            # N시간 간격 반복 모드 — 즉시 첫 실행 후 반복
+            wait_sec = 0.0
+            interval_sec = float(_interval_h * 3600)
+            print(f"[WishketAuto] 인터벌 모드: {_interval_h}시간 간격 스캔", flush=True)
+        else:
+            # 하루 1회 지정 시각 모드
+            now = datetime.now()
+            next_run = now.replace(hour=_h, minute=_m, second=0, microsecond=0)
+            if next_run <= now:
+                next_run += timedelta(days=1)
+            wait_sec = (next_run - datetime.now()).total_seconds()
+            interval_sec = float(3600 * 24)
+            print(f"[WishketAuto] 1일 1회 모드 — 다음 스캔: {next_run.strftime('%Y-%m-%d %H:%M')}", flush=True)
+
+        await asyncio.sleep(wait_sec)
 
         while not self.is_closed():
             try:
                 import sys as _sys
                 if str(_ROOT / "scripts") not in _sys.path:
                     _sys.path.insert(0, str(_ROOT / "scripts"))
-                from bucky_wishket_agent import run_full_pipeline, format_stats_message
-                result = await asyncio.to_thread(run_full_pipeline)
+                from bucky_wishket_agent import scan_projects, format_stats_message, get_stats
+
+                projects = await asyncio.to_thread(scan_projects)
 
                 if BRIEFING_CHANNEL_ID:
                     channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
-                    if channel and result.get("count", 0) > 0:
-                        lines = [
-                            f"💰 **[Wishket 자동 스캔]** — {result['count']}개 제안서 생성 완료",
-                        ]
-                        for p in result.get("proposals", [])[:3]:
-                            lines.append(f"  • **{p['title'][:40]}** ({p['budget']})")
-                        lines.append(format_stats_message(result.get("stats", {})))
-                        await channel.send("\n".join(lines)[:2000])
-                        print("[WishketAuto] 스캔 완료 → Discord 알림 발송", flush=True)
-                    elif channel and result.get("status") == "no_projects":
-                        await channel.send("📭 **[Wishket]** 오늘 조건 맞는 공고 없음")
+                    if channel and projects:
+                        # 버튼 UI로 전송 — 모바일에서 즉시 승인 가능
+                        view = WishketDashboardView(list(projects), channel)
+                        embed = view._make_embed()
+                        stats = get_stats()
+                        header = (
+                            f"💰 **[Wishket 자동 스캔]** {len(projects)}개 신규 공고!\n"
+                            f"{format_stats_message(stats)}"
+                        )
+                        await channel.send(header[:1000], embed=embed, view=view)
+                        print(f"[WishketAuto] {len(projects)}개 공고 → 버튼 UI 발송", flush=True)
+                    elif channel:
+                        await channel.send("📭 **[Wishket]** 새 공고 없음")
             except Exception as e:
                 print(f"[WishketAuto] 오류: {e}", flush=True)
 
-            await asyncio.sleep(3600 * 24)  # 24시간 후 재실행
+            # 공고 스캔 후 클라이언트 이메일 응답도 함께 스캔
+            try:
+                from wishket_email_responder import run as email_responder_run
+                email_result = await asyncio.to_thread(email_responder_run)
+                if email_result.get("count", 0) > 0:
+                    print(f"[WishketAuto] 클라이언트 이메일 {email_result['count']}개 감지 → Discord 승인 요청 게시", flush=True)
+            except Exception as e:
+                print(f"[WishketAuto] 이메일 응답 스캔 오류: {e}", flush=True)
+
+            await asyncio.sleep(interval_sec)
 
     async def _post_auto_briefing(self) -> None:
         channel = self.get_channel(int(BRIEFING_CHANNEL_ID))

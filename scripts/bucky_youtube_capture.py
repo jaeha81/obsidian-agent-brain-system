@@ -45,27 +45,67 @@ def extract_video_id(url: str) -> str:
 # ── YouTube 메타데이터 수집 ──────────────────────────────────────────────────
 
 def fetch_youtube_meta(url: str) -> dict:
-    """YouTube 페이지에서 제목·설명·채널·길이 추출."""
+    """YouTube 메타데이터 수집. yt-dlp 우선, 실패 시 HTTP 스크래핑 폴백."""
+    video_id = extract_video_id(url)
     result = {
         "url": url,
-        "video_id": extract_video_id(url),
+        "video_id": video_id,
         "title": "",
         "description": "",
         "channel": "",
         "duration": "",
-        "thumbnail": "",
+        "thumbnail": f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg" if video_id else "",
         "publish_date": "",
     }
 
+    # yt-dlp로 메타데이터 수집 (봇 차단 우회)
+    try:
+        import yt_dlp  # type: ignore
+        ydl_opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "skip_download": True,
+            "extract_flat": False,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+        result["title"] = info.get("title", "")
+        result["description"] = (info.get("description", "") or "")[:500]
+        result["channel"] = info.get("uploader", "") or info.get("channel", "")
+        result["duration"] = str(info.get("duration", ""))
+        result["publish_date"] = (info.get("upload_date", "") or "")[:10]
+        if info.get("thumbnail"):
+            result["thumbnail"] = info["thumbnail"]
+        return result
+    except Exception as e:
+        print(f"[YouTube] yt-dlp 실패, HTTP 폴백: {e}", flush=True)
+
+    # oEmbed 폴백 (API 키 불필요, 제목+채널 확실히 반환)
+    if video_id:
+        try:
+            oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+            req = Request(oembed_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            result["title"] = data.get("title", "")
+            result["channel"] = data.get("author_name", "")
+            if data.get("thumbnail_url"):
+                result["thumbnail"] = data["thumbnail_url"]
+            if result["title"]:
+                print(f"[YouTube] oEmbed 성공: {result['title']}", flush=True)
+                return result
+        except Exception as e:
+            print(f"[YouTube] oEmbed 실패, HTTP 폴백: {e}", flush=True)
+
+    # HTTP 스크래핑 폴백
     try:
         req = Request(
             url,
-            headers={"User-Agent": "Mozilla/5.0 (BuckyBot/1.0)"},
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
         )
         with urlopen(req, timeout=12) as resp:
             html = resp.read(65536).decode("utf-8", errors="replace")
 
-        # 제목 추출 (og:title)
         m = re.search(r'<meta[^>]+property="og:title"[^>]+content="([^"]+)"', html)
         if m:
             result["title"] = m.group(1)
@@ -74,26 +114,14 @@ def fetch_youtube_meta(url: str) -> dict:
             if m:
                 result["title"] = m.group(1).replace("\\u0026", "&")
 
-        # 설명 추출
         m = re.search(r'<meta[^>]+name="description"[^>]+content="([^"]+)"', html)
         if m:
             result["description"] = m.group(1)[:500]
 
-        # 채널명
         m = re.search(r'"ownerChannelName":"([^"]+)"', html)
         if m:
             result["channel"] = m.group(1)
-        if not result["channel"]:
-            m = re.search(r'"author":"([^"]+)"', html)
-            if m:
-                result["channel"] = m.group(1)
 
-        # 썸네일
-        vid = result["video_id"]
-        if vid:
-            result["thumbnail"] = f"https://img.youtube.com/vi/{vid}/mqdefault.jpg"
-
-        # 게시일
         m = re.search(r'"publishDate":"([^"]+)"', html)
         if m:
             result["publish_date"] = m.group(1)[:10]
