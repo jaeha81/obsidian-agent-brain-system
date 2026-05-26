@@ -52,6 +52,12 @@ from bucky_briefing import generate_briefing
 from task_tracker import add_task, format_task_list, get_today_tasks
 from daily_report_generator import run as generate_daily_report
 from bucky_dispatcher import dispatch as dispatch_task, get_pending_tasks
+from bucky_multi_dispatcher import (
+    parse_multi_tasks,
+    is_multi_task,
+    run_parallel,
+    format_multi_result,
+)
 
 try:
     from bucky_knowledge_capture import capture_url as _kc_capture_url, capture_text as _kc_capture_text
@@ -2229,6 +2235,38 @@ class BuckyDiscordBot(discord.Client):
 
         # ── Bucky 응답 ─────────────────────────────────────────────────────────
         if BUCKY_ENABLED:
+            # 다중 태스크 감지 → 병렬 처리
+            multi_tasks = parse_multi_tasks(content)
+            if len(multi_tasks) >= 2:
+                await message.channel.send(
+                    f"⚡ **{len(multi_tasks)}개 태스크 병렬 실행 시작** — 각 결과는 완료 즉시 전송됩니다."
+                )
+
+                async def _notify_done(label: str, reply_text: str) -> None:
+                    header = f"**✅ [{label}] 완료**\n"
+                    for chunk in split_message(header + reply_text):
+                        await message.channel.send(chunk)
+
+                try:
+                    results = await run_parallel(
+                        ask_fn=ask_bucky,
+                        base_channel_id=channel_id,
+                        tasks=multi_tasks,
+                        notify_done=_notify_done,
+                        timeout=300.0,
+                    )
+                    reply = format_multi_result(results)
+                except Exception as e:
+                    reply = f"⚠️ 병렬 실행 오류: {e}"
+                    print(f"[Bot] MultiDispatch Error: {e}", flush=True)
+                    for chunk in split_message(reply):
+                        await message.channel.send(chunk)
+                # 병렬 완료 후 Obsidian 동기화만 수행 (개별 전송 이미 완료)
+                append_to_bucky_chat(message.author.name, content, reply)
+                write_discord_message(message, reply, status="answered")
+                return
+
+            # 단일 태스크 — 기존 경로
             async with message.channel.typing():
                 try:
                     reply = await ask_bucky(channel_id, content)
