@@ -189,9 +189,16 @@
 
 <div class="top-progress" id="topProgress" style="width:0%"></div>
 
-<header>
-  <h1>🚀 JH 레포 상품화 대시보드</h1>
-  <p>jaeha81 · 39개 레포 · 2026-05-25 · Bucky Agent 분석 — 완성도 × 시장성 우선순위</p>
+<header style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div style="flex:1">
+    <h1>🚀 JH 레포 상품화 대시보드</h1>
+    <p>jaeha81 · <span id="repoCount">39</span>개 레포 · 2026-05-26 · Bucky Agent 분석 — 완성도 × 시장성 우선순위</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a style="font-size:0.78rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 12px;border-radius:20px;transition:all 0.2s" href="index.html" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📊 레포 대시보드</a>
+    <a style="font-size:0.78rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 12px;border-radius:20px;transition:all 0.2s" href="wishket.html" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">💰 위시켓 수익화</a>
+    <a style="font-size:0.78rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 12px;border-radius:20px;transition:all 0.2s" href="https://github.com/jaeha81" target="_blank" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">GitHub ↗</a>
+  </div>
 </header>
 
 <div class="stats-bar">
@@ -223,8 +230,13 @@
   <button class="filter-btn" data-filter="tier1" onclick="filter(this,'tier1')">🟢 즉시 출시</button>
   <button class="filter-btn" data-filter="tier2" onclick="filter(this,'tier2')">🟡 개발 필요</button>
   <button class="filter-btn" data-filter="tier3" onclick="filter(this,'tier3')">⚫ 인프라/보류</button>
+  <span style="width:1px;height:20px;background:var(--border);margin:0 2px"></span>
+  <button class="filter-btn" data-filter="cat-ai" onclick="filter(this,'cat-ai')">🤖 AI/에이전트</button>
+  <button class="filter-btn" data-filter="cat-interior" onclick="filter(this,'cat-interior')">🏗️ 인테리어</button>
+  <button class="filter-btn" data-filter="cat-commerce" onclick="filter(this,'cat-commerce')">🛍️ 커머스</button>
+  <button class="filter-btn" data-filter="cat-saas" onclick="filter(this,'cat-saas')">💼 SaaS</button>
+  <button class="filter-btn" data-filter="cat-finance" onclick="filter(this,'cat-finance')">💹 파이낸스</button>
   <button class="filter-btn" data-filter="checked" onclick="filter(this,'checked')">✅ 완료됨</button>
-  <button class="filter-btn" data-filter="unchecked" onclick="filter(this,'unchecked')">⬜ 미완료</button>
   <select class="sort-select" onchange="sortRepos(this.value)">
     <option value="score">점수순</option>
     <option value="name">이름순</option>

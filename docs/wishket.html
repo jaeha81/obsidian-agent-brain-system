@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>위시켓 수익화 대시보드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  .top-progress { height: 3px; background: linear-gradient(90deg, var(--orange), var(--yellow)); position: fixed; top: 0; left: 0; z-index: 300; transition: width 0.3s; }
+
+  header {
+    background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 32px 18px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .header-info { flex: 1; }
+  header h1 { font-size: 1.4rem; font-weight: 700; color: var(--orange); }
+  header p { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+  .header-link { font-size: 0.78rem; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; transition: all 0.2s; }
+  .header-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  .stats-bar {
+    display: flex; gap: 12px; padding: 16px 32px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 18px; flex: 1; min-width: 100px; text-align: center;
+  }
+  .stat-box .num { font-size: 1.6rem; font-weight: 700; }
+  .stat-box .label { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  .controls {
+    padding: 12px 32px; display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; border-bottom: 1px solid var(--border);
+  }
+  .filter-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.1); }
+  .search-box {
+    margin-left: auto; background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; width: 200px;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+  .sort-select {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 10px; border-radius: 6px; font-size: 0.82rem; cursor: pointer;
+  }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px; padding: 20px 32px;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; position: relative;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .card:hover { border-color: #ffa65766; transform: translateY(-1px); }
+  .card.status-won { border-color: var(--green); background: rgba(63,185,80,0.04); }
+  .card.status-bid { border-color: var(--yellow); background: rgba(210,153,34,0.04); }
+  .card.status-lost { opacity: 0.55; }
+  .card.hidden { display: none; }
+
+  .card-header { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 8px; }
+  .card-check {
+    width: 17px; height: 17px; border-radius: 4px; border: 2px solid var(--border);
+    cursor: pointer; flex-shrink: 0; margin-top: 2px; accent-color: var(--orange);
+  }
+  .card-title { font-weight: 600; font-size: 0.92rem; word-break: break-word; line-height: 1.4; }
+  .card-title a { color: var(--accent); text-decoration: none; }
+  .card-title a:hover { text-decoration: underline; }
+
+  .status-badge {
+    position: absolute; top: 12px; right: 12px;
+    font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+  }
+  .badge-new { background: rgba(88,166,255,0.18); color: var(--accent); border: 1px solid rgba(88,166,255,0.35); }
+  .badge-bid { background: rgba(210,153,34,0.18); color: var(--yellow); border: 1px solid rgba(210,153,34,0.35); }
+  .badge-won { background: rgba(63,185,80,0.18); color: var(--green); border: 1px solid rgba(63,185,80,0.35); }
+  .badge-lost { background: rgba(139,148,158,0.18); color: var(--muted); border: 1px solid rgba(139,148,158,0.28); }
+
+  .budget-row {
+    display: flex; align-items: center; gap: 8px; margin: 8px 0;
+  }
+  .budget-num {
+    font-size: 1.1rem; font-weight: 700; color: var(--orange);
+  }
+  .budget-label { font-size: 0.72rem; color: var(--muted); }
+
+  .budget-bar { margin: 6px 0 10px; }
+  .budget-track { background: rgba(255,255,255,0.07); border-radius: 3px; height: 4px; overflow: hidden; }
+  .budget-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--orange), var(--yellow)); transition: width 0.5s ease; }
+
+  .card-desc { color: var(--muted); font-size: 0.80rem; margin-bottom: 10px; line-height: 1.5; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .tag { font-size: 0.70rem; padding: 2px 7px; border-radius: 12px; font-weight: 500; }
+  .tag-source { background: rgba(88,166,255,0.12); color: var(--accent); border: 1px solid rgba(88,166,255,0.25); }
+  .tag-date { background: rgba(139,148,158,0.12); color: var(--muted); border: 1px solid rgba(139,148,158,0.2); }
+
+  .card-footer { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .action-btn {
+    font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .bid-btn { border-color: rgba(210,153,34,0.4); color: var(--yellow); background: rgba(210,153,34,0.06); }
+  .bid-btn:hover { border-color: var(--yellow); background: rgba(210,153,34,0.15); }
+  .won-btn { border-color: rgba(63,185,80,0.4); color: var(--green); background: rgba(63,185,80,0.06); }
+  .won-btn:hover { border-color: var(--green); background: rgba(63,185,80,0.15); }
+  .bucky-btn { border-color: rgba(188,140,255,0.4); color: var(--purple); background: rgba(188,140,255,0.06); }
+  .bucky-btn:hover { border-color: var(--purple); background: rgba(188,140,255,0.15); }
+  .lost-btn { border-color: rgba(248,81,73,0.4); color: var(--red); background: rgba(248,81,73,0.06); }
+  .lost-btn:hover { border-color: var(--red); background: rgba(248,81,73,0.15); }
+
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: #1f2937; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 20px; font-size: 0.85rem; color: var(--text);
+    z-index: 500; opacity: 0; transition: opacity 0.3s;
+    max-width: 380px; text-align: center; pointer-events: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .toast.show { opacity: 1; }
+  .toast .toast-title { font-weight: 700; color: var(--orange); margin-bottom: 4px; }
+  .toast .toast-msg { color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
+
+  .bucky-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(135deg, #1a1030 0%, #0d1117 100%);
+    border-top: 1px solid rgba(188,140,255,0.3);
+    padding: 12px 32px; display: flex; align-items: center; gap: 12px;
+    z-index: 200; transform: translateY(100%); transition: transform 0.3s;
+    flex-wrap: wrap;
+  }
+  .bucky-panel.show { transform: translateY(0); }
+  .bucky-panel-text { color: var(--purple); font-size: 0.85rem; font-weight: 600; }
+  .bucky-panel-sub { color: var(--muted); font-size: 0.75rem; margin-left: 4px; }
+  .bucky-send-btn {
+    margin-left: auto; background: rgba(188,140,255,0.15);
+    border: 1px solid var(--purple); color: var(--purple);
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .bucky-send-btn:hover { background: rgba(188,140,255,0.3); }
+  .bucky-close { color: var(--muted); background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; }
+
+  footer { text-align: center; padding: 28px; color: var(--muted); font-size: 0.77rem; border-top: 1px solid var(--border); margin-top: 8px; }
+
+  .wh-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:400; align-items:center; justify-content:center; }
+  .wh-overlay.show { display:flex; }
+  .wh-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; width:460px; max-width:95vw; }
+  .wh-modal h2 { font-size:15px; font-weight:700; margin-bottom:10px; }
+  .wh-modal p { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:4px; }
+  .wh-modal label { font-size:12px; color:var(--muted); display:block; margin:12px 0 5px; }
+  .wh-modal input { width:100%; background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:8px 12px; color:var(--text); font-size:12px; font-family:monospace; }
+  .wh-modal input:focus { outline:none; border-color:var(--accent); }
+  .wh-btns { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+  .wh-btn { padding:6px 14px; border-radius:6px; border:1px solid #30363d; background:#21262d; color:var(--text); font-size:12px; cursor:pointer; transition:all .15s; }
+  .wh-btn:hover { background:#30363d; }
+  .wh-btn-save { background:var(--orange); color:#0d1117; border-color:var(--orange); font-weight:600; }
+  .wh-btn-save:hover { opacity:.85; }
+
+  .revenue-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:400; align-items:center; justify-content:center; }
+  .revenue-modal-overlay.show { display:flex; }
+  .revenue-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; width:380px; max-width:95vw; }
+  .revenue-modal h2 { font-size:15px; font-weight:700; margin-bottom:6px; color: var(--green); }
+  .revenue-modal p { font-size:12px; color:var(--muted); margin-bottom:12px; }
+  .revenue-modal label { font-size:12px; color:var(--muted); display:block; margin:10px 0 4px; }
+  .revenue-modal input { width:100%; background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:8px 12px; color:var(--text); font-size:13px; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; padding: 12px; }
+    header, .controls, .stats-bar { padding: 12px 16px; }
+    .search-box { width: 140px; }
+    .bucky-panel { padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-progress" id="topProgress" style="width:0%"></div>
+
+<header>
+  <div class="header-info">
+    <h1>💰 위시켓 수익화 대시보드</h1>
+    <p id="headerSub">Bucky Agent 자동 수집 · 마지막 스캔: <span id="lastScan">로딩 중...</span></p>
+  </div>
+  <a class="header-link" href="index.html">← 레포 대시보드</a>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-box">
+    <div class="num" style="color:var(--accent)" id="totalCount">0</div>
+    <div class="label">전체 공고</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--accent)" id="newCount">0</div>
+    <div class="label">🔵 새 공고</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--yellow)" id="bidCount">0</div>
+    <div class="label">🟡 응찰 중</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--green)" id="wonCount">0</div>
+    <div class="label">🟢 낙찰</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--orange)" id="revenueCount">0</div>
+    <div class="label">💰 수익 (만원)</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="wh-btn" style="border-radius:20px;font-size:0.78rem" onclick="openWebhookSettings()">⚙️ Discord 웹훅</button>
+  <button class="filter-btn active" onclick="setFilter(this,'all')">전체</button>
+  <button class="filter-btn" onclick="setFilter(this,'new')">🔵 새 공고</button>
+  <button class="filter-btn" onclick="setFilter(this,'bid')">🟡 응찰 중</button>
+  <button class="filter-btn" onclick="setFilter(this,'won')">🟢 낙찰</button>
+  <button class="filter-btn" onclick="setFilter(this,'lost')">⚫ 탈락</button>
+  <select class="sort-select" onchange="setSort(this.value)">
+    <option value="budget">예산 높은 순</option>
+    <option value="date">최신순</option>
+    <option value="status">상태순</option>
+  </select>
+  <input class="search-box" type="text" placeholder="공고 검색..." oninput="search(this.value)">
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  Bucky Agent 위시켓 수익화 v1 · 공고 상태는 브라우저에 저장됩니다<br>
+  ⚙️ Discord 웹훅 설정 → 공고 선택 후 "Bucky에게 전송" 클릭 → Discord 채널로 자동 전송
+</footer>
+
+<!-- Discord Webhook Modal -->
+<div class="wh-overlay" id="whOverlay">
+  <div class="wh-modal">
+    <h2>⚙️ Discord Webhook 설정</h2>
+    <p>설정하면 버튼 클릭 시 Bucky Discord 채널로 메시지를 자동 전송합니다.<br>
+    Discord 채널 → 채널 편집 → 연동 → 웹후크 → 새 웹후크 → URL 복사</p>
+    <label>Discord Webhook URL</label>
+    <input type="url" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
+    <label>봇 이름 (선택, 기본: Wishket Dashboard)</label>
+    <input type="text" id="whName" placeholder="Wishket Dashboard">
+    <div style="margin-top:12px"><button class="wh-btn" onclick="testWebhook()">🧪 연결 테스트</button></div>
+    <div class="wh-btns">
+      <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
+      <button class="wh-btn wh-btn-save" onclick="saveWebhook()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 낙찰 금액 입력 Modal -->
+<div class="revenue-modal-overlay" id="revenueOverlay">
+  <div class="revenue-modal">
+    <h2>🏆 낙찰 기록</h2>
+    <p id="revenueProjectTitle" style="color:var(--text);font-weight:600;margin-bottom:8px;"></p>
+    <label>최종 계약 금액 (만원)</label>
+    <input type="number" id="revenueInput" placeholder="예: 500 (만원)" min="0">
+    <div class="wh-btns">
+      <button class="wh-btn" onclick="closeRevenueModal()">취소</button>
+      <button class="wh-btn" style="background:var(--green);color:#0d1117;border-color:var(--green);font-weight:600;" onclick="confirmWon()">낙찰 확정</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toastTitle"></div>
+  <div class="toast-msg" id="toastMsg"></div>
+</div>
+
+<!-- Bucky Panel -->
+<div class="bucky-panel" id="buckyPanel">
+  <span class="bucky-panel-text">🤖 Bucky 전송 준비</span>
+  <span class="bucky-panel-sub" id="buckyPanelSub"></span>
+  <button class="bucky-send-btn" onclick="sendAllToBucky()">Discord 전송</button>
+  <button class="bucky-close" onclick="closeBuckyPanel()">✕</button>
+</div>
+
+<script>
+// ── 공고 데이터 (generate_wishket_dashboard.py로 자동 업데이트) ──
+const PROJECTS = [
+  {
+    id: 'project-155293',
+    title: 'GCP 기반 데이터 파이프라인 고도화 및 운영',
+    link: 'https://www.wishket.com/project/155293/',
+    budget: '월 650만원',
+    budget_wan: 650,
+    description: 'GCP 기반 데이터 파이프라인 고도화 및 운영',
+    source: 'web',
+    scraped_at: '2026-05-26T11:08:06.014796'
+  },
+  {
+    id: 'project-155604',
+    title: 'Electron/React/Go 기반 AI 플랫폼 풀스택 개발',
+    link: 'https://www.wishket.com/project/155604/',
+    budget: '월 500만원',
+    budget_wan: 500,
+    description: 'Electron/React/Go 기반 AI 플랫폼 풀스택 개발',
+    source: 'web',
+    scraped_at: '2026-05-26T11:08:06.021622'
+  }
+];
+
+const MAX_BUDGET = Math.max(...PROJECTS.map(p => p.budget_wan), 1);
+
+// ── 상태 관리 ──
+const STORAGE_KEY = 'wishket_status';
+let projectStatus = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let currentFilter = 'all';
+let currentSort = 'budget';
+let searchQuery = '';
+let checkedIds = new Set();
+let pendingWonId = null;
+
+function getStatus(id) { return projectStatus[id] || { state: 'new', revenue_wan: 0, bid_at: null, won_at: null }; }
+function saveStatus() { localStorage.setItem(STORAGE_KEY, JSON.stringify(projectStatus)); }
+
+// ── 렌더링 ──
+function render() {
+  const grid = document.getElementById('grid');
+  let items = [...PROJECTS];
+
+  if (currentSort === 'budget') items.sort((a, b) => b.budget_wan - a.budget_wan);
+  else if (currentSort === 'date') items.sort((a, b) => b.scraped_at.localeCompare(a.scraped_at));
+  else if (currentSort === 'status') {
+    const ord = { won: 0, bid: 1, new: 2, lost: 3 };
+    items.sort((a, b) => (ord[getStatus(a.id).state] || 2) - (ord[getStatus(b.id).state] || 2));
+  }
+
+  grid.innerHTML = items.map(p => renderCard(p)).join('');
+  updateStats();
+  updateProgress();
+  updateLastScan();
+}
+
+function renderCard(p) {
+  const st = getStatus(p.id);
+  const state = st.state;
+  const dateStr = p.scraped_at ? p.scraped_at.slice(0, 10) : '';
+  const budgetPct = Math.round((p.budget_wan / MAX_BUDGET) * 100);
+  const isChecked = checkedIds.has(p.id);
+
+  const badgeMap = {
+    new: ['badge-new', '🔵 새 공고'],
+    bid: ['badge-bid', '🟡 응찰 중'],
+    won: ['badge-won', '🏆 낙찰'],
+    lost: ['badge-lost', '⚫탈락']
+  };
+  const [badgeClass, badgeLabel] = badgeMap[state] || badgeMap.new;
+
+  const hidden = shouldHide(p, state) ? ' hidden' : '';
+
+  return `<div class="card status-${state}${hidden}" id="card-${p.id}">
+  <div class="status-badge ${badgeClass}">${badgeLabel}</div>
+  <div class="card-header">
+    <input type="checkbox" class="card-check" id="chk-${p.id}" onchange="toggleCheck('${p.id}',this.checked)" ${isChecked ? 'checked' : ''}>
+    <div class="card-title">
+      ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener">${p.title}</a>` : p.title}
+    </div>
+  </div>
+  <div class="budget-row">
+    <span class="budget-num">${p.budget_wan > 0 ? p.budget_wan + '만원' : '미정'}</span>
+    <span class="budget-label">${p.budget_wan > 0 ? '/월' : ''}</span>
+  </div>
+  <div class="budget-bar">
+    <div class="budget-track">
+      <div class="budget-fill" style="width:${budgetPct}%"></div>
+    </div>
+  </div>
+  <div class="card-desc">${p.description || '공고 설명 없음'}</div>
+  <div class="tags">
+    <span class="tag tag-source">${p.source === 'web' ? '웹 수집' : p.source === 'naver_mail_playwright' ? '네이버 메일' : p.source}</span>
+    ${dateStr ? `<span class="tag tag-date">${dateStr}</span>` : ''}
+    ${st.revenue_wan > 0 ? `<span class="tag" style="background:rgba(63,185,80,0.12);color:var(--green);border:1px solid rgba(63,185,80,0.25)">💰 ${st.revenue_wan}만원 확정</span>` : ''}
+  </div>
+  <div class="card-footer">
+    ${p.link ? `<a class="action-btn" href="${p.link}" target="_blank" rel="noopener">🔗 공고 보기</a>` : ''}
+    ${state === 'new' ? `<button class="action-btn bid-btn" onclick="markBid('${p.id}')">📝 응찰 기록</button>` : ''}
+    ${state === 'bid' ? `<button class="action-btn won-btn" onclick="openWonModal('${p.id}')">🏆 낙찰</button>` : ''}
+    ${state !== 'lost' && state !== 'won' ? `<button class="action-btn lost-btn" onclick="markLost('${p.id}')">✕ 탈락</button>` : ''}
+    ${state === 'lost' || state === 'won' ? `<button class="action-btn" onclick="markNew('${p.id}')">↩ 초기화</button>` : ''}
+    <button class="action-btn bucky-btn" onclick="sendOneToBucky('${p.id}')">🤖 Discord</button>
+  </div>
+</div>`;
+}
+
+function shouldHide(p, state) {
+  if (currentFilter !== 'all' && currentFilter !== state) return true;
+  if (searchQuery && !p.title.toLowerCase().includes(searchQuery)) return true;
+  return false;
+}
+
+function updateStats() {
+  const stats = { total: PROJECTS.length, new: 0, bid: 0, won: 0, lost: 0, revenue: 0 };
+  PROJECTS.forEach(p => {
+    const st = getStatus(p.id);
+    stats[st.state] = (stats[st.state] || 0) + 1;
+    stats.revenue += st.revenue_wan || 0;
+  });
+  document.getElementById('totalCount').textContent = stats.total;
+  document.getElementById('newCount').textContent = stats.new;
+  document.getElementById('bidCount').textContent = stats.bid;
+  document.getElementById('wonCount').textContent = stats.won;
+  document.getElementById('revenueCount').textContent = stats.revenue;
+}
+
+function updateProgress() {
+  const won = PROJECTS.filter(p => getStatus(p.id).state === 'won').length;
+  const pct = PROJECTS.length > 0 ? Math.round((won / PROJECTS.length) * 100) : 0;
+  document.getElementById('topProgress').style.width = pct + '%';
+}
+
+function updateLastScan() {
+  const dates = PROJECTS.map(p => p.scraped_at).filter(Boolean).sort().reverse();
+  document.getElementById('lastScan').textContent = dates.length > 0 ? dates[0].slice(0, 16).replace('T', ' ') : '없음';
+}
+
+// ── 상태 변경 ──
+function markBid(id) {
+  projectStatus[id] = { ...getStatus(id), state: 'bid', bid_at: new Date().toISOString() };
+  saveStatus();
+  render();
+  showToast('응찰 기록됨', '응찰 중 상태로 변경되었습니다.');
+}
+
+function openWonModal(id) {
+  pendingWonId = id;
+  const p = PROJECTS.find(x => x.id === id);
+  document.getElementById('revenueProjectTitle').textContent = p ? p.title : id;
+  document.getElementById('revenueInput').value = p ? p.budget_wan : '';
+  document.getElementById('revenueOverlay').classList.add('show');
+}
+
+function confirmWon() {
+  if (!pendingWonId) return;
+  const revenue = parseInt(document.getElementById('revenueInput').value) || 0;
+  projectStatus[pendingWonId] = { ...getStatus(pendingWonId), state: 'won', revenue_wan: revenue, won_at: new Date().toISOString() };
+  saveStatus();
+  closeRevenueModal();
+  render();
+  showToast('🏆 낙찰 확정!', `수익 ${revenue}만원이 기록되었습니다.`);
+}
+
+function closeRevenueModal() {
+  document.getElementById('revenueOverlay').classList.remove('show');
+  pendingWonId = null;
+}
+
+function markLost(id) {
+  projectStatus[id] = { ...getStatus(id), state: 'lost' };
+  saveStatus();
+  render();
+  showToast('탈락 기록됨', '탈락 상태로 변경되었습니다.');
+}
+
+function markNew(id) {
+  projectStatus[id] = { state: 'new', revenue_wan: 0, bid_at: null, won_at: null };
+  saveStatus();
+  render();
+}
+
+// ── 필터 / 검색 / 정렬 ──
+function setFilter(btn, filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setSort(val) { currentSort = val; render(); }
+
+function search(val) { searchQuery = val.toLowerCase(); render(); }
+
+// ── 체크박스 ──
+function toggleCheck(id, checked) {
+  if (checked) checkedIds.add(id); else checkedIds.delete(id);
+  const card = document.getElementById('card-' + id);
+  if (card) card.classList.toggle('status-checked', checked);
+  updateBuckyPanel();
+}
+
+function updateBuckyPanel() {
+  const panel = document.getElementById('buckyPanel');
+  const sub = document.getElementById('buckyPanelSub');
+  if (checkedIds.size > 0) {
+    panel.classList.add('show');
+    sub.textContent = `${checkedIds.size}개 선택됨`;
+  } else {
+    panel.classList.remove('show');
+  }
+}
+
+function closeBuckyPanel() {
+  checkedIds.clear();
+  document.querySelectorAll('.card-check').forEach(c => c.checked = false);
+  updateBuckyPanel();
+}
+
+// ── Discord ──
+function getWebhookUrl() { return localStorage.getItem('wh_url') || ''; }
+function getWebhookName() { return localStorage.getItem('wh_name') || 'Wishket Dashboard'; }
+
+async function sendOneToBucky(id) {
+  const url = getWebhookUrl();
+  if (!url) { openWebhookSettings(); return; }
+  const p = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+  const st = getStatus(id);
+  const msg = formatProjectMessage(p, st);
+  await sendWebhook(url, getWebhookName(), msg);
+}
+
+async function sendAllToBucky() {
+  const url = getWebhookUrl();
+  if (!url) { openWebhookSettings(); return; }
+  const ids = [...checkedIds];
+  if (ids.length === 0) return;
+  const messages = ids.map(id => {
+    const p = PROJECTS.find(x => x.id === id);
+    return p ? formatProjectMessage(p, getStatus(id)) : '';
+  }).filter(Boolean).join('\n\n---\n\n');
+  await sendWebhook(url, getWebhookName(), messages);
+}
+
+function formatProjectMessage(p, st) {
+  const stateLabel = { new: '새 공고', bid: '응찰 중', won: '낙찰', lost: '탈락' }[st.state] || st.state;
+  return [
+    `**💰 위시켓 공고**`,
+    `**제목:** ${p.title}`,
+    `**예산:** ${p.budget}`,
+    `**상태:** ${stateLabel}`,
+    p.link ? `**링크:** ${p.link}` : '',
+    p.description ? `**설명:** ${p.description.slice(0, 100)}` : ''
+  ].filter(Boolean).join('\n');
+}
+
+async function sendWebhook(url, name, content) {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: name, content })
+    });
+    if (res.ok) showToast('Discord 전송 완료', '메시지가 전송되었습니다.');
+    else showToast('전송 실패', `HTTP ${res.status}`);
+  } catch (e) {
+    showToast('전송 실패', e.message);
+  }
+}
+
+// ── Webhook 설정 Modal ──
+function openWebhookSettings() {
+  document.getElementById('whUrl').value = localStorage.getItem('wh_url') || '';
+  document.getElementById('whName').value = localStorage.getItem('wh_name') || '';
+  document.getElementById('whOverlay').classList.add('show');
+}
+function closeWebhookSettings() { document.getElementById('whOverlay').classList.remove('show'); }
+function saveWebhook() {
+  const url = document.getElementById('whUrl').value.trim();
+  const name = document.getElementById('whName').value.trim();
+  if (url) localStorage.setItem('wh_url', url);
+  if (name) localStorage.setItem('wh_name', name);
+  closeWebhookSettings();
+  showToast('저장 완료', 'Discord Webhook이 설정되었습니다.');
+}
+async function testWebhook() {
+  const url = document.getElementById('whUrl').value.trim();
+  if (!url) { showToast('URL 없음', 'Webhook URL을 먼저 입력하세요.'); return; }
+  await sendWebhook(url, document.getElementById('whName').value || 'Wishket Dashboard', '✅ Wishket 대시보드 연결 테스트');
+}
+
+// ── Toast ──
+let toastTimer = null;
+function showToast(title, msg) {
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── 초기화 ──
+render();
+</script>
+</body>
+</html>
