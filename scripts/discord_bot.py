@@ -60,6 +60,15 @@ from bucky_multi_dispatcher import (
 )
 
 try:
+    import task_queue as tq
+    from bucky_worker_pool import get_pool as _get_worker_pool
+    _WORKER_POOL_ENABLED = True
+except ImportError:
+    tq = None  # type: ignore
+    _get_worker_pool = None  # type: ignore
+    _WORKER_POOL_ENABLED = False
+
+try:
     from bucky_knowledge_capture import capture_url as _kc_capture_url, capture_text as _kc_capture_text
     _KNOWLEDGE_CAPTURE_ENABLED = True
 except ImportError:
@@ -87,6 +96,7 @@ os.environ.setdefault("BUCKY_TOOL_MODE", "auto")
 AUTO_BRIEFING: bool = os.getenv("AUTO_BRIEFING", "0").strip().lower() in {"1", "true", "yes"}
 BRIEFING_CHANNEL_ID: str = os.getenv("BRIEFING_CHANNEL_ID", "")
 BRIEFING_TIME: str = os.getenv("BRIEFING_TIME", "09:00")  # HH:MM 로컬 시각
+BUCKY_STATUS_CHANNEL_ID: str = os.getenv("BUCKY_STATUS_CHANNEL_ID", "").strip()
 
 # ── 환경변수 ───────────────────────────────────────────────────────────────────
 
@@ -1690,6 +1700,14 @@ class BuckyDiscordBot(discord.Client):
         print(f"음성(TTS 출력): {tts_status}", flush=True)
         print(f"음성(실시간 수신): {recv_status}", flush=True)
 
+        # ── 워커풀 초기화 ─────────────────────────────────────────────────────────
+        if _WORKER_POOL_ENABLED:
+            pool = _get_worker_pool()
+            pool.set_discord(self)
+            pool_size = int(os.getenv("WORKER_POOL_SIZE", "5"))
+            status_ch = f"채널 {BUCKY_STATUS_CHANNEL_ID}" if BUCKY_STATUS_CHANNEL_ID else "미설정"
+            print(f"[WorkerPool] 초기화 완료: 최대 {pool_size}개 동시 실행 | 상태채널: {status_ch}", flush=True)
+
         # ── 자동 음성 채널 입장 (AUTO_JOIN_VOICE_CHANNEL_ID 설정 시) ──────────────
         auto_join_ch_id = os.getenv("AUTO_JOIN_VOICE_CHANNEL_ID", "").strip()
         auto_join_text_ch_id = os.getenv("AUTO_JOIN_TEXT_CHANNEL_ID", "").strip()
@@ -1853,8 +1871,13 @@ class BuckyDiscordBot(discord.Client):
                 "**Bucky 명령어**\n"
                 "`!status` — 봇 상태 및 내 역할 확인\n"
                 "`!reset` — 대화 기록 초기화\n"
-                "`!tasks` / `!태스크` / `!현황` — 오늘 태스크 현황\n"
-                "`!태스크추가 <내용>` — 태스크 등록 및 배분\n"
+                "**[멀티태스크 — 워커풀]**\n"
+                "`!task <내용>` — 자동 라우팅 (Claude/Codex/Bucky) 백그라운드 실행\n"
+                "`!code <내용>` — Codex 강제 배정 (구현/코드 작업)\n"
+                "`!think <내용>` — Claude 강제 배정 (분석/설계/전략)\n"
+                "`!tasks` / `!태스크` / `!현황` — 오늘 태스크 전체 현황\n"
+                "`!status T001` — 특정 태스크 상세 조회\n"
+                "`!태스크추가 <내용>` — 태스크 등록 및 배분 (레거시)\n"
                 "`!배분 <내용>` — 태스크 자동 분류 → Claude/Codex/Sub-agent 배분\n"
                 "`!배분현황` — 대기 중인 배분 태스크 조회\n"
                 "`!리포트` / `!report` — 데일리 리포트 생성\n"
@@ -1985,18 +2008,87 @@ class BuckyDiscordBot(discord.Client):
             return
 
         if content in ("!tasks", "!태스크", "!현황"):
-            task_text = format_task_list()
+            if _WORKER_POOL_ENABLED and tq:
+                task_text = await asyncio.to_thread(tq.format_dashboard)
+            else:
+                task_text = format_task_list()
             for chunk in split_message(task_text):
                 await message.channel.send(chunk)
             return
 
+        # ── 태스크 상태 조회 !status T001 ──────────────────────────────────────
+        if content.startswith("!status ") and content[8:].strip().upper().startswith("T"):
+            tid = content[8:].strip().upper()
+            if _WORKER_POOL_ENABLED and tq:
+                task = await asyncio.to_thread(tq.get, tid)
+                if task:
+                    icon = {"pending": "⏳", "in_progress": "🔄", "submitted": "📤",
+                            "done": "✅", "failed": "❌"}.get(task["status"], "❓")
+                    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}.get(task["agent"], "")
+                    lines = [
+                        f"{icon} `{task['id']}` {agent_icon} **{task['title']}**",
+                        f"상태: `{task['status']}` | 에이전트: `{task['agent']}`",
+                        f"생성: {task['created']}",
+                    ]
+                    if task.get("updated"):
+                        lines.append(f"갱신: {task['updated']}")
+                    if task.get("result"):
+                        lines.append(f"\n결과:\n```\n{task['result'][:800]}\n```")
+                    await message.channel.send("\n".join(lines))
+                else:
+                    await message.channel.send(f"❓ `{tid}` — 태스크를 찾을 수 없습니다.")
+            else:
+                await message.channel.send("⚠️ 워커풀이 비활성화 상태입니다.")
+            return
+
+        # ── !task / !태스크추가 — 자동 라우팅 백그라운드 실행 ──────────────────────
         if content.startswith("!태스크추가 ") or content.startswith("!task "):
             body = content.split(" ", 1)[1].strip()
             if body:
-                task = await asyncio.to_thread(add_task, body[:40], body, None, "discord")
+                if _WORKER_POOL_ENABLED and tq:
+                    task = await asyncio.to_thread(tq.add, body[:60], body, None, "discord")
+                    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}.get(task["agent"], "")
+                    await message.channel.send(
+                        f"📥 `{task['id']}` {agent_icon} **{task['title']}**\n"
+                        f"→ `{task['agent'].upper()}` 배정 · 백그라운드 실행 시작"
+                    )
+                    pool = _get_worker_pool()
+                    pool.submit(task, reply_channel=message.channel)
+                else:
+                    task = await asyncio.to_thread(add_task, body[:40], body, None, "discord")
+                    await message.channel.send(
+                        f"✅ 태스크 등록: `{task['id']}` → **{task['type']}** → {task['router']}"
+                    )
+            return
+
+        # ── !code — Codex 강제 배정 ───────────────────────────────────────────
+        if content.startswith("!code "):
+            body = content[6:].strip()
+            if body and _WORKER_POOL_ENABLED and tq:
+                task = await asyncio.to_thread(tq.add, body[:60], body, "codex", "discord")
                 await message.channel.send(
-                    f"✅ 태스크 등록: `{task['id']}` → **{task['type']}** → {task['router']}"
+                    f"📥 `{task['id']}` ⚡ **{task['title']}**\n"
+                    f"→ CODEX 강제 배정 · AgentBus 전달 중..."
                 )
+                pool = _get_worker_pool()
+                pool.submit(task, reply_channel=message.channel)
+            elif body:
+                await message.channel.send("⚠️ 워커풀 비활성화 — `pip install` 후 재시작 필요")
+            return
+
+        # ── !think — Claude 강제 배정 ─────────────────────────────────────────
+        if content.startswith("!think "):
+            body = content[7:].strip()
+            if body and _WORKER_POOL_ENABLED and tq:
+                task = await asyncio.to_thread(tq.add, body[:60], body, "claude", "discord")
+                await message.channel.send(
+                    f"📥 `{task['id']}` 🧠 **{task['title']}**\n"
+                    f"→ CLAUDE 강제 배정 · 백그라운드 분석 시작..."
+                )
+                pool = _get_worker_pool()
+                pool.submit(task, reply_channel=message.channel)
+            elif body:
+                await message.channel.send("⚠️ 워커풀 비활성화")
             return
 
         if content in ("!리포트", "!report", "!일지"):
