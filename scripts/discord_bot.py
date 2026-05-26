@@ -1391,6 +1391,81 @@ def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
             await interaction.followup.send(f"⚠️ wishket_reply 오류: {e}")
 
 
+# ── Codex 명령어 ──────────────────────────────────────────────────────────────
+
+def _register_codex_commands(tree: app_commands.CommandTree) -> None:
+    """Discord /codex_review — 지정 파일 또는 최근 커밋 변경 파일을 Codex가 검수."""
+
+    codex_group = app_commands.Group(
+        name="codex",
+        description="Codex 코드 검수 명령어",
+    )
+
+    @codex_group.command(name="review", description="파일을 Codex로 검수 (비워두면 마지막 커밋 기준)")
+    @app_commands.describe(files="검수할 파일 경로 (쉼표 구분). 비우면 마지막 커밋 자동 감지")
+    async def codex_review(interaction: discord.Interaction, files: str = "") -> None:
+        import subprocess as _sp
+        await interaction.response.defer(thinking=True)
+        try:
+            target_files = [f.strip() for f in files.split(",") if f.strip()]
+            if not target_files:
+                r = await asyncio.to_thread(
+                    _sp.run,
+                    ["git", "diff", "--name-only", "HEAD~1", "HEAD", "--diff-filter=ACM"],
+                    capture_output=True, text=True, cwd=str(ROOT),
+                )
+                exts = {".py", ".js", ".ts", ".jsx", ".tsx"}
+                target_files = [f for f in r.stdout.strip().splitlines() if Path(f).suffix in exts]
+
+            if not target_files:
+                await interaction.followup.send("⚠️ 검수할 코드 파일 없음")
+                return
+
+            if len(target_files) > 10:
+                await interaction.followup.send(f"⚠️ 파일이 {len(target_files)}개 — 10개 이하로 지정해 주세요")
+                return
+
+            await interaction.followup.send(f"🔍 Codex 검수 시작 — {len(target_files)}개 파일...")
+
+            proc = await asyncio.to_thread(
+                _sp.run,
+                [sys.executable, str(ROOT / "scripts" / "codex_precommit.py")],
+                capture_output=True, text=True,
+                env={**os.environ, "CODEX_PRECOMMIT_FILES": ",".join(target_files)},
+                cwd=str(ROOT),
+            )
+            output = (proc.stdout + proc.stderr).strip()[:1800] or "(출력 없음)"
+            status = "❌ 차단" if proc.returncode != 0 else "✅ 통과"
+            file_list = "\n".join(f"• `{f}`" for f in target_files)
+            msg = f"**[Codex 검수 {status}]**\n{file_list}\n\n```\n{output}\n```"
+            await interaction.followup.send(msg[:2000])
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ codex review 오류: {e}")
+
+    @codex_group.command(name="log", description="최근 Codex pre-commit 검수 로그 표시")
+    async def codex_log(interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            log_dir = ROOT / "ObsidianVault" / "10_AgentBus" / "codex-precommit-logs"
+            if not log_dir.exists():
+                await interaction.followup.send("📭 검수 로그 없음")
+                return
+            logs = sorted(log_dir.glob("*.md"), reverse=True)[:5]
+            if not logs:
+                await interaction.followup.send("📭 검수 로그 없음")
+                return
+            lines = ["**[Codex 검수 로그 — 최근 5건]**"]
+            for log in logs:
+                text = log.read_text(encoding="utf-8")[:300]
+                status = "❌" if "BLOCK:" in text.upper() else ("⚠️" if "WARN:" in text.upper() else "✅")
+                lines.append(f"{status} `{log.stem}`")
+            await interaction.followup.send("\n".join(lines))
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ log 조회 오류: {e}")
+
+    tree.add_command(codex_group)
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -1402,6 +1477,7 @@ class BuckyDiscordBot(discord.Client):
         _register_deploy_commands(self.tree)
         _register_analyze_commands(self.tree)
         _register_wishket_commands(self.tree)
+        _register_codex_commands(self.tree)
 
     async def setup_hook(self) -> None:
         # 슬래시 명령어 전역 동기화

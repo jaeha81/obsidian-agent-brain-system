@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Codex pre-commit review — staged 코드 파일 자동 검수
+# 설치: bash scripts/setup_hooks.sh
+set -euo pipefail
+python "$(git rev-parse --show-toplevel)/scripts/codex_precommit.py"
