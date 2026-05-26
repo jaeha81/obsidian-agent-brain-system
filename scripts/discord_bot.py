@@ -53,6 +53,24 @@ from task_tracker import add_task, format_task_list, get_today_tasks
 from daily_report_generator import run as generate_daily_report
 from bucky_dispatcher import dispatch as dispatch_task, get_pending_tasks
 
+try:
+    from bucky_knowledge_capture import capture_url as _kc_capture_url, capture_text as _kc_capture_text
+    _KNOWLEDGE_CAPTURE_ENABLED = True
+except ImportError:
+    _KNOWLEDGE_CAPTURE_ENABLED = False
+
+try:
+    from bucky_pattern_extractor import run as _pattern_extractor_run
+    _PATTERN_EXTRACTOR_ENABLED = True
+except ImportError:
+    _PATTERN_EXTRACTOR_ENABLED = False
+
+try:
+    from bucky_self_reflection import run as _self_reflection_run
+    _SELF_REFLECTION_ENABLED = True
+except ImportError:
+    _SELF_REFLECTION_ENABLED = False
+
 _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8")
 
@@ -494,10 +512,11 @@ async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
 
             done_event = asyncio.Event()
             path_ref = tmp_path
+            loop = asyncio.get_running_loop()
 
             def _after(error):
                 Path(path_ref).unlink(missing_ok=True)
-                asyncio.get_event_loop().call_soon_threadsafe(done_event.set)
+                loop.call_soon_threadsafe(done_event.set)
 
             # FFmpegOpusAudio: ffmpeg이 opus 인코딩 담당 → libopus DLL 불필요
             audio_src = await discord.FFmpegOpusAudio.from_probe(tmp_path)
@@ -1767,8 +1786,10 @@ class BuckyDiscordBot(discord.Client):
                 "`!상품화 <GitHub URL>` — 랜딩 페이지 + 결제 + Vercel 배포 통합 파이프라인\n"
                 "`!랜딩 <GitHub URL 또는 이름>` — 랜딩 페이지만 생성\n"
                 "`!배포 <경로>` — 프로젝트를 Vercel에 배포\n"
-                "`!저장 <URL 또는 텍스트>` / `!캡처` — Obsidian 지식베이스에 저장\n"
-                "`!패턴` / `!pattern` — 반복 요청 패턴 분석 → 스킬 자동 제안\n"
+                "`!capture <url>` / `!저장 <url>` — URL/텍스트를 Obsidian 01_RAW에 저장\n"
+                "`!캡처 <텍스트>` — 텍스트 메모 Obsidian 01_RAW에 저장\n"
+                "`!patterns` / `!패턴` — 반복 패턴 분석 → 스킬 자동 제안 (P1)\n"
+                "`!reflect` / `!반성` — 자기 반성 분석 (P2)\n"
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
                 f"TTS: {tts_status} | 실시간 수신: {recv_status}\n"
@@ -1780,6 +1801,76 @@ class BuckyDiscordBot(discord.Client):
         if content == "!reset":
             conversation_history[channel_id].clear()
             await message.channel.send("🔄 대화 기록을 초기화했습니다.")
+            return
+
+        # ── P0: Knowledge Capture ──────────────────────────────────────
+        if content.startswith("!capture ") or content.startswith("!저장 "):
+            if not _KNOWLEDGE_CAPTURE_ENABLED:
+                await message.channel.send("⚠️ knowledge capture 모듈 없음")
+                return
+            prefix = "!capture " if content.startswith("!capture ") else "!저장 "
+            target = content[len(prefix):].strip()
+            async with message.channel.typing():
+                try:
+                    loop = asyncio.get_event_loop()
+                    if target.startswith("http"):
+                        fp = await loop.run_in_executor(None, lambda: _kc_capture_url(target))
+                    else:
+                        fp = await loop.run_in_executor(None, lambda: _kc_capture_text(target, message.author.name))
+                    await message.channel.send(f"✅ 저장 완료: `{fp.name}`\n📁 `ObsidianVault/01_RAW/`")
+                except Exception as e:
+                    await message.channel.send(f"❌ 저장 실패: {e}")
+            return
+
+        if content.startswith("!캡처 "):
+            if not _KNOWLEDGE_CAPTURE_ENABLED:
+                await message.channel.send("⚠️ knowledge capture 모듈 없음")
+                return
+            text_body = content[4:].strip()
+            async with message.channel.typing():
+                try:
+                    loop = asyncio.get_event_loop()
+                    fp = await loop.run_in_executor(None, lambda: _kc_capture_text(text_body, message.author.name))
+                    await message.channel.send(f"✅ 메모 저장: `{fp.name}`")
+                except Exception as e:
+                    await message.channel.send(f"❌ 저장 실패: {e}")
+            return
+
+        # ── P1: Pattern Extractor ──────────────────────────────────────
+        if content in ("!patterns", "!패턴"):
+            if not _PATTERN_EXTRACTOR_ENABLED:
+                await message.channel.send("⚠️ pattern extractor 모듈 없음")
+                return
+            await message.channel.send("🔍 패턴 분석 시작... (30초 내외)")
+            async with message.channel.typing():
+                try:
+                    loop = asyncio.get_event_loop()
+                    result = await loop.run_in_executor(None, lambda: _pattern_extractor_run(notify_discord=False))
+                    patterns = result.get("patterns", [])
+                    suggestions = result.get("suggestions", [])
+                    lines = [f"📊 **패턴 분석 완료**", f"• 감지된 패턴: {len(patterns)}개", f"• 스킬 제안: {len(suggestions)}개"]
+                    if patterns:
+                        top = patterns[0]
+                        lines.append(f"🥇 최다: `{top['pattern_key'][:40]}` ({top['count']}회)")
+                    await message.channel.send("\n".join(lines))
+                except Exception as e:
+                    await message.channel.send(f"❌ 패턴 분석 실패: {e}")
+            return
+
+        # ── P2: Self-Reflection ────────────────────────────────────────
+        if content in ("!reflect", "!반성"):
+            if not _SELF_REFLECTION_ENABLED:
+                await message.channel.send("⚠️ self-reflection 모듈 없음")
+                return
+            await message.channel.send("💭 자기 반성 분석 시작...")
+            async with message.channel.typing():
+                try:
+                    loop = asyncio.get_event_loop()
+                    result = await loop.run_in_executor(None, lambda: _self_reflection_run(notify_discord=False))
+                    preview = result.get("analysis", "")[:300].replace("\n", " ")
+                    await message.channel.send(f"💭 **자기 반성 완료**\n> {preview}")
+                except Exception as e:
+                    await message.channel.send(f"❌ 자기 반성 실패: {e}")
             return
 
         # ── 음성 채널 입장 ──────────────────────────────────────────────────────
