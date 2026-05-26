@@ -101,8 +101,12 @@ STYLE_KEYWORDS = {
 class NLPPreprocessor:
     """자연어 → AI 에이전트 최적화 구조화 포맷 변환기."""
 
+    # 배치 실행 시 API 과호출 방지: 세션당 최대 API 호출 횟수
+    _MAX_API_CALLS_PER_SESSION = int(os.getenv("NLP_MAX_API_CALLS", "20"))
+
     def __init__(self, use_api: bool = True):
         self.use_api = use_api and _NLP_ENHANCE_ENABLED
+        self._api_call_count = 0
 
     # ── 규칙 기반 분류 ─────────────────────────────────────────────────────────
 
@@ -192,6 +196,9 @@ class NLPPreprocessor:
     def _enhance_with_claude(self, text: str, base_result: dict) -> dict:
         if not self.use_api or len(text) < 5:
             return base_result
+        if self._api_call_count >= self._MAX_API_CALLS_PER_SESSION:
+            return base_result
+        self._api_call_count += 1
 
         prompt = f"""다음 한국어 자연어 입력을 분석해 JSON으로 반환하세요.
 
@@ -210,7 +217,7 @@ class NLPPreprocessor:
         try:
             import urllib.request
             body = json.dumps({
-                "model": "claude-haiku-4-5-20251001",
+                "model": "claude-haiku-4-5",
                 "max_tokens": 300,
                 "messages": [{"role": "user", "content": prompt}],
             }).encode("utf-8")
