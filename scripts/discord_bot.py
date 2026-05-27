@@ -103,6 +103,10 @@ JH_CHAT_CHANNEL_ID: str    = os.getenv("JH_CHAT_CHANNEL_ID", "").strip()
 JH_TASKS_CHANNEL_ID: str   = os.getenv("JH_TASKS_CHANNEL_ID", "").strip()
 JH_STATUS_CHANNEL_ID: str  = os.getenv("JH_STATUS_CHANNEL_ID", "").strip()
 JH_RESULTS_CHANNEL_ID: str = os.getenv("JH_RESULTS_CHANNEL_ID", "").strip()
+# 작업 채널: 채널 = 독립 Claude Code 인스턴스 (tools 허용, 병렬 실행)
+JH_WORK_CHANNEL_IDS: set[str] = {
+    c.strip() for c in os.getenv("JH_WORK_CHANNEL_IDS", "").split(",") if c.strip()
+}
 
 # ── 환경변수 ───────────────────────────────────────────────────────────────────
 
@@ -110,7 +114,7 @@ TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
 GUILD_ID: str = os.getenv("DISCORD_GUILD_ID", "")
 ALLOWED_CHANNELS: set[str] = {
     c.strip() for c in os.getenv("DISCORD_CHANNEL_IDS", "").split(",") if c.strip()
-}
+} | JH_WORK_CHANNEL_IDS  # 작업 채널 자동 포함
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"
 MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "1"))
@@ -1783,6 +1787,64 @@ async def _handle_jh_tasks(message: Message) -> None:
     await _dispatch_task(message, task_body)
 
 
+# ── 작업 채널 핸들러 ─────────────────────────────────────────────────────────────
+
+_WORK_SYSTEM_PROMPT = (
+    "너는 Claude Code 작업 전용 에이전트다. "
+    "이 채널은 독립 작업 세션이다 — 다른 채널과 컨텍스트를 공유하지 않는다. "
+    "파일 읽기·쓰기·코드 실행 등 도구를 적극 활용해 작업을 완료한다. "
+    "결과는 간결하게: 완료 항목 → 변경 파일 → 다음 행동 순서로 보고한다. "
+    "불필요한 설명 없이 실행 결과 위주로 답변한다."
+)
+
+
+async def _handle_work_channel(message: Message) -> None:
+    """작업 채널(jh-work-*) 핸들러.
+
+    채널 = 독립 Claude Code 인스턴스. --dangerously-skip-permissions 적용.
+    각 채널이 병렬로 독립 실행된다.
+    """
+    from bucky_client import run_bucky_with_tools, BuckyError as _BErr
+
+    content = message.content.strip()
+    if not content:
+        return
+
+    channel_id = str(message.channel.id)
+    channel_name = getattr(message.channel, "name", channel_id)
+
+    # 채널 전용 시스템 프롬프트 오버라이드 (env: JH_WORK_PROMPT_<channel_id>=...)
+    custom_sp = os.getenv(f"JH_WORK_PROMPT_{channel_id}", "").strip()
+    system_prompt = custom_sp or _WORK_SYSTEM_PROMPT
+
+    thinking_msg = await message.channel.send(
+        f"⚙️ **[{channel_name}]** 작업 실행 중... _(⏱ 0초)_"
+    )
+    _stop = asyncio.Event()
+    _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
+    reply = ""
+    try:
+        reply = await asyncio.to_thread(
+            run_bucky_with_tools, content, system_prompt=system_prompt
+        )
+    except _BErr as e:
+        reply = f"⚠️ 작업 실패: {e}"
+        print(f"[WorkCh] BuckyError [{channel_name}]: {e}", flush=True)
+    except Exception as e:
+        reply = f"⚠️ 오류: {e}"
+        print(f"[WorkCh] Error [{channel_name}]: {e}", flush=True)
+    finally:
+        _stop.set()
+        _anim.cancel()
+
+    chunks = split_message(reply)
+    await thinking_msg.edit(content=chunks[0])
+    for chunk in chunks[1:]:
+        await message.channel.send(chunk)
+
+    write_discord_message(message, reply, status="answered")
+
+
 # ── 봇 클래스 ──────────────────────────────────────────────────────────────────
 
 class BuckyDiscordBot(discord.Client):
@@ -2101,6 +2163,11 @@ class BuckyDiscordBot(discord.Client):
         # ── #jh-tasks: Claude 없이 즉시 태스크 배정 ─────────────────────────────────
         if JH_TASKS_CHANNEL_ID and channel_id == JH_TASKS_CHANNEL_ID:
             await _handle_jh_tasks(message)
+            return
+
+        # ── 작업 채널: 독립 Claude Code 인스턴스 (tools 허용, 진짜 병렬) ─────────────
+        if JH_WORK_CHANNEL_IDS and channel_id in JH_WORK_CHANNEL_IDS:
+            await _handle_work_channel(message)
             return
 
         # ── URL 자동 캡처 — YouTube는 알림 포함, 일반 URL은 조용히 처리 ──────────────

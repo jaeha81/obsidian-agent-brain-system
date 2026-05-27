@@ -104,6 +104,59 @@ def run_bucky(prompt: str, *, system_prompt: str | None = None, timeout: int | N
     return _strip_preamble(result.stdout).strip()
 
 
+def run_bucky_with_tools(
+    prompt: str,
+    *,
+    system_prompt: str | None = None,
+    timeout: int | None = None,
+) -> str:
+    """run_bucky와 동일하나 --dangerously-skip-permissions 강제 적용.
+
+    작업 채널(jh-work-*) 전용. 파일 읽기/쓰기/실행 도구 모두 허용.
+    """
+    if not is_bucky_available():
+        raise BuckyError(
+            f"Bucky CLI not found. CLAUDE_COMMAND={bucky_command()!r} — "
+            "Claude Code CLI가 설치되어 있는지 확인하세요."
+        )
+
+    timeout_s = timeout or int(os.getenv("BUCKY_TIMEOUT", "900"))
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["BUCKY_SUBPROCESS"] = "1"
+    env.pop("ANTHROPIC_API_KEY", None)
+    env.pop("CLAUDE_API_KEY", None)
+
+    command = bucky_command()
+    model = os.getenv("BUCKY_CHAT_MODEL", "sonnet").strip() or "sonnet"
+    cmd = [
+        command,
+        "--print",
+        "--output-format", os.getenv("CLAUDE_OUTPUT_FORMAT", "text").strip() or "text",
+        "--model", model,
+        "--no-session-persistence",
+        "--dangerously-skip-permissions",   # tools 허용 — 작업 채널 전용
+    ]
+    if system_prompt:
+        cmd += ["--append-system-prompt", system_prompt]
+
+    result = subprocess.run(
+        cmd,
+        input=prompt,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=str(ROOT),
+        timeout=timeout_s,
+        env=env,
+    )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise BuckyError(f"Bucky runtime failed with code {result.returncode}: {detail}")
+    return _strip_preamble(result.stdout).strip()
+
+
 def _strip_preamble(text: str) -> str:
     """Remove CLAUDE.md PC-detection preamble lines from the start of the response."""
     return re.sub(r'^[🏠💻🏢][^\n]*\n+(?:-{3,}\n+)?', '', text, count=1)
