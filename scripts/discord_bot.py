@@ -1855,18 +1855,69 @@ async def _handle_work_channel(message: Message) -> None:
     """작업 채널(jh-work-*) 핸들러.
 
     채널 = 독립 Claude Code 인스턴스. --dangerously-skip-permissions 적용.
-    각 채널이 병렬로 독립 실행된다.
+    작업 추적: 저장 → 중복 감지 → 실행 → 결과 저장.
     """
     from bucky_client import run_bucky_with_tools, BuckyError as _BErr
+    try:
+        import channel_task_tracker as _ctt
+        _track = True
+    except ImportError:
+        _ctt = None
+        _track = False
 
     content = message.content.strip()
     if not content:
         return
 
-    channel_id = str(message.channel.id)
+    channel_id   = str(message.channel.id)
     channel_name = getattr(message.channel, "name", channel_id)
 
-    # 채널 전용 시스템 프롬프트 오버라이드 (env: JH_WORK_PROMPT_<channel_id>=...)
+    # ── !명령어 처리 ───────────────────────────────────────────────────────────
+    if content in ("!report", "!현황", "!보고"):
+        if _track:
+            await message.channel.send(_ctt.get_report())
+        else:
+            await message.channel.send("⚠️ 작업 추적 모듈 미설치")
+        return
+
+    if content in ("!history", "!기록"):
+        if _track:
+            await message.channel.send(_ctt.get_channel_history(channel_id))
+        else:
+            await message.channel.send("⚠️ 작업 추적 모듈 미설치")
+        return
+
+    if content.startswith("!플랜 ") or content.startswith("!plan "):
+        plan_body = content.split(None, 1)[1].strip()
+        if _track and plan_body:
+            _ctt.mark_plan(channel_id, channel_name, plan_body)
+            await message.channel.send(f"📐 플랜 저장: `{plan_body[:80]}`")
+        return
+
+    if content.startswith("!재개 ") or content.startswith("!resume "):
+        resume_body = content.split(None, 1)[1].strip()
+        if not resume_body:
+            await message.channel.send("사용법: `!재개 [작업 내용 또는 이전 작업 설명]`")
+            return
+        # 재개 = 해당 내용으로 즉시 재실행 (content를 override)
+        content = f"[재개] {resume_body}"
+
+    # ── 중복 감지 ─────────────────────────────────────────────────────────────
+    task_id = None
+    if _track:
+        dupes = _ctt.find_duplicates(content)
+        if dupes:
+            dupe_lines = "\n".join(
+                f"  `#{d['channel']}` ({d['status']}) {d['content'][:50]}…"
+                for d in dupes[:3]
+            )
+            await message.channel.send(
+                f"⚠️ **유사 작업 감지** — 중복 가능성 있음:\n{dupe_lines}\n"
+                f"계속 진행합니다."
+            )
+        task_id = _ctt.save_task(channel_id, channel_name, content)
+
+    # ── Claude Code 실행 ──────────────────────────────────────────────────────
     custom_sp = os.getenv(f"JH_WORK_PROMPT_{channel_id}", "").strip()
     system_prompt = custom_sp or _WORK_SYSTEM_PROMPT
 
@@ -1876,19 +1927,27 @@ async def _handle_work_channel(message: Message) -> None:
     _stop = asyncio.Event()
     _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
     reply = ""
+    status = "done"
     try:
         reply = await asyncio.to_thread(
             run_bucky_with_tools, content, system_prompt=system_prompt
         )
     except _BErr as e:
         reply = f"⚠️ 작업 실패: {e}"
+        status = "failed"
         print(f"[WorkCh] BuckyError [{channel_name}]: {e}", flush=True)
     except Exception as e:
         reply = f"⚠️ 오류: {e}"
+        status = "failed"
         print(f"[WorkCh] Error [{channel_name}]: {e}", flush=True)
     finally:
         _stop.set()
         _anim.cancel()
+
+    # ── 결과 저장 ─────────────────────────────────────────────────────────────
+    if _track and task_id:
+        result_summary = reply[:200] if reply else None
+        _ctt.update_task(task_id, status, result_summary)
 
     chunks = split_message(reply)
     await thinking_msg.edit(content=chunks[0])
@@ -2163,6 +2222,7 @@ class BuckyDiscordBot(discord.Client):
             pool.hydrate_from_db()
             if JH_RESULTS_CHANNEL_ID:
                 pool.set_results_channel(JH_RESULTS_CHANNEL_ID)
+            pool.start_codex_result_poller()
             pool_size = int(os.getenv("WORKER_POOL_SIZE", "5"))
             status_ch = f"채널 {BUCKY_STATUS_CHANNEL_ID}" if BUCKY_STATUS_CHANNEL_ID else "미설정"
             print(f"[WorkerPool] 초기화 완료: 최대 {pool_size}개 동시 실행 | 상태채널: {status_ch}", flush=True)
@@ -2190,6 +2250,30 @@ class BuckyDiscordBot(discord.Client):
             except Exception as e:
                 print(f"[Voice] 자동 입장 실패: {e}", flush=True)
 
+        # ── 시작 시 미완료 작업 보고 ───────────────────────────────────────────────
+        asyncio.ensure_future(self._startup_incomplete_report())
+
+    async def _startup_incomplete_report(self) -> None:
+        """봇 시작 시 미완료 작업이 있으면 #jh-status 또는 #jh-chat에 자동 보고."""
+        await asyncio.sleep(3)  # 채널 초기화 대기
+        try:
+            import channel_task_tracker as _ctt
+            report = _ctt.get_report(days=7)
+            # 미완료 있을 때만 포스팅
+            if "미완료 **0**" in report or "작업 없음" in report:
+                return
+            notify_ch_id = BUCKY_STATUS_CHANNEL_ID or JH_CHAT_CHANNEL_ID
+            if not notify_ch_id:
+                return
+            ch = self.get_channel(int(notify_ch_id))
+            if ch:
+                await ch.send(
+                    f"🔔 **봇 재시작 — 미완료 작업 있음**\n{report}\n\n"
+                    f"`!재개 [작업내용]` 으로 재실행 가능"
+                )
+        except Exception as e:
+            print(f"[Startup] 미완료 보고 실패: {e}", flush=True)
+
     async def on_message(self, message: Message) -> None:
         if message.author == self.user:
             return
@@ -2213,6 +2297,15 @@ class BuckyDiscordBot(discord.Client):
         content = message.content.strip()
         channel_id = str(message.channel.id)
 
+        # ── 전역 !report / !현황 — 모든 채널에서 사용 가능 ───────────────────────────
+        if content in ("!report", "!현황", "!보고"):
+            try:
+                import channel_task_tracker as _ctt
+                await message.channel.send(_ctt.get_report())
+            except Exception as _rpt_e:
+                await message.channel.send(f"⚠️ 보고 실패: {_rpt_e}")
+            return
+
         # ── #jh-tasks: Claude 없이 즉시 태스크 배정 ─────────────────────────────────
         if JH_TASKS_CHANNEL_ID and channel_id == JH_TASKS_CHANNEL_ID:
             await _handle_jh_tasks(message)
@@ -2232,14 +2325,21 @@ class BuckyDiscordBot(discord.Client):
                 asyncio.ensure_future(_auto_capture_url_bg(url, notify_ch))
 
         # ── 음성 첨부파일 처리 + NLP 전처리 ───────────────────────────────────────
+        _AUDIO_EXTS = {".ogg", ".mp3", ".wav", ".m4a", ".webm", ".aac", ".flac"}
+        _is_native_voice = bool(getattr(getattr(message, "flags", None), "voice_message", False))
         if VOICE_ENABLED and message.attachments:
             for att in message.attachments:
-                if att.content_type and att.content_type.startswith("audio/"):
+                _is_audio = (
+                    (att.content_type and att.content_type.startswith("audio/"))
+                    or Path(att.filename).suffix.lower() in _AUDIO_EXTS
+                )
+                if _is_audio:
+                    _voice_label = "🎙️ 음성 메시지" if _is_native_voice else "🎙️ 음성 파일"
                     async with message.channel.typing():
                         try:
                             transcript = await transcribe_discord_audio(att)
                             if transcript:
-                                await message.channel.send(f"🎙️ **인식:** {transcript}")
+                                await message.channel.send(f"{_voice_label} **인식:** {transcript}")
                                 # NLP 전처리 — 음성 명령 구조화
                                 if _NLP_ENABLED:
                                     try:
@@ -3042,7 +3142,7 @@ class BuckyDiscordBot(discord.Client):
             # 이미 답변했으므로 status=answered → dispatcher 재처리 방지
             out_path = write_discord_message(message, reply, status="answered")
 
-            # 구현/리뷰 키워드 감지 시 task_tracker에 자동 등록
+            # 구현/리뷰 키워드 감지 시 → #jh-tasks 자동 투입 (WorkerPool 실행)
             try:
                 from task_tracker import classify
                 detected_type = classify(content)
@@ -3050,6 +3150,11 @@ class BuckyDiscordBot(discord.Client):
                     await asyncio.to_thread(
                         add_task, content[:40], content, detected_type, "discord"
                     )
+                    # #jh-tasks 채널에 자동 포스팅 → WorkerPool에서 claude 실제 실행
+                    if JH_TASKS_CHANNEL_ID:
+                        tasks_ch = message.guild.get_channel(int(JH_TASKS_CHANNEL_ID))
+                        if tasks_ch:
+                            await tasks_ch.send(f"[jh-chat 자동라우팅] {content}")
             except Exception:
                 pass
         else:

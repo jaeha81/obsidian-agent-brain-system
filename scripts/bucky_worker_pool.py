@@ -11,7 +11,9 @@ import asyncio
 import discord
 import os
 import re
+import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -35,8 +37,10 @@ TASK_TIMEOUT: int  = int(os.getenv("BUCKY_TIMEOUT", "900"))
 MAX_RETRIES: int   = int(os.getenv("TASK_MAX_RETRIES", "2"))
 RETRY_DELAY: int   = int(os.getenv("TASK_RETRY_DELAY", "5"))
 CODEX_AUTO_REVIEW: bool = os.getenv("CODEX_REVIEW_ENABLED", "1") == "1"
-VAULT        = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
-CODEX_OUTBOX = VAULT / "10_AgentBus" / "outbox" / os.getenv("AGENTBUS_WORKER_NAME", "Bucky")
+VAULT         = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
+CODEX_OUTBOX  = VAULT / "10_AgentBus" / "outbox" / os.getenv("AGENTBUS_WORKER_NAME", "Bucky")
+CODEX_RESULTS = VAULT / "10_AgentBus" / "outbox" / "Codex"
+CODEX_POLL_INTERVAL: int = int(os.getenv("CODEX_POLL_INTERVAL", "15"))
 
 _BOARD_MIN_INTERVAL = 3.0   # edit 최소 간격(초) — rate-limit 방지
 _REGISTRY_TTL       = 1800  # 완료 태스크 30분 후 registry 정리
@@ -49,6 +53,41 @@ def _sanitize(text: str, max_len: int = 50) -> str:
     """Discord mention 무력화 + 길이 제한."""
     text = re.sub(r"@(everyone|here)", "@ \\1", text)
     return text[:max_len]
+
+
+def _run_codex_review(prompt: str, timeout: int = 300) -> str:
+    """Codex CLI를 subprocess로 직접 호출하고 결과 텍스트를 반환."""
+    try:
+        from codex_review_runner import codex_command
+        codex_cmd = codex_command()
+    except Exception:
+        codex_cmd = "codex"
+
+    sandbox = os.getenv("CODEX_SANDBOX", "read-only").strip() or "read-only"
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w", encoding="utf-8") as tf:
+        output_path = tf.name
+
+    try:
+        cmd = [codex_cmd, "exec", "-C", str(_ROOT), "--sandbox", sandbox,
+               "--output-last-message", output_path, "-"]
+        model = os.getenv("CODEX_MODEL", "").strip()
+        if model:
+            cmd[2:2] = ["--model", model]
+
+        result = subprocess.run(
+            cmd, input=prompt, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", cwd=str(_ROOT), timeout=timeout,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Codex exit {result.returncode}: {(result.stderr or result.stdout or '').strip()[:200]}")
+
+        out_path = Path(output_path)
+        return out_path.read_text(encoding="utf-8").strip() if out_path.exists() else result.stdout.strip()
+    finally:
+        try:
+            Path(output_path).unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def _dispatch_codex_file(task_id: str, title: str, body: str) -> str:
@@ -260,23 +299,47 @@ class WorkerPool:
                     pass
 
             try:
-                # ── Codex 경로 ────────────────────────────────────────────────
+                # ── Codex 경로 (subprocess 직접 실행) ─────────────────────────
                 if agent == "codex":
-                    file_path = await asyncio.to_thread(_dispatch_codex_file, tid, title, body)
-                    tq.update(tid, "submitted", f"AgentBus: {Path(file_path).name}")
-                    if tid in self._task_registry:
-                        self._task_registry[tid].update(status="submitted", ended_at=datetime.now())
-                    asyncio.ensure_future(self._update_board())
-
-                    await self._send_status(
-                        f"📤 `{tid}` ⚡ CODEX **{title}** → AgentBus 전달 완료"
-                    )
+                    await self._send_status(f"⚡ `{tid}` CODEX **{title}** — CLI 실행 중")
                     if reply_ch:
                         try:
                             await reply_ch.send(
-                                f"📤 `{tid[-6:]}` **{title}**\n"
-                                "Codex AgentBus 전달 완료. Codex가 독립 처리 후 저장합니다."
+                                f"⚡ `{tid[-6:]}` CODEX **{title}**\n"
+                                "Codex CLI 실행 중 — 완료 시 결과를 전달합니다."
                             )
+                        except Exception:
+                            pass
+
+                    try:
+                        result = await asyncio.to_thread(
+                            _run_codex_review, body, min(TASK_TIMEOUT, 900)
+                        )
+                    except Exception as e:
+                        await self._on_fail(tid, "⚡ CODEX", title, f"Codex CLI 오류: {e}", reply_ch)
+                        return
+
+                    tq.update(tid, "done", result)
+                    if tid in self._task_registry:
+                        self._task_registry[tid].update(status="done", ended_at=datetime.now())
+                    asyncio.ensure_future(self._update_board())
+                    try:
+                        import goal_tracker as gt
+                        gt.mark_task(tid, "done")
+                    except Exception:
+                        pass
+
+                    summary = result[:150] + ("..." if len(result) > 150 else "")
+                    await self._send_status(f"✅ `{tid}` ⚡ CODEX **{title}** 완료\n> {summary}")
+                    if reply_ch:
+                        try:
+                            reg = self._task_registry.get(tid, {})
+                            requester_id = reg.get("requester_id")
+                            mention = f"<@{requester_id}> " if requester_id else ""
+                            full = f"{mention}✅ `{tid[-6:]}` ⚡ CODEX **{title}** 완료\n\n{result}"
+                            _user_mentions = discord.AllowedMentions(users=True)
+                            for i in range(0, len(full), 1900):
+                                await reply_ch.send(full[i:i+1900], allowed_mentions=_user_mentions)
                         except Exception:
                             pass
 
@@ -393,7 +456,7 @@ class WorkerPool:
         )
         try:
             review_result = await asyncio.to_thread(
-                run_bucky, review_prompt, timeout=min(TASK_TIMEOUT, 300)
+                _run_codex_review, review_prompt, min(TASK_TIMEOUT, 300)
             )
         except Exception as e:
             print(f"[WorkerPool] 자동 검수 실패 ({parent_tid}): {e}", flush=True)
@@ -463,6 +526,73 @@ class WorkerPool:
 
     def get_board_text(self) -> str:
         return self._build_board()
+
+    def start_codex_result_poller(self) -> None:
+        """Codex 결과 파일을 주기적으로 감시해 #jh-results로 전송."""
+        asyncio.ensure_future(self._poll_codex_results())
+
+    async def _poll_codex_results(self) -> None:
+        CODEX_RESULTS.mkdir(parents=True, exist_ok=True)
+        seen: set[str] = set()
+        # 시작 시 이미 존재하는 파일은 무시 (과거 결과 재전송 방지)
+        for f in CODEX_RESULTS.glob("*_review.md"):
+            seen.add(f.name)
+        print(f"[CodexPoller] 시작 — {CODEX_RESULTS} 감시 중 (기존 {len(seen)}개 스킵)", flush=True)
+
+        while True:
+            await asyncio.sleep(CODEX_POLL_INTERVAL)
+            try:
+                for f in sorted(CODEX_RESULTS.glob("*_review.md")):
+                    if f.name in seen:
+                        continue
+                    seen.add(f.name)
+                    await self._deliver_codex_result(f)
+            except Exception as e:
+                print(f"[CodexPoller] 폴링 오류: {e}", flush=True)
+
+    async def _deliver_codex_result(self, result_file: Path) -> None:
+        """Codex 결과 파일을 읽어 #jh-results 채널로 전송."""
+        try:
+            content = result_file.read_text(encoding="utf-8")
+        except Exception as e:
+            print(f"[CodexPoller] 파일 읽기 실패: {result_file.name} — {e}", flush=True)
+            return
+
+        # YAML 헤더에서 task_id 추출
+        task_id = ""
+        for line in content.splitlines():
+            if line.startswith("task_id:"):
+                task_id = line.split(":", 1)[1].strip()
+                break
+
+        # 헤더(---..---) 제거 후 본문만
+        parts = content.split("---", 2)
+        body = parts[2].strip() if len(parts) >= 3 else content.strip()
+
+        label = f"`{task_id[-12:]}` " if task_id else ""
+        header = f"⚡ **Codex 검수 결과** {label}— `{result_file.name}`\n"
+
+        results_ch = None
+        if self._results_channel_id and self._discord_client:
+            try:
+                results_ch = self._discord_client.get_channel(int(self._results_channel_id))
+            except Exception:
+                pass
+
+        if not results_ch:
+            print(f"[CodexPoller] #jh-results 채널 없음 — {result_file.name}", flush=True)
+            return
+
+        from discord_bot import split_message  # type: ignore
+        full = header + body
+        for chunk in split_message(full):
+            try:
+                await results_ch.send(chunk)
+            except Exception as e:
+                print(f"[CodexPoller] 전송 실패: {e}", flush=True)
+                break
+
+        print(f"[CodexPoller] 전송 완료: {result_file.name}", flush=True)
 
 
 # ── 싱글턴 ────────────────────────────────────────────────────────────────────
