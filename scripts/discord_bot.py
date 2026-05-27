@@ -2186,7 +2186,12 @@ class BuckyDiscordBot(discord.Client):
                             f">{summaries[0][:120]}{'...' if len(summaries[0]) > 120 else ''}"
                         )
                     elif image_atts:
-                        # Vision 실패해도 URL 컨텍스트 유지
+                        # Vision 백엔드 없음 — 사용자에게 즉시 고지
+                        await message.channel.send(
+                            "⚠️ **사진 인식 불가** — Vision 백엔드가 없습니다.\n"
+                            "원인: Claude API 크레딧 부족 / OpenAI 할당량 초과 / Tesseract 미설치\n"
+                            "해결: `pip install pytesseract pillow` + Tesseract 바이너리 설치 후 봇 재시작"
+                        )
                         urls_txt = "\n".join(a.url for a in image_atts)
                         content = f"{content}\n[이미지 첨부 — Vision 분석 불가]\n{urls_txt}" if content else f"[이미지 첨부]\n{urls_txt}"
 

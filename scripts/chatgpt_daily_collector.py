@@ -1,179 +1,486 @@
 #!/usr/bin/env python3
 """
-ChatGPT Daily Plus Collector
-매일 ChatGPT 대화에서 오늘의 콘텐츠를 수집해 ObsidianVault에 저장.
+ChatGPT Pulse collector.
 
-첫 실행: --login 플래그로 브라우저를 열어 ChatGPT 로그인 후 세션 저장.
-이후 실행: 저장된 세션으로 자동 수집 (headless).
+Collects the daily ChatGPT Pulse overview plus every visible Pulse card detail
+from a dedicated Chrome profile, then saves the result as an Obsidian note.
+
+Login model:
+  1. Run with --login once.
+  2. Sign in inside the dedicated Chrome profile that opens.
+  3. Future --collect runs reuse that profile.
 """
 
-import asyncio
-import sys
-import os
+from __future__ import annotations
+
 import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.parse
+import urllib.request
+from datetime import date, datetime
 from pathlib import Path
-from datetime import date
-import re
+from typing import Any, Callable
 
-# ── 설정 ──────────────────────────────────────────────────────────────────────
-CHATGPT_URL = "https://chatgpt.com/c/6a13070b-b458-8324-ac34-1ae2efd70a4c"
-VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+try:
+    import websocket
+except ImportError:  # pragma: no cover - environment diagnostic
+    websocket = None
+
+
+ROOT = Path(__file__).resolve().parents[1]
+CHATGPT_URL = os.environ.get("GPT_COLLECTOR_URL", "https://chatgpt.com/pulse")
+VAULT_BASE = ROOT / "ObsidianVault"
 OUTPUT_DIR = VAULT_BASE / "04_Wiki" / "daily-plus"
-PROFILE_DIR = Path(os.environ.get("USERPROFILE", "~")) / ".playwright-gpt-sessions"
-BROWSER_CHANNEL = os.environ.get("GPT_COLLECTOR_BROWSER_CHANNEL", "msedge")
-HEADLESS = os.environ.get("GPT_COLLECTOR_HEADLESS", "0").lower() in ("1", "true", "yes")
-# ─────────────────────────────────────────────────────────────────────────────
+PROFILE_DIR = Path(
+    os.environ.get(
+        "GPT_COLLECTOR_PROFILE_DIR",
+        str(Path.home() / ".chatgpt-daily-chrome-profile"),
+    )
+)
+DEBUG_PORT = int(os.environ.get("GPT_COLLECTOR_DEBUG_PORT", "9222"))
+CHROME_EXE = os.environ.get("GPT_COLLECTOR_CHROME_EXE") or (
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+)
 
 
-def build_note(content_blocks: list[str], today: date) -> str:
+def build_note(capture: dict[str, Any], today: date) -> str:
     date_str = today.strftime("%Y-%m-%d")
-    joined = "\n\n".join(content_blocks)
+    collected_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    overview = (capture.get("overviewText") or "").strip()
+    cards = capture.get("cards") or []
+
+    sections: list[str] = []
+    if overview:
+        sections.append(f"## Overview\n\n{overview}")
+
+    if cards:
+        card_sections = ["## Pulse Cards"]
+        for idx, card in enumerate(cards, start=1):
+            title = (card.get("title") or f"Card {idx}").strip()
+            summary = (card.get("summary") or "").strip()
+            detail = (card.get("detailText") or "").strip()
+            body_parts = [f"### {idx}. {title}"]
+            if summary:
+                body_parts.append(summary)
+            if detail:
+                body_parts.append(f"#### Detail\n\n{detail}")
+            else:
+                body_parts.append("#### Detail\n\n[Detail extraction failed]")
+            card_sections.append("\n\n".join(body_parts))
+        sections.append("\n\n".join(card_sections))
+
+    joined = "\n\n".join(sections)
     return f"""---
 date: {date_str}
-source: ChatGPT Daily Plus
-tags: [daily-plus, knowledge, auto-collected]
+source: ChatGPT Pulse
+source_url: {CHATGPT_URL}
+collected_at: {collected_at}
+card_count: {len(cards)}
+tags: [pulse, daily-plus, knowledge, auto-collected]
 ---
 
-# 오늘의 플러스 — {date_str}
+# ChatGPT Pulse - {date_str}
 
 {joined}
 
 ---
-*자동 수집: chatgpt_daily_collector.py*
+*Auto-collected by `chatgpt_daily_collector.py`.*
 """
 
 
-async def login_mode():
-    """첫 실행: 브라우저 열어서 ChatGPT 로그인 후 세션 저장."""
-    from playwright.async_api import async_playwright
+def _request_json(url: str, *, method: str = "GET", timeout: int = 8) -> Any:
+    req = urllib.request.Request(url, method=method)
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
 
+
+def _cdp_base() -> str:
+    return f"http://127.0.0.1:{DEBUG_PORT}"
+
+
+def _cdp_is_ready() -> bool:
+    try:
+        _request_json(f"{_cdp_base()}/json/version", timeout=2)
+        return True
+    except Exception:
+        return False
+
+
+def _wait_for_cdp(timeout_s: int = 20) -> None:
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        if _cdp_is_ready():
+            return
+        time.sleep(0.5)
+    raise RuntimeError(f"Chrome DevTools port did not open on {DEBUG_PORT}")
+
+
+def _launch_chrome(open_url: str = CHATGPT_URL) -> None:
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"[LOGIN] 브라우저를 열어 ChatGPT에 로그인하세요.")
-    print(f"[LOGIN] 로그인 완료 후 이 창을 닫으면 세션이 저장됩니다.")
-    print(f"[LOGIN] 프로파일 경로: {PROFILE_DIR}")
-
-    async with async_playwright() as p:
-        context = await p.chromium.launch_persistent_context(
-            user_data_dir=str(PROFILE_DIR),
-            headless=False,
-            channel=BROWSER_CHANNEL,
+    if not _cdp_is_ready():
+        chrome = CHROME_EXE if Path(CHROME_EXE).exists() else "chrome"
+        subprocess.Popen(
+            [
+                chrome,
+                f"--remote-debugging-port={DEBUG_PORT}",
+                "--remote-allow-origins=*",
+                f"--user-data-dir={PROFILE_DIR}",
+                open_url,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
-        page = await context.new_page()
-        await page.goto("https://chatgpt.com/", wait_until="domcontentloaded")
-        print("[LOGIN] 로그인 완료 후 브라우저를 닫으세요 (Ctrl+W 또는 창 닫기)...")
+        _wait_for_cdp()
+        return
 
-        # 브라우저가 닫힐 때까지 대기
-        try:
-            await context.wait_for_event("close", timeout=300000)
-        except Exception:
-            pass
-
-        await context.close()
-        print("[LOGIN] 세션 저장 완료. 이제 --collect 모드로 자동 수집 가능합니다.")
+    encoded = urllib.parse.quote(open_url, safe="")
+    try:
+        _request_json(f"{_cdp_base()}/json/new?{encoded}", method="PUT")
+    except Exception:
+        # Existing ChatGPT tabs remain usable even when Chrome rejects new-tab.
+        pass
 
 
-async def collect_mode(force: bool = False):
-    """자동 수집: 저장된 세션으로 ChatGPT 접속 후 콘텐츠 추출."""
-    from playwright.async_api import async_playwright
+def _page_targets() -> list[dict[str, Any]]:
+    targets = _request_json(f"{_cdp_base()}/json/list")
+    return [
+        target
+        for target in targets
+        if target.get("type") == "page" and "chatgpt.com" in target.get("url", "")
+    ]
 
-    if not PROFILE_DIR.exists():
-        print("[ERROR] 저장된 세션 없음. 먼저 --login으로 로그인하세요:")
-        print("        python chatgpt_daily_collector.py --login")
-        sys.exit(1)
 
+def _pick_chatgpt_target() -> dict[str, Any]:
+    targets = _page_targets()
+    if not targets:
+        raise RuntimeError("No ChatGPT tab found in the collector Chrome profile")
+
+    target_id = CHATGPT_URL.rstrip("/").split("/")[-1]
+    for target in targets:
+        if target_id and target_id in target.get("url", ""):
+            return target
+    return targets[0]
+
+
+def _cdp_sender(ws: Any) -> Callable[[str, dict[str, Any] | None, int], dict[str, Any]]:
+    counter = {"id": 1}
+
+    def send(
+        method: str,
+        params: dict[str, Any] | None = None,
+        timeout_s: int = 20,
+    ) -> dict[str, Any]:
+        message_id = counter["id"]
+        counter["id"] += 1
+        ws.send(json.dumps({"id": message_id, "method": method, "params": params or {}}))
+        deadline = time.time() + timeout_s
+        while time.time() < deadline:
+            response = json.loads(ws.recv())
+            if response.get("id") == message_id:
+                return response
+        raise TimeoutError(method)
+
+    return send
+
+
+def _runtime_value(response: dict[str, Any]) -> Any:
+    return response.get("result", {}).get("result", {}).get("value")
+
+
+def _evaluate(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]],
+    expression: str,
+    timeout_s: int = 20,
+) -> Any:
+    response = send(
+        "Runtime.evaluate",
+        {"expression": expression, "returnByValue": True, "awaitPromise": True},
+        timeout_s,
+    )
+    return _runtime_value(response)
+
+
+def _click(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]],
+    x: int,
+    y: int,
+) -> None:
+    for event_type in ("mouseMoved", "mousePressed", "mouseReleased"):
+        params: dict[str, Any] = {"type": event_type, "x": x, "y": y, "button": "left"}
+        if event_type != "mouseMoved":
+            params["clickCount"] = 1
+        send("Input.dispatchMouseEvent", params)
+
+
+def _press_escape(send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]]) -> None:
+    for event_type in ("keyDown", "keyUp"):
+        send(
+            "Input.dispatchKeyEvent",
+            {
+                "type": event_type,
+                "key": "Escape",
+                "code": "Escape",
+                "windowsVirtualKeyCode": 27,
+                "nativeVirtualKeyCode": 27,
+            },
+        )
+
+
+def _wait_for_pulse_overview(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]],
+    timeout_s: int,
+) -> dict[str, Any]:
+    expression = """
+(() => {
+  const mainCandidates = [...document.querySelectorAll('main, [role="main"]')]
+    .map((el) => (el.innerText || '').trim())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  const overviewText = mainCandidates.find((text) => text.includes('Pulse')) || mainCandidates[0] || '';
+  return {
+    href: location.href,
+    title: document.title,
+    overviewText,
+    cardCount: document.querySelectorAll('.pulse-card-body').length,
+    bodyStart: (document.body?.innerText || '').slice(0, 1200),
+  };
+})()
+"""
+    deadline = time.time() + timeout_s
+    last_value: dict[str, Any] = {}
+    while time.time() < deadline:
+        value = _evaluate(send, expression)
+        if isinstance(value, dict):
+            last_value = value
+            overview_text = (value.get("overviewText") or "").strip()
+            if len(overview_text) > 100 and "Pulse" in overview_text:
+                return value
+        time.sleep(2)
+    return last_value
+
+
+def _card_snapshot(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]]
+) -> list[dict[str, Any]]:
+    expression = """
+(() => [...document.querySelectorAll('.pulse-card-body')].map((el, index) => {
+  const card = el.closest('.border-token-border-default') || el;
+  const divTexts = [...el.querySelectorAll('div')]
+    .map((node) => (node.innerText || '').trim())
+    .filter(Boolean);
+  const rect = card.getBoundingClientRect();
+  return {
+    index,
+    title: (el.querySelector('h3')?.innerText || '').trim(),
+    summary: divTexts[divTexts.length - 1] || '',
+    text: (el.innerText || '').trim(),
+    rect: {
+      x: Math.round(rect.x),
+      y: Math.round(rect.y),
+      w: Math.round(rect.width),
+      h: Math.round(rect.height),
+    },
+  };
+}))()
+"""
+    value = _evaluate(send, expression)
+    return value if isinstance(value, list) else []
+
+
+def _prepare_card_click(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]],
+    index: int,
+) -> dict[str, Any] | None:
+    expression = f"""
+(() => {{
+  const body = document.querySelectorAll('.pulse-card-body')[{index}];
+  if (!body) return null;
+  const card = body.closest('.border-token-border-default') || body;
+  card.scrollIntoView({{block: 'center', inline: 'center'}});
+  const divTexts = [...body.querySelectorAll('div')]
+    .map((node) => (node.innerText || '').trim())
+    .filter(Boolean);
+  const rect = card.getBoundingClientRect();
+  return {{
+    index: {index},
+    title: (body.querySelector('h3')?.innerText || '').trim(),
+    summary: divTexts[divTexts.length - 1] || '',
+    x: Math.round(rect.x + rect.width / 2),
+    y: Math.round(rect.y + rect.height / 2),
+  }};
+}})()
+"""
+    value = _evaluate(send, expression)
+    return value if isinstance(value, dict) else None
+
+
+def _read_dialog_text(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]],
+    timeout_s: int = 12,
+) -> str:
+    expression = """
+(() => {
+  const texts = [...document.querySelectorAll('[role="dialog"], dialog')]
+    .map((node) => (node.innerText || '').trim())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  return texts[0] || '';
+})()
+"""
+    deadline = time.time() + timeout_s
+    best_text = ""
+    while time.time() < deadline:
+        value = _evaluate(send, expression)
+        if isinstance(value, str) and len(value) > len(best_text):
+            best_text = value
+        if len(best_text) > 200:
+            return best_text
+        time.sleep(0.6)
+    return best_text
+
+
+def _extract_pulse_cards(
+    send: Callable[[str, dict[str, Any] | None, int], dict[str, Any]]
+) -> list[dict[str, Any]]:
+    cards = _card_snapshot(send)
+    extracted: list[dict[str, Any]] = []
+    for card in cards:
+        index = int(card.get("index", len(extracted)))
+        click_info = _prepare_card_click(send, index)
+        if not click_info:
+            extracted.append({**card, "detailText": ""})
+            continue
+
+        time.sleep(0.4)
+        _click(send, int(click_info["x"]), int(click_info["y"]))
+        detail_text = _read_dialog_text(send)
+        _press_escape(send)
+        time.sleep(0.3)
+
+        extracted.append(
+            {
+                **card,
+                "title": click_info.get("title") or card.get("title") or f"Card {index + 1}",
+                "summary": click_info.get("summary") or card.get("summary") or "",
+                "detailText": detail_text,
+            }
+        )
+    return extracted
+
+
+def _read_chatgpt_content(timeout_s: int = 60) -> dict[str, Any]:
+    if websocket is None:
+        raise RuntimeError("Missing dependency: websocket-client")
+
+    target = _pick_chatgpt_target()
+    ws = websocket.create_connection(
+        target["webSocketDebuggerUrl"],
+        timeout=10,
+        origin=f"http://127.0.0.1:{DEBUG_PORT}",
+    )
+    try:
+        send = _cdp_sender(ws)
+        send("Page.enable")
+        send("Runtime.enable")
+        _evaluate(send, f"location.href = {json.dumps(CHATGPT_URL)}")
+        capture = _wait_for_pulse_overview(send, timeout_s=timeout_s)
+        capture["cards"] = _extract_pulse_cards(send)
+        return capture
+    finally:
+        ws.close()
+
+
+def _run_pulse_evolution(output_path: Path, *, force: bool = False) -> None:
+    scripts_dir = Path(__file__).resolve().parent
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    import pulse_evolution_agent
+
+    result = pulse_evolution_agent.evolve_note_file(output_path, force=force)
+    print(
+        "[EVOLVE] "
+        f"{result.get('status')} cards={result.get('cards')} "
+        f"candidates={result.get('candidates')}"
+    )
+    print(f"[EVOLVE] Report: {result.get('report_path')}")
+    print(f"[EVOLVE] Task: {result.get('task_path')}")
+
+
+def login_mode() -> None:
+    _launch_chrome("https://chatgpt.com/")
+    print("[LOGIN] Opened dedicated Chrome profile for ChatGPT.")
+    print(f"[LOGIN] Profile: {PROFILE_DIR}")
+    print("[LOGIN] Sign in there once, then run --collect.")
+
+
+def collect_mode(force: bool = False, evolve: bool = True) -> None:
     today = date.today()
     date_str = today.strftime("%Y-%m-%d")
     output_path = OUTPUT_DIR / f"{date_str}.md"
 
     if output_path.exists() and not force:
-        print(f"[SKIP] 오늘 파일 이미 존재: {output_path}")
+        print(f"[SKIP] Today's file already exists: {output_path}")
+        if evolve:
+            _run_pulse_evolution(output_path, force=False)
         return
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    _launch_chrome(CHATGPT_URL)
+    value = _read_chatgpt_content()
 
-    print(f"[INFO] 세션 프로파일: {PROFILE_DIR}")
-    print(f"[INFO] 대상 URL: {CHATGPT_URL}")
+    pulse_text = (value.get("overviewText") or "").strip()
+    cards = value.get("cards") or []
 
-    async with async_playwright() as p:
-        context = await p.chromium.launch_persistent_context(
-            user_data_dir=str(PROFILE_DIR),
-            headless=HEADLESS,
-            channel=BROWSER_CHANNEL,
-            args=["--disable-blink-features=AutomationControlled"],
-        )
-
-        page = await context.new_page()
-
-        print("[INFO] 페이지 로드 중...")
-        await page.goto(CHATGPT_URL, wait_until="networkidle", timeout=60000)
-
-        # 로그인 확인
-        if "login" in page.url or "auth" in page.url:
-            print("[ERROR] 세션 만료됨. --login으로 다시 로그인하세요.")
-            await context.close()
-            sys.exit(1)
-
-        # 대화 메시지 로드 대기
-        try:
-            await page.wait_for_selector(
-                '[data-message-author-role="assistant"]', timeout=30000
+    if not pulse_text:
+        body = (value.get("bodyStart") or "").replace("\n", " ")[:500]
+        if "login" in body.lower() or "sign in" in body.lower():
+            raise RuntimeError(
+                "ChatGPT login is required in the dedicated Chrome profile. "
+                "Run with --login and complete sign-in."
             )
-        except Exception:
-            print("[ERROR] 메시지 로드 실패 — 페이지 구조가 변경되었을 수 있습니다.")
-            # 스크린샷 저장 (디버깅용)
-            screenshot_path = PROFILE_DIR / "debug_screenshot.png"
-            await page.screenshot(path=str(screenshot_path))
-            print(f"[DEBUG] 스크린샷 저장: {screenshot_path}")
-            await context.close()
-            sys.exit(1)
+        raise RuntimeError(f"No Pulse content found. Page snippet: {body}")
 
-        # 모든 assistant 메시지 추출
-        messages = await page.query_selector_all('[data-message-author-role="assistant"]')
+    note_content = build_note(value, today)
+    output_path.write_text(note_content, encoding="utf-8")
 
-        if not messages:
-            print("[ERROR] 메시지를 찾을 수 없습니다.")
-            await context.close()
-            sys.exit(1)
-
-        print(f"[INFO] 총 {len(messages)}개 메시지 발견")
-
-        # 마지막 assistant 메시지 (오늘의 콘텐츠)
-        last_msg = messages[-1]
-        raw_text = (await last_msg.inner_text()).strip()
-
-        # 너무 짧으면 마지막 2개 합치기
-        if len(raw_text) < 100 and len(messages) >= 2:
-            prev_text = (await messages[-2].inner_text()).strip()
-            blocks = [t for t in [prev_text, raw_text] if t]
-        else:
-            blocks = [raw_text]
-
-        note_content = build_note(blocks, today)
-        output_path.write_text(note_content, encoding="utf-8")
-
-        print(f"[OK] 저장 완료: {output_path}")
-        print(f"[미리보기]\n{blocks[-1][:300]}...")
-
-        await context.close()
+    print(f"[OK] Saved: {output_path}")
+    print(f"[INFO] Title: {value.get('title')}")
+    print(f"[INFO] URL: {value.get('href')}")
+    print(f"[INFO] Overview characters: {len(pulse_text)}")
+    print(f"[INFO] Cards: {len(cards)}")
+    print(f"[INFO] Detail characters: {sum(len(card.get('detailText') or '') for card in cards)}")
+    print(f"[PREVIEW]\n{pulse_text[:300]}...")
+    if evolve:
+        _run_pulse_evolution(output_path, force=force)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="ChatGPT Daily Plus → ObsidianVault")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="ChatGPT Pulse -> ObsidianVault")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--login", action="store_true", help="브라우저로 ChatGPT 로그인 (최초 1회)")
-    group.add_argument("--collect", action="store_true", help="자동 수집 (기본값)")
-    parser.add_argument("--force", action="store_true", help="오늘 파일 존재해도 덮어쓰기")
+    group.add_argument("--login", action="store_true", help="Open the dedicated Chrome login profile")
+    group.add_argument("--collect", action="store_true", help="Collect today's Pulse note")
+    parser.add_argument("--force", action="store_true", help="Overwrite today's file if it exists")
+    parser.add_argument("--skip-evolve", action="store_true", help="Skip Pulse upgrade staging")
     args = parser.parse_args()
 
     try:
         if args.login:
-            asyncio.run(login_mode())
+            login_mode()
         else:
-            asyncio.run(collect_mode(force=args.force))
+            collect_mode(force=args.force, evolve=not args.skip_evolve)
     except KeyboardInterrupt:
-        print("\n[ABORT] 사용자 중단")
-    except Exception as e:
-        print(f"[ERROR] {e}")
+        print("\n[ABORT] Interrupted by user")
+    except Exception as exc:
+        print(f"[ERROR] {exc}")
         sys.exit(1)
 
 

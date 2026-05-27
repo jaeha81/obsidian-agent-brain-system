@@ -1,20 +1,25 @@
 # setup_daily_plus_schedule.ps1
-# Windows Task Scheduler에 매일 오전 8시 자동 수집 등록
+# Register BuckyDailyPlus in Windows Task Scheduler.
+# This runs collection and Pulse Evolution Agent staging.
 
-$taskName   = "BuckyDailyPlus"
-$scriptPath = "G:\내 드라이브\obsidian-agent-brain-system\scripts\chatgpt_daily_collector.py"
-$workDir    = "G:\내 드라이브\obsidian-agent-brain-system\scripts"
-$pythonExe  = "C:\Users\설계4\AppData\Local\Programs\Python\Python311\python.exe"
+$ErrorActionPreference = "Stop"
 
-# 기존 작업 삭제 (재등록)
+$taskName = "BuckyDailyPlus"
+$scriptPath = Join-Path $PSScriptRoot "chatgpt_daily_collector.py"
+$repoRoot = Split-Path $PSScriptRoot -Parent
+$pythonExe = (Get-Command python).Source
+
+if (-not (Test-Path -LiteralPath $scriptPath)) {
+    throw "Collector not found: $scriptPath"
+}
+
 Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
 
 $action = New-ScheduledTaskAction `
     -Execute $pythonExe `
     -Argument "`"$scriptPath`" --collect" `
-    -WorkingDirectory $workDir
+    -WorkingDirectory $repoRoot
 
-# 매일 오전 8:00
 $trigger = New-ScheduledTaskTrigger -Daily -At "08:00"
 
 $settings = New-ScheduledTaskSettingsSet `
@@ -27,18 +32,18 @@ Register-ScheduledTask `
     -Action $action `
     -Trigger $trigger `
     -Settings $settings `
-    -Description "Bucky: ChatGPT 오늘의 플러스 자동 수집 → ObsidianVault 04_Wiki/daily-plus/" `
+    -Description "Bucky: ChatGPT Pulse daily collection + evolution staging -> ObsidianVault/04_Wiki/daily-plus/ and 00_UPGRADE/pulse-evolution/" `
     -RunLevel Highest
 
-Write-Host "[OK] 스케줄 등록 완료: 매일 오전 08:00 자동 실행"
-Write-Host "[INFO] 작업명: $taskName"
+Write-Host "[OK] Registered: $taskName (daily 08:00)"
+Write-Host "[INFO] Python: $pythonExe"
+Write-Host "[INFO] Script: $scriptPath"
 Write-Host ""
-Write-Host "=== 사용법 ==="
-Write-Host "1. 최초 로그인 (1회만):"
-Write-Host "   `"$pythonExe`" `"$scriptPath`" --login"
+Write-Host "Manual login:"
+Write-Host "  `"$pythonExe`" `"$scriptPath`" --login"
 Write-Host ""
-Write-Host "2. 수동 즉시 수집:"
-Write-Host "   `"$pythonExe`" `"$scriptPath`" --collect"
+Write-Host "Manual collect + evolve:"
+Write-Host "  `"$pythonExe`" `"$scriptPath`" --collect"
 Write-Host ""
-Write-Host "3. Task Scheduler에서 즉시 실행:"
-Write-Host "   Start-ScheduledTask -TaskName $taskName"
+Write-Host "Manual collect only:"
+Write-Host "  `"$pythonExe`" `"$scriptPath`" --collect --skip-evolve"
