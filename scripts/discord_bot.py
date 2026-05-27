@@ -1637,8 +1637,27 @@ async def _init_status_board(client, pool) -> None:
         print(f"[WorkerPool] 현황판 초기화 실패: {e}", flush=True)
 
 
+def _persist_env_key(key: str, value: str) -> None:
+    """.env 파일에 key=value 저장 (없으면 추가, 있으면 덮어씀)."""
+    import re as _re
+    env_path = _ROOT / ".env"
+    if not env_path.exists():
+        return
+    try:
+        content = env_path.read_text(encoding="utf-8")
+        new_line = f"{key}={value}"
+        if f"{key}=" in content:
+            content = _re.sub(rf"^{key}=.*", new_line, content, flags=_re.MULTILINE)
+        else:
+            content = content.rstrip("\n") + f"\n{new_line}\n"
+        env_path.write_text(content, encoding="utf-8")
+        print(f"[Setup] .env 저장: {new_line}", flush=True)
+    except Exception as e:
+        print(f"[Setup] .env 저장 실패: {e}", flush=True)
+
+
 async def _init_jh_channels(client) -> None:
-    """jh-chat / jh-tasks / jh-status / jh-results 채널 자동 생성."""
+    """jh-chat / jh-tasks / jh-status / jh-results / jh-work-* 채널 자동 생성."""
     global JH_CHAT_CHANNEL_ID, JH_TASKS_CHANNEL_ID, JH_STATUS_CHANNEL_ID, JH_RESULTS_CHANNEL_ID
     if not client.guilds:
         return
@@ -1665,6 +1684,40 @@ async def _init_jh_channels(client) -> None:
                 print(f"[Setup] #{ch_name} 생성: {new_ch.id}", flush=True)
             except discord.Forbidden:
                 print(f"[Setup] #{ch_name} 생성 실패: 권한 없음", flush=True)
+
+    # ── 작업 채널 자동 생성 (jh-work-1, jh-work-2) ────────────────────────────
+    _work_specs = [
+        ("jh-work-1", "⚙️ Claude Code 작업 채널 1 — 독립 세션, 병렬 실행"),
+        ("jh-work-2", "⚙️ Claude Code 작업 채널 2 — 독립 세션, 병렬 실행"),
+    ]
+    for ch_name, topic in _work_specs:
+        existing = discord.utils.get(guild.text_channels, name=ch_name)
+        if existing:
+            ch_id = str(existing.id)
+            if ch_id not in JH_WORK_CHANNEL_IDS:
+                JH_WORK_CHANNEL_IDS.add(ch_id)
+                ALLOWED_CHANNELS.add(ch_id)
+            print(f"[Setup] #{ch_name} 발견: {existing.id}", flush=True)
+        else:
+            try:
+                new_ch = await guild.create_text_channel(ch_name, topic=topic)
+                ch_id = str(new_ch.id)
+                JH_WORK_CHANNEL_IDS.add(ch_id)
+                ALLOWED_CHANNELS.add(ch_id)
+                await new_ch.send(
+                    f"⚙️ **#{ch_name}** 자동 생성됨\n"
+                    f"{topic}\n\n"
+                    f"메시지를 보내면 독립 Claude Code 인스턴스가 실행됩니다.\n"
+                    f"여러 작업 채널에서 동시에 병렬 작업이 가능합니다."
+                )
+                print(f"[Setup] #{ch_name} 생성: {new_ch.id}", flush=True)
+            except discord.Forbidden:
+                print(f"[Setup] #{ch_name} 생성 실패: 권한 없음", flush=True)
+
+    # 작업 채널 ID .env 영구 저장 (재시작 시 유지)
+    if JH_WORK_CHANNEL_IDS:
+        _persist_env_key("JH_WORK_CHANNEL_IDS", ",".join(sorted(JH_WORK_CHANNEL_IDS)))
+
     # jh-status를 bucky-status 대신 현황판으로 사용
     if JH_STATUS_CHANNEL_ID and not BUCKY_STATUS_CHANNEL_ID:
         globals()["BUCKY_STATUS_CHANNEL_ID"] = JH_STATUS_CHANNEL_ID
