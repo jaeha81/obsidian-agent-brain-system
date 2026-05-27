@@ -61,11 +61,18 @@ def _get_conn() -> sqlite3.Connection:
 
 
 def _next_id() -> str:
+    """오늘 날짜 기준으로 충돌 없는 다음 태스크 ID 반환.
+
+    COUNT(*) 대신 MAX(n)을 사용해 삭제·갭 발생 시에도 중복 ID 방지.
+    ex) T001·T003 존재(T002 삭제) → COUNT=2 → T003 충돌 발생했던 문제 수정.
+    """
     conn = _get_conn()
     row = conn.execute(
-        "SELECT COUNT(*) FROM tasks WHERE date(created,'localtime')=date('now','localtime')"
+        "SELECT MAX(CAST(SUBSTR(id,2) AS INTEGER)) FROM tasks "
+        "WHERE id GLOB 'T[0-9]*' "
+        "AND date(created,'localtime')=date('now','localtime')"
     ).fetchone()
-    n = (row[0] if row else 0) + 1
+    n = (row[0] if row and row[0] is not None else 0) + 1
     return f"T{n:03d}"
 
 
@@ -84,17 +91,29 @@ def route(body: str, force_agent: Optional[str] = None) -> str:
 
 
 def add(title: str, body: str, agent: Optional[str] = None, source: str = "discord") -> dict:
-    """새 태스크 등록. agent 미지정 시 키워드 자동 라우팅."""
+    """새 태스크 등록. agent 미지정 시 키워드 자동 라우팅.
+
+    IntegrityError(UNIQUE 충돌) 발생 시 ID를 재계산해 최대 3회 재시도.
+    """
     with _lock:
         conn = _get_conn()
-        tid = _next_id()
         assigned = route(body, agent)
         now = datetime.now().isoformat(timespec="seconds")
-        conn.execute(
-            "INSERT INTO tasks (id,title,body,agent,status,created,source) VALUES (?,?,?,?,?,?,?)",
-            (tid, title[:80], body, assigned, "pending", now, source),
-        )
-        conn.commit()
+        for attempt in range(3):
+            tid = _next_id()
+            try:
+                conn.execute(
+                    "INSERT INTO tasks (id,title,body,agent,status,created,source) VALUES (?,?,?,?,?,?,?)",
+                    (tid, title[:80], body, assigned, "pending", now, source),
+                )
+                conn.commit()
+                break
+            except sqlite3.IntegrityError:
+                # ID 충돌 시 DB를 다시 조회해 다음 ID 재계산 후 재시도
+                print(f"[TaskQueue] ID 충돌 {tid} — 재시도 {attempt+1}/3", flush=True)
+                conn.rollback()
+                if attempt == 2:
+                    raise
     return {"id": tid, "title": title[:80], "body": body, "agent": assigned,
             "status": "pending", "created": now, "source": source}
 
