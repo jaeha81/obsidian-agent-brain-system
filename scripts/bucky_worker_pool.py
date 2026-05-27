@@ -28,7 +28,7 @@ if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
 
 import task_queue as tq
-from bucky_client import run_bucky, BuckyError
+from bucky_client import run_bucky, run_bucky_with_tools, BuckyError
 
 POOL_SIZE: int     = int(os.getenv("WORKER_POOL_SIZE", "5"))
 TASK_TIMEOUT: int  = int(os.getenv("BUCKY_TIMEOUT", "900"))
@@ -286,12 +286,16 @@ class WorkerPool:
                     if agent == "bucky":
                         system_prompt = os.getenv("BUCKY_SYSTEM_PROMPT")
 
+                    # claude 에이전트: tools 허용 (실제 파일/코드 작업 가능)
+                    # bucky 에이전트: tools 없음 (대화 전용)
+                    _run_fn = run_bucky_with_tools if agent == "claude" else run_bucky
+
                     result = None
                     last_err = None
                     for attempt in range(MAX_RETRIES + 1):
                         try:
                             result = await asyncio.to_thread(
-                                run_bucky, body,
+                                _run_fn, body,
                                 system_prompt=system_prompt,
                                 timeout=TASK_TIMEOUT,
                             )
