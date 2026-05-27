@@ -197,11 +197,7 @@ with col_canvas:
                     f"— 오른쪽에서 방 정보를 입력하고 '방 추가' 버튼을 누르세요."
                 )
         else:
-            st.warning(
-                "streamlit-drawable-canvas 패키지가 설치되지 않았습니다.\n\n"
-                "`pip install streamlit-drawable-canvas` 후 재실행하세요.\n\n"
-                "설치 전에도 아래 **'픽셀 좌표 직접 입력'** 모드로 방을 추가할 수 있습니다."
-            )
+            st.info("평면도를 참고하여 오른쪽에서 방 위치(픽셀 좌표)를 직접 입력하세요.")
             st.image(bg_image.resize((disp_w, disp_h)), use_container_width=True)
 
     with tab_result:
