@@ -262,8 +262,8 @@ def handle_via_claude_code(task_prompt: str) -> tuple[str, bool]:
     print(f"  [Dispatcher] Spawning {WORKER_NAME} Agent ...")
     try:
         return run_bucky(task_prompt), True
-    except BuckyError as exc:
-        return f"FAILED: {exc}", False
+    except Exception as exc:
+        return f"FAILED: {type(exc).__name__}: {exc}", False
 
 
 def send_discord_reply(channel_id: str, message: str) -> bool:

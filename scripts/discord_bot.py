@@ -643,6 +643,41 @@ async def _leave_voice_channel(guild_id: int) -> None:
         await vc.disconnect()
 
 
+# ── 음성 AgentBus 오케스트레이터 ────────────────────────────────────────────────
+
+_VOICE_TASK_KEYWORDS = frozenset([
+    "만들어", "구현", "작성", "코드", "개발", "추가", "삭제", "리팩토링",
+    "검수", "리뷰", "오류", "버그", "디버그", "검증", "테스트", "점검",
+    "배포", "실행", "수정", "고쳐", "바꿔", "변경",
+])
+
+
+def _is_voice_task(text: str) -> bool:
+    return any(kw in text for kw in _VOICE_TASK_KEYWORDS)
+
+
+def _write_voice_intake(text: str, display_name: str, guild_id: int, channel_id: str) -> None:
+    """음성 텍스트를 AgentBus inbox에 voice_intake 파일로 기록."""
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_name = re.sub(r"[^\w\-]", "_", display_name)
+    fname = f"{ts}_voice_{safe_name[:20]}.md"
+    INBOX.mkdir(parents=True, exist_ok=True)
+    path = INBOX / fname
+    path.write_text(
+        f"---\n"
+        f"type: voice_intake\n"
+        f"source: discord_voice\n"
+        f"author: {display_name}\n"
+        f"guild_id: {guild_id}\n"
+        f"channel_id: {channel_id}\n"
+        f"status: answered\n"
+        f"created: {datetime.now().isoformat()}\n"
+        f"---\n\n{text}\n",
+        encoding="utf-8",
+    )
+    print(f"[VoiceOrchestrator] AgentBus 기록: {fname}", flush=True)
+
+
 # ── 실시간 음성 수신 싱크 ──────────────────────────────────────────────────────
 
 def _make_voice_sink_class():
@@ -748,6 +783,13 @@ def _make_voice_sink_class():
 
                 display_name = user.display_name if user is not None else "음성"
                 await ch.send(f"🎙️ **{display_name}:** {text}")
+
+                # 음성 오케스트레이터: AgentBus inbox에 voice_intake 기록
+                try:
+                    _write_voice_intake(text, display_name, self.guild_id, str(ch.id))
+                except Exception as _ve:
+                    print(f"[VoiceOrchestrator] 기록 실패: {_ve}", flush=True)
+
                 thinking_msg = await ch.send("🔍 RAG 지식 검색 중... _(⏱ 0초)_")
                 _stop = asyncio.Event()
                 _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
@@ -2297,6 +2339,17 @@ class BuckyDiscordBot(discord.Client):
         content = message.content.strip()
         channel_id = str(message.channel.id)
 
+        # ── Sync Sentinel — PC/스토리지/Git/Docker 상태 확인 ─────────────────────
+        if content in ("!sync", "!pc", "!sync-status", "!pc-status", "!동기화상태", "!PC상태"):
+            try:
+                from sync_sentinel import build_report as _sync_report, format_text as _sync_text
+                report = await asyncio.to_thread(_sync_report)
+                for chunk in split_message(_sync_text(report)):
+                    await message.channel.send(chunk)
+            except Exception as _sync_e:
+                await message.channel.send(f"⚠️ Sync Sentinel 실패: {_sync_e}")
+            return
+
         # ── 전역 !report / !현황 — 모든 채널에서 사용 가능 ───────────────────────────
         if content in ("!report", "!현황", "!보고"):
             try:
@@ -2339,8 +2392,8 @@ class BuckyDiscordBot(discord.Client):
                         try:
                             transcript = await transcribe_discord_audio(att)
                             if transcript:
-                                await message.channel.send(f"{_voice_label} **인식:** {transcript}")
                                 # NLP 전처리 — 음성 명령 구조화
+                                # (인식 echo는 Bucky 응답 앞에 포함 — 별도 메시지 X)
                                 if _NLP_ENABLED:
                                     try:
                                         import sys as _sys
@@ -3108,55 +3161,39 @@ class BuckyDiscordBot(discord.Client):
                 write_discord_message(message, reply, status="answered")
                 return
 
-            # 단일 태스크 — 기존 경로
-            thinking_msg = await message.channel.send("🔍 RAG 지식 검색 중... _(⏱ 0초)_")
-            _stop = asyncio.Event()
-            _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
-            try:
-                reply = await ask_bucky(channel_id, content)
-            except BuckyError as e:
-                reply = f"⚠️ Bucky 오류: {e}"
-                print(f"[Bot] BuckyError: {e}", flush=True)
-            except Exception as e:
-                reply = f"⚠️ 오류: {e}"
-                print(f"[Bot] Error: {e}", flush=True)
-            finally:
-                _stop.set()
-                _anim.cancel()
+            # jh-chat은 항상 Bucky 대화 응답 — 태스크 배정은 !task/!code 또는 #jh-tasks 채널 사용
+            if True:
+                thinking_msg = await message.channel.send("🔍 RAG 지식 검색 중... _(⏱ 0초)_")
+                _stop = asyncio.Event()
+                _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
+                try:
+                    reply = await ask_bucky(channel_id, content)
+                except BuckyError as e:
+                    reply = f"⚠️ Bucky 오류: {e}"
+                    print(f"[Bot] BuckyError: {e}", flush=True)
+                except Exception as e:
+                    reply = f"⚠️ 오류: {e}"
+                    print(f"[Bot] Error: {e}", flush=True)
+                finally:
+                    _stop.set()
+                    _anim.cancel()
 
-            chunks = split_message(reply)
-            await thinking_msg.edit(content=chunks[0])
-            for chunk in chunks[1:]:
-                await message.channel.send(chunk)
+                chunks = split_message(reply)
+                await thinking_msg.edit(content=chunks[0])
+                for chunk in chunks[1:]:
+                    await message.channel.send(chunk)
 
-            # 음성 채널 TTS 재생 (입장 중인 경우)
-            guild_id = getattr(message.guild, "id", None)
-            if guild_id and VOICE_CHANNEL_ENABLED:
-                vc = _voice_clients.get(guild_id)
-                if vc and vc.is_connected():
-                    asyncio.ensure_future(_tts_speak(vc, reply, guild_id))
+                # 음성 채널 TTS 재생 (입장 중인 경우)
+                guild_id = getattr(message.guild, "id", None)
+                if guild_id and VOICE_CHANNEL_ENABLED:
+                    vc = _voice_clients.get(guild_id)
+                    if vc and vc.is_connected():
+                        asyncio.ensure_future(_tts_speak(vc, reply, guild_id))
 
-            # Obsidian PC 채팅창에 동기화
-            append_to_bucky_chat(message.author.name, content, reply)
+                # Obsidian PC 채팅창에 동기화
+                append_to_bucky_chat(message.author.name, content, reply)
 
-            # 이미 답변했으므로 status=answered → dispatcher 재처리 방지
-            out_path = write_discord_message(message, reply, status="answered")
-
-            # 구현/리뷰 키워드 감지 시 → #jh-tasks 자동 투입 (WorkerPool 실행)
-            try:
-                from task_tracker import classify
-                detected_type = classify(content)
-                if detected_type in ("implementation_request", "review_request"):
-                    await asyncio.to_thread(
-                        add_task, content[:40], content, detected_type, "discord"
-                    )
-                    # #jh-tasks 채널에 자동 포스팅 → WorkerPool에서 claude 실제 실행
-                    if JH_TASKS_CHANNEL_ID:
-                        tasks_ch = message.guild.get_channel(int(JH_TASKS_CHANNEL_ID))
-                        if tasks_ch:
-                            await tasks_ch.send(f"[jh-chat 자동라우팅] {content}")
-            except Exception:
-                pass
+                out_path = write_discord_message(message, reply, status="answered")
         else:
             out_path = write_discord_message(message, status="pending")
 

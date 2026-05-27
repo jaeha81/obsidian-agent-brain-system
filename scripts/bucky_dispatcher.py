@@ -8,12 +8,12 @@ from pathlib import Path
 from datetime import datetime
 
 VAULT = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
-AGENTBUS = VAULT / "AgentBus"
+AGENTBUS = VAULT / "10_AgentBus"
 INBOX_CLAUDE = AGENTBUS / "inbox/claude"
 INBOX_CODEX = AGENTBUS / "inbox/codex"
 OUTBOX_COMPLETED = AGENTBUS / "outbox/completed"
 OUTBOX_FAILED = AGENTBUS / "outbox/failed"
-MESSAGES = AGENTBUS / "messages/agent-room-messages.jsonl"
+MESSAGES = AGENTBUS / "agent-room-messages.jsonl"
 
 # 금지 경로 — 절대 접근 불가
 FORBIDDEN_PATHS = [
