@@ -191,6 +191,13 @@ def _analyze_openai(image_path: Path, content_type: str) -> dict:
 def _analyze_tesseract(image_path: Path) -> dict:
     import pytesseract
     from PIL import Image
+    tesseract_cmd = os.getenv("TESSERACT_CMD")
+    if tesseract_cmd:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+    elif sys.platform == "win32":
+        default_cmd = Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+        if default_cmd.exists():
+            pytesseract.pytesseract.tesseract_cmd = str(default_cmd)
     img = Image.open(image_path)
     text = pytesseract.image_to_string(img, lang="kor+eng")
     return {

@@ -45,6 +45,25 @@ if sys.stdout is None or (hasattr(sys.stdout, "closed") and sys.stdout.closed):
     sys.stdout = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
 if sys.stderr is None or (hasattr(sys.stderr, "closed") and sys.stderr.closed):
     sys.stderr = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
+import builtins as _builtins
+_unsafe_print = _builtins.print
+
+
+def _safe_print(*args, **kwargs):
+    try:
+        return _unsafe_print(*args, **kwargs)
+    except ValueError:
+        fallback = sys.__stderr__
+        if fallback is None or getattr(fallback, "closed", False):
+            fallback = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
+        kwargs["file"] = fallback
+        try:
+            return _unsafe_print(*args, **kwargs)
+        except Exception:
+            return None
+
+
+_builtins.print = _safe_print
 from datetime import datetime, timedelta
 from pathlib import Path
 

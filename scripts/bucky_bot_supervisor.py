@@ -159,27 +159,44 @@ def start_bot() -> subprocess.Popen:
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     stdout = LOG_FILE.open("a", encoding="utf-8", errors="replace")
     stderr = ERR_FILE.open("a", encoding="utf-8", errors="replace")
-    try:
-        proc = subprocess.Popen(
-            [sys.executable, str(BOT_SCRIPT)],
-            cwd=str(ROOT),
-            stdout=stdout,
-            stderr=stderr,
-            stdin=subprocess.DEVNULL,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
-    finally:
-        stdout.close()
-        stderr.close()
+    proc = subprocess.Popen(
+        [sys.executable, str(BOT_SCRIPT)],
+        cwd=str(ROOT),
+        stdout=stdout,
+        stderr=stderr,
+        stdin=subprocess.DEVNULL,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    # Keep redirected log handles alive for the child process on Windows.
+    proc._bucky_stdout = stdout  # type: ignore[attr-defined]
+    proc._bucky_stderr = stderr  # type: ignore[attr-defined]
     write_pid(proc.pid)
     log(f"Started discord_bot.py pid={proc.pid}")
     return proc
 
 
+def close_bot_log_handles(proc: subprocess.Popen | None) -> None:
+    if proc is None:
+        return
+    for attr in ("_bucky_stdout", "_bucky_stderr"):
+        handle = getattr(proc, attr, None)
+        if handle is None:
+            continue
+        try:
+            handle.close()
+        except OSError:
+            pass
+        try:
+            delattr(proc, attr)
+        except AttributeError:
+            pass
+
+
 def stop_bot(proc: subprocess.Popen | None) -> None:
     if proc is None or proc.poll() is not None:
+        close_bot_log_handles(proc)
         remove_pid()
         return
     log(f"Stopping discord_bot.py pid={proc.pid}")
@@ -190,6 +207,7 @@ def stop_bot(proc: subprocess.Popen | None) -> None:
         log(f"Force killing discord_bot.py pid={proc.pid}")
         proc.kill()
         proc.wait(timeout=10)
+    close_bot_log_handles(proc)
     remove_pid()
 
 
@@ -235,6 +253,7 @@ def run() -> int:
             if proc.poll() is not None:
                 exit_code = proc.returncode
                 log(f"discord_bot.py exited with code {exit_code}; restarting")
+                close_bot_log_handles(proc)
                 remove_pid()
                 time.sleep(RESTART_DELAY_SECONDS)
                 proc = start_bot()
