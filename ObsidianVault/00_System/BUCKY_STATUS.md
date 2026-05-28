@@ -1,6 +1,6 @@
 ---
 type: bucky-status
-updated: 2026-05-27T08:33:36.542Z
+updated: 2026-05-28T09:31:46.430Z
 pc: 사무실 PC
 hostname: DESKTOP-6F8H500
 username: 설계4
@@ -25,14 +25,14 @@ runtime: claude_cli
 
 | Script | Running |
 |---|---|
-| scripts/raw_import_watcher.py | no |
-| scripts/codex_review_runner.py | no |
-| scripts/agent_dispatcher.py | no |
+| scripts/raw_import_watcher.py | yes |
+| scripts/codex_review_runner.py | yes |
+| scripts/agent_dispatcher.py | yes |
 
 ## Last Start Result
 
-- started: none
-- already_running: scripts/raw_import_watcher.py, scripts/codex_review_runner.py, scripts/agent_dispatcher.py
+- started: scripts/raw_import_watcher.py, scripts/codex_review_runner.py, scripts/agent_dispatcher.py
+- already_running: none
 - missing: none
 
 ## Rules

@@ -30,7 +30,7 @@ if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
 
 import task_queue as tq
-from bucky_client import run_bucky, run_bucky_with_tools, BuckyError
+from bucky_client import BuckyError, codex_command, run_bucky, run_bucky_with_tools
 
 POOL_SIZE: int     = int(os.getenv("WORKER_POOL_SIZE", "5"))
 TASK_TIMEOUT: int  = int(os.getenv("BUCKY_TIMEOUT", "900"))
@@ -57,12 +57,7 @@ def _sanitize(text: str, max_len: int = 50) -> str:
 
 def _run_codex_review(prompt: str, timeout: int = 300) -> str:
     """Codex CLI를 subprocess로 직접 호출하고 결과 텍스트를 반환."""
-    try:
-        from codex_review_runner import codex_command
-        codex_cmd = codex_command()
-    except Exception:
-        codex_cmd = "codex"
-
+    codex_cmd = codex_command()
     sandbox = os.getenv("CODEX_SANDBOX", "read-only").strip() or "read-only"
     with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w", encoding="utf-8") as tf:
         output_path = tf.name
@@ -90,19 +85,6 @@ def _run_codex_review(prompt: str, timeout: int = 300) -> str:
             pass
 
 
-def _dispatch_codex_file(task_id: str, title: str, body: str) -> str:
-    CODEX_OUTBOX.mkdir(parents=True, exist_ok=True)
-    ts  = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out = CODEX_OUTBOX / f"P2_{ts}_Codex_{task_id}.md"
-    out.write_text(
-        f"---\ntype: implementation_request\ntask_id: {task_id}\n"
-        f"from: Bucky\nto: Codex\npriority: P2\nstatus: pending\n"
-        f"created: {datetime.now().isoformat(timespec='seconds')}\n---\n\n"
-        f"# {title}\n\n{body}\n",
-        encoding="utf-8",
-    )
-    return str(out)
-
 
 # ── WorkerPool ─────────────────────────────────────────────────────────────────
 
@@ -121,6 +103,7 @@ class WorkerPool:
         self._board_lock     = asyncio.Lock()
         self._board_pending  = False  # 대기 중인 update가 있으면 중복 skip
         self._reviewed_tasks: set[str] = set()  # feedback loop 무한반복 방지
+        self._codex_poller_task: Optional[asyncio.Task] = None  # 중복 실행 방지
 
     # ── 초기화 ────────────────────────────────────────────────────────────────
 
@@ -528,8 +511,15 @@ class WorkerPool:
         return self._build_board()
 
     def start_codex_result_poller(self) -> None:
-        """Codex 결과 파일을 주기적으로 감시해 #jh-results로 전송."""
-        asyncio.ensure_future(self._poll_codex_results())
+        """Codex 결과 파일을 주기적으로 감시해 #jh-results로 전송.
+
+        on_ready 재호출·봇 재연결 시 poller가 중복 실행되지 않도록
+        _codex_poller_task 필드로 단일 인스턴스를 보장한다.
+        """
+        if self._codex_poller_task is not None and not self._codex_poller_task.done():
+            print("[WorkerPool] Codex poller 이미 실행 중 — 중복 시작 방지", flush=True)
+            return
+        self._codex_poller_task = asyncio.ensure_future(self._poll_codex_results())
 
     async def _poll_codex_results(self) -> None:
         CODEX_RESULTS.mkdir(parents=True, exist_ok=True)

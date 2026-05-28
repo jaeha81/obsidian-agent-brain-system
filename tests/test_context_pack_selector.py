@@ -39,5 +39,19 @@ class ContextPackSelectorTests(unittest.TestCase):
         self.assertIn("ObsidianVault/05_Frameworks/guides/multi-pc-sync-sentinel.md", selection["notes"])
 
 
+    def test_format_text_includes_worker_pack_and_notes(self):
+        selection = context_pack_selector.select_context_pack(
+            task_type="general",
+            body="Discord fallback pipeline",
+        )
+
+        text = context_pack_selector.format_text(selection)
+
+        self.assertIn("[Context Pack Selector]", text)
+        self.assertIn("Primary worker: Bucky Operator", text)
+        self.assertIn("Packs: Discord Pipeline Pack", text)
+        self.assertIn("ObsidianVault/05_Frameworks/guides/discord-fallback-pipeline.md", text)
+
+
 if __name__ == "__main__":
     unittest.main()

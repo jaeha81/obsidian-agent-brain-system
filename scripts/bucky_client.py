@@ -157,6 +157,20 @@ def run_bucky_with_tools(
     return _strip_preamble(result.stdout).strip()
 
 
+def codex_command() -> str:
+    command = os.getenv("CODEX_COMMAND", "codex").strip() or "codex"
+    if any(sep in command for sep in ("\\", "/", ":")):
+        return command
+    return shutil.which(command) or command
+
+
+def is_codex_available() -> bool:
+    command = codex_command()
+    if any(sep in command for sep in ("\\", "/", ":")):
+        return Path(command).exists()
+    return shutil.which(command) is not None
+
+
 def _strip_preamble(text: str) -> str:
     """Remove CLAUDE.md PC-detection preamble lines from the start of the response."""
     return re.sub(r'^[🏠💻🏢][^\n]*\n+(?:-{3,}\n+)?', '', text, count=1)

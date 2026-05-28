@@ -20,6 +20,8 @@ Commands:
     !status   — 봇 상태 확인
     !help     — 명령어 목록
     !reset    — 현재 채널 대화 기록 초기화
+    !queue    — AgentBus 큐 읽기 전용 점검
+    !pack     — 작업별 최소 컨텍스트 팩 선택
 """
 
 import asyncio
@@ -36,6 +38,13 @@ if sys.platform == "win32":
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
     except Exception:
         pass
+
+# stdout/stderr 닫혀 있을 때(콘솔 없이 실행, 창 닫힘 등) print 크래시 방지
+import io as _io
+if sys.stdout is None or getattr(sys.stdout, "closed", True):
+    sys.stdout = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
+if sys.stderr is None or getattr(sys.stderr, "closed", True):
+    sys.stderr = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -256,6 +265,46 @@ def _get_user_role(author_id: str) -> str:
 
 conversation_history: dict[str, list[dict]] = defaultdict(list)
 MAX_HISTORY = 20
+
+# ── 메시지 ID 중복 처리 방지 ─────────────────────────────────────────────────────
+# 레이어 1: 인메모리 (같은 프로세스 내 재연결·이중 이벤트)
+_processed_msg_ids: set[int] = set()
+_PROCESSED_MSG_MAX = 500
+
+# 레이어 2: 파일 기반 (프로세스 재시작 후 Discord RESUME, 다중 인스턴스)
+_CLAIMS_DIR = INBOX.parent / "claims"
+_CLAIM_TTL_SEC = 86400  # 24시간 후 claim 만료
+
+
+def _claim_message(msg_id: int) -> bool:
+    """메시지 처리권 선점. True=처리 진행, False=이미 처리됨(스킵).
+
+    claim 파일을 message_id 기반으로 생성해 여러 인스턴스/재시작에 걸친 중복을 차단.
+    """
+    _CLAIMS_DIR.mkdir(parents=True, exist_ok=True)
+    claim_file = _CLAIMS_DIR / f"{msg_id}.claim"
+
+    # 만료된 claim 정리 (이 파일이 대상인 경우)
+    try:
+        if claim_file.exists():
+            import time as _t
+            if _t.time() - claim_file.stat().st_mtime > _CLAIM_TTL_SEC:
+                claim_file.unlink(missing_ok=True)
+            else:
+                return False  # 유효한 claim 존재 → 스킵
+    except Exception:
+        pass
+
+    try:
+        # "x" 모드: 파일 없을 때만 생성 (원자적 선점)
+        with open(str(claim_file), "x", encoding="utf-8") as f:
+            import os as _os
+            f.write(str(_os.getpid()))
+        return True
+    except FileExistsError:
+        return False
+    except Exception:
+        return True  # 파일 시스템 오류 시 처리 허용 (안전 폴백)
 
 # ── 유틸 ───────────────────────────────────────────────────────────────────────
 
@@ -585,8 +634,14 @@ async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
             loop = asyncio.get_running_loop()
 
             def _after(error):
-                Path(path_ref).unlink(missing_ok=True)
-                loop.call_soon_threadsafe(done_event.set)
+                # done_event는 반드시 설정 (unlink 실패해도 락이 60초 점유하지 않도록)
+                try:
+                    Path(path_ref).unlink(missing_ok=True)
+                except OSError:
+                    # WinError 32: FFmpeg가 파일 사용 중 — 무시하고 계속
+                    pass
+                finally:
+                    loop.call_soon_threadsafe(done_event.set)
 
             # FFmpegOpusAudio: ffmpeg이 opus 인코딩 담당 → libopus DLL 불필요
             audio_src = await discord.FFmpegOpusAudio.from_probe(tmp_path)
@@ -599,7 +654,10 @@ async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
             print(f"[TTS] 재생 오류: {e}", flush=True)
         finally:
             if tmp_path:
-                Path(tmp_path).unlink(missing_ok=True)
+                try:
+                    Path(tmp_path).unlink(missing_ok=True)
+                except OSError:
+                    pass
 
 
 async def _join_voice_channel(vc_channel: discord.VoiceChannel, text_channel, guild_id: int) -> discord.VoiceClient | None:
@@ -2208,6 +2266,34 @@ class BuckyDiscordBot(discord.Client):
             if ch:
                 await ch.send("👋 채널에 아무도 없어 퇴장했습니다.")
 
+    async def on_disconnect(self) -> None:
+        print("[Bot] Discord 연결 끊김 — 재연결 대기 중...", flush=True)
+        # 음성 클라이언트 상태 정리 (끊김 시 VoiceClient가 무효화됨)
+        for guild_id in list(_voice_clients.keys()):
+            vc = _voice_clients.get(guild_id)
+            if vc and not vc.is_connected():
+                _voice_clients.pop(guild_id, None)
+                _voice_text_ch.pop(guild_id, None)
+
+    async def on_resumed(self) -> None:
+        print("[Bot] Discord 재연결 완료 (resumed)", flush=True)
+        # WorkerPool Discord 인스턴스 재등록
+        if _WORKER_POOL_ENABLED:
+            try:
+                pool = _get_worker_pool()
+                pool.set_discord(self)
+            except Exception as e:
+                print(f"[Bot] 재연결 후 WorkerPool 재등록 실패: {e}", flush=True)
+        # 알림 채널에 재연결 고지
+        notify_ch_id = BUCKY_STATUS_CHANNEL_ID or JH_CHAT_CHANNEL_ID
+        if notify_ch_id:
+            try:
+                ch = self.get_channel(int(notify_ch_id))
+                if ch:
+                    await ch.send("🔄 Discord 재연결 완료 — 봇이 정상 동작합니다.")
+            except Exception as e:
+                print(f"[Bot] 재연결 알림 실패: {e}", flush=True)
+
     async def on_ready(self) -> None:
         guilds = [f"{g.name}({g.id})" for g in self.guilds]
         mode = "Bucky Agent (구독)" if BUCKY_ENABLED else "inbox-only"
@@ -2324,6 +2410,20 @@ class BuckyDiscordBot(discord.Client):
         if ALLOWED_CHANNELS and str(message.channel.id) not in ALLOWED_CHANNELS:
             return
 
+        # ── 중복 처리 방지 (레이어 1: 인메모리) ────────────────────────────────────
+        if message.id in _processed_msg_ids:
+            print(f"[Bot] Duplicate skipped (in-memory): msg_id={message.id}", flush=True)
+            return
+        _processed_msg_ids.add(message.id)
+        if len(_processed_msg_ids) > _PROCESSED_MSG_MAX:
+            _processed_msg_ids.clear()
+            _processed_msg_ids.add(message.id)
+
+        # ── 중복 처리 방지 (레이어 2: 파일 기반 — 재시작·다중 인스턴스) ────────────
+        if not _claim_message(message.id):
+            print(f"[Bot] Duplicate skipped (claim file): msg_id={message.id}", flush=True)
+            return
+
         author_id = str(message.author.id)
         # 웹훅/Discord 앱(봇)은 서버 관리자가 설정한 신뢰된 소스이므로 자동 허용
         is_webhook = bool(getattr(message, "webhook_id", None))
@@ -2348,6 +2448,43 @@ class BuckyDiscordBot(discord.Client):
                     await message.channel.send(chunk)
             except Exception as _sync_e:
                 await message.channel.send(f"⚠️ Sync Sentinel 실패: {_sync_e}")
+            return
+
+        # ── AgentBus Queue Audit — 읽기 전용 큐 상태 확인 ─────────────────────────
+        if content in ("!queue", "!agentbus", "!agentbus-audit", "!큐", "!버스", "!큐상태"):
+            try:
+                from agentbus_queue_audit import audit_agentbus as _queue_audit, format_text as _queue_text
+                report = await asyncio.to_thread(_queue_audit)
+                for chunk in split_message(_queue_text(report)):
+                    await message.channel.send(chunk)
+            except Exception as _queue_e:
+                await message.channel.send(f"⚠️ AgentBus Queue Audit 실패: {_queue_e}")
+            return
+
+        # ── Context Pack Selector — 읽기 전용 최소 컨텍스트 선택 ───────────────────
+        context_pack_prefixes = ("!context-pack", "!pack", "!컨텍스트팩", "!팩")
+        matched_context_pack_prefix = next(
+            (
+                prefix
+                for prefix in context_pack_prefixes
+                if content == prefix or content.startswith(f"{prefix} ")
+            ),
+            None,
+        )
+        if matched_context_pack_prefix:
+            body = content[len(matched_context_pack_prefix):].strip()
+            try:
+                from context_pack_selector import format_text as _context_pack_text
+                from context_pack_selector import select_context_pack as _context_pack_select
+                selection = await asyncio.to_thread(
+                    _context_pack_select,
+                    task_type="general",
+                    body=body,
+                )
+                for chunk in split_message(_context_pack_text(selection)):
+                    await message.channel.send(chunk)
+            except Exception as _context_pack_e:
+                await message.channel.send(f"⚠️ Context Pack Selector 실패: {_context_pack_e}")
             return
 
         # ── 전역 !report / !현황 — 모든 채널에서 사용 가능 ───────────────────────────
@@ -2504,6 +2641,8 @@ class BuckyDiscordBot(discord.Client):
                 "**Bucky 명령어**\n"
                 "`!status` — 봇 상태 및 내 역할 확인\n"
                 "`!reset` — 대화 기록 초기화\n"
+                "`!queue` / `!agentbus` / `!큐상태` — AgentBus 큐 읽기 전용 점검\n"
+                "`!context-pack <내용>` / `!pack <내용>` / `!팩 <내용>` — 최소 컨텍스트 팩 선택\n"
                 "**[멀티태스크 — 워커풀]**\n"
                 "`!task <내용>` — 자동 라우팅 (Claude/Codex/Bucky) 백그라운드 실행\n"
                 "`!code <내용>` — Codex 강제 배정 (구현/코드 작업)\n"

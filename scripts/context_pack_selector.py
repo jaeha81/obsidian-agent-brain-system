@@ -84,6 +84,18 @@ def select_context_pack(*, task_type: str, body: str) -> dict:
     return selection
 
 
+def format_text(selection: dict) -> str:
+    lines = [
+        "[Context Pack Selector]",
+        f"Key: {selection['key']}",
+        f"Primary worker: {selection['primary_worker']}",
+        f"Packs: {', '.join(selection['packs'])}",
+        "Notes:",
+    ]
+    lines.extend(f"- {note}" for note in selection["notes"])
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Select a lightweight context pack for a task.")
     parser.add_argument("--task-type", default="general")
