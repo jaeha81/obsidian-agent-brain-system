@@ -306,6 +306,10 @@ def _claim_message(msg_id: int) -> bool:
     except Exception:
         return True  # 파일 시스템 오류 시 처리 허용 (안전 폴백)
 
+# ── 채널별 활성 thinking 메시지 추적 (봇 재시작 후 잔여 메시지 정리용) ─────────
+# key: channel_id(str), value: discord.Message object
+_active_thinking_msgs: dict = {}  # channel_id -> discord.Message
+
 # ── 유틸 ───────────────────────────────────────────────────────────────────────
 
 _THINKING_STAGES = [
@@ -2021,9 +2025,18 @@ async def _handle_work_channel(message: Message) -> None:
     custom_sp = os.getenv(f"JH_WORK_PROMPT_{channel_id}", "").strip()
     system_prompt = custom_sp or _WORK_SYSTEM_PROMPT
 
+    # 이전 세션에서 남은 thinking 메시지 삭제
+    _old_tm = _active_thinking_msgs.pop(channel_id, None)
+    if _old_tm is not None:
+        try:
+            await _old_tm.delete()
+        except Exception:
+            pass
+
     thinking_msg = await message.channel.send(
         f"⚙️ **[{channel_name}]** 작업 실행 중... _(⏱ 0초)_"
     )
+    _active_thinking_msgs[channel_id] = thinking_msg
     _stop = asyncio.Event()
     _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
     reply = ""
@@ -2043,6 +2056,7 @@ async def _handle_work_channel(message: Message) -> None:
     finally:
         _stop.set()
         _anim.cancel()
+        _active_thinking_msgs.pop(channel_id, None)
 
     # ── 결과 저장 ─────────────────────────────────────────────────────────────
     if _track and task_id:
@@ -3302,7 +3316,16 @@ class BuckyDiscordBot(discord.Client):
 
             # jh-chat은 항상 Bucky 대화 응답 — 태스크 배정은 !task/!code 또는 #jh-tasks 채널 사용
             if True:
+                # 이전 세션에서 남은 thinking 메시지 삭제 (봇 재시작 후 잔여 메시지 정리)
+                _old_tm = _active_thinking_msgs.pop(channel_id, None)
+                if _old_tm is not None:
+                    try:
+                        await _old_tm.delete()
+                    except Exception:
+                        pass
+
                 thinking_msg = await message.channel.send("🔍 RAG 지식 검색 중... _(⏱ 0초)_")
+                _active_thinking_msgs[channel_id] = thinking_msg
                 _stop = asyncio.Event()
                 _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
                 try:
@@ -3316,6 +3339,7 @@ class BuckyDiscordBot(discord.Client):
                 finally:
                     _stop.set()
                     _anim.cancel()
+                    _active_thinking_msgs.pop(channel_id, None)
 
                 chunks = split_message(reply)
                 await thinking_msg.edit(content=chunks[0])
@@ -3342,6 +3366,17 @@ class BuckyDiscordBot(discord.Client):
 # ── 진입점 ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    import socket as _socket
+    _allowed_host = os.getenv("BOT_ALLOWED_HOSTNAME", "").strip()
+    _this_host = _socket.gethostname()
+    if _allowed_host and _this_host != _allowed_host:
+        print(
+            f"[Bot] 이 PC({_this_host})는 봇 실행 허용 대상이 아닙니다 "
+            f"(BOT_ALLOWED_HOSTNAME={_allowed_host}). 종료.",
+            flush=True,
+        )
+        raise SystemExit(0)
+
     if not TOKEN:
         print("[Bot] DISCORD_BOT_TOKEN not set.", flush=True)
         raise SystemExit(1)

@@ -208,7 +208,7 @@ def run() -> int:
     # 이름 기반 검색: PID 파일 없이 직접 실행된 경우도 감지
     orphan_pids = find_existing_bot_pids()
     if orphan_pids:
-        log(f"Orphaned discord_bot.py processes detected: {orphan_pids} — terminating before start")
+        log(f"Orphaned discord_bot.py processes detected: {orphan_pids} - terminating before start")
         for pid in orphan_pids:
             kill_pid(pid)
         time.sleep(2)
