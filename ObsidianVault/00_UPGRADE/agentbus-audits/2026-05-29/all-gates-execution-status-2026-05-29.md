@@ -137,3 +137,32 @@ Remaining proof depends on:
   - Live root and `/products` returned HTTP 200.
 
 Current conclusion unchanged: Codex-executable gates are complete; remaining proof still requires user Discord voice interaction and optional Gemini key provisioning.
+
+## Recheck 2026-05-29 07:14 KST
+
+- Obsidian repo:
+  - `git fetch origin master` completed.
+  - Local HEAD and `origin/master` both point to `5dc0de634e0460e2707754368d17ef7704759a46`.
+  - `git status --short --branch --untracked-files=all` is clean.
+  - `python -m py_compile scripts\discord_bot.py scripts\bucky_bot_supervisor.py scripts\discord_vision_processor.py` passed.
+  - `python -m unittest discover -s tests` passed: 20 tests.
+- Discord runtime:
+  - Supervisor and child `discord_bot.py` process observed.
+  - Voice flags are configured in `.env`.
+  - No `AUTO_JOIN_VOICE_CHANNEL_ID` or `AUTO_JOIN_TEXT_CHANNEL_ID` is configured.
+  - No new `*voice*` inbox files were found.
+  - Latest inbox records are text Discord intake records, not voice E2E proof.
+- Gemini:
+  - `GEMINI_API_KEY` absent in `.env` and process environment.
+  - `GOOGLE_API_KEY` absent in `.env` and process environment.
+- Sniper:
+  - Local repo contained two unpushed commits after the prior handoff:
+    - `26154c7 fix: products/[id] 잔존 인증 취약점 제거 (Codex P1/P2)`
+    - `cdd3d72 fix: .env.local.example에 ADMIN_PASSWORD 복원`
+  - `npm.cmd run build` passed.
+  - Secret keyword scan of the net diff found no secret value.
+  - `origin/master` now points to `cdd3d728d84f2dd1ee227ff659b5baae07812943`.
+  - Live root and `/products` returned HTTP 200.
+  - Live auth probe with legacy `admin_session=authenticated` cookie returned HTTP 401 for both `PUT /api/products/__codex_auth_probe__` and `DELETE /api/products/__codex_auth_probe__`.
+
+Current conclusion: Sniper drift is resolved. Remaining proof still depends on user Discord voice-channel interaction and optional Gemini key provisioning.
