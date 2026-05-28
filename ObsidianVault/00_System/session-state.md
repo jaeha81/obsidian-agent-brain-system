@@ -1,6 +1,6 @@
 ---
 updated: 2026-05-29
-session: 집 PC — Codex 검수 이슈 수정 + GitHub Pages 복구
+session: 집 PC — sniper-buying-dashboard Codex P1/P2 보안 패치
 ---
 
 # 세션 상태
@@ -9,25 +9,25 @@ session: 집 PC — Codex 검수 이슈 수정 + GitHub Pages 복구
 
 ### 완료 작업
 
-1. **GitHub Pages P1 수정** ✅
-   - `docs/.nojekyll` 추가 — Jekyll이 Mustache/JS 템플릿 리터럴을 Liquid로 파싱해 `Liquid::SyntaxError` 발생하던 문제 해결
-   - Pages 빌드 `success` 확인 완료
+1. **sniper-buying-dashboard Codex P1 보안 패치** ✅
+   - `app/api/products/[id]/route.ts` 로컬 `isAdminAuthenticated` 복사본 제거
+   - `import { isAdminAuthenticated } from '@/lib/admin-auth'`로 교체
+   - `ADMIN_PASSWORD ?? 'sniper2026'` 기본값 및 `session === 'authenticated'` 우회 패턴 완전 제거
+   - tsc --noEmit PASS, 보안 재스캔 PASS
 
-2. **wishket 대시보드 파이프라인 P2 수정** ✅
-   - `dashboard-update.yml`에 `generate_wishket_dashboard.py` 스텝 추가
-   - diff/commit 범위 `wishket.html` 포함
-   - `docs/wishket.html` 2026-05-28 데이터 5개 공고로 갱신
+2. **`.env.local.example` P2 커밋** ✅
+   - uncommitted 상태였던 `.env.local.example` 변경분 커밋
+   - `ADMIN_PASSWORD`는 `admin-login` 필수 env var이므로 복원 유지
 
-3. **레포 동기화 prune 로직 P2 수정** ✅
-   - `update_dashboard.py`에 `prune_deleted_repos()` 추가
-   - GitHub에 없는 레포(`claude-projects-jh` 등) 다음 자동 실행 시 자동 제거
-
-### 커밋
-- `16796fb` fix: GitHub Pages 빌드 실패 수정 + 대시보드 파이프라인 개선
-- `8d02dd6` chore: Daily Plus 대시보드 스크립트 + 세션 산출물 커밋
+### 커밋 (D:/ai프로젝트/sniper-buying-dashboard)
+- `26154c7` fix: products/[id] 잔존 인증 취약점 제거 (Codex P1/P2)
+- `cdd3d72` fix: .env.local.example에 ADMIN_PASSWORD 복원
+- origin/master 동기화 완료
 
 ### 다음 세션 P1
 - `claude-projects-jh` prune 실제 반영 확인 (다음 dashboard-update 자동 실행 후)
+- `bucky_memory.py:170-186` 들여쓰기 버그 수정 (승인 후 적용)
+- `.env` 정리 — `BUCKY_CHAT_MODEL=haiku` 제거
 
 ---
 
