@@ -1,9 +1,9 @@
 ---
 type: bucky-status
-updated: 2026-05-28T09:45:36.637Z
-pc: 사무실 PC
-hostname: DESKTOP-6F8H500
-username: 설계4
+updated: 2026-05-28T16:17:02.799Z
+pc: 집 PC
+hostname: P0517A-22H2T8
+username: user1
 agent: 버키
 runtime: claude_cli
 ---
@@ -12,9 +12,9 @@ runtime: claude_cli
 
 | Item | Value |
 |---|---|
-| PC | 사무실 PC |
-| Hostname | DESKTOP-6F8H500 |
-| Username | 설계4 |
+| PC | 집 PC |
+| Hostname | P0517A-22H2T8 |
+| Username | user1 |
 | Root | G:\내 드라이브\obsidian-agent-brain-system |
 | Vault | G:\내 드라이브\obsidian-agent-brain-system |
 | Agent Vault | G:\내 드라이브\obsidian-agent-brain-system\ObsidianVault |
@@ -25,14 +25,14 @@ runtime: claude_cli
 
 | Script | Running |
 |---|---|
-| scripts/raw_import_watcher.py | no |
-| scripts/codex_review_runner.py | no |
-| scripts/agent_dispatcher.py | no |
+| scripts/raw_import_watcher.py | yes |
+| scripts/codex_review_runner.py | yes |
+| scripts/agent_dispatcher.py | yes |
 
 ## Last Start Result
 
-- started: scripts/raw_import_watcher.py, scripts/codex_review_runner.py, scripts/agent_dispatcher.py
-- already_running: none
+- started: none
+- already_running: scripts/raw_import_watcher.py, scripts/codex_review_runner.py, scripts/agent_dispatcher.py
 - missing: none
 
 ## Rules

@@ -92,6 +92,29 @@
   .legend .candidate::before { background: #bfdbfe; }
   .legend .approval::before { background: #fdba74; }
   .legend .applied::before { background: #86efac; }
+  .command-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .command-btn { border: 1px solid var(--line); border-radius: 8px; min-height: 42px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
+  .command-btn:hover, .command-btn:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .command-btn.approve { color: var(--amber); background: #fff7ed; border-color: #fed7aa; }
+  .command-btn.implement { color: var(--green); background: #f0fdf4; border-color: #bbf7d0; }
+  .command-btn.queue { color: var(--teal); background: #f0fdfa; border-color: #99f6e4; }
+  .command-tray { position: fixed; left: clamp(12px, 3vw, 28px); right: clamp(12px, 3vw, 28px); bottom: 14px; z-index: 50; background: #0f172a; color: #e5e7eb; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 18px 48px rgba(15,23,42,.35); padding: 14px; display: grid; gap: 10px; transform: translateY(calc(100% + 32px)); opacity: 0; pointer-events: none; transition: transform .18s ease, opacity .18s ease; }
+  .command-tray.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .command-tray strong { color: #fff; }
+  .command-tray textarea { width: 100%; min-height: 126px; resize: vertical; border: 1px solid #475569; border-radius: 8px; background: #020617; color: #e5e7eb; padding: 10px; font: 12px/1.5 Consolas, "Segoe UI Mono", monospace; }
+  .tray-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .tray-actions button { border: 1px solid #475569; border-radius: 8px; background: #1e293b; color: #e5e7eb; min-height: 38px; padding: 8px 12px; cursor: pointer; font-weight: 700; }
+  .tray-actions button:hover, .tray-actions button:focus { outline: none; border-color: #93c5fd; }
+  .message-box { display: grid; gap: 10px; }
+  .message-box textarea, .message-box input { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); padding: 11px 12px; font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+  .message-box textarea { min-height: 104px; resize: vertical; }
+  .message-box textarea:focus, .message-box input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .message-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .message-actions button { border: 1px solid var(--line); border-radius: 8px; min-height: 40px; padding: 8px 13px; cursor: pointer; font-weight: 800; background: #fff; color: var(--ink); }
+  .message-actions .send { background: #eff6ff; color: var(--blue); border-color: #bfdbfe; }
+  .message-actions .copy { background: #f8fafc; color: #475569; }
+  .toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; border-radius: 999px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(15,23,42,.28); opacity: 0; pointer-events: none; transition: opacity .16s ease; }
+  .toast.show { opacity: 1; }
   footer { padding: 22px clamp(14px, 3vw, 42px); color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }
   @media (max-width: 840px) {
     .hero-grid { grid-template-columns: 1fr; }
@@ -102,6 +125,10 @@
   @media (max-width: 520px) {
     .summary, .compare-grid { grid-template-columns: 1fr; }
     .bars { grid-template-columns: 1fr; }
+    .command-actions { grid-template-columns: 1fr; }
+    .message-actions { justify-content: stretch; }
+    .message-actions button { flex: 1; }
+    .command-tray { left: 8px; right: 8px; bottom: 8px; max-height: 88vh; overflow: auto; }
   }
 </style>
 </head>
@@ -147,6 +174,22 @@
 <div class="mini"><strong>음성 파이프라인</strong><span>1</span></div>
       </div>
     </aside>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>Bucky 메시지</h2>
+      <span class="muted">사용자 메시지로 전달</span>
+    </div>
+    <div class="panel message-box">
+      <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
+      <input id="buckyEndpoint" type="url" placeholder="Bucky intake URL (선택)">
+      <div class="message-actions">
+        <button type="button" class="send" id="sendBuckyMessage">전송</button>
+        <button type="button" class="copy" id="copyBuckyMessage">복사</button>
+      </div>
+      <p class="muted" id="messageStatus">HTTPS Bucky intake URL이 있으면 바로 전송하고, 없으면 사용자 메시지 지시문을 복사합니다.</p>
+    </div>
   </section>
 
   <section>
@@ -548,5 +591,315 @@
 <footer>
   Source of truth is the Obsidian vault. This page is a generated operational view for fast user review.
 </footer>
+<script>
+(function () {
+  var actionLabels = {
+    approve: "승인",
+    implement: "구현",
+    queue: "후보"
+  };
+  var actionDescriptions = {
+    approve: "사용자가 이 후보를 승인했다. Bucky는 AgentBus 작업으로 승격하고, core role/scheduler/prompt/live integration 변경이면 Claude 구현 전 승인 경계를 다시 표시한다.",
+    implement: "Claude가 구현하고 Codex가 독립 검수한다. 보안, 데이터 손실, 역할 경계, 테스트 결과를 검증한 뒤 사용자에게 보고한다.",
+    queue: "오늘의 플러스 후보로 유지한다. Bucky는 우선순위, 효율성, 호환성, 승인 필요 여부를 보존하고 다음 09:00 보고에 포함한다."
+  };
+  var latestPayload = "";
+  var latestFilename = "daily-plus-instruction.md";
+
+  function textOf(card, selector) {
+    var node = card.querySelector(selector);
+    return node ? node.textContent.replace(/\s+/g, " ").trim() : "";
+  }
+
+  function dashboardDate() {
+    var heading = document.querySelector(".hero-grid h2");
+    var text = heading ? heading.textContent : "";
+    var match = text.match(/\d{4}-\d{2}-\d{2}/);
+    return match ? match[0] : new Date().toISOString().slice(0, 10);
+  }
+
+  function cardNumber(title) {
+    var match = title.match(/Card\s+(\d+)/i);
+    return match ? match[1] : "unknown";
+  }
+
+  function buildPayload(card, action) {
+    var title = textOf(card, "h3");
+    var number = cardNumber(title);
+    var priority = card.getAttribute("data-priority") || "";
+    var category = card.getAttribute("data-category") || "";
+    var status = card.getAttribute("data-status") || "";
+    var meta = textOf(card, ".meta");
+    var actionText = textOf(card, ".action");
+    var next = textOf(card, ".next");
+    var evidence = textOf(card, "details p");
+    var date = dashboardDate();
+    var dashboard = window.location.href.split("#")[0];
+    var created = new Date().toISOString();
+
+    latestFilename = "daily-plus-" + date.replace(/-/g, "") + "-card-" + number + "-" + action + ".md";
+    return [
+      "---",
+      "type: daily_plus_dashboard_instruction",
+      "source: daily-plus-dashboard",
+      "target: Bucky",
+      "action: " + action,
+      "date: " + date,
+      "card: " + number,
+      "priority: " + priority,
+      "category: " + category,
+      "status: pending",
+      "created_at: " + created,
+      "---",
+      "",
+      "# Daily Plus Dashboard Instruction",
+      "",
+      "- Dashboard: " + dashboard,
+      "- Card: " + title,
+      "- Current status: " + status,
+      "- Metadata: " + meta,
+      "",
+      "## Decision",
+      "",
+      actionDescriptions[action],
+      "",
+      "## Work Request",
+      "",
+      actionText || next,
+      "",
+      "## Next Handling",
+      "",
+      next,
+      "",
+      "## Evidence",
+      "",
+      evidence,
+      "",
+      "## Role Boundary",
+      "",
+      "- Claude implements when implementation is required.",
+      "- Codex reviews independently and reports findings to the user.",
+      "- Bucky manages queueing, 09:00 reporting, and user-facing summaries."
+    ].join("\n");
+  }
+
+  function ensureTray() {
+    var tray = document.querySelector(".command-tray");
+    if (tray) return tray;
+    tray = document.createElement("div");
+    tray.className = "command-tray";
+    tray.innerHTML = [
+      "<strong id=\"commandTrayTitle\">지시문 준비됨</strong>",
+      "<textarea id=\"commandPayload\" readonly></textarea>",
+      "<div class=\"tray-actions\">",
+      "<button type=\"button\" data-tray=\"send\">Bucky 전송</button>",
+      "<button type=\"button\" data-tray=\"copy\">복사</button>",
+      "<button type=\"button\" data-tray=\"download\">MD 다운로드</button>",
+      "<button type=\"button\" data-tray=\"close\">닫기</button>",
+      "</div>"
+    ].join("");
+    document.body.appendChild(tray);
+    tray.querySelector("[data-tray='send']").addEventListener("click", function () {
+      sendToBucky(latestPayload, "dashboard_instruction");
+    });
+    tray.querySelector("[data-tray='copy']").addEventListener("click", function () {
+      copyPayload(latestPayload);
+    });
+    tray.querySelector("[data-tray='download']").addEventListener("click", downloadPayload);
+    tray.querySelector("[data-tray='close']").addEventListener("click", function () {
+      tray.classList.remove("show");
+    });
+    return tray;
+  }
+
+  function endpointValue() {
+    var input = document.getElementById("buckyEndpoint");
+    var value = input && input.value ? input.value.trim() : "";
+    if (value) {
+      localStorage.setItem("buckyIntakeUrl", value);
+      return value;
+    }
+    return localStorage.getItem("buckyIntakeUrl") || "";
+  }
+
+  function setMessageStatus(message) {
+    var status = document.getElementById("messageStatus");
+    if (status) status.textContent = message;
+  }
+
+  function showToast(message) {
+    var toast = document.querySelector(".toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add("show");
+    window.setTimeout(function () {
+      toast.classList.remove("show");
+    }, 1700);
+  }
+
+  function copyPayload(payload) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(payload).then(function () {
+        showToast("지시문 복사됨");
+      }).catch(function () {
+        fallbackSelect();
+      });
+      return;
+    }
+    fallbackSelect();
+  }
+
+  function fallbackSelect() {
+    var textarea = document.getElementById("commandPayload");
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+      showToast("지시문 선택됨");
+    }
+  }
+
+  function downloadPayload() {
+    var blob = new Blob([latestPayload], { type: "text/markdown;charset=utf-8" });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = latestFilename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(function () {
+      URL.revokeObjectURL(link.href);
+    }, 1000);
+  }
+
+  function openCommand(card, action) {
+    latestPayload = buildPayload(card, action);
+    var tray = ensureTray();
+    tray.querySelector("#commandTrayTitle").textContent = actionLabels[action] + " 지시문";
+    tray.querySelector("#commandPayload").value = latestPayload;
+    tray.classList.add("show");
+    copyPayload(latestPayload);
+  }
+
+  function buildUserMessage(message) {
+    var date = dashboardDate();
+    var dashboard = window.location.href.split("#")[0];
+    return [
+      "---",
+      "type: daily_plus_user_message",
+      "source: daily-plus-dashboard",
+      "target: Bucky",
+      "role: user",
+      "date: " + date,
+      "status: pending",
+      "created_at: " + new Date().toISOString(),
+      "---",
+      "",
+      "# Daily Plus User Message",
+      "",
+      "- Dashboard: " + dashboard,
+      "- Sender: user",
+      "",
+      "## Message",
+      "",
+      message
+    ].join("\n");
+  }
+
+  async function sendToBucky(message, kind) {
+    var endpoint = endpointValue();
+    latestPayload = message;
+    latestFilename = "daily-plus-user-message-" + dashboardDate().replace(/-/g, "") + ".md";
+    if (!endpoint) {
+      ensureTray().querySelector("#commandPayload").value = latestPayload;
+      ensureTray().querySelector("#commandTrayTitle").textContent = "Bucky 사용자 메시지";
+      ensureTray().classList.add("show");
+      copyPayload(latestPayload);
+      setMessageStatus("Bucky intake URL이 없어 지시문을 복사했습니다.");
+      return false;
+    }
+
+    try {
+      var response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: kind || "user_message",
+          source: "daily-plus-dashboard",
+          target: "Bucky",
+          role: "user",
+          message: message,
+          dashboard: window.location.href.split("#")[0],
+          created_at: new Date().toISOString()
+        })
+      });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      showToast("Bucky 전송됨");
+      setMessageStatus("Bucky에게 전송했습니다.");
+      return true;
+    } catch (error) {
+      ensureTray().querySelector("#commandPayload").value = latestPayload;
+      ensureTray().querySelector("#commandTrayTitle").textContent = "전송 실패 - 복사본";
+      ensureTray().classList.add("show");
+      copyPayload(latestPayload);
+      setMessageStatus("전송 실패: " + error.message + ". 지시문을 복사했습니다.");
+      return false;
+    }
+  }
+
+  document.querySelectorAll(".candidate").forEach(function (card) {
+    var actions = document.createElement("div");
+    actions.className = "command-actions";
+    actions.innerHTML = [
+      "<button type=\"button\" class=\"command-btn approve\" data-action=\"approve\">승인</button>",
+      "<button type=\"button\" class=\"command-btn implement\" data-action=\"implement\">구현</button>",
+      "<button type=\"button\" class=\"command-btn queue\" data-action=\"queue\">후보</button>"
+    ].join("");
+    actions.addEventListener("click", function (event) {
+      var button = event.target.closest("button[data-action]");
+      if (!button) return;
+      openCommand(card, button.getAttribute("data-action"));
+    });
+    var details = card.querySelector("details");
+    card.insertBefore(actions, details || null);
+  });
+
+  var endpointInput = document.getElementById("buckyEndpoint");
+  if (endpointInput && localStorage.getItem("buckyIntakeUrl")) {
+    endpointInput.value = localStorage.getItem("buckyIntakeUrl");
+  }
+  var sendButton = document.getElementById("sendBuckyMessage");
+  if (sendButton) {
+    sendButton.addEventListener("click", function () {
+      var input = document.getElementById("buckyMessage");
+      var message = input ? input.value.trim() : "";
+      if (!message) {
+        setMessageStatus("보낼 메시지를 입력하세요.");
+        showToast("메시지가 비어 있음");
+        return;
+      }
+      sendToBucky(buildUserMessage(message), "user_message");
+    });
+  }
+  var copyButton = document.getElementById("copyBuckyMessage");
+  if (copyButton) {
+    copyButton.addEventListener("click", function () {
+      var input = document.getElementById("buckyMessage");
+      var message = input ? input.value.trim() : "";
+      if (!message) {
+        setMessageStatus("복사할 메시지를 입력하세요.");
+        return;
+      }
+      latestPayload = buildUserMessage(message);
+      latestFilename = "daily-plus-user-message-" + dashboardDate().replace(/-/g, "") + ".md";
+      copyPayload(latestPayload);
+      setMessageStatus("사용자 메시지 지시문을 복사했습니다.");
+    });
+  }
+})();
+</script>
 </body>
 </html>
