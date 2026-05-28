@@ -144,7 +144,8 @@ def main() -> None:
 
         print("🤖 Bucky 생각 중...", flush=True)
         try:
-            reply = run_bucky(prompt)
+            # 음성 대화 → task_type='chat' (Sonnet 기본, 한도 시 폴백)
+            reply = run_bucky(prompt, task_type="chat")
         except BuckyError as e:
             print(f"⚠️  Bucky 오류: {e}", flush=True)
             continue

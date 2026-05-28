@@ -117,7 +117,8 @@ def decompose(goal: str) -> list[str]:
     try:
         from bucky_client import run_bucky
         prompt = _DECOMPOSE_PROMPT.format(goal=goal)
-        raw = run_bucky(prompt, timeout=60)
+        # task_type='reasoning' → Opus 라우팅 (목표 분해 정확성 우선, Sonnet 한도 분산)
+        raw = run_bucky(prompt, timeout=60, task_type="reasoning")
         start = raw.find("[")
         end = raw.rfind("]") + 1
         if start != -1 and end > start:

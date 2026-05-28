@@ -115,7 +115,12 @@ def extract_facts(conversation: str) -> list[dict]:
     """대화에서 기억할 사실 추출 — Claude 사용."""
     try:
         from bucky_client import run_bucky
-        raw = run_bucky(_EXTRACT_PROMPT.format(conversation=conversation[:3000]), timeout=30)
+        # task_type='extract' → Haiku 라우팅 (Sonnet 한도 절약)
+        raw = run_bucky(
+            _EXTRACT_PROMPT.format(conversation=conversation[:3000]),
+            timeout=30,
+            task_type="extract",
+        )
         start = raw.find("[")
         end = raw.rfind("]") + 1
         if start != -1 and end > start:

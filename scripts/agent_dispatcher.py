@@ -254,14 +254,16 @@ def _build_hermes_prompt(body: str, system_extra: str = "") -> str:
 
 def handle_via_bucky(body: str, system_extra: str = "") -> str:
     """Bucky Agent (Claude CLI 구독)로 요청 처리."""
-    return run_bucky(_build_hermes_prompt(body, system_extra))
+    # Hermes 비서 응답 → task_type='chat' (Sonnet 기본, 한도 시 폴백)
+    return run_bucky(_build_hermes_prompt(body, system_extra), task_type="chat")
 
 
 def handle_via_claude_code(task_prompt: str) -> tuple[str, bool]:
     """Compatibility wrapper: implementation tasks go through configured local agent."""
     print(f"  [Dispatcher] Spawning {WORKER_NAME} Agent ...")
     try:
-        return run_bucky(task_prompt), True
+        # 구현 작업 → task_type='implementation' (Sonnet 기본)
+        return run_bucky(task_prompt, task_type="implementation"), True
     except Exception as exc:
         return f"FAILED: {type(exc).__name__}: {exc}", False
 
@@ -402,7 +404,8 @@ def process_file(filepath: Path) -> None:
 
     try:
         if task_type == "dispatcher_test":
-            output = run_bucky(body.strip())
+            # dispatcher_test → 짧은 단발 응답 → chat (Sonnet 기본)
+            output = run_bucky(body.strip(), task_type="chat")
             result_file = _write_result(filepath.name, output, _worker_suffix())
             update_frontmatter(filepath, {
                 "status": "done",
