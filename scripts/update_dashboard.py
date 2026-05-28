@@ -160,6 +160,15 @@ def update_date(html: str, today: str) -> str:
     return updated
 
 
+def prune_deleted_repos(html: str, existing_ids: set[str], gh_names: set[str]) -> tuple[str, list[str]]:
+    """GitHub에 존재하지 않는 레포 항목을 HTML에서 제거한다."""
+    to_remove = [rid for rid in existing_ids if rid not in gh_names]
+    for rid in to_remove:
+        pattern = r'\n  \{[^{}]*?id: \'' + re.escape(rid) + r'\'[^{}]*?\},'
+        html = re.sub(pattern, '', html)
+    return html, to_remove
+
+
 def main():
     # KST 기준 오늘 날짜
     kst = timezone(timedelta(hours=9))
@@ -184,8 +193,15 @@ def main():
     # 3. GitHub API에서 전체 레포 가져오기
     gh_repos = fetch_all_repos()
     print(f"[INFO] GitHub 레포 수: {len(gh_repos)}")
+    gh_names = {r["name"] for r in gh_repos}
 
-    # 4. 신규 레포 필터링 (fork 제외)
+    # 4. 삭제된 레포 정리 (GitHub에 없는 항목 제거)
+    html, pruned = prune_deleted_repos(html, existing_ids, gh_names)
+    if pruned:
+        print(f"[INFO] 제거된 레포: {pruned}")
+        existing_ids -= set(pruned)
+
+    # 5. 신규 레포 필터링 (fork 제외)
     new_repos = [
         r for r in gh_repos
         if r["name"] not in existing_ids and not r.get("fork", False)
