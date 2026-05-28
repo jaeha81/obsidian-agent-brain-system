@@ -41,9 +41,9 @@ if sys.platform == "win32":
 
 # stdout/stderr 닫혀 있을 때(콘솔 없이 실행, 창 닫힘 등) print 크래시 방지
 import io as _io
-if sys.stdout is None or getattr(sys.stdout, "closed", True):
+if sys.stdout is None or (hasattr(sys.stdout, "closed") and sys.stdout.closed):
     sys.stdout = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
-if sys.stderr is None or getattr(sys.stderr, "closed", True):
+if sys.stderr is None or (hasattr(sys.stderr, "closed") and sys.stderr.closed):
     sys.stderr = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -454,9 +454,15 @@ try:
         sys.path.insert(0, _scripts_dir)
     from stt_enhanced import postprocess_for_discord as _stt_enhance_fn  # type: ignore
     from nlp_preprocessor import preprocess as _nlp_preprocess_fn  # type: ignore
-    print("[Bot] STT 고도화 + NLP 전처리기 로드 완료", flush=True)
+    try:
+        print("[Bot] STT 고도화 + NLP 전처리기 로드 완료", flush=True)
+    except ValueError:
+        pass
 except Exception as _nlp_e:
-    print(f"[Bot] STT/NLP 모듈 로드 실패 (기본 후처리 사용): {_nlp_e}", flush=True)
+    try:
+        print(f"[Bot] STT/NLP 모듈 로드 실패 (기본 후처리 사용): {_nlp_e}", flush=True)
+    except ValueError:
+        pass
 
 
 def _postprocess_stt(text: str) -> str:
@@ -1013,8 +1019,7 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
     nlp_hint = ""
     if _nlp_preprocess_fn and _NLP_ENABLED and len(user_message) > 5:
         try:
-            context_msgs = [m["content"] for m in history[-4:]]
-            nlp_result = _nlp_preprocess_fn(user_message, context_msgs)
+            nlp_result = _nlp_preprocess_fn(user_message)
             action = nlp_result.get("action", "")
             if action in ("BUILD", "DEPLOY", "FIX", "UPGRADE") and nlp_result.get("confidence", 0) >= 0.5:
                 router = nlp_result.get("agent_router", "")
@@ -1056,7 +1061,8 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
         f"{rag_block}\n\n"
         f"{transcript}"
     )
-    reply = await asyncio.to_thread(run_bucky, prompt)
+    # task_type='chat' → Sonnet (기본). 한도 초과 시 자동 Haiku→Opus 폴백
+    reply = await asyncio.to_thread(run_bucky, prompt, task_type="chat")
 
     if _use_mem:
         await asyncio.to_thread(_mem.save_message, channel_id, "assistant", reply)
@@ -2042,8 +2048,9 @@ async def _handle_work_channel(message: Message) -> None:
     reply = ""
     status = "done"
     try:
+        # 작업 채널: 코드/구현 작업이 주를 이룸 → task_type='code'
         reply = await asyncio.to_thread(
-            run_bucky_with_tools, content, system_prompt=system_prompt
+            run_bucky_with_tools, content, system_prompt=system_prompt, task_type="code"
         )
     except _BErr as e:
         reply = f"⚠️ 작업 실패: {e}"
