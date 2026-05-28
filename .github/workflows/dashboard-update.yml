@@ -1,0 +1,45 @@
+name: 대시보드 자동 업데이트
+
+on:
+  schedule:
+    # 매일 00:00 KST (= 15:00 UTC 전날)
+    - cron: '0 15 * * *'
+  workflow_dispatch:  # 수동 트리거
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 대시보드 업데이트 실행
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/update_dashboard.py
+
+      - name: 변경사항 확인
+        id: diff
+        run: |
+          git diff --quiet docs/index.html || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: 커밋 & 푸시
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "Bucky Dashboard Bot"
+          git config user.email "bucky-bot@jh-system"
+          git add docs/index.html
+          git commit -m "chore: 대시보드 자동 업데이트 $(date +'%Y-%m-%d') [skip ci]"
+          git push

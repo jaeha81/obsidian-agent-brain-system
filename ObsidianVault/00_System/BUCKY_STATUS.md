@@ -1,7 +1,7 @@
 ---
 type: bucky-status
-updated: 2026-05-28T19:00:00.000Z
-pc: 집 PC
+updated: 2026-05-28T09:45:36.637Z
+pc: 사무실 PC
 hostname: DESKTOP-6F8H500
 username: 설계4
 agent: 버키
@@ -12,7 +12,7 @@ runtime: claude_cli
 
 | Item | Value |
 |---|---|
-| PC | 집 PC |
+| PC | 사무실 PC |
 | Hostname | DESKTOP-6F8H500 |
 | Username | 설계4 |
 | Root | G:\내 드라이브\obsidian-agent-brain-system |
@@ -25,15 +25,15 @@ runtime: claude_cli
 
 | Script | Running |
 |---|---|
-| scripts/bucky_bot_supervisor.py | yes (PID 4892) |
-| scripts/discord_bot.py | yes (PID 36756) |
+| scripts/raw_import_watcher.py | no |
+| scripts/codex_review_runner.py | no |
 | scripts/agent_dispatcher.py | no |
 
 ## Last Start Result
 
-- started: bucky_bot_supervisor.py → discord_bot.py
-- BOT_ALLOWED_HOSTNAME: DESKTOP-6F8H500 (크로스 머신 이중 실행 방지)
-- Thinking 메시지 잔여 정리: _active_thinking_msgs 활성
+- started: scripts/raw_import_watcher.py, scripts/codex_review_runner.py, scripts/agent_dispatcher.py
+- already_running: none
+- missing: none
 
 ## Rules
 
@@ -41,4 +41,3 @@ runtime: claude_cli
 - Plugin detects local PC and starts Bucky scripts when autoStart is on.
 - Duplicate process check prevents launching the same script twice.
 - Bucky Chat calls the Claude CLI subscription route through scripts/bucky_chat_once.py.
-- BOT_ALLOWED_HOSTNAME enforces single-machine bot execution across Google Drive shared machines.
