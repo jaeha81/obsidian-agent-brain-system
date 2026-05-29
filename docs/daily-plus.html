@@ -92,6 +92,7 @@
   .legend .candidate::before { background: #bfdbfe; }
   .legend .approval::before { background: #fdba74; }
   .legend .applied::before { background: #86efac; }
+
   .command-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .command-btn { border: 1px solid var(--line); border-radius: 8px; min-height: 42px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
   .command-btn:hover, .command-btn:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
@@ -115,6 +116,7 @@
   .message-actions .copy { background: #f8fafc; color: #475569; }
   .toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; border-radius: 999px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(15,23,42,.28); opacity: 0; pointer-events: none; transition: opacity .16s ease; }
   .toast.show { opacity: 1; }
+
   footer { padding: 22px clamp(14px, 3vw, 42px); color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }
   @media (max-width: 840px) {
     .hero-grid { grid-template-columns: 1fr; }
@@ -146,32 +148,31 @@
 <main>
   <section class="hero-grid">
     <div class="panel">
-      <h2>2026-05-28 처리 요약</h2>
+      <h2>2026-05-29 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-05-28T08:00:26+09:00</span>
+        <span class="pill">수집: 2026-05-29T08:00:22+09:00</span>
         <span class="pill">리포트: staged</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
       <div class="summary">
-        <div class="stat blue"><strong>12</strong><span>오늘의 플러스 후보</span></div>
+        <div class="stat blue"><strong>11</strong><span>오늘의 플러스 후보</span></div>
         <div class="stat green"><strong>0</strong><span>직접 구현 반영</span></div>
-        <div class="stat amber"><strong>9</strong><span>큐 또는 스테이징</span></div>
-        <div class="stat red"><strong>3</strong><span>사용자 승인 필요</span></div>
+        <div class="stat amber"><strong>0</strong><span>큐 또는 스테이징</span></div>
+        <div class="stat red"><strong>0</strong><span>사용자 승인 필요</span></div>
       </div>
       <p class="muted">오늘의 플러스는 원문을 보존하고, 바로 구현하지 않는 항목은 큐/승인대기로 분리합니다. 현재 대시보드 기준 직접 적용된 후보는 0개이며, 운영 파이프라인 자체는 수집, 진화 리포트, Bucky 처리까지 연결되어 있습니다.</p>
     </div>
     <aside class="panel">
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="stat blue"><strong>83</strong><span>평균 효율성</span></div>
-        <div class="stat green"><strong>83</strong><span>평균 호환성</span></div>
+        <div class="stat blue"><strong>85</strong><span>평균 효율성</span></div>
+        <div class="stat green"><strong>85</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>검증 자동화</strong><span>6</span></div>
-<div class="mini"><strong>Obsidian 큐</strong><span>3</span></div>
-<div class="mini"><strong>에이전트 프롬프트</strong><span>1</span></div>
-<div class="mini"><strong>실험 후보</strong><span>1</span></div>
+        <div class="mini"><strong>검증 자동화</strong><span>8</span></div>
+<div class="mini"><strong>명령 페이로드</strong><span>1</span></div>
 <div class="mini"><strong>음성 파이프라인</strong><span>1</span></div>
+<div class="mini"><strong>실험 후보</strong><span>1</span></div>
       </div>
     </aside>
   </section>
@@ -183,12 +184,12 @@
     </div>
     <div class="panel message-box">
       <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
-      <input id="buckyEndpoint" type="url" placeholder="Bucky intake URL (선택)">
+      <input id="buckyEndpoint" type="url" value="http://127.0.0.1:3100/api/messages" aria-label="Bucky Agent Room endpoint">
       <div class="message-actions">
-        <button type="button" class="send" id="sendBuckyMessage">전송</button>
+        <button type="button" class="send" id="sendBuckyMessage">Bucky 전송</button>
         <button type="button" class="copy" id="copyBuckyMessage">복사</button>
       </div>
-      <p class="muted" id="messageStatus">HTTPS Bucky intake URL이 있으면 바로 전송하고, 없으면 사용자 메시지 지시문을 복사합니다.</p>
+      <p class="muted" id="messageStatus">Bucky 전송 대기</p>
     </div>
   </section>
 
@@ -201,9 +202,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-05-28</strong><p>12 후보 · 효율 83 · 호환 83</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>+4</strong><p>후보 수 변화 · 효율 +2 · 호환 +8</p></div>
-        <div class="compare-card"><span>누적</span><strong>20</strong><p>2일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-05-29</strong><p>11 후보 · 효율 85 · 호환 85</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>+3</strong><p>후보 수 변화 · 효율 +4 · 호환 +10</p></div>
+        <div class="compare-card"><span>누적</span><strong>31</strong><p>3일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -227,6 +228,16 @@
           </div>
           <div class="trend-num">12 후보 · 3 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-05-29</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:92%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">11 후보 · 0 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -243,11 +254,11 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 1</strong><span>웹훅에서 오브시디언으로 안전 전달</span><em>큐 대기</em></li>
-<li><strong>P1 Card 2</strong><span>git으로 남기는 마크다운 이력</span><em>큐 대기</em></li>
-<li><strong>P1 Card 4</strong><span>Codex·Claude 분리 운영 패턴</span><em>승인 필요</em></li>
-<li><strong>P2 Card 5</strong><span>Gemini 플래너, Codex 실행자</span><em>승인 필요</em></li>
-<li><strong>P1 Card 11</strong><span>음성에서 의도로 바로 넘기기</span><em>승인 필요</em></li>
+        <li><strong>P1 Card 1</strong><span>Jh용 디스코드 2k 안전 페이로드</span><em>구현 키워드 포함 → Hermes/distiller one-shot 대기</em></li>
+<li><strong>P1 Card 2</strong><span>버키용 초경량 명령 3종</span><em>Codex 검수 요청 → review_request 생성 필요</em></li>
+<li><strong>P1 Card 3</strong><span>JCS 검증용 1줄 스모크</span><em>JCS 스모크 테스트 → Codex 검수 큐</em></li>
+<li><strong>P1 Card 4</strong><span>로컬 우선 음성 전사 플레이북</span><em>음성 파이프라인 아키텍처 변경 가능성 → 사용자 승인 후 적용</em></li>
+<li><strong>P1 Card 8</strong><span>Jh 구매대행 출시 점검표</span><em>출시 점검표는 사용자 확인 후 체크 권장</em></li>
       </ul>
     </div>
   </section>
@@ -255,277 +266,110 @@
   <section>
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P1&#x27;: 5, &#x27;P2&#x27;: 4, &#x27;P3&#x27;: 3} · 상태 {&#x27;queued&#x27;: 9, &#x27;needs-user-approval&#x27;: 3}</span>
+      <span class="muted">우선순위 {&#x27;P1&#x27;: 8, &#x27;P3&#x27;: 3} · 상태 {&#x27;구현 키워드 포함 → Hermes/distiller one-shot 대기&#x27;: 1, &#x27;Codex 검수 요청 → review_request 생성 필요&#x27;: 1, &#x27;JCS 스모크 테스트 → Codex 검수 큐&#x27;: 1, &#x27;음성 파이프라인 아키텍처 변경 가능성 → 사용자 승인 후 적용&#x27;: 1, &#x27;외부 API 변화 감시 → Codex 정기 체크 큐&#x27;: 1, &#x27;Gemini API 모니터링 → Codex 온보딩 큐&#x27;: 1, &#x27;지식/전략 분석 → Bucky 실험 큐 (non-blocking)&#x27;: 1, &#x27;출시 점검표는 사용자 확인 후 체크 권장&#x27;: 1, &#x27;코드 스니펫 → Codex 검증 후 Vault 적용&#x27;: 1, &#x27;구현서 검토 → Codex 리뷰 큐&#x27;: 1, &#x27;파일럿 플랜 검증 → Codex 리뷰 큐&#x27;: 1}</span>
     </div>
     <div class="grid">
 
-      <article class="candidate" data-status="queued" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="1" data-status="구현 키워드 포함 → Hermes/distiller one-shot 대기" data-priority="P1" data-category="command-payload">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 1. 웹훅에서 오브시디언으로 안전 전달</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>웹훅에서 오브시디언으로 안전 전달 웹훅에서 오브시디언으로 안전 전달 이건 “외부 에이전트 → 옵시디언 볼트”로 노트를 안전하게 밀어넣는 초경량 웹훅 브리지 설계예요. 핵심은 ①서명 검증(HMAC+타임스탬프) ②멱등성(idempotency) ③원자적 파일쓰기(tmp→mv)라서, 볼트가 닫혀 있어도 안전히 큐에 쌓고, 열리면 한 번만 깨끗하게 기록됩니다. 왜 필요한가 중복 방지: 같은 이벤...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="queued" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 2. git으로 남기는 마크다운 이력</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>git으로 남기는 마크다운 이력 git으로 남기는 마크다운 이력 지금 쓰는 “오늘의_플러스” 메모를 Git(깃)으로 자동 보관하면, 기록이 안 날아가고(이력/되돌리기 가능), 중복도 막고(아이덴포턴시), 감사 추적까지 한 번에 됩니다. 아래 그대로 붙여 넣으면 바로 돌아가요. 왜 깃으로 보관하나요? 이력 보존: 언제 누가 무엇을 바꿨는지 커밋 로그로 남아요. 되돌리기 쉬움: 잘못 저장해...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="queued" data-priority="P2" data-category="obsidian-queue">
-        <div class="candidate-top">
-          <span class="badge priority">P2</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 3. 로컬 에이전트의 오프라인 우선 경로</h3>
-        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
-        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
-            <div class="bar"><span class="good" style="width:84%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
-          </div>
-        </div>
-        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>로컬 에이전트의 오프라인 우선 경로 로컬 에이전트의 오프라인 우선 경로 오프라인에서도 “오늘의 플러스” 같은 캡처를 안전하게 모아 두고, 옵시디언이 켜지면 원자적(atomic)으로 노트에 써 넣는 작은 로컬 에이전트 + 커뮤니티 플러그인 아이디어를 정리해 드릴게요. 핵심은 간단 설치, 보안, 중복방지, 확실한 쓰기입니다. 왜 필요한가 오프라인·저지연: 태블릿/폰에서 메모를 찍어두면, 나...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="needs-user-approval" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status needs-user-approval">승인 필요</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 4. Codex·Claude 분리 운영 패턴</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>Codex·Claude 분리 운영 패턴 Codex·Claude 분리 운영 패턴 여기, “플래너‑분석가‑오케스트레이터” 3단 구성으로 에이전트 협업을 안전하고 결정론적으로 돌리는 방법을 한 눈에 잡아드릴게요. 아래 내용 그대로 복붙해서 쓰면 됩니다. 왜 필요한가 (초간단) CODEGEN(코덱스류): 실행 계획을 “JSON 한 덩어리”로만 뽑게 해서 흔들림 제거 ANALYST(클로드류):...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="needs-user-approval" data-priority="P2" data-category="agent-prompting">
-        <div class="candidate-top">
-          <span class="badge priority">P2</span>
-          <span class="badge status needs-user-approval">승인 필요</span>
+          <span class="badge status 구현 키워드 포함 → Hermes/distiller one-shot 대기">구현 키워드 포함 → Hermes/distiller one-shot 대기</span>
           <span class="badge risk risk-medium">medium</span>
         </div>
-        <h3>Card 5. Gemini 플래너, Codex 실행자</h3>
-        <p class="meta">에이전트 프롬프트 · owner: bucky · target: 03_Projects/agents / Bucky planner-executor prompts</p>
-        <p class="action">Stage prompt changes as role-specific snippets and keep approval notes.</p>
+        <h3>Card 1. Jh용 디스코드 2k 안전 페이로드</h3>
+        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
+        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>78</strong></div>
-            <div class="bar"><span class="mid" style="width:78%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>62</strong></div>
-            <div class="bar"><span class="low" style="width:62%"></span></div>
-          </div>
-        </div>
-        <p class="next">Bucky/Claude/Codex 역할 경계를 건드리므로 review request로 먼저 검토한다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>Gemini 플래너, Codex 실행자 Gemini 플래너, Codex 실행자 이건 “플래너–실행기(Planner–Executor)” 구조로 에이전트 워크플로우를 안전/일관/검증 가능하게 돌리는 간단한 설계와 바로 붙여 넣어 쓸 수 있는 프롬프트/스니펫 모음이에요. 개요 PLANNER(계획 생성): 목표를 받아 짧고 표준화된 JSON 계획(plan_v1)으로 쪼갭니다. EXECUTOR(...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="queued" data-priority="P2" data-category="obsidian-queue">
-        <div class="candidate-top">
-          <span class="badge priority">P2</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 6. 원격 실패 시 로컬 전환</h3>
-        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
-        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
-            <div class="bar"><span class="good" style="width:84%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
+            <div class="bar-label"><span>효율성</span><strong>86</strong></div>
             <div class="bar"><span class="good" style="width:86%"></span></div>
           </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>70</strong></div>
+            <div class="bar"><span class="mid" style="width:70%"></span></div>
+          </div>
         </div>
-        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
+        <p class="next">명령 구조, idempotency, 재시도 규칙을 먼저 문서화한다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
         <details>
           <summary>근거 보기</summary>
-          <p>원격 실패 시 로컬 전환 원격 실패 시 로컬 전환 신뢰성 높은 에이전트 운영을 위한 “원격 계획·로컬 실행” 패턴을 간단히 소개하고, 바로 붙여넣어 쓸 수 있는 디스패처/로컬 실행기/검증 스니펫을 드릴게요. 개요 (왜 필요한가) 원격 LLM(클로드/제미나이 등)은 품질이 높지만, 지연·오류(5xx, 타임아웃)가 생깁니다. 로컬 LLM(ggml/llama.cpp/whisper류, tiny...</p>
+          <p>Jh용 디스코드 2k 안전 페이로드 Jh용 디스코드 2k 안전 페이로드 아래는 “오늘의_플러스”를 디스코드→버키(브리지)→Obsidian(Jh 경로)로 안전·중복없이 흡수시키는 초간단 플레이북입니다. 처음 보는 분도 그대로 붙여넣어 바로 돌릴 수 있게 했어요. 1) 디스코드(≤2000자) 복사용 페이로드 그대로 복사해 버키 채널에 붙여넣으면 됩니다. &lt;…&gt;만 실제 값으로 교체하세요. /...</p>
         </details>
       </article>
 
-      <article class="candidate" data-status="queued" data-priority="P3" data-category="experiment">
-        <div class="candidate-top">
-          <span class="badge priority">P3</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-medium">medium</span>
-        </div>
-        <h3>Card 7. UGC로 전환율 9.81% 끌어올리기</h3>
-        <p class="meta">실험 후보 · owner: bucky · target: 00_UPGRADE/next-plan.md</p>
-        <p class="action">Log as an experiment candidate and require explicit approval before build work.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>58</strong></div>
-            <div class="bar"><span class="low" style="width:58%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>76</strong></div>
-            <div class="bar"><span class="mid" style="width:76%"></span></div>
-          </div>
-        </div>
-        <p class="next">사업 실험 후보로 보관하고, 구현 전 기대효과와 측정 지표를 정한다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>UGC로 전환율 9.81% 끌어올리기 UGC로 전환율 9.81% 끌어올리기 요즘 많은 브랜드들이 실제 사용자 콘텐츠(User‑Generated Content, UGC)가 매출과 전환을 직접 끌어올린다는 사실이 마케팅 성과 사례로 증명되고 있어서 공유합니다. 사람들의 진짜 경험과 사진/영상이 신뢰로 작용하고, 이를 제품 페이지나 캠페인 전반에 녹여낼 때 구매 결정 속도가 달라지고 있습니다...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="queued" data-priority="P3" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P3</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 8. 고정 CTA가 만든 큰 차이</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>고정 CTA가 만든 큰 차이 고정 CTA가 만든 큰 차이 웹사이트 전환 최적화(CRO) 테스트 하나가 실제 매출을 크게 끌어올릴 수 있다는 극적인 증거로 공유합니다 — 특히 결정적 행동 요소(Call‑to‑Action)를 사용자 여정 초반에 노출시키는 단순한 변화가 막대한 효과를 냈습니다. 4 영국 호텔 브랜드 The Clermont 웹사이트 사례에서, 초기에는 예약 버튼이 접히는 형태...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="queued" data-priority="P3" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P3</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 9. 묶음 상품으로 ARPU 키우기</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>묶음 상품으로 ARPU 키우기 묶음 상품으로 ARPU 키우기 당신이 수익 실험을 빠르게 설계하고 싶다면, 이 사례는 단순한 요금제 개선 이상의 구조적 매출 레버를 보여줍니다. 4 최근 공개된 사례에서, 여행 eSIM 제공사인 Simology는 6주간의 화이트라벨 런칭 전략을 통해 ARPU(사용자당 평균매출)를 크게 끌어올리는 데 성공했습니다. Simology 핵심은 단순한 제품 확장이...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="queued" data-priority="P2" data-category="obsidian-queue">
-        <div class="candidate-top">
-          <span class="badge priority">P2</span>
-          <span class="badge status queued">큐 대기</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 10. Skills를 옵시디언으로 옮기는 법</h3>
-        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
-        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
-            <div class="bar"><span class="good" style="width:84%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
-          </div>
-        </div>
-        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
-        <details>
-          <summary>근거 보기</summary>
-          <p>Skills를 옵시디언으로 옮기는 법 Skills를 옵시디언으로 옮기는 법 이건 “GitHub의 mattpocock/skills 레포를 옵시디언(Obsidian) 볼트로 옮겨서, 버키/클로드/코덱스 같은 에이전트가 바로 ‘스킬 노트’를 읽고 실행할 수 있게 만드는 빠른 마이그레이션 가이드”야. 왜 이렇게 옮기나요? 폴더=카테고리, 파일=스킬 구조로 바꾸면 옵시디언에서 탐색·검색·자동화가...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-status="needs-user-approval" data-priority="P1" data-category="voice-pipeline">
+      <article class="candidate" data-card="2" data-status="Codex 검수 요청 → review_request 생성 필요" data-priority="P1" data-category="verification">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status needs-user-approval">승인 필요</span>
+          <span class="badge status Codex 검수 요청 → review_request 생성 필요">Codex 검수 요청 → review_request 생성 필요</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 2. 버키용 초경량 명령 3종</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>버키용 초경량 명령 3종 버키용 초경량 명령 3종 여기 그대로 “복붙”해서 디스코드에서 버키(Bucky)에 바로 쓸 수 있는 초경량 명령 3종입니다—일일저장, 실행요청(플래너 결과 실행), 긴급롤백. 각 명령은 idempotency_key와 manifest_sha256 자리를 포함해 재실행 안전·무결성 체크가 되도록 설계했습니다. 1) Daily save — 오늘의 플러스 저장 매일 노...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="3" data-status="JCS 스모크 테스트 → Codex 검수 큐" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status JCS 스모크 테스트 → Codex 검수 큐">JCS 스모크 테스트 → Codex 검수 큐</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 3. JCS 검증용 1줄 스모크</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>JCS 검증용 1줄 스모크 JCS 검증용 1줄 스모크 여기, **버키 오케스트레이션용 “1줄 검증기(One‑liner verifier)”**를 바로 쓸 수 있게 정리했어요—작은 디바이스나 CI에서도 깔끔하게 돌아갑니다. 왜 필요한가 에이전트 실행 전, plan.json의 plan 필드가 정규화된 동일 바이트 표현인지 확인하고 SHA‑256 해시를 고정 값으로 비교하려는 목적. **JCS...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="4" data-status="음성 파이프라인 아키텍처 변경 가능성 → 사용자 승인 후 적용" data-priority="P1" data-category="voice-pipeline">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status 음성 파이프라인 아키텍처 변경 가능성 → 사용자 승인 후 적용">음성 파이프라인 아키텍처 변경 가능성 → 사용자 승인 후 적용</span>
           <span class="badge risk risk-high">high</span>
         </div>
-        <h3>Card 11. 음성에서 의도로 바로 넘기기</h3>
+        <h3>Card 4. 로컬 우선 음성 전사 플레이북</h3>
         <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
         <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
         <div class="bars">
@@ -539,19 +383,24 @@
           </div>
         </div>
         <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
         <details>
           <summary>근거 보기</summary>
-          <p>음성에서 의도로 바로 넘기기 음성에서 의도로 바로 넘기기 지금 쓰고 있는 디스코드‑음성→텍스트 파이프라인을 “최소 구성(빠르게 붙여서 돌릴 수 있는 청사진)”으로 정리했어. 음성은 로컬 우선(whisper.cpp), 장애·지연 시 원격 STT로 폴백, 그리고 웹훅은 HMAC+아이템포턴시를 강제해 중복·재생을 안전하게 처리해요. 아래 블록만 복붙해서 시작하면 돼요. 1) 아키텍처 한 줄...</p>
+          <p>로컬 우선 음성 전사 플레이북 로컬 우선 음성 전사 플레이북 프라이버시를 지키면서 “음성 → 의도(명령)”로 바꾸는 로컬‑퍼스트 파이프라인을 한눈에 정리해 드릴게요. 팀 없이도 PC 한 대로 시작할 수 있게 구성했습니다. 로컬‑퍼스트 음성→의도 플레이북 (요약) 목표: 네트워크 장애나 서버 장애와 무관하게, 음성 입력을 즉시 텍스트/명령으로 변환하고 옵시디언(Obsidian)에 자동 기...</p>
         </details>
       </article>
 
-      <article class="candidate" data-status="queued" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="5" data-status="외부 API 변화 감시 → Codex 정기 체크 큐" data-priority="P3" data-category="verification">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status queued">큐 대기</span>
+          <span class="badge priority">P3</span>
+          <span class="badge status 외부 API 변화 감시 → Codex 정기 체크 큐">외부 API 변화 감시 → Codex 정기 체크 큐</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 12. 온디바이스 실험으로 API 비용 줄이기</h3>
+        <h3>Card 5. 디스코드 음성 API 변화 체크</h3>
         <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
         <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
@@ -565,9 +414,200 @@
           </div>
         </div>
         <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
         <details>
           <summary>근거 보기</summary>
-          <p>온디바이스 실험으로 API 비용 줄이기 온디바이스 실험으로 API 비용 줄이기 지금 당장 써먹을 수 있는 “AI 추론비용 절감 3종 실험팩”을 간단 설명 + 복사‑붙여넣기용 체크리스트로 정리했어요. 이미지/3D/에이전트 앱을 로컬+엣지에서 더 싸고 빠르게 돌리려는 목적에 딱 맞습니다. 왜 필요한가? API 호출비(토큰)↓, 지연시간↓, 처리량↑를 동시에 노립니다. 품질은 유지(f16 기...</p>
+          <p>디스코드 음성 API 변화 체크 디스코드 음성 API 변화 체크 최근 디스코드 음성 기능이 곧 큰 변화를 맞이할 가능성이 높고, 그래서 지금 준비해두는 게 미래의 봇·녹음·캡처 설계에 큰 도움이 될 거야. 6 디스코드는 현재 실험적인 공간 오디오(spatial audio) 기능을 테스트 중인 것으로 확인됐어 — 음성 대화를 단순한 스테레오가 아니라 공간적으로 배치해 들을 수 있는 기능으...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="6" data-status="Gemini API 모니터링 → Codex 온보딩 큐" data-priority="P3" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status Gemini API 모니터링 → Codex 온보딩 큐">Gemini API 모니터링 → Codex 온보딩 큐</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 6. Gemini 변경 감시 온보딩</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>Gemini 변경 감시 온보딩 Gemini 변경 감시 온보딩 요약하면, Gemini‑기반 API, CLI, Vertex‑관련 릴리즈 노트들은 지금도 지속적으로 변화하고 있고, 중요한 변화(모델 deprecation, major 버전 변경, 새로운 기능/CLI 명령 추가) 가 감지될 때마다 체계적으로 모니터링할 가치가 있습니다. 주요 소스는 주기적으로 업데이트되며 이를 기반으로 자동화된...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="7" data-status="지식/전략 분석 → Bucky 실험 큐 (non-blocking)" data-priority="P3" data-category="experiment">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status 지식/전략 분석 → Bucky 실험 큐 (non-blocking)">지식/전략 분석 → Bucky 실험 큐 (non-blocking)</span>
+          <span class="badge risk risk-medium">medium</span>
+        </div>
+        <h3>Card 7. Anthropic 자금 유입의 의미</h3>
+        <p class="meta">실험 후보 · owner: bucky · target: 00_UPGRADE/next-plan.md</p>
+        <p class="action">Log as an experiment candidate and require explicit approval before build work.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>58</strong></div>
+            <div class="bar"><span class="low" style="width:58%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>76</strong></div>
+            <div class="bar"><span class="mid" style="width:76%"></span></div>
+          </div>
+        </div>
+        <p class="next">사업 실험 후보로 보관하고, 구현 전 기대효과와 측정 지표를 정한다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>Anthropic 자금 유입의 의미 Anthropic 자금 유입의 의미 지금 공유하는 이유: 최근 Anthropic가 AI 업계 판도를 흔들 만큼 거대한 투자와 기업가치 도약을 발표해, Claude나 Claude 엔터프라이즈 기반 시스템을 사용하는 조직에 곧바로 영향이 예상되기 때문입니다. 7 미국의 AI 기업 Anthropic는 수십억달러 규모의 자금 조달을 성공적으로 마무리하며 이전...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="8" data-status="출시 점검표는 사용자 확인 후 체크 권장" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status 출시 점검표는 사용자 확인 후 체크 권장">출시 점검표는 사용자 확인 후 체크 권장</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 8. Jh 구매대행 출시 점검표</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>Jh 구매대행 출시 점검표 Jh 구매대행 출시 점검표 출시 직전 점검을 한눈에 끝내는 “프리런치 런북”이야—바로 버키(Bucky)에게 붙여넣어 실행 가능한 체크리스트/게이트 규칙/스트라이프(Stripe) 검증 항목을 한 번에 담았어. 버키 실행용: 프리런치 런북 (Compact) 목표: 스테이징 100% 통과 후, 48시간 안정성 게이트를 거쳐 프로덕션 승격. 지표/웹훅/결제 실패율을...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="9" data-status="코드 스니펫 → Codex 검증 후 Vault 적용" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status 코드 스니펫 → Codex 검증 후 Vault 적용">코드 스니펫 → Codex 검증 후 Vault 적용</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 9. API 비용 절감 실전 스니펫</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>API 비용 절감 실전 스니펫 API 비용 절감 실전 스니펫 모델 API 비용을 확 줄이는 3가지 핵심 전술과, 바로 붙여 쓸 수 있는 코드 스니펫 2개를 정리했어요. 왜 필요한가 같은 품질이라도 프롬프트 표준화와 상황별 모델 선택, 캐시/배칭만 적용해도 월 비용이 크게 내려갑니다. 전술 요약 (실무 체크리스트) 프롬프트 템플릿화 시스템/입력 형식을 고정 → 길이 낭비 감소, 재사용 쉬...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="10" data-status="구현서 검토 → Codex 리뷰 큐" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status 구현서 검토 → Codex 리뷰 큐">구현서 검토 → Codex 리뷰 큐</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 10. 평면도 조도 산출 구현서</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>평면도 조도 산출 구현서 평면도 조도 산출 구현서 조도 자동 배치 툴을 “바닥 도면만 주면 결과(JSON)까지” 뽑는 흐름으로 정리했어요. 목표 평면도(2D)에서 방/장애물/설치 후보점을 추출 → 광도분포(IES/Eulumdat)로 조도 계산 → 등기구 배치/지표 요약(JSON 출력). 입력 지원 우선권: DXF(2D, 추천) 대안: SVG, PNG(+ 눈금 주석, 예: “1px=1mm...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="11" data-status="파일럿 플랜 검증 → Codex 리뷰 큐" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status 파일럿 플랜 검증 → Codex 리뷰 큐">파일럿 플랜 검증 → Codex 리뷰 큐</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 11. 파주권 번들 10일 파일럿</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>파주권 번들 10일 파일럿 파주권 번들 10일 파일럿 빠르게 매출 검증할 수 있는 10일짜리 ‘숨은 업셀(upsell) 파일럿’ 제안을 드려요. 메인 결제 흐름은 건드리지 않고, 결제 완료 화면과 주문 확인 메일에서만 추가 구매를 받아보는 방식입니다. 목표 대상: 파주/수도권 구매자 기간/규모: 다음 200건 유료 주문 또는 10일, 선도달 기준 종료 성공 기준: 업셀 부착률(upsel...</p>
         </details>
       </article>
     </div>
@@ -582,104 +622,127 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-05-28.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-05-28.md</code></div>
-      <div>생성 시각: <code>2026-05-28 21:49:42 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-05-29.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-05-29.md</code></div>
+      <div>생성 시각: <code>2026-05-30 04:16:10 KST</code></div>
     </div>
   </section>
 </main>
 <footer>
   Source of truth is the Obsidian vault. This page is a generated operational view for fast user review.
 </footer>
+
 <script>
 (function () {
-  var actionLabels = {
-    approve: "승인",
-    implement: "구현",
-    queue: "후보"
-  };
-  var actionDescriptions = {
-    approve: "사용자가 이 후보를 승인했다. Bucky는 AgentBus 작업으로 승격하고, core role/scheduler/prompt/live integration 변경이면 Claude 구현 전 승인 경계를 다시 표시한다.",
-    implement: "Claude가 구현하고 Codex가 독립 검수한다. 보안, 데이터 손실, 역할 경계, 테스트 결과를 검증한 뒤 사용자에게 보고한다.",
-    queue: "오늘의 플러스 후보로 유지한다. Bucky는 우선순위, 효율성, 호환성, 승인 필요 여부를 보존하고 다음 09:00 보고에 포함한다."
-  };
-  var latestPayload = "";
-  var latestFilename = "daily-plus-instruction.md";
+  var DEFAULT_BUCKY_ENDPOINT = "http://127.0.0.1:3100/api/messages";
+  var ENDPOINT_KEY = "dailyPlusBuckyEndpoint";
+  var ACTIVE_COMMAND = null;
 
-  function textOf(card, selector) {
-    var node = card.querySelector(selector);
-    return node ? node.textContent.replace(/\s+/g, " ").trim() : "";
+  function showToast(message) {
+    var toast = document.querySelector(".toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add("show");
+    window.clearTimeout(showToast._timer);
+    showToast._timer = window.setTimeout(function () {
+      toast.classList.remove("show");
+    }, 1800);
   }
 
-  function dashboardDate() {
-    var heading = document.querySelector(".hero-grid h2");
-    var text = heading ? heading.textContent : "";
-    var match = text.match(/\d{4}-\d{2}-\d{2}/);
-    return match ? match[0] : new Date().toISOString().slice(0, 10);
+  function endpointValue() {
+    var input = document.getElementById("buckyEndpoint");
+    var value = input && input.value ? input.value.trim() : "";
+    if (!value) value = localStorage.getItem(ENDPOINT_KEY) || DEFAULT_BUCKY_ENDPOINT;
+    if (input) input.value = value;
+    localStorage.setItem(ENDPOINT_KEY, value);
+    return value;
   }
 
-  function cardNumber(title) {
-    var match = title.match(/Card\s+(\d+)/i);
-    return match ? match[1] : "unknown";
+  function setMessageStatus(message, isError) {
+    var el = document.getElementById("messageStatus");
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? "var(--red)" : "var(--muted)";
   }
 
-  function buildPayload(card, action) {
-    var title = textOf(card, "h3");
-    var number = cardNumber(title);
-    var priority = card.getAttribute("data-priority") || "";
-    var category = card.getAttribute("data-category") || "";
-    var status = card.getAttribute("data-status") || "";
-    var meta = textOf(card, ".meta");
-    var actionText = textOf(card, ".action");
-    var next = textOf(card, ".next");
-    var evidence = textOf(card, "details p");
-    var date = dashboardDate();
-    var dashboard = window.location.href.split("#")[0];
-    var created = new Date().toISOString();
+  function copyPayload(payload) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(payload).then(function () {
+        showToast("복사 완료");
+      });
+    }
+    var textarea = document.getElementById("commandPayload") || document.getElementById("buckyMessage");
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      showToast("복사 완료");
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error("복사할 텍스트 영역이 없습니다."));
+  }
 
-    latestFilename = "daily-plus-" + date.replace(/-/g, "") + "-card-" + number + "-" + action + ".md";
+  function payloadForAgentRoom(body, action) {
+    return {
+      speaker: "user",
+      kind: action === "implement" ? "implementation" : "direction",
+      target: "gpt",
+      taskType: action === "implement" || action === "approve" ? "implementation" : action === "queue" ? "plan" : "question",
+      body: body
+    };
+  }
+
+  async function postToBucky(body, action) {
+    var endpoint = endpointValue();
+    if (!endpoint) throw new Error("Bucky endpoint가 비어 있습니다.");
+
+    var payload = payloadForAgentRoom(body, action || "message");
+    var json = JSON.stringify(payload);
+
+    try {
+      var response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: json
+      });
+      var data = {};
+      try { data = await response.json(); } catch (_) {}
+      if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
+      return { method: "fetch" };
+    } catch (error) {
+      if (navigator.sendBeacon) {
+        var blob = new Blob([json], { type: "text/plain;charset=UTF-8" });
+        if (navigator.sendBeacon(endpoint, blob)) {
+          return { method: "beacon" };
+        }
+      }
+      throw error;
+    }
+  }
+
+  function commandText(action, card) {
+    var title = (card.querySelector("h3") || {}).textContent || "Daily Plus 후보";
+    var meta = (card.querySelector(".meta") || {}).textContent || "";
+    var next = (card.querySelector(".next") || {}).textContent || "";
+    var actionLine = {
+      approve: "이 후보를 사용자 승인 완료로 처리하고 다음 실행 큐에 등록해.",
+      implement: "이 후보를 구현 착수 대상으로 등록하고 필요한 작업을 분해해.",
+      queue: "이 후보를 보류 후보로 유지하고 다음 검토 큐에 정리해."
+    }[action] || "이 후보를 검토해.";
+
     return [
-      "---",
-      "type: daily_plus_dashboard_instruction",
+      "[Bucky Daily Plus]",
+      "action: " + action,
       "source: daily-plus-dashboard",
       "target: Bucky",
-      "action: " + action,
-      "date: " + date,
-      "card: " + number,
-      "priority: " + priority,
-      "category: " + category,
-      "status: pending",
-      "created_at: " + created,
-      "---",
-      "",
-      "# Daily Plus Dashboard Instruction",
-      "",
-      "- Dashboard: " + dashboard,
-      "- Card: " + title,
-      "- Current status: " + status,
-      "- Metadata: " + meta,
-      "",
-      "## Decision",
-      "",
-      actionDescriptions[action],
-      "",
-      "## Work Request",
-      "",
-      actionText || next,
-      "",
-      "## Next Handling",
-      "",
-      next,
-      "",
-      "## Evidence",
-      "",
-      evidence,
-      "",
-      "## Role Boundary",
-      "",
-      "- Claude implements when implementation is required.",
-      "- Codex reviews independently and reports findings to the user.",
-      "- Bucky manages queueing, 09:00 reporting, and user-facing summaries."
+      "card: " + title.trim(),
+      "meta: " + meta.trim(),
+      "request: " + actionLine,
+      "next: " + next.trim()
     ].join("\n");
   }
 
@@ -694,163 +757,50 @@
       "<div class=\"tray-actions\">",
       "<button type=\"button\" data-tray=\"send\">Bucky 전송</button>",
       "<button type=\"button\" data-tray=\"copy\">복사</button>",
-      "<button type=\"button\" data-tray=\"download\">MD 다운로드</button>",
       "<button type=\"button\" data-tray=\"close\">닫기</button>",
       "</div>"
     ].join("");
     document.body.appendChild(tray);
-    tray.querySelector("[data-tray='send']").addEventListener("click", function () {
-      sendToBucky(latestPayload, "dashboard_instruction");
-    });
-    tray.querySelector("[data-tray='copy']").addEventListener("click", function () {
-      copyPayload(latestPayload);
-    });
-    tray.querySelector("[data-tray='download']").addEventListener("click", downloadPayload);
-    tray.querySelector("[data-tray='close']").addEventListener("click", function () {
-      tray.classList.remove("show");
+    tray.addEventListener("click", async function (event) {
+      var action = event.target && event.target.getAttribute("data-tray");
+      if (!action) return;
+      var payloadEl = document.getElementById("commandPayload");
+      var payload = payloadEl ? payloadEl.value : "";
+      if (action === "close") {
+        tray.classList.remove("show");
+        return;
+      }
+      if (action === "copy") {
+        await copyPayload(payload);
+        return;
+      }
+      if (action === "send") {
+        try {
+          await postToBucky(payload, ACTIVE_COMMAND || "message");
+          showToast("Bucky 전송 완료");
+          setMessageStatus("Bucky 전송 완료");
+          tray.classList.remove("show");
+        } catch (error) {
+          setMessageStatus("Bucky 전송 실패: " + error.message, true);
+          showToast("전송 실패");
+        }
+      }
     });
     return tray;
   }
 
-  function endpointValue() {
-    var input = document.getElementById("buckyEndpoint");
-    var value = input && input.value ? input.value.trim() : "";
-    if (value) {
-      localStorage.setItem("buckyIntakeUrl", value);
-      return value;
-    }
-    return localStorage.getItem("buckyIntakeUrl") || "";
-  }
-
-  function setMessageStatus(message) {
-    var status = document.getElementById("messageStatus");
-    if (status) status.textContent = message;
-  }
-
-  function showToast(message) {
-    var toast = document.querySelector(".toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.className = "toast";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.classList.add("show");
-    window.setTimeout(function () {
-      toast.classList.remove("show");
-    }, 1700);
-  }
-
-  function copyPayload(payload) {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(payload).then(function () {
-        showToast("지시문 복사됨");
-      }).catch(function () {
-        fallbackSelect();
-      });
-      return;
-    }
-    fallbackSelect();
-  }
-
-  function fallbackSelect() {
-    var textarea = document.getElementById("commandPayload");
-    if (textarea) {
-      textarea.focus();
-      textarea.select();
-      showToast("지시문 선택됨");
-    }
-  }
-
-  function downloadPayload() {
-    var blob = new Blob([latestPayload], { type: "text/markdown;charset=utf-8" });
-    var link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = latestFilename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(function () {
-      URL.revokeObjectURL(link.href);
-    }, 1000);
-  }
-
-  function openCommand(card, action) {
-    latestPayload = buildPayload(card, action);
+  function openCommand(action, card) {
+    ACTIVE_COMMAND = action;
     var tray = ensureTray();
-    tray.querySelector("#commandTrayTitle").textContent = actionLabels[action] + " 지시문";
-    tray.querySelector("#commandPayload").value = latestPayload;
+    var title = document.getElementById("commandTrayTitle");
+    var payload = document.getElementById("commandPayload");
+    if (title) title.textContent = "Bucky 지시문: " + action;
+    if (payload) payload.value = commandText(action, card);
     tray.classList.add("show");
-    copyPayload(latestPayload);
-  }
-
-  function buildUserMessage(message) {
-    var date = dashboardDate();
-    var dashboard = window.location.href.split("#")[0];
-    return [
-      "---",
-      "type: daily_plus_user_message",
-      "source: daily-plus-dashboard",
-      "target: Bucky",
-      "role: user",
-      "date: " + date,
-      "status: pending",
-      "created_at: " + new Date().toISOString(),
-      "---",
-      "",
-      "# Daily Plus User Message",
-      "",
-      "- Dashboard: " + dashboard,
-      "- Sender: user",
-      "",
-      "## Message",
-      "",
-      message
-    ].join("\n");
-  }
-
-  async function sendToBucky(message, kind) {
-    var endpoint = endpointValue();
-    latestPayload = message;
-    latestFilename = "daily-plus-user-message-" + dashboardDate().replace(/-/g, "") + ".md";
-    if (!endpoint) {
-      ensureTray().querySelector("#commandPayload").value = latestPayload;
-      ensureTray().querySelector("#commandTrayTitle").textContent = "Bucky 사용자 메시지";
-      ensureTray().classList.add("show");
-      copyPayload(latestPayload);
-      setMessageStatus("Bucky intake URL이 없어 지시문을 복사했습니다.");
-      return false;
-    }
-
-    try {
-      var response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: kind || "user_message",
-          source: "daily-plus-dashboard",
-          target: "Bucky",
-          role: "user",
-          message: message,
-          dashboard: window.location.href.split("#")[0],
-          created_at: new Date().toISOString()
-        })
-      });
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      showToast("Bucky 전송됨");
-      setMessageStatus("Bucky에게 전송했습니다.");
-      return true;
-    } catch (error) {
-      ensureTray().querySelector("#commandPayload").value = latestPayload;
-      ensureTray().querySelector("#commandTrayTitle").textContent = "전송 실패 - 복사본";
-      ensureTray().classList.add("show");
-      copyPayload(latestPayload);
-      setMessageStatus("전송 실패: " + error.message + ". 지시문을 복사했습니다.");
-      return false;
-    }
   }
 
   document.querySelectorAll(".candidate").forEach(function (card) {
+    if (card.querySelector(".command-actions")) return;
     var actions = document.createElement("div");
     actions.className = "command-actions";
     actions.innerHTML = [
@@ -858,48 +808,48 @@
       "<button type=\"button\" class=\"command-btn implement\" data-action=\"implement\">구현</button>",
       "<button type=\"button\" class=\"command-btn queue\" data-action=\"queue\">후보</button>"
     ].join("");
-    actions.addEventListener("click", function (event) {
-      var button = event.target.closest("button[data-action]");
-      if (!button) return;
-      openCommand(card, button.getAttribute("data-action"));
-    });
     var details = card.querySelector("details");
     card.insertBefore(actions, details || null);
+    actions.addEventListener("click", function (event) {
+      var action = event.target && event.target.getAttribute("data-action");
+      if (action) openCommand(action, card);
+    });
   });
 
   var endpointInput = document.getElementById("buckyEndpoint");
-  if (endpointInput && localStorage.getItem("buckyIntakeUrl")) {
-    endpointInput.value = localStorage.getItem("buckyIntakeUrl");
-  }
+  if (endpointInput) endpointInput.value = localStorage.getItem(ENDPOINT_KEY) || DEFAULT_BUCKY_ENDPOINT;
+
   var sendButton = document.getElementById("sendBuckyMessage");
   if (sendButton) {
-    sendButton.addEventListener("click", function () {
+    sendButton.addEventListener("click", async function () {
       var input = document.getElementById("buckyMessage");
       var message = input ? input.value.trim() : "";
       if (!message) {
-        setMessageStatus("보낼 메시지를 입력하세요.");
-        showToast("메시지가 비어 있음");
+        setMessageStatus("보낼 메시지를 입력하세요.", true);
         return;
       }
-      sendToBucky(buildUserMessage(message), "user_message");
+      var body = "[Bucky 사용자 메시지]\nsource: daily-plus-dashboard\ntarget: Bucky\n\n" + message;
+      try {
+        await postToBucky(body, "message");
+        setMessageStatus("Bucky 전송 완료");
+        showToast("Bucky 전송 완료");
+        input.value = "";
+      } catch (error) {
+        setMessageStatus("Bucky 전송 실패: " + error.message, true);
+        showToast("전송 실패");
+      }
     });
   }
+
   var copyButton = document.getElementById("copyBuckyMessage");
   if (copyButton) {
-    copyButton.addEventListener("click", function () {
+    copyButton.addEventListener("click", async function () {
       var input = document.getElementById("buckyMessage");
-      var message = input ? input.value.trim() : "";
-      if (!message) {
-        setMessageStatus("복사할 메시지를 입력하세요.");
-        return;
-      }
-      latestPayload = buildUserMessage(message);
-      latestFilename = "daily-plus-user-message-" + dashboardDate().replace(/-/g, "") + ".md";
-      copyPayload(latestPayload);
-      setMessageStatus("사용자 메시지 지시문을 복사했습니다.");
+      await copyPayload(input ? input.value : "");
     });
   }
 })();
 </script>
+
 </body>
 </html>

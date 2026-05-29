@@ -109,6 +109,255 @@ STATUS_LABELS = {
 }
 
 
+DASHBOARD_INTERACTION_CSS = """
+  .command-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .command-btn { border: 1px solid var(--line); border-radius: 8px; min-height: 42px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
+  .command-btn:hover, .command-btn:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .command-btn.approve { color: var(--amber); background: #fff7ed; border-color: #fed7aa; }
+  .command-btn.implement { color: var(--green); background: #f0fdf4; border-color: #bbf7d0; }
+  .command-btn.queue { color: var(--teal); background: #f0fdfa; border-color: #99f6e4; }
+  .command-tray { position: fixed; left: clamp(12px, 3vw, 28px); right: clamp(12px, 3vw, 28px); bottom: 14px; z-index: 50; background: #0f172a; color: #e5e7eb; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 18px 48px rgba(15,23,42,.35); padding: 14px; display: grid; gap: 10px; transform: translateY(calc(100% + 32px)); opacity: 0; pointer-events: none; transition: transform .18s ease, opacity .18s ease; }
+  .command-tray.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .command-tray strong { color: #fff; }
+  .command-tray textarea { width: 100%; min-height: 126px; resize: vertical; border: 1px solid #475569; border-radius: 8px; background: #020617; color: #e5e7eb; padding: 10px; font: 12px/1.5 Consolas, "Segoe UI Mono", monospace; }
+  .tray-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .tray-actions button { border: 1px solid #475569; border-radius: 8px; background: #1e293b; color: #e5e7eb; min-height: 38px; padding: 8px 12px; cursor: pointer; font-weight: 700; }
+  .tray-actions button:hover, .tray-actions button:focus { outline: none; border-color: #93c5fd; }
+  .message-box { display: grid; gap: 10px; }
+  .message-box textarea, .message-box input { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); padding: 11px 12px; font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+  .message-box textarea { min-height: 104px; resize: vertical; }
+  .message-box textarea:focus, .message-box input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .message-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .message-actions button { border: 1px solid var(--line); border-radius: 8px; min-height: 40px; padding: 8px 13px; cursor: pointer; font-weight: 800; background: #fff; color: var(--ink); }
+  .message-actions .send { background: #eff6ff; color: var(--blue); border-color: #bfdbfe; }
+  .message-actions .copy { background: #f8fafc; color: #475569; }
+  .toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; border-radius: 999px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(15,23,42,.28); opacity: 0; pointer-events: none; transition: opacity .16s ease; }
+  .toast.show { opacity: 1; }
+"""
+
+
+DASHBOARD_INTERACTION_JS = """
+<script>
+(function () {
+  var DEFAULT_BUCKY_ENDPOINT = "http://127.0.0.1:3100/api/messages";
+  var ENDPOINT_KEY = "dailyPlusBuckyEndpoint";
+  var ACTIVE_COMMAND = null;
+
+  function showToast(message) {
+    var toast = document.querySelector(".toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add("show");
+    window.clearTimeout(showToast._timer);
+    showToast._timer = window.setTimeout(function () {
+      toast.classList.remove("show");
+    }, 1800);
+  }
+
+  function endpointValue() {
+    var input = document.getElementById("buckyEndpoint");
+    var value = input && input.value ? input.value.trim() : "";
+    if (!value) value = localStorage.getItem(ENDPOINT_KEY) || DEFAULT_BUCKY_ENDPOINT;
+    if (input) input.value = value;
+    localStorage.setItem(ENDPOINT_KEY, value);
+    return value;
+  }
+
+  function setMessageStatus(message, isError) {
+    var el = document.getElementById("messageStatus");
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? "var(--red)" : "var(--muted)";
+  }
+
+  function copyPayload(payload) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(payload).then(function () {
+        showToast("복사 완료");
+      });
+    }
+    var textarea = document.getElementById("commandPayload") || document.getElementById("buckyMessage");
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      showToast("복사 완료");
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error("복사할 텍스트 영역이 없습니다."));
+  }
+
+  function payloadForAgentRoom(body, action) {
+    return {
+      speaker: "user",
+      kind: action === "implement" ? "implementation" : "direction",
+      target: "gpt",
+      taskType: action === "implement" || action === "approve" ? "implementation" : action === "queue" ? "plan" : "question",
+      body: body
+    };
+  }
+
+  async function postToBucky(body, action) {
+    var endpoint = endpointValue();
+    if (!endpoint) throw new Error("Bucky endpoint가 비어 있습니다.");
+
+    var payload = payloadForAgentRoom(body, action || "message");
+    var json = JSON.stringify(payload);
+
+    try {
+      var response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: json
+      });
+      var data = {};
+      try { data = await response.json(); } catch (_) {}
+      if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
+      return { method: "fetch" };
+    } catch (error) {
+      if (navigator.sendBeacon) {
+        var blob = new Blob([json], { type: "text/plain;charset=UTF-8" });
+        if (navigator.sendBeacon(endpoint, blob)) {
+          return { method: "beacon" };
+        }
+      }
+      throw error;
+    }
+  }
+
+  function commandText(action, card) {
+    var title = (card.querySelector("h3") || {}).textContent || "Daily Plus 후보";
+    var meta = (card.querySelector(".meta") || {}).textContent || "";
+    var next = (card.querySelector(".next") || {}).textContent || "";
+    var actionLine = {
+      approve: "이 후보를 사용자 승인 완료로 처리하고 다음 실행 큐에 등록해.",
+      implement: "이 후보를 구현 착수 대상으로 등록하고 필요한 작업을 분해해.",
+      queue: "이 후보를 보류 후보로 유지하고 다음 검토 큐에 정리해."
+    }[action] || "이 후보를 검토해.";
+
+    return [
+      "[Bucky Daily Plus]",
+      "action: " + action,
+      "source: daily-plus-dashboard",
+      "target: Bucky",
+      "card: " + title.trim(),
+      "meta: " + meta.trim(),
+      "request: " + actionLine,
+      "next: " + next.trim()
+    ].join("\\n");
+  }
+
+  function ensureTray() {
+    var tray = document.querySelector(".command-tray");
+    if (tray) return tray;
+    tray = document.createElement("div");
+    tray.className = "command-tray";
+    tray.innerHTML = [
+      "<strong id=\\"commandTrayTitle\\">지시문 준비됨</strong>",
+      "<textarea id=\\"commandPayload\\" readonly></textarea>",
+      "<div class=\\"tray-actions\\">",
+      "<button type=\\"button\\" data-tray=\\"send\\">Bucky 전송</button>",
+      "<button type=\\"button\\" data-tray=\\"copy\\">복사</button>",
+      "<button type=\\"button\\" data-tray=\\"close\\">닫기</button>",
+      "</div>"
+    ].join("");
+    document.body.appendChild(tray);
+    tray.addEventListener("click", async function (event) {
+      var action = event.target && event.target.getAttribute("data-tray");
+      if (!action) return;
+      var payloadEl = document.getElementById("commandPayload");
+      var payload = payloadEl ? payloadEl.value : "";
+      if (action === "close") {
+        tray.classList.remove("show");
+        return;
+      }
+      if (action === "copy") {
+        await copyPayload(payload);
+        return;
+      }
+      if (action === "send") {
+        try {
+          await postToBucky(payload, ACTIVE_COMMAND || "message");
+          showToast("Bucky 전송 완료");
+          setMessageStatus("Bucky 전송 완료");
+          tray.classList.remove("show");
+        } catch (error) {
+          setMessageStatus("Bucky 전송 실패: " + error.message, true);
+          showToast("전송 실패");
+        }
+      }
+    });
+    return tray;
+  }
+
+  function openCommand(action, card) {
+    ACTIVE_COMMAND = action;
+    var tray = ensureTray();
+    var title = document.getElementById("commandTrayTitle");
+    var payload = document.getElementById("commandPayload");
+    if (title) title.textContent = "Bucky 지시문: " + action;
+    if (payload) payload.value = commandText(action, card);
+    tray.classList.add("show");
+  }
+
+  document.querySelectorAll(".candidate").forEach(function (card) {
+    if (card.querySelector(".command-actions")) return;
+    var actions = document.createElement("div");
+    actions.className = "command-actions";
+    actions.innerHTML = [
+      "<button type=\\"button\\" class=\\"command-btn approve\\" data-action=\\"approve\\">승인</button>",
+      "<button type=\\"button\\" class=\\"command-btn implement\\" data-action=\\"implement\\">구현</button>",
+      "<button type=\\"button\\" class=\\"command-btn queue\\" data-action=\\"queue\\">후보</button>"
+    ].join("");
+    var details = card.querySelector("details");
+    card.insertBefore(actions, details || null);
+    actions.addEventListener("click", function (event) {
+      var action = event.target && event.target.getAttribute("data-action");
+      if (action) openCommand(action, card);
+    });
+  });
+
+  var endpointInput = document.getElementById("buckyEndpoint");
+  if (endpointInput) endpointInput.value = localStorage.getItem(ENDPOINT_KEY) || DEFAULT_BUCKY_ENDPOINT;
+
+  var sendButton = document.getElementById("sendBuckyMessage");
+  if (sendButton) {
+    sendButton.addEventListener("click", async function () {
+      var input = document.getElementById("buckyMessage");
+      var message = input ? input.value.trim() : "";
+      if (!message) {
+        setMessageStatus("보낼 메시지를 입력하세요.", true);
+        return;
+      }
+      var body = "[Bucky 사용자 메시지]\\nsource: daily-plus-dashboard\\ntarget: Bucky\\n\\n" + message;
+      try {
+        await postToBucky(body, "message");
+        setMessageStatus("Bucky 전송 완료");
+        showToast("Bucky 전송 완료");
+        input.value = "";
+      } catch (error) {
+        setMessageStatus("Bucky 전송 실패: " + error.message, true);
+        showToast("전송 실패");
+      }
+    });
+  }
+
+  var copyButton = document.getElementById("copyBuckyMessage");
+  if (copyButton) {
+    copyButton.addEventListener("click", async function () {
+      var input = document.getElementById("buckyMessage");
+      await copyPayload(input ? input.value : "");
+    });
+  }
+})();
+</script>
+"""
+
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
@@ -261,7 +510,7 @@ def render_cards(candidates: list[Candidate]) -> str:
         risk = str(profile["risk"])
         rendered.append(
             f"""
-      <article class="candidate" data-status="{esc(item.status)}" data-priority="{esc(item.priority)}" data-category="{esc(item.category)}">
+      <article class="candidate" data-card="{item.card}" data-status="{esc(item.status)}" data-priority="{esc(item.priority)}" data-category="{esc(item.category)}">
         <div class="candidate-top">
           <span class="badge priority">{esc(item.priority)}</span>
           <span class="badge status {esc(item.status)}">{esc(status_label)}</span>
@@ -281,6 +530,11 @@ def render_cards(candidates: list[Candidate]) -> str:
           </div>
         </div>
         <p class="next">{esc(profile["next"])}</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
         <details>
           <summary>근거 보기</summary>
           <p>{esc(short_text(item.evidence, 520))}</p>
@@ -466,6 +720,7 @@ def render_dashboard(
   .legend .candidate::before {{ background: #bfdbfe; }}
   .legend .approval::before {{ background: #fdba74; }}
   .legend .applied::before {{ background: #86efac; }}
+{DASHBOARD_INTERACTION_CSS}
   footer {{ padding: 22px clamp(14px, 3vw, 42px); color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }}
   @media (max-width: 840px) {{
     .hero-grid {{ grid-template-columns: 1fr; }}
@@ -476,6 +731,10 @@ def render_dashboard(
   @media (max-width: 520px) {{
     .summary, .compare-grid {{ grid-template-columns: 1fr; }}
     .bars {{ grid-template-columns: 1fr; }}
+    .command-actions {{ grid-template-columns: 1fr; }}
+    .message-actions {{ justify-content: stretch; }}
+    .message-actions button {{ flex: 1; }}
+    .command-tray {{ left: 8px; right: 8px; bottom: 8px; max-height: 88vh; overflow: auto; }}
   }}
 </style>
 </head>
@@ -517,6 +776,22 @@ def render_dashboard(
         {category_rows}
       </div>
     </aside>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>Bucky 메시지</h2>
+      <span class="muted">사용자 메시지로 전달</span>
+    </div>
+    <div class="panel message-box">
+      <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
+      <input id="buckyEndpoint" type="url" value="http://127.0.0.1:3100/api/messages" aria-label="Bucky Agent Room endpoint">
+      <div class="message-actions">
+        <button type="button" class="send" id="sendBuckyMessage">Bucky 전송</button>
+        <button type="button" class="copy" id="copyBuckyMessage">복사</button>
+      </div>
+      <p class="muted" id="messageStatus">Bucky 전송 대기</p>
+    </div>
   </section>
 
   <section>
@@ -577,6 +852,7 @@ def render_dashboard(
 <footer>
   Source of truth is the Obsidian vault. This page is a generated operational view for fast user review.
 </footer>
+{DASHBOARD_INTERACTION_JS}
 </body>
 </html>
 """
@@ -600,9 +876,12 @@ def generate(date: str | None) -> Path:
 
     DOCS.mkdir(parents=True, exist_ok=True)
     output = DOCS / "daily-plus.html"
+    html_text = render_dashboard(date, capture_meta, report_meta, candidates, history, report_path, capture_path)
+    html_text = "\n".join(line.rstrip() for line in html_text.splitlines()) + "\n"
     output.write_text(
-        render_dashboard(date, capture_meta, report_meta, candidates, history, report_path, capture_path),
+        html_text,
         encoding="utf-8",
+        newline="\n",
     )
     return output
 
