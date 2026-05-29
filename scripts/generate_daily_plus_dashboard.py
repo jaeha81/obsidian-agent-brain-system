@@ -139,8 +139,8 @@ DASHBOARD_INTERACTION_CSS = """
 DASHBOARD_INTERACTION_JS = """
 <script>
 (function () {
-  var DEFAULT_BUCKY_ENDPOINT = "http://127.0.0.1:3100/api/messages";
-  var ENDPOINT_KEY = "dailyPlusBuckyEndpoint";
+  var DEFAULT_BUCKY_ENDPOINT = "";
+  var ENDPOINT_KEY = "dailyPlusBuckyOsIntakeUrl";
   var ACTIVE_COMMAND = null;
 
   function showToast(message) {
@@ -191,21 +191,22 @@ DASHBOARD_INTERACTION_JS = """
     return Promise.reject(new Error("복사할 텍스트 영역이 없습니다."));
   }
 
-  function payloadForAgentRoom(body, action) {
+  function payloadForBuckyOS(body, action) {
     return {
-      speaker: "user",
-      kind: action === "implement" ? "implementation" : "direction",
-      target: "gpt",
-      taskType: action === "implement" || action === "approve" ? "implementation" : action === "queue" ? "plan" : "question",
+      type: "daily_plus_user_command",
+      source: "daily-plus-dashboard",
+      target: "Bucky",
+      action: action || "message",
+      createdAt: new Date().toISOString(),
       body: body
     };
   }
 
   async function postToBucky(body, action) {
     var endpoint = endpointValue();
-    if (!endpoint) throw new Error("Bucky endpoint가 비어 있습니다.");
+    if (!endpoint) throw new Error("Bucky OS 수신 URL이 필요합니다.");
 
-    var payload = payloadForAgentRoom(body, action || "message");
+    var payload = payloadForBuckyOS(body, action || "message");
     var json = JSON.stringify(payload);
 
     try {
@@ -785,12 +786,12 @@ def render_dashboard(
     </div>
     <div class="panel message-box">
       <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
-      <input id="buckyEndpoint" type="url" value="http://127.0.0.1:3100/api/messages" aria-label="Bucky Agent Room endpoint">
+      <input id="buckyEndpoint" type="url" placeholder="Bucky OS HTTPS intake URL" aria-label="Bucky OS intake endpoint">
       <div class="message-actions">
         <button type="button" class="send" id="sendBuckyMessage">Bucky 전송</button>
         <button type="button" class="copy" id="copyBuckyMessage">복사</button>
       </div>
-      <p class="muted" id="messageStatus">Bucky 전송 대기</p>
+      <p class="muted" id="messageStatus">Bucky OS 수신 URL 설정 후 전송합니다.</p>
     </div>
   </section>
 
