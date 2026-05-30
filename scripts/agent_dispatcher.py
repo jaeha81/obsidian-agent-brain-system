@@ -584,11 +584,54 @@ def _run_launch_gate() -> None:
         print(f"[Dispatcher] WARN launch gate error: {e}")
 
 
+QUEUE_AUDIT_INTERVAL: int = int(os.getenv("QUEUE_AUDIT_INTERVAL", "300"))   # 5분
+SYNC_SENTINEL_INTERVAL: int = int(os.getenv("SYNC_SENTINEL_INTERVAL", "600"))  # 10분
+
+_last_queue_audit: float = 0.0
+_last_sync_sentinel: float = 0.0
+
+
+def _run_periodic_tasks(now: float) -> None:
+    global _last_queue_audit, _last_sync_sentinel
+    scripts_dir = Path(__file__).parent
+
+    if now - _last_queue_audit >= QUEUE_AUDIT_INTERVAL:
+        audit_script = scripts_dir / "agentbus_queue_audit.py"
+        if audit_script.exists():
+            try:
+                r = subprocess.run(
+                    ["python", "-X", "utf8", str(audit_script), "--json"],
+                    capture_output=True, text=True, encoding="utf-8", timeout=30, cwd=str(audit_script.parent.parent)
+                )
+                first = (r.stdout or "").splitlines()[0] if r.stdout else "(no output)"
+                print(f"[Dispatcher] queue_audit: {first}")
+            except Exception as e:
+                print(f"[Dispatcher] WARN queue_audit: {e}")
+        _last_queue_audit = now
+
+    if now - _last_sync_sentinel >= SYNC_SENTINEL_INTERVAL:
+        sentinel_script = scripts_dir / "sync_sentinel.py"
+        if sentinel_script.exists():
+            try:
+                r = subprocess.run(
+                    ["python", "-X", "utf8", str(sentinel_script), "--json"],
+                    capture_output=True, text=True, encoding="utf-8", timeout=30, cwd=str(sentinel_script.parent.parent)
+                )
+                first = (r.stdout or "").splitlines()[0] if r.stdout else "(no output)"
+                print(f"[Dispatcher] sync_sentinel: {first}")
+            except Exception as e:
+                print(f"[Dispatcher] WARN sync_sentinel: {e}")
+        _last_sync_sentinel = now
+
+
 def watch() -> None:
     _run_launch_gate()
     print(f"[Dispatcher] Started. Watching: {INBOX}")
     print(f"  poll_interval={POLL_INTERVAL}s  worker={WORKER_NAME}  runtime={AGENT_RUNTIME}  hermes_model={HERMES_MODEL}")
+    print(f"  queue_audit_interval={QUEUE_AUDIT_INTERVAL}s  sync_sentinel_interval={SYNC_SENTINEL_INTERVAL}s")
     while True:
+        now = time.time()
+        _run_periodic_tasks(now)
         for fp in sorted(INBOX.glob("*.md")):
             if fp.name == ".gitkeep":
                 continue
