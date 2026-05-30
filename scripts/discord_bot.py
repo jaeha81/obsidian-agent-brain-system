@@ -234,9 +234,40 @@ BUCKY_SYSTEM_PROMPT: str = os.getenv(
 )
 
 # ── 동적 컨텍스트 로더 (BUCKY_CONTEXT.md, 5분 캐시) ─────────────────────────
-_CONTEXT_FILE = Path(__file__).parent.parent / "ObsidianVault" / "00_System" / "BUCKY_CONTEXT.md"
+_VAULT = Path(__file__).parent.parent / "ObsidianVault"
+_CONTEXT_FILE = _VAULT / "00_System" / "BUCKY_CONTEXT.md"
+_REQUIRED_CONTEXT_PACKS = [
+    _VAULT / "06_Context_Packs" / "bucky-agent-os-legacy-rules.md",
+    _VAULT / "06_Context_Packs" / "bucky-migration-build-charter.md",
+    _VAULT / "06_Context_Packs" / "bucky-context-efficiency-goal-mode.md",
+    _VAULT / "00_System" / "GDRIVE_SCRIPT_CLASSIFICATION_2026-05-30.md",
+    _VAULT / "05_Frameworks" / "LegalizeKR" / "legalize_update_policy.md",
+]
+_CONTEXT_PACK_CHAR_LIMIT = int(os.getenv("BUCKY_CONTEXT_PACK_CHAR_LIMIT", "18000"))
 _context_cache: dict = {"text": "", "loaded_at": 0.0}
 _CONTEXT_TTL = 300  # 5분
+
+def _read_required_context_packs() -> str:
+    sections: list[str] = []
+    remaining = _CONTEXT_PACK_CHAR_LIMIT
+    for path in _REQUIRED_CONTEXT_PACKS:
+        if remaining <= 0:
+            break
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace").strip()
+        except Exception as exc:
+            sections.append(f"## {path.name}\n\n[load failed: {exc}]")
+            continue
+        if not text:
+            continue
+        excerpt = text[:remaining]
+        if len(text) > len(excerpt):
+            excerpt += "\n\n[TRUNCATED: Context Pack char limit reached]"
+        sections.append(f"## {path.name}\n\n{excerpt}")
+        remaining -= len(excerpt)
+    if not sections:
+        return ""
+    return "\n\n---\n\n# Bucky Required Context Packs\n\n" + "\n\n---\n\n".join(sections)
 
 def _load_bucky_context() -> str:
     import time
@@ -245,6 +276,9 @@ def _load_bucky_context() -> str:
         return _context_cache["text"]
     try:
         text = _CONTEXT_FILE.read_text(encoding="utf-8")
+        packs = _read_required_context_packs()
+        if packs:
+            text = f"{text}\n\n{packs}"
         _context_cache["text"] = text
         _context_cache["loaded_at"] = now
         return text
