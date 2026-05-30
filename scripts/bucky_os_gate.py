@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -320,11 +321,65 @@ def write_report(checks: list[Check], report_path: Path) -> None:
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+FAST_CHECK_FILES = (
+    ROOT / "AGENTS.md",
+    ROOT / "CLAUDE.md",
+    VAULT / "03_Projects" / "agents" / "bucky.md",
+    VAULT / "00_System" / "ROUTING_RULES.md",
+    VAULT / "00_System" / "BUCKY_OS_RUNBOOK.md",
+)
+
+FAST_CHECK_DIRS = (
+    VAULT / "10_AgentBus" / "inbox",
+    VAULT / "10_AgentBus" / "outbox",
+    VAULT / "06_Context_Packs",
+)
+
+
+def run_fast_checks() -> list[Check]:
+    """5초 이내 완료되는 핵심 체크만 실행 — 에이전트 런치 전 호출용."""
+    checks: list[Check] = []
+
+    # 1. 핵심 파일 존재 여부
+    missing = [p.relative_to(ROOT).as_posix() for p in FAST_CHECK_FILES if not p.exists()]
+    checks.append(Check("core-files", not missing, "all present" if not missing else "missing=" + ",".join(missing)))
+
+    # 2. AgentBus 디렉토리
+    missing_dirs = [p.relative_to(ROOT).as_posix() for p in FAST_CHECK_DIRS if not p.exists()]
+    checks.append(Check("agentbus-dirs", not missing_dirs, "all present" if not missing_dirs else "missing=" + ",".join(missing_dirs)))
+
+    # 3. BUCKY_CONTEXT.md 존재
+    ctx = VAULT / "00_System" / "BUCKY_CONTEXT.md"
+    checks.append(Check("bucky-context", ctx.exists(), str(ctx.relative_to(ROOT)) if ctx.exists() else "missing"))
+
+    # 4. Obsidian-Agent bridge (signals/ 접근)
+    signals = VAULT / "10_AgentBus" / "signals"
+    signals.mkdir(parents=True, exist_ok=True)
+    bridge_ok = signals.exists() and os.access(signals, os.W_OK)
+    checks.append(Check("vault-bridge", bridge_ok, "signals/ writable" if bridge_ok else "signals/ not writable"))
+
+    # 5. .env 존재 (API 키 유출은 검사하지 않음 — 파일 존재 여부만)
+    env_file = ROOT / ".env"
+    checks.append(Check("env-file", env_file.exists(), ".env present" if env_file.exists() else ".env missing (bot may not start)"))
+
+    return checks
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the Bucky OS instruction authority gate.")
     parser.add_argument("--report", default=str(DEFAULT_REPORT))
     parser.add_argument("--fail-on-error", action="store_true")
+    parser.add_argument("--fast", action="store_true", help="핵심 5개 체크만 실행 (런치 전 빠른 점검)")
     args = parser.parse_args()
+
+    if args.fast:
+        checks = run_fast_checks()
+        passed = all(check.passed for check in checks)
+        ok_n = sum(1 for c in checks if c.passed)
+        print(f"bucky_os_gate: {'ok' if passed else 'FAIL'} {ok_n}/{len(checks)} fast checks")
+        for check in checks:
+            print(f"  {check.name}={'ok' if check.passed else 'FAIL'} {check.detail}")
+        return 2 if args.fail_on_error and not passed else 0
 
     checks = run_checks()
     write_report(checks, Path(args.report))

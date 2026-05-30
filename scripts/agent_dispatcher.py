@@ -41,6 +41,7 @@ OUTBOX_WORKER = VAULT / "10_AgentBus" / "outbox" / WORKER_NAME
 OUTBOX_CODEX = VAULT / "10_AgentBus" / "outbox" / "Codex"
 COMPLETED = VAULT / "10_AgentBus" / "completed"
 FAILED = VAULT / "10_AgentBus" / "failed"
+PENDING_APPROVAL = VAULT / "10_AgentBus" / "pending_approval"
 
 OBSIDIAN_API_PORT: int = int(os.getenv("OBSIDIAN_API_PORT", "27123"))
 OBSIDIAN_API_KEY: str = os.getenv("OBSIDIAN_API_KEY", "")
@@ -405,6 +406,19 @@ def process_file(filepath: Path) -> None:
     if fm.get("status") != "pending":
         return
 
+    # 승인 게이트: requires_approval: true 이면 pending_approval/ 로 이동
+    if fm.get("requires_approval", False):
+        PENDING_APPROVAL.mkdir(parents=True, exist_ok=True)
+        dest = PENDING_APPROVAL / filepath.name
+        update_frontmatter(filepath, {
+            "status": "awaiting_approval",
+            "queued_at": iso(),
+            "approval_note": "requires_approval=true — approve_task.py로 승인하거나 frontmatter에서 requires_approval을 false로 변경",
+        })
+        filepath.rename(dest)
+        print(f"[Dispatcher] ⏸ awaiting approval: {filepath.name} → pending_approval/")
+        return
+
     task_type = fm.get("type", "unknown")
     print(f"[Dispatcher] {filepath.name}  type={task_type}")
 
@@ -550,7 +564,28 @@ def process_file(filepath: Path) -> None:
 
 # ── 메인 루프 ──────────────────────────────────────────────────────────────────
 
+def _run_launch_gate() -> None:
+    """시작 전 bucky_os_gate.py --fast 실행. 실패해도 경고만 출력, 중단하지 않음."""
+    gate_script = Path(__file__).parent / "bucky_os_gate.py"
+    if not gate_script.exists():
+        print("[Dispatcher] WARN: bucky_os_gate.py not found, skipping launch gate")
+        return
+    try:
+        r = subprocess.run(
+            ["python", "-X", "utf8", str(gate_script), "--fast"],
+            capture_output=True, text=True, encoding="utf-8", timeout=15
+        )
+        first_line = (r.stdout or "").splitlines()[0] if r.stdout else "(no output)"
+        if r.returncode == 0:
+            print(f"[Dispatcher] launch gate: {first_line}")
+        else:
+            print(f"[Dispatcher] WARN launch gate failed: {first_line}")
+    except Exception as e:
+        print(f"[Dispatcher] WARN launch gate error: {e}")
+
+
 def watch() -> None:
+    _run_launch_gate()
     print(f"[Dispatcher] Started. Watching: {INBOX}")
     print(f"  poll_interval={POLL_INTERVAL}s  worker={WORKER_NAME}  runtime={AGENT_RUNTIME}  hermes_model={HERMES_MODEL}")
     while True:
