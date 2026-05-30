@@ -82,24 +82,29 @@ def _check_git() -> list[tuple[str, str]]:
 
 def _check_paths() -> list[tuple[str, str]]:
     vault = Path(os.getenv("VAULT_PATH", str(DEFAULT_VAULT)))
-    shared = Path(os.getenv("JH_SHARED_PATH", "G:/내 드라이브/JH-SHARED"))
-    room = Path(os.getenv("JH_AGENT_ROOM_PATH", "G:/내 드라이브/JH-Agent-Room"))
+    shared_env = os.getenv("JH_SHARED_PATH", "").strip()
+    room_env = os.getenv("JH_AGENT_ROOM_PATH", "").strip()
+    legacy_enabled = os.getenv("BUCKY_ENABLE_LEGACY_CONTEXT", "0").strip().lower() in {"1", "true", "yes", "on"}
+    shared = Path(shared_env) if shared_env else None
+    room = Path(room_env) if room_env else None
+    shared_state = "not configured (ok)" if shared is None else ("enabled reference-only" if legacy_enabled and shared.exists() else "configured but inactive (ok)")
+    room_state = "not configured (ok)" if room is None else ("enabled reference-only" if legacy_enabled and room.exists() else "configured but inactive (ok)")
     return [
         ("repo", str(ROOT)),
         ("vault_path", "ok" if vault.exists() else f"FAIL missing {vault}"),
-        ("jh_shared", "ok" if shared.exists() else f"WARN missing {shared}"),
-        ("jh_agent_room", "ok" if room.exists() else f"WARN missing {room}"),
+        ("legacy_jh_shared", shared_state),
+        ("legacy_jh_agent_room", room_state),
         ("env_file", "ok" if (ROOT / ".env").exists() else "WARN missing .env"),
     ]
 
 
 def _check_claude_sync() -> list[tuple[str, str]]:
-    source = DEFAULT_VAULT / "05_Frameworks" / "guides" / "CLAUDE_MASTER.md"
+    source = ROOT / "CLAUDE.md"
     dest = Path.home() / ".claude" / "CLAUDE.md"
     source_hash = _md5(source)
     dest_hash = _md5(dest)
     if not source_hash:
-        return [("claude_master", f"WARN missing {source}")]
+        return [("claude_source", f"WARN missing {source}")]
     if not dest_hash:
         return [("claude_md", f"WARN missing {dest}")]
     if source_hash == dest_hash:
@@ -107,6 +112,22 @@ def _check_claude_sync() -> list[tuple[str, str]]:
     code, output = _run([sys.executable, "scripts/sync_claude_instructions.py", "--check"])
     state = "ok" if code == 0 else "WARN sync needed"
     return [("claude_md", f"{state}: {output}")]
+
+
+def _check_bucky_os_gate() -> list[tuple[str, str]]:
+    try:
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import bucky_os_gate  # type: ignore
+
+        checks = bucky_os_gate.run_checks()
+    except Exception as exc:
+        return [("bucky_os_gate", f"WARN unavailable: {exc}")]
+
+    failed = [check for check in checks if not check.passed]
+    if failed:
+        detail = "; ".join(f"{check.name}: {check.detail}" for check in failed[:3])
+        return [("bucky_os_gate", f"FAIL {detail}")]
+    return [("bucky_os_gate", f"ok {len(checks)} checks")]
 
 
 def _check_commands(docker_mode: bool) -> list[tuple[str, str]]:
@@ -134,6 +155,7 @@ def main() -> int:
     rows.extend(_check_paths())
     rows.extend(_check_git())
     rows.extend(_check_claude_sync())
+    rows.extend(_check_bucky_os_gate())
     rows.extend(_check_commands(args.docker))
 
     print("[preflight]")

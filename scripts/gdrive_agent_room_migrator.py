@@ -1,5 +1,5 @@
-﻿#!/usr/bin/env python3
-"""
+#!/usr/bin/env python3
+r"""
 Google Drive Agent Room Migrator
 G:\내 드라이브\JH-SHARED → ObsidianVault 단방향 이관
 
@@ -18,6 +18,7 @@ G:\내 드라이브\JH-SHARED → ObsidianVault 단방향 이관
   JH-SHARED/06_TASK_LOGS/   → ObsidianVault/05_Logs/task-logs-gdrive/
   JH-SHARED/99_ARCHIVE/     → ObsidianVault/99_Archive/gdrive-archive/
   JH-SHARED/scripts/        → ObsidianVault/00_System/gdrive-scripts/
+  JH-SHARED/.claude/        → ObsidianVault/00_System/gdrive-claude-config/
   JH-SHARED/*.json, *.md    → ObsidianVault/00_System/gdrive-root-files/
 """
 
@@ -45,6 +46,7 @@ MIGRATION_MAP = {
     "06_TASK_LOGS":     VAULT / "05_Logs" / "task-logs-gdrive",
     "99_ARCHIVE":       VAULT / "99_Archive" / "gdrive-archive",
     "scripts":          VAULT / "00_System" / "gdrive-scripts",
+    ".claude":          VAULT / "00_System" / "gdrive-claude-config",
 }
 
 # 루트 파일 이관 대상 글로브 패턴 (폴더가 아닌 개별 파일)
@@ -87,7 +89,8 @@ def migrate_folder(
         print(f"  [SKIP] 경로 없음: {src}")
         return 0, 0, 0
 
-    dst.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        dst.mkdir(parents=True, exist_ok=True)
 
     for item in src.rglob("*"):
         if item.is_dir():
@@ -147,8 +150,10 @@ def migrate_root_files(
     if not root_files:
         return 0, 0, 0
 
-    dst.mkdir(parents=True, exist_ok=True)
     print(f"[gdrive-root-files] {len(root_files)}개 루트 파일 발견 → {dst.relative_to(VAULT)}")
+
+    if not dry_run:
+        dst.mkdir(parents=True, exist_ok=True)
 
     for item in root_files:
         dest_file = dst / item.name
@@ -230,15 +235,36 @@ type: system
     print(f"  [MARKER] 경계 마커 생성: {marker}")
 
 
+def seed_manual_migration_log(log: dict) -> None:
+    """
+    이미 2026-05-25에 수동 이관한 항목을 로그에 시드한다.
+    기존 완료 항목을 자동 migrator가 중복 복사하지 않도록 막는다.
+    """
+    migrated_srcs = {e["src"] for e in log.get("migrated", [])}
+    for entry in MANUALLY_MIGRATED_FILES:
+        if entry["src"] in migrated_srcs:
+            continue
+        log["migrated"].append({
+            "src": entry["src"],
+            "dst": entry["dst"],
+            "at": entry["migrated_at"],
+            "manual": True,
+            "action": entry["action"],
+        })
+        migrated_srcs.add(entry["src"])
+
+
 def run(dry_run: bool = False, force: bool = False) -> None:
     if LOCK_FILE.exists() and not force:
         print("[WARN] 마이그레이션이 이미 실행 중입니다 (.gdrive-migration.lock). --force로 덮어쓰기 가능.")
         return
 
-    LOCK_FILE.write_text(_iso())
+    if not dry_run:
+        LOCK_FILE.write_text(_iso())
     log = _load_log()
     if "not_migrated" not in log:
         log["not_migrated"] = []
+    seed_manual_migration_log(log)
     log["last_run"] = _iso()
 
     total_copied = total_skipped = total_errors = 0
@@ -282,7 +308,8 @@ def run(dry_run: bool = False, force: bool = False) -> None:
         create_vault_boundary_marker()
         _save_log(log)
 
-    LOCK_FILE.unlink(missing_ok=True)
+    if not dry_run:
+        LOCK_FILE.unlink(missing_ok=True)
 
     print(f"\n완료: 복사 {total_copied}개 / 스킵 {total_skipped}개 / 오류 {total_errors}개")
     if total_errors > 0:
@@ -428,4 +455,11 @@ if __name__ == "__main__":
     import sys
     dry = "--dry-run" in sys.argv
     force = "--force" in sys.argv
+    allowed = os.getenv("BUCKY_ALLOW_LEGACY_MIGRATION", "0").strip().lower() in {"1", "true", "yes", "on"}
+    if not dry and not allowed:
+        print(
+            "[BLOCKED] Legacy Google Drive migration writes are disabled by default. "
+            "Use --dry-run for inspection or set BUCKY_ALLOW_LEGACY_MIGRATION=1 from a Bucky-approved migration packet."
+        )
+        raise SystemExit(1)
     run(dry_run=dry, force=force)

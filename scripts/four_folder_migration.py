@@ -15,6 +15,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import shutil
 from dataclasses import dataclass
 from datetime import datetime
@@ -240,6 +241,14 @@ def main() -> int:
     parser.add_argument("--date", default="2026-05-24")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+
+    legacy_migration_allowed = os.getenv("BUCKY_ALLOW_LEGACY_MIGRATION", "0").strip().lower() in {"1", "true", "yes", "on"}
+    if not args.dry_run and not legacy_migration_allowed:
+        print(
+            "[BLOCKED] Legacy multi-folder migration writes are disabled by default. "
+            "Use --dry-run for inspection or set BUCKY_ALLOW_LEGACY_MIGRATION=1 from a Bucky-approved migration packet."
+        )
+        return 1
 
     repo = Path(args.root)
     vault = repo / "ObsidianVault"

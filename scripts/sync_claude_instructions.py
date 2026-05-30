@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""
-sync_claude_instructions.py
-Obsidian CLAUDE_MASTER.md → ~/.claude/CLAUDE.md 동기화.
+"""Sync repo CLAUDE.md to the generated global Claude Code target.
 
-사용법:
-  python3 scripts/sync_claude_instructions.py           # 동기화 실행
-  python3 scripts/sync_claude_instructions.py --check   # 변경 여부만 확인
-  python3 scripts/sync_claude_instructions.py --dry-run # 미리보기 (쓰기 안 함)
+Usage:
+  python scripts/sync_claude_instructions.py
+  python scripts/sync_claude_instructions.py --check
+  python scripts/sync_claude_instructions.py --dry-run
 
-AgentBus에서도 호출됨: type=claude_sync 메시지 수신 시.
+AgentBus can call this for type=claude_sync messages. The instruction source is
+the repository-level CLAUDE.md managed by Bucky, not the generated global file.
 """
+
+from __future__ import annotations
 
 import argparse
 import hashlib
@@ -19,25 +20,32 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Windows cp949 터미널에서도 한글·특수문자 출력
+
 if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf-8-sig"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 if sys.stderr.encoding and sys.stderr.encoding.lower() not in ("utf-8", "utf-8-sig"):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-VAULT_ROOT = Path(__file__).parent.parent / "ObsidianVault"
-SOURCE = VAULT_ROOT / "05_Frameworks" / "guides" / "CLAUDE_MASTER.md"
+ROOT = Path(__file__).parent.parent
+SOURCE = ROOT / "CLAUDE.md"
 DEST = Path.home() / ".claude" / "CLAUDE.md"
 BACKUP_DIR = Path.home() / ".claude" / "backups"
 
-_MANAGED_HEADER = "<!-- AUTO-GENERATED from Obsidian CLAUDE_MASTER.md — edit there, not here -->\n"
 _OBSIDIAN_NOTICE = "> **[Obsidian 관리 파일]**"
 
 
+def _managed_header() -> str:
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return (
+        f"<!-- AUTO-GENERATED {ts} from repo CLAUDE.md. "
+        "Edit the repo source, not this generated target. -->\n"
+    )
+
+
 def _strip_obsidian_notice(text: str) -> str:
-    """CLAUDE_MASTER.md 상단의 Obsidian 전용 안내 줄을 제거한다."""
+    """Remove Obsidian-only notice lines before global sync."""
     lines = text.splitlines(keepends=True)
-    out = []
+    out: list[str] = []
     skip_next_blank = False
     for line in lines:
         if _OBSIDIAN_NOTICE in line:
@@ -72,7 +80,7 @@ def _backup(path: Path) -> Path:
 
 def sync(dry_run: bool = False, check_only: bool = False) -> int:
     if not SOURCE.exists():
-        print(f"[ERROR] 소스 파일 없음: {SOURCE}", file=sys.stderr)
+        print(f"[ERROR] source file missing: {SOURCE}", file=sys.stderr)
         return 1
 
     raw = SOURCE.read_text(encoding="utf-8")
@@ -81,15 +89,15 @@ def sync(dry_run: bool = False, check_only: bool = False) -> int:
     if DEST.exists():
         existing = DEST.read_text(encoding="utf-8")
         if _md5(_strip_managed_header(existing)) == _md5(_strip_managed_header(new_content)):
-            print("[OK] CLAUDE.md 이미 최신입니다.")
+            print("[OK] global CLAUDE.md is current")
             return 0
         if check_only:
-            print("[INFO] CLAUDE.md 변경 감지됨 — sync 필요.")
+            print("[INFO] global CLAUDE.md differs; sync required")
             return 2
 
     if dry_run:
-        print(f"[DRY-RUN] {SOURCE} → {DEST}")
-        print("--- 미리보기 (첫 20줄) ---")
+        print(f"[DRY-RUN] {SOURCE} -> {DEST}")
+        print("--- preview first 20 lines ---")
         for line in new_content.splitlines()[:20]:
             print(line)
         return 0
@@ -100,21 +108,13 @@ def sync(dry_run: bool = False, check_only: bool = False) -> int:
 
     DEST.parent.mkdir(parents=True, exist_ok=True)
     DEST.write_text(new_content, encoding="utf-8")
-    print(f"[OK] 동기화 완료: {SOURCE.name} → {DEST}")
+    print(f"[OK] synced: {SOURCE.name} -> {DEST}")
     return 0
 
 
-def _managed_header() -> str:
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
-    return (
-        f"<!-- AUTO-GENERATED {ts}"
-        f" — 수정은 Obsidian의 CLAUDE_MASTER.md 에서 하세요 -->\n"
-    )
-
-
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="Obsidian CLAUDE_MASTER.md → CLAUDE.md 동기화")
-    ap.add_argument("--check", action="store_true", help="변경 여부 확인만 (쓰기 안 함)")
-    ap.add_argument("--dry-run", action="store_true", help="실제 쓰기 없이 미리보기")
+    ap = argparse.ArgumentParser(description="Sync repo CLAUDE.md to generated global Claude Code target")
+    ap.add_argument("--check", action="store_true", help="check whether sync is needed")
+    ap.add_argument("--dry-run", action="store_true", help="preview without writing")
     args = ap.parse_args()
     sys.exit(sync(dry_run=args.dry_run, check_only=args.check))

@@ -113,7 +113,9 @@ def build_prompt(request_path: Path, request_body: str) -> str:
 def read_optional(path: Path, max_chars: int = 6000) -> str:
     if not path.exists():
         return ""
-    return path.read_text(encoding="utf-8", errors="replace").strip()[:max_chars]
+    text = path.read_text(encoding="utf-8", errors="replace").strip()
+    text = _FM_RE.sub("", text, count=1).strip()
+    return text[:max_chars]
 
 
 def _excerpt(text: str, max_chars: int = 3000) -> str:
@@ -178,22 +180,30 @@ def looks_like_context_failure(detail: str) -> bool:
 
 
 def load_jh_role_context() -> str:
-    shared = Path(os.getenv("JH_SHARED_PATH", "G:/내 드라이브/JH-SHARED"))
-    room = Path(os.getenv("JH_AGENT_ROOM_PATH", "G:/내 드라이브/JH-Agent-Room"))
     parts = []
-    for rel in (
-        "00_SYSTEM/roles.md",
-        "00_SYSTEM/agent-onboarding.md",
-        "05_TASK_LOCKS/README.md",
-        "04_DAILY_REPORTS/README.md",
+    for vault_rel in (
+        "03_Projects/agents/codex-instructions.md",
+        "03_Projects/agents/roles.md",
+        "00_System/ROUTING_RULES.md",
+        "06_Context_Packs/bucky-agent-os-legacy-rules.md",
+        "06_Context_Packs/bucky-context-efficiency-goal-mode.md",
     ):
-        content = read_optional(shared / rel)
+        content = read_optional(VAULT / vault_rel)
         if content:
-            parts.append(f"### JH-SHARED/{rel}\n{content}")
-    room_readme = read_optional(room / "README.md")
-    if room_readme:
-        parts.append(f"### JH-Agent-Room/README.md\n{room_readme}")
-    return "\n\n---\n\n".join(parts) or "JH shared context not found."
+            parts.append(f"### ObsidianVault/{vault_rel}\n{content}")
+
+    legacy_enabled = os.getenv("BUCKY_ENABLE_LEGACY_CONTEXT", "0").strip().lower() in {"1", "true", "yes", "on"}
+    legacy_shared = os.getenv("JH_SHARED_PATH", "").strip()
+    if legacy_enabled and legacy_shared:
+        shared = Path(legacy_shared)
+        for rel in ("00_SYSTEM/roles.md", "00_SYSTEM/agent-onboarding.md"):
+            content = read_optional(shared / rel)
+            if content:
+                parts.append(
+                    f"### Legacy reference only: JH-SHARED/{rel}\n"
+                    f"{content}"
+                )
+    return "\n\n---\n\n".join(parts) or "Bucky-managed Obsidian context not found."
 
 
 def run_codex(prompt: str, output_path: Path) -> None:

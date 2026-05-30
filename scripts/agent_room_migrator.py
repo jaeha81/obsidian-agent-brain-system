@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import shutil
 import sys
 import io
@@ -52,6 +53,10 @@ ARCHIVE_MARKER = ".migrated-to-vault"
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stdout)
 log = logging.getLogger(__name__)
+
+
+def _legacy_migration_allowed() -> bool:
+    return os.getenv("BUCKY_ALLOW_LEGACY_MIGRATION", "0").strip().lower() in {"1", "true", "yes", "on"}
 
 
 # ── JSONL 읽기 ────────────────────────────────────────────────────────────────
@@ -231,19 +236,27 @@ def show_status() -> None:
 
 # ── 진입점 ────────────────────────────────────────────────────────────────────
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description="Agent Room Migrator — G드라이브 → ObsidianVault 이관")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--dry-run", action="store_true", help="테스트 (저장 없음)")
     group.add_argument("--status", action="store_true", help="마이그레이션 상태 확인")
     args = parser.parse_args()
 
+    if not args.dry_run and not args.status and not _legacy_migration_allowed():
+        print(
+            "[BLOCKED] This legacy migration script is disabled by default. "
+            "Set BUCKY_ALLOW_LEGACY_MIGRATION=1 only from a Bucky-approved migration packet."
+        )
+        return 1
+
     if args.status:
         show_status()
     else:
         result = migrate(dry_run=args.dry_run)
         print(f"\n결과: {result['migrated']}개 마이그레이션, {result['notes_created']}개 노트 생성")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

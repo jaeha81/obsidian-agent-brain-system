@@ -1,22 +1,55 @@
 ---
 tags: [migration, status]
-updated: 2026-05-25
+updated: 2026-05-30
 generated_by: Agent-M (migration_crosscheck)
 gdrive_root: "G:\\내 드라이브\\JH-SHARED"
 vault_root: "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault"
 ---
 # G드라이브 이관 현황
 
-> 분석 기준: 2026-05-25  
-> 이관 로그(`gdrive-migration-log.json`) 미존재 → Vault 대상 경로 실존 + 수동 이관 기록 기반 크로스체크  
+> 분석 기준: 2026-05-25
+> 이관 로그(`gdrive-migration-log.json`) 미존재 → Vault 대상 경로 실존 + 수동 이관 기록 기반 크로스체크
 > 분석 도구: `scripts/migration_crosscheck.py` 정의 기준 + `gdrive_agent_room_migrator.py` MIGRATION_MAP 기준
+
+## 2026-05-30 업데이트
+
+`scripts/gdrive_agent_room_migrator.py`를 보강한 뒤 실제 이관을 실행했다.
+
+- 실행 결과: 복사 80개, 수동 이관 스킵 20개, 오류 0개, 미이관 항목 0개
+- 로그: `ObsidianVault/10_AgentBus/gdrive-migration-log.json`
+- 보고서: `ObsidianVault/00_System/LEGACY_MIGRATION_APPLIED_2026-05-30.md`
+- 추가 반영: `.claude` 잔재를 `ObsidianVault/00_System/gdrive-claude-config/`로 이관
+- 운영 기준 보정: `agent-onboarding.md`, `sync-protocol.md`에서 JH-SHARED 중심 문구를 Obsidian Agent Brain System/Bucky 중심으로 대체
+
+현재 원칙: Obsidian Agent Brain System이 메인 에이전트 운영체제이며, JH-SHARED는 이관 완료된 레거시 소스/아카이브다.
+
+## 2026-05-30 지침 운영체제 게이트
+
+레거시 지침/운영 규칙 관점의 전환 상태는 `scripts/bucky_os_gate.py`로 별도 검증한다. 자료 보관용 로그/이미지/일일 리포트 이관 상태와 지침 권한 상태를 혼동하지 않는다.
+
+- 게이트 보고서: `ObsidianVault/00_System/BUCKY_OS_GATE_2026-05-30.md`
+- 운영 runbook: `ObsidianVault/00_System/BUCKY_OS_RUNBOOK.md`
+- 결과: PASS
+- 필수 운영 파일: `AGENTS.md`, `CLAUDE.md`, `ObsidianVault/03_Projects/agents/bucky.md`, routing/context/security/audit 파일 존재 확인
+- 레거시 지침 후보: 347개 전부 감사 추적 상태
+- 미분류 지침 후보: 0개
+- 비밀값 가능 미추적 후보: 0개
+- 비밀값 가능 추적/격리 후보: 31개
+- 값 없는 secret manifest: `ObsidianVault/00_System/LEGACY_SECRET_MANIFEST_2026-05-30.md`
+- secret manifest 무값 검증: PASS (`sk-...` 형태, webhook URL, matched text/excerpt 컬럼 없음)
+- 현재 운영 문서/런타임 레거시 권한 잔여: review 0개
+- 시작 점검 연결: `scripts/preflight_check.py`가 Bucky OS gate 결과를 함께 표시한다.
+- 새 프로젝트 packet contract: PASS (프로젝트 경계, 타 레포 패킷 재사용 금지, secret-like archive 격리, Context Pack 참조, 검증 조건 포함)
+- runbook packet 포함: PASS (legacy migration 및 implementation selector가 `BUCKY_OS_RUNBOOK.md`를 참조)
+
+판정: JH 에이전트 지침 운영체제는 Obsidian Agent Brain System/Bucky를 메인으로 둔다. 남은 GDrive/로그/이미지/리포트 항목은 보관 자료 이관 문제이며, 현재 지침 권한의 source-of-truth가 아니다.
 
 ---
 
 ## 이관 완료
 
 ### 00_SYSTEM (11개 파일) — 수동 이관 완료
-소스: `JH-SHARED/00_SYSTEM/`  
+소스: `JH-SHARED/00_SYSTEM/`
 대상: `ObsidianVault/05_Frameworks/guides/` (수동 이관, migrator 대상 경로와 다름)
 
 | 파일 | 대상 경로 | 비고 |
@@ -34,8 +67,8 @@ vault_root: "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault"
 | `sync-protocol.md` | `05_Frameworks/guides/sync-protocol.md` | 머지 완료 (전체 섹션 포함) |
 
 ### 02_HANDOFF (7개 파일) — 수동 이관 완료
-소스: `JH-SHARED/02_HANDOFF/`  
-대상: `ObsidianVault/00_System/archive/handoffs/` (수동 이관)  
+소스: `JH-SHARED/02_HANDOFF/`
+대상: `ObsidianVault/00_System/archive/handoffs/` (수동 이관)
 원본 7파일 전부 대응 파일 확인됨.
 
 - `agent-startup-check.md`
@@ -47,7 +80,7 @@ vault_root: "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault"
 - `session-handoff-20260430.md`
 
 ### 03_LOGS (일부, 2개 파일) — 수동 이관 완료
-소스: `JH-SHARED/03_LOGS/`  
+소스: `JH-SHARED/03_LOGS/`
 대상: `ObsidianVault/00_System/archive/`
 
 - `sync-log.md` → `00_System/archive/sync-log-gdrive.md`
@@ -58,7 +91,7 @@ vault_root: "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault"
 ## 미이관 (대기)
 
 ### 00_SYSTEM → `00_System/gdrive-system/` (migrator 경로 미존재)
-수동 이관이 `05_Frameworks/guides/`로 완료됐으나, migrator 정의 경로(`00_System/gdrive-system/`)는 미생성.  
+수동 이관이 `05_Frameworks/guides/`로 완료됐으나, migrator 정의 경로(`00_System/gdrive-system/`)는 미생성.
 **자동 migrator 실행 시 중복 이관 발생 가능** — 주의 필요.
 
 ### 03_LOGS (잔여 19개 파일) → `05_Logs/gdrive-imported/`
@@ -120,15 +153,15 @@ migrator ROOT_FILE_PATTERNS (`*.json`, `*.md`) 대상. 대상 폴더 미존재.
 ## 제외 (이관 불필요 / 정책 미결)
 
 ### 01_AGENT_ROOM — 주파일 이관 완료, 잔여는 제외 권장
-`agent-room-messages.jsonl` → `10_AgentBus/agent-room-messages.jsonl` 이관 완료.  
+`agent-room-messages.jsonl` → `10_AgentBus/agent-room-messages.jsonl` 이관 완료.
 `processed/`, `failed/` 서브폴더의 처리 완료/실패 메시지 파일은 아카이브 성격으로 이관 생략 가능.
 
 ### 05_TASK_LOCKS — MIGRATION_MAP 미포함
-`active/` 비어있음, `done/TASK-20260502-134420.jsonl` 1건.  
+`active/` 비어있음, `done/TASK-20260502-134420.jsonl` 1건.
 migrator MIGRATION_MAP에 미포함 → 이관 여부 사용자 결정 필요.
 
 ### 99_ARCHIVE — MIGRATION_MAP 미포함, 이관 불필요
-22개 파일 보유. `00_SYSTEM_2026-05-23/` (00_SYSTEM 구 버전 백업), `daily-reports-legacy/`, 레거시 jsonl.  
+22개 파일 보유. `00_SYSTEM_2026-05-23/` (00_SYSTEM 구 버전 백업), `daily-reports-legacy/`, 레거시 jsonl.
 G드라이브 내 아카이브로 보존 권장. 이관 필요 시 `09_Archive/gdrive-legacy/`로 별도 처리.
 
 ---
@@ -148,7 +181,7 @@ G드라이브 내 아카이브로 보존 권장. 이관 필요 시 `09_Archive/g
 
 ## 권장 조치
 
-1. **migrator 실행 전 주의**: `00_SYSTEM` 파일들은 이미 `05_Frameworks/guides/`에 수동 이관됨.  
+1. **migrator 실행 전 주의**: `00_SYSTEM` 파일들은 이미 `05_Frameworks/guides/`에 수동 이관됨.
    migrator가 `00_System/gdrive-system/`으로 중복 복사하지 않도록 `--skip-log` 대신 수동 확인 필요.
 
 2. **즉시 실행 가능 (미이관 폴더)**:

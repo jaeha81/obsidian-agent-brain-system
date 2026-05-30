@@ -183,5 +183,5 @@ def append_to_context(facts: list[dict]) -> None:
 
             CONTEXT_FILE.write_text(content, encoding="utf-8")
             print(f"[Memory] {len(facts)}개 사실 → BUCKY_CONTEXT 기록", flush=True)
-    except Exception as e:
-        print(f"[Memory] context 기록 실패: {e}", flush=True)
+        except Exception as e:
+            print(f"[Memory] context 기록 실패: {e}", flush=True)

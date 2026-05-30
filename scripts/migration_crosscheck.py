@@ -322,6 +322,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
 
+    legacy_scan_allowed = os.getenv("BUCKY_ALLOW_LEGACY_SCAN", "0").strip().lower() in {"1", "true", "yes", "on"}
+    if not args.dry_run and not legacy_scan_allowed:
+        print(
+            "[BLOCKED] Legacy JH-SHARED scan report writes are disabled by default. "
+            "Use --dry-run for console-only inspection or set BUCKY_ALLOW_LEGACY_SCAN=1 from a Bucky-approved migration packet."
+        )
+        return 1
+
     print(f"[INFO] G드라이브 경로: {GDRIVE_ROOT}")
     print(f"[INFO] Vault 경로:    {VAULT_BASE}")
 

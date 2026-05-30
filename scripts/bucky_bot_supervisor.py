@@ -10,14 +10,23 @@ after an unexpected exit.
 from __future__ import annotations
 
 import csv
+import json
 import os
 import socket
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+    _env_path = Path(__file__).resolve().parent.parent / ".env"
+    if _env_path.exists():
+        load_dotenv(_env_path, encoding="utf-8")
+except ImportError:
+    pass
 
 ROOT = Path(__file__).resolve().parent.parent
 BOT_SCRIPT = ROOT / "scripts" / "discord_bot.py"
@@ -28,6 +37,48 @@ LOG_FILE = ROOT / "discord_bot.log"
 ERR_FILE = ROOT / "discord_bot.err"
 POLL_SECONDS = int(os.getenv("BUCKY_SUPERVISOR_INTERVAL", "10"))
 RESTART_DELAY_SECONDS = int(os.getenv("BUCKY_SUPERVISOR_RESTART_DELAY", "5"))
+DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL", "")
+
+# 재시작 통계
+_restart_count = 0
+
+
+def send_webhook(text: str) -> None:
+    if not DISCORD_WEBHOOK_URL:
+        return
+    try:
+        import requests as _requests
+        _requests.post(
+            DISCORD_WEBHOOK_URL,
+            json={"content": text},
+            timeout=8,
+            allow_redirects=True,
+        )
+    except Exception as e:
+        log(f"웹훅 전송 실패: {e}")
+
+
+def show_windows_toast(title: str, message: str) -> None:
+    """PowerShell BurntToast or fallback balloon via msg.exe."""
+    if os.name != "nt":
+        return
+    try:
+        ps_script = (
+            f"Add-Type -AssemblyName System.Windows.Forms; "
+            f"$n = New-Object System.Windows.Forms.NotifyIcon; "
+            f"$n.Icon = [System.Drawing.SystemIcons]::Warning; "
+            f"$n.Visible = $true; "
+            f"$n.ShowBalloonTip(8000, '{title}', '{message}', "
+            f"[System.Windows.Forms.ToolTipIcon]::Warning); "
+            f"Start-Sleep 2; $n.Dispose()"
+        )
+        subprocess.Popen(
+            ["powershell", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps_script],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception as e:
+        log(f"토스트 알림 실패: {e}")
 
 
 def now() -> str:
@@ -212,6 +263,7 @@ def stop_bot(proc: subprocess.Popen | None) -> None:
 
 
 def run() -> int:
+    send_webhook(f"🟢 **Bucky 슈퍼바이저 시작** | PC: `{socket.gethostname()}`")
     log(f"Home PC supervisor starting on {socket.gethostname()}")
     log(f"Restart signal: {SIGNAL_FILE}")
     log(f"Logs: {LOG_FILE.name} / {ERR_FILE.name}")
@@ -252,14 +304,34 @@ def run() -> int:
 
             if proc.poll() is not None:
                 exit_code = proc.returncode
-                log(f"discord_bot.py exited with code {exit_code}; restarting")
+                _restart_count += 1
+                ts_str = now()
+                log(f"discord_bot.py exited with code {exit_code}; restarting (#{_restart_count})")
                 close_bot_log_handles(proc)
                 remove_pid()
+
+                # PC 알림 + Discord 웹훅
+                alert_msg = (
+                    f"⚠️ **Bucky 봇 다운** (exit={exit_code})\n"
+                    f"PC: `{socket.gethostname()}` | 재시작 #{_restart_count}\n"
+                    f"시각: {ts_str}\n"
+                    f"{RESTART_DELAY_SECONDS}초 후 자동 재시작..."
+                )
+                send_webhook(alert_msg)
+                show_windows_toast(
+                    "Bucky 봇 다운",
+                    f"exit={exit_code} | 재시작 #{_restart_count} | {RESTART_DELAY_SECONDS}초 후 자동복구"
+                )
+
                 time.sleep(RESTART_DELAY_SECONDS)
                 proc = start_bot()
+
+                # 재시작 완료 알림
+                send_webhook(f"✅ **Bucky 봇 재시작 완료** (PID {proc.pid}) | 재시작 #{_restart_count}")
     except KeyboardInterrupt:
         log("Supervisor interrupted")
         stop_bot(proc)
+        send_webhook(f"🔴 **Bucky 슈퍼바이저 수동 종료** | PC: `{socket.gethostname()}`")
         return 0
 
 

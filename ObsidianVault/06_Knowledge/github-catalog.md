@@ -64,8 +64,6 @@ project_repos: 32
 | [JH-ICON](https://github.com/jaeha81/JH-ICON) | JH 아이콘 리소스 | — | active | 2026-03-18 |
 | [bitmex-ai-bot](https://github.com/jaeha81/bitmex-ai-bot) | Bitmex AI 트레이딩 봇 | JavaScript | active | 2026-03-18 |
 | [upload-auto-netlify](https://github.com/jaeha81/upload-auto-netlify) | Netlify 자동 업로드 도구 | JavaScript | active | 2026-03-18 |
-| [claude-projects-jh](https://github.com/jaeha81/claude-projects-jh) | Claude 프로젝트 설정 | — | active | — |
-
 ---
 
 ## 아카이브/실험
