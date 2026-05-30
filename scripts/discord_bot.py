@@ -927,6 +927,17 @@ def _make_voice_sink_class():
                 vc = _voice_clients.get(self.guild_id)
                 if vc and vc.is_connected():
                     await _tts_speak(vc, reply, self.guild_id)
+
+                # Obsidian voice-log 기록
+                try:
+                    from obsidian_voice_logger import logger as _vl
+                    _vl.log_final(
+                        {"text": text, "source": "discord_voice", "confidence": 0.0, "latency_ms": 0},
+                        agent="bucky",
+                        result={"status": "ok"},
+                    )
+                except Exception as _log_err:
+                    print(f"[VoiceSink] Obsidian 로그 실패: {_log_err}", flush=True)
             finally:
                 Path(wav_path).unlink(missing_ok=True)
 
@@ -1755,6 +1766,72 @@ def _register_codex_commands(tree: app_commands.CommandTree) -> None:
     tree.add_command(codex_group)
 
 
+# ── /voice 슬래시 커맨드 ────────────────────────────────────────────────────────
+
+def _register_voice_commands(tree: app_commands.CommandTree) -> None:
+    """음성 채널 입/퇴장 및 상태 조회 슬래시 커맨드."""
+
+    voice_group = app_commands.Group(name="voice", description="음성 채널 관리")
+
+    @voice_group.command(name="join", description="Bucky를 현재 음성 채널(또는 지정 채널)에 입장시킵니다")
+    @app_commands.describe(channel="입장할 음성 채널 (생략 시 사용자의 현재 채널)")
+    async def cmd_voice_join(
+        interaction: discord.Interaction,
+        channel: discord.VoiceChannel | None = None,
+    ) -> None:
+        if not VOICE_CHANNEL_ENABLED:
+            await interaction.response.send_message("⚠️ 음성 채널 기능이 비활성화되어 있습니다 (`VOICE_CHANNEL_ENABLED=0`).", ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+
+        # 채널 미지정 → 사용자의 현재 음성 채널 사용
+        vc_channel = channel
+        if vc_channel is None:
+            member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
+            if member and member.voice and member.voice.channel:
+                vc_channel = member.voice.channel  # type: ignore[assignment]
+            else:
+                await interaction.followup.send("⚠️ 음성 채널에 먼저 입장하거나, 채널을 지정해 주세요.", ephemeral=True)
+                return
+
+        guild_id = interaction.guild_id or 0
+        vc = await _join_voice_channel(vc_channel, interaction.channel, guild_id)
+        if vc:
+            await interaction.followup.send(f"✅ **{vc_channel.name}** 채널에 입장했습니다. 말씀하시면 Bucky가 응답합니다.", ephemeral=True)
+        else:
+            await interaction.followup.send("❌ 음성 채널 입장에 실패했습니다. 봇 권한 또는 opus/ffmpeg 설치를 확인하세요.", ephemeral=True)
+
+    @voice_group.command(name="leave", description="Bucky를 음성 채널에서 퇴장시킵니다")
+    async def cmd_voice_leave(interaction: discord.Interaction) -> None:
+        guild_id = interaction.guild_id or 0
+        if guild_id not in _voice_clients:
+            await interaction.response.send_message("ℹ️ 현재 음성 채널에 연결되어 있지 않습니다.", ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        await _leave_voice_channel(guild_id)
+        await interaction.followup.send("👋 음성 채널에서 퇴장했습니다.", ephemeral=True)
+
+    @voice_group.command(name="status", description="현재 음성 채널 연결 상태를 확인합니다")
+    async def cmd_voice_status(interaction: discord.Interaction) -> None:
+        guild_id = interaction.guild_id or 0
+        vc = _voice_clients.get(guild_id)
+        lines = ["**[음성 채널 상태]**"]
+        if vc and vc.is_connected():
+            members_in_vc = [m.display_name for m in vc.channel.members if not m.bot]
+            lines.append(f"🔊 채널: **{vc.channel.name}**")
+            lines.append(f"🎤 참여자: {', '.join(members_in_vc) if members_in_vc else '없음'}")
+            lines.append(f"📡 수신: {'✅ 활성' if _voice_recv else '⚠️ discord-ext-voice-recv 미설치'}")
+            lines.append(f"🔉 TTS: {'✅ gTTS' if _gtts_available else '⚠️ gTTS 미설치'}")
+            lines.append(f"🧠 Whisper: {'✅ ' + WHISPER_MODEL_NAME if VOICE_ENABLED else '⚠️ 미설치'}")
+        else:
+            lines.append("❌ 현재 음성 채널 미연결")
+            lines.append(f"📡 수신 준비: {'✅' if _voice_recv else '⚠️ discord-ext-voice-recv 필요'}")
+            lines.append("💡 `/voice join` 으로 입장하세요")
+        await interaction.response.send_message("\n".join(lines))
+
+    tree.add_command(voice_group)
+
+
 # ── 현황판 초기화 헬퍼 ────────────────────────────────────────────────────────────
 
 async def _init_status_board(client, pool) -> None:
@@ -2144,6 +2221,7 @@ class BuckyDiscordBot(discord.Client):
         _register_analyze_commands(self.tree)
         _register_wishket_commands(self.tree)
         _register_codex_commands(self.tree)
+        _register_voice_commands(self.tree)
 
     async def setup_hook(self) -> None:
         # 슬래시 명령어 전역 동기화
