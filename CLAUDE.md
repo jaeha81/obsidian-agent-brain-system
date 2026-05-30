@@ -11,6 +11,8 @@
 
 이 두 경로 외의 폴더(`G:\내 드라이브\Obsidian Vault\`, `G:\내 드라이브\AI개발계획\` 등)에는 사용자 명시 승인 없이 절대 파일을 쓰지 않는다.
 
+**예외**: 사용자가 특정 폴더를 직접 지정하거나 확인을 요청한 경우, 해당 작업 전에 "이 폴더에 접근/수정해도 됩니까?" 라고 승인을 받은 후 진행한다.
+
 ## Role
 
 Claude Code is the implementation/operator agent in the JH ecosystem. Bucky is the orchestrator and instruction manager. Codex is the independent reviewer.
