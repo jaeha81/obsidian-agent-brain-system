@@ -281,14 +281,18 @@ DASHBOARD_INTERACTION_JS = """
         return;
       }
       if (action === "send") {
+        var sendBtn = tray.querySelector("[data-tray='send']");
+        if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = "전송 중..."; }
         try {
           await postToBucky(payload, ACTIVE_COMMAND || "message");
           showToast("Bucky 전송 완료");
           setMessageStatus("Bucky 전송 완료");
           tray.classList.remove("show");
         } catch (error) {
+          showToast("전송 실패: " + error.message);
           setMessageStatus("Bucky 전송 실패: " + error.message, true);
-          showToast("전송 실패");
+        } finally {
+          if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = "Bucky 전송"; }
         }
       }
     });
@@ -306,7 +310,14 @@ DASHBOARD_INTERACTION_JS = """
   }
 
   document.querySelectorAll(".candidate").forEach(function (card) {
-    if (card.querySelector(".command-actions")) return;
+    var existing = card.querySelector(".command-actions");
+    if (existing) {
+      existing.addEventListener("click", function (event) {
+        var action = event.target && event.target.getAttribute("data-action");
+        if (action) openCommand(action, card);
+      });
+      return;
+    }
     var actions = document.createElement("div");
     actions.className = "command-actions";
     actions.innerHTML = [
