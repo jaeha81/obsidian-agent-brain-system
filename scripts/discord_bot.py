@@ -495,7 +495,13 @@ _URL_PATTERN = _re.compile(r'https?://[^\s<>"\']+')
 _YOUTUBE_PATTERN = _re.compile(r'(youtu\.be/|youtube\.com/watch\?|youtube\.com/shorts/)[\w?=&-]+')
 
 _CLAUDE_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-_STT_ENHANCE_ENABLED: bool = bool(_CLAUDE_API_KEY) and os.getenv("STT_AI_ENHANCE", "1").strip() not in {"0", "false", "no"}
+# CLI(구독) 있으면 API key 없어도 STT 고도화 활성
+try:
+    from bucky_client import is_bucky_available as _is_bucky_avail  # already imported above, re-import safe
+    _CLI_AVAILABLE: bool = _is_bucky_avail()
+except Exception:
+    _CLI_AVAILABLE = False
+_STT_ENHANCE_ENABLED: bool = (bool(_CLAUDE_API_KEY) or _CLI_AVAILABLE) and os.getenv("STT_AI_ENHANCE", "1").strip() not in {"0", "false", "no"}
 _NLP_ENABLED: bool = os.getenv("NLP_ENABLED", "1").strip() not in {"0", "false", "no"}
 
 # ── STT 고도화 + NLP 전처리기 선택적 임포트 ─────────────────────────────────
@@ -525,11 +531,7 @@ def _postprocess_stt(text: str) -> str:
 
 
 def _postprocess_stt_claude(text: str) -> str:
-    """STT 고도화 — bucky_stt_enhancer(의도분류+명령어감지) 우선, 폴백: Claude API.
-
-    필러 제거 + 반복 문장 정리 + 의도 명확화 + 명령어 자동 감지.
-    """
-    # Item 4: 고도화 STT 모듈 (의도분류 + 명령어 감지 포함)
+    """STT 고도화 — bucky_stt_enhancer 우선, CLI(구독) 폴백, API 최후 폴백."""
     if _stt_enhance_fn:
         try:
             return _stt_enhance_fn(text)
@@ -550,31 +552,41 @@ def _postprocess_stt_claude(text: str) -> str:
 STT 원문:
 {text}"""
 
-    try:
-        import urllib.request
-        import urllib.error
-        body = json.dumps({
-            "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 300,
-            "messages": [{"role": "user", "content": prompt}],
-        }).encode("utf-8")
-        req = urllib.request.Request(
-            "https://api.anthropic.com/v1/messages",
-            data=body,
-            headers={
-                "x-api-key": _CLAUDE_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            refined = data["content"][0]["text"].strip()
-            if refined:
-                return refined
-    except Exception as e:
-        print(f"[STT] Claude API 후처리 실패, 기본 후처리 사용: {e}", flush=True)
+    # 1순위: CLI (구독)
+    if _CLI_AVAILABLE:
+        try:
+            refined = run_bucky(prompt, task_type="chat")
+            if refined and len(refined) > 1:
+                return refined.strip()
+        except Exception as e:
+            print(f"[STT] CLI 후처리 실패: {e}", flush=True)
+
+    # 2순위: Anthropic API (key 있을 때만)
+    if _CLAUDE_API_KEY:
+        try:
+            import urllib.request
+            body = json.dumps({
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 300,
+                "messages": [{"role": "user", "content": prompt}],
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                "https://api.anthropic.com/v1/messages",
+                data=body,
+                headers={
+                    "x-api-key": _CLAUDE_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                refined = data["content"][0]["text"].strip()
+                if refined:
+                    return refined
+        except Exception as e:
+            print(f"[STT] API 후처리 실패: {e}", flush=True)
 
     return _postprocess_stt(text)
 

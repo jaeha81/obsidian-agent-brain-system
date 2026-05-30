@@ -31,7 +31,19 @@ except Exception:
         return text
 
 _CLAUDE_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-_NLP_ENHANCE_ENABLED = bool(_CLAUDE_API_KEY) and os.getenv("NLP_ENHANCE", "1").strip() not in {"0", "false", "no"}
+
+# CLI(구독) 우선 — API key 없어도 NLP 강화 활성
+try:
+    _scripts_bc = str(Path(__file__).parent)
+    if _scripts_bc not in sys.path:
+        sys.path.insert(0, _scripts_bc)
+    from bucky_client import run_bucky as _run_bucky_cli, is_bucky_available as _is_bucky_avail  # type: ignore
+    _HAS_CLI = _is_bucky_avail()
+except Exception:
+    _run_bucky_cli = None  # type: ignore
+    _HAS_CLI = False
+
+_NLP_ENHANCE_ENABLED = (bool(_CLAUDE_API_KEY) or _HAS_CLI) and os.getenv("NLP_ENHANCE", "1").strip() not in {"0", "false", "no"}
 
 # ── 액션 매핑 ──────────────────────────────────────────────────────────────────
 
@@ -214,34 +226,48 @@ class NLPPreprocessor:
   "agent_router": "claude_code|codex|bucky_knowledge|bucky_vercel|bucky 중 가장 적합한 에이전트"
 }}"""
 
-        try:
-            import urllib.request
-            body = json.dumps({
-                "model": "claude-haiku-4-5",
-                "max_tokens": 300,
-                "messages": [{"role": "user", "content": prompt}],
-            }).encode("utf-8")
-            req = urllib.request.Request(
-                "https://api.anthropic.com/v1/messages",
-                data=body,
-                headers={
-                    "x-api-key": _CLAUDE_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=6) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                raw_text = data["content"][0]["text"].strip()
-                # JSON 블록 추출
+        # 1순위: CLI (구독)
+        if _HAS_CLI and _run_bucky_cli:
+            try:
+                raw_text = _run_bucky_cli(prompt, task_type="chat")
                 json_m = re.search(r"\{.*\}", raw_text, re.DOTALL)
                 if json_m:
                     enhanced = json.loads(json_m.group(0))
                     base_result.update({k: v for k, v in enhanced.items() if v is not None})
                     base_result["enhanced"] = True
-        except Exception as e:
-            print(f"[NLP] Claude API 강화 실패: {e}", flush=True)
+                    return base_result
+            except Exception as e:
+                print(f"[NLP] CLI 강화 실패: {e}", flush=True)
+
+        # 2순위: Anthropic API (key 있을 때만)
+        if _CLAUDE_API_KEY:
+            try:
+                import urllib.request
+                body = json.dumps({
+                    "model": "claude-haiku-4-5",
+                    "max_tokens": 300,
+                    "messages": [{"role": "user", "content": prompt}],
+                }).encode("utf-8")
+                req = urllib.request.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=body,
+                    headers={
+                        "x-api-key": _CLAUDE_API_KEY,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=6) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    raw_text = data["content"][0]["text"].strip()
+                    json_m = re.search(r"\{.*\}", raw_text, re.DOTALL)
+                    if json_m:
+                        enhanced = json.loads(json_m.group(0))
+                        base_result.update({k: v for k, v in enhanced.items() if v is not None})
+                        base_result["enhanced"] = True
+            except Exception as e:
+                print(f"[NLP] API 강화 실패: {e}", flush=True)
 
         return base_result
 
