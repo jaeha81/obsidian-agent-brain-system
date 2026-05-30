@@ -1,6 +1,8 @@
 ---
 type: bucky-status
-updated: 2026-05-30T10:34:23.242Z
+status: active
+created: 2026-05-30
+updated: 2026-05-30T10:55:24.029Z
 pc: 집 PC
 hostname: P0517A-22H2T8
 username: user1

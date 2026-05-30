@@ -24,7 +24,7 @@ REQUIRED_FIELDS = {"type", "status", "created"}
 VALID_TYPES = {
     "project", "task", "estimate", "log", "system-doc",
     "context-pack", "agent-result", "bridge-test", "bucky-context",
-    "bucky-os-gate", "handoff", "legacy-script-classification",
+    "bucky-os-gate", "bucky-status", "handoff", "legacy-script-classification",
     "raw-import", "wiki", "daily-report", "session-state",
 }
 VALID_STATUSES = {
