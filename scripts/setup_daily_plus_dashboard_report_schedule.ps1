@@ -24,15 +24,16 @@ $trigger = New-ScheduledTaskTrigger -Daily -At "09:00"
 
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 5) `
-    -StartWhenAvailable
+    -StartWhenAvailable `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries
 
 Register-ScheduledTask `
     -TaskName $taskName `
     -Action $action `
     -Trigger $trigger `
     -Settings $settings `
-    -Description "Bucky: generate Daily Plus dashboard and 09:00 morning report for user review" `
-    -RunLevel Highest
+    -Description "Bucky: generate Daily Plus dashboard and 09:00 morning report for user review"
 
 Write-Host "[OK] Registered: $taskName (daily 09:00)"
 Write-Host "[INFO] Python: $pythonExe"

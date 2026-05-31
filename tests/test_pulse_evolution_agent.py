@@ -65,7 +65,8 @@ class PulseEvolutionAgentTests(unittest.TestCase):
         self.assertEqual(candidates[1].priority, "P1")
 
     def test_evolve_note_file_writes_report_index_and_agentbus_task(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        workspace_tmp = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(dir=workspace_tmp) as tmp:
             root = Path(tmp)
             vault = root / "ObsidianVault"
             note = vault / "04_Wiki" / "daily-plus" / "2026-05-27.md"

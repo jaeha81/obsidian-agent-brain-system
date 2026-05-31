@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -55,6 +56,10 @@ CHROME_EXE = os.environ.get("GPT_COLLECTOR_CHROME_EXE") or (
 def build_note(capture: dict[str, Any], today: date) -> str:
     date_str = today.strftime("%Y-%m-%d")
     collected_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    source = capture.get("source") or "ChatGPT Pulse"
+    source_url = capture.get("source_url") or CHATGPT_URL
+    collection_status = capture.get("collectionStatus") or "collected"
+    source_error = (capture.get("sourceError") or "").strip()
     overview = (capture.get("overviewText") or "").strip()
     cards = capture.get("cards") or []
 
@@ -81,20 +86,138 @@ def build_note(capture: dict[str, Any], today: date) -> str:
     joined = "\n\n".join(sections)
     return f"""---
 date: {date_str}
-source: ChatGPT Pulse
-source_url: {CHATGPT_URL}
+source: {source}
+source_url: {source_url}
 collected_at: {collected_at}
+collection_status: {collection_status}
 card_count: {len(cards)}
 tags: [pulse, daily-plus, knowledge, auto-collected]
 ---
 
 # ChatGPT Pulse - {date_str}
 
-{joined}
+{f"## Source Error\n\n{source_error}\n\n" if source_error else ""}{joined}
 
 ---
 *Auto-collected by `chatgpt_daily_collector.py`.*
 """
+
+
+def build_recovery_capture(source_error: str) -> dict[str, Any]:
+    clean_error = " ".join(str(source_error).split())
+    overview = (
+        "OABS Daily Plus recovery capture. Official ChatGPT Pulse was not "
+        "available during collection, so Bucky records an operational Daily Plus "
+        "snapshot instead of leaving the day empty."
+    )
+    cards = [
+        {
+            "title": "Daily Plus source availability guard",
+            "summary": "공식 Pulse가 404/빈 카드일 때 빈 대시보드를 만들지 않도록 수집 실패를 차단한다.",
+            "detailText": (
+                "ChatGPT Pulse 직접 접근 또는 카드 추출이 실패하면 해당 실패를 명확한 운영 이벤트로 "
+                "남긴다. 404 Not Found, 로그인 필요, 카드 0개 상태는 정상 수집으로 저장하지 않는다."
+            ),
+        },
+        {
+            "title": "Bucky 09시 보고 fail-safe",
+            "summary": "오늘의 플러스가 비어도 Bucky가 사용자에게 실패 원인과 다음 조치를 보고한다.",
+            "detailText": (
+                "daily_plus_morning_report.py는 빈/오류 캡처를 감지하면 needs-attention 보고서를 "
+                "남긴다. 공식 Pulse가 정상일 때는 대시보드와 후보 비교표를 갱신하고, 실패할 때는 "
+                "기존 정상 대시보드를 보호한다."
+            ),
+        },
+        {
+            "title": "Tomorrow automation continuity",
+            "summary": "내일부터 매일 실행될 자동화는 OABS 경로에서 수집, 진화 리포트, Bucky 보고를 순차 실행한다.",
+            "detailText": (
+                "BuckyDailyPlus는 Obsidian Agent Brain System 기준으로만 동작해야 한다. "
+                "이전 시스템 경로를 실행 백엔드로 사용하지 않고, 수집 실패 시 복구 캡처를 "
+                "남겨 다음 단계가 완전히 끊기지 않게 한다."
+            ),
+        },
+        {
+            "title": "Public dashboard integrity",
+            "summary": "실패 수집이 docs/daily-plus.html을 오염시키지 않도록 생성 전 후보 존재를 검증한다.",
+            "detailText": (
+                "대시보드는 Pulse Evolution 후보가 있는 날짜만 정상 생성한다. 복구 캡처는 후보를 "
+                "제공하므로 오늘 상태를 사용자에게 설명할 수 있고, 단순 404 스텁은 대시보드를 덮지 못한다."
+            ),
+        },
+    ]
+    return {
+        "source": "OABS Daily Plus Recovery",
+        "source_url": CHATGPT_URL,
+        "collectionStatus": "fallback",
+        "sourceError": clean_error,
+        "overviewText": overview,
+        "cards": cards,
+    }
+
+
+def _write_note_and_evolve(capture: dict[str, Any], output_path: Path, today: date, *, force: bool, evolve: bool) -> None:
+    validate_capture_for_note(capture)
+    note_content = build_note(capture, today)
+    output_path.write_text(note_content, encoding="utf-8")
+
+    cards = capture.get("cards") or []
+    overview = (capture.get("overviewText") or "").strip()
+    print(f"[OK] Saved: {output_path}")
+    print(f"[INFO] Title: {capture.get('title')}")
+    print(f"[INFO] URL: {capture.get('href') or capture.get('source_url')}")
+    print(f"[INFO] Collection status: {capture.get('collectionStatus') or 'collected'}")
+    print(f"[INFO] Overview characters: {len(overview)}")
+    print(f"[INFO] Cards: {len(cards)}")
+    print(f"[INFO] Detail characters: {sum(len(card.get('detailText') or '') for card in cards)}")
+    print(f"[PREVIEW]\n{overview[:300]}...")
+    if evolve:
+        _run_pulse_evolution(output_path, force=force)
+
+
+def _looks_like_error_page(text: str) -> bool:
+    compact = " ".join(text.lower().split())
+    error_markers = (
+        "404 not found",
+        "page not found",
+        "this page could not be found",
+    )
+    return any(marker in compact for marker in error_markers)
+
+
+def validate_capture_for_note(capture: dict[str, Any]) -> None:
+    pulse_text = (capture.get("overviewText") or "").strip()
+    cards = capture.get("cards") or []
+    diagnostic_text = "\n".join(
+        str(capture.get(key) or "")
+        for key in ("href", "title", "overviewText", "bodyStart")
+    )
+
+    if capture.get("collectionStatus") != "fallback" and _looks_like_error_page(diagnostic_text):
+        raise RuntimeError("ChatGPT Pulse returned a 404 or not-found page.")
+    if not pulse_text:
+        body = (capture.get("bodyStart") or "").replace("\n", " ")[:500]
+        if "login" in body.lower() or "sign in" in body.lower():
+            raise RuntimeError(
+                "ChatGPT login is required in the dedicated Chrome profile. "
+                "Run with --login and complete sign-in."
+            )
+        raise RuntimeError(f"No Pulse content found. Page snippet: {body}")
+    if not cards:
+        raise RuntimeError("No Pulse cards found; refusing to save an empty Daily Plus note.")
+
+
+def _existing_note_is_valid(path: Path) -> bool:
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    if _looks_like_error_page(text):
+        return False
+    match = re.search(r"^card_count:\s*(\d+)\s*$", text, flags=re.M)
+    if not match:
+        return "## Pulse Cards" in text
+    return int(match.group(1)) > 0
 
 
 def _request_json(url: str, *, method: str = "GET", timeout: int = 8) -> Any:
@@ -422,45 +545,31 @@ def login_mode() -> None:
     print("[LOGIN] Sign in there once, then run --collect.")
 
 
-def collect_mode(force: bool = False, evolve: bool = True) -> None:
+def collect_mode(force: bool = False, evolve: bool = True, allow_recovery: bool = False) -> None:
     today = date.today()
     date_str = today.strftime("%Y-%m-%d")
     output_path = OUTPUT_DIR / f"{date_str}.md"
 
     if output_path.exists() and not force:
-        print(f"[SKIP] Today's file already exists: {output_path}")
-        if evolve:
-            _run_pulse_evolution(output_path, force=False)
-        return
+        if _existing_note_is_valid(output_path):
+            print(f"[SKIP] Today's file already exists: {output_path}")
+            if evolve:
+                _run_pulse_evolution(output_path, force=False)
+            return
+        print(f"[WARN] Existing Daily Plus note is invalid; recollecting: {output_path}")
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     _launch_chrome(CHATGPT_URL)
-    value = _read_chatgpt_content()
-
-    pulse_text = (value.get("overviewText") or "").strip()
-    cards = value.get("cards") or []
-
-    if not pulse_text:
-        body = (value.get("bodyStart") or "").replace("\n", " ")[:500]
-        if "login" in body.lower() or "sign in" in body.lower():
-            raise RuntimeError(
-                "ChatGPT login is required in the dedicated Chrome profile. "
-                "Run with --login and complete sign-in."
-            )
-        raise RuntimeError(f"No Pulse content found. Page snippet: {body}")
-
-    note_content = build_note(value, today)
-    output_path.write_text(note_content, encoding="utf-8")
-
-    print(f"[OK] Saved: {output_path}")
-    print(f"[INFO] Title: {value.get('title')}")
-    print(f"[INFO] URL: {value.get('href')}")
-    print(f"[INFO] Overview characters: {len(pulse_text)}")
-    print(f"[INFO] Cards: {len(cards)}")
-    print(f"[INFO] Detail characters: {sum(len(card.get('detailText') or '') for card in cards)}")
-    print(f"[PREVIEW]\n{pulse_text[:300]}...")
-    if evolve:
-        _run_pulse_evolution(output_path, force=force)
+    try:
+        value = _read_chatgpt_content()
+        _write_note_and_evolve(value, output_path, today, force=force, evolve=evolve)
+    except Exception as exc:
+        if not allow_recovery:
+            raise
+        print(f"[WARN] Official Pulse collection failed: {exc}")
+        print("[WARN] Writing OABS Daily Plus recovery capture instead.")
+        recovery = build_recovery_capture(str(exc))
+        _write_note_and_evolve(recovery, output_path, today, force=True, evolve=evolve)
 
 
 def main() -> None:
@@ -470,13 +579,22 @@ def main() -> None:
     group.add_argument("--collect", action="store_true", help="Collect today's Pulse note")
     parser.add_argument("--force", action="store_true", help="Overwrite today's file if it exists")
     parser.add_argument("--skip-evolve", action="store_true", help="Skip Pulse upgrade staging")
+    parser.add_argument(
+        "--allow-recovery",
+        action="store_true",
+        help="Write an OABS recovery Daily Plus note if official Pulse is unavailable",
+    )
     args = parser.parse_args()
 
     try:
         if args.login:
             login_mode()
         else:
-            collect_mode(force=args.force, evolve=not args.skip_evolve)
+            collect_mode(
+                force=args.force,
+                evolve=not args.skip_evolve,
+                allow_recovery=args.allow_recovery,
+            )
     except KeyboardInterrupt:
         print("\n[ABORT] Interrupted by user")
     except Exception as exc:

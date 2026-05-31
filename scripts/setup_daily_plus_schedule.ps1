@@ -17,7 +17,7 @@ Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Silent
 
 $action = New-ScheduledTaskAction `
     -Execute $pythonExe `
-    -Argument "`"$scriptPath`" --collect" `
+    -Argument "`"$scriptPath`" --collect --allow-recovery" `
     -WorkingDirectory $repoRoot
 
 $trigger = New-ScheduledTaskTrigger -Daily -At "08:00"
@@ -25,15 +25,16 @@ $trigger = New-ScheduledTaskTrigger -Daily -At "08:00"
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 10) `
     -StartWhenAvailable `
-    -RunOnlyIfNetworkAvailable
+    -RunOnlyIfNetworkAvailable `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries
 
 Register-ScheduledTask `
     -TaskName $taskName `
     -Action $action `
     -Trigger $trigger `
     -Settings $settings `
-    -Description "Bucky: ChatGPT Pulse daily collection + evolution staging -> ObsidianVault/04_Wiki/daily-plus/ and 00_UPGRADE/pulse-evolution/" `
-    -RunLevel Highest
+    -Description "Bucky: ChatGPT Pulse daily collection + OABS recovery + evolution staging -> ObsidianVault/04_Wiki/daily-plus/ and 00_UPGRADE/pulse-evolution/"
 
 Write-Host "[OK] Registered: $taskName (daily 08:00)"
 Write-Host "[INFO] Python: $pythonExe"
@@ -43,7 +44,7 @@ Write-Host "Manual login:"
 Write-Host "  `"$pythonExe`" `"$scriptPath`" --login"
 Write-Host ""
 Write-Host "Manual collect + evolve:"
-Write-Host "  `"$pythonExe`" `"$scriptPath`" --collect"
+Write-Host "  `"$pythonExe`" `"$scriptPath`" --collect --allow-recovery"
 Write-Host ""
 Write-Host "Manual collect only:"
 Write-Host "  `"$pythonExe`" `"$scriptPath`" --collect --skip-evolve"

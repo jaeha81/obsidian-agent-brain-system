@@ -27,12 +27,115 @@ from generate_daily_plus_dashboard import (
 PUBLIC_URL = "https://jaeha81.github.io/obsidian-agent-brain-system/daily-plus.html"
 
 
+def _safe_int(value: object, default: int = 0) -> int:
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return default
+
+
+def _looks_like_error_capture(text: str) -> bool:
+    compact = " ".join(text.lower().split())
+    return any(
+        marker in compact
+        for marker in ("404 not found", "page not found", "this page could not be found")
+    )
+
+
+def report_needs_attention(report_text: str, capture_text: str) -> bool:
+    meta = parse_frontmatter(report_text)
+    card_count = _safe_int(meta.get("card_count"))
+    candidate_count = _safe_int(meta.get("candidate_count"))
+    return _looks_like_error_capture(capture_text) or card_count <= 0 or candidate_count <= 0
+
+
+def write_attention_report(report_path: Path, capture_path: Path, reason: str) -> Path:
+    report_text = read_text(report_path)
+    meta = parse_frontmatter(report_text)
+    date = meta.get("date") or report_path.stem
+    kst = timezone(timedelta(hours=9))
+    now = datetime.now(kst).strftime("%Y-%m-%dT%H:%M:%S%z")
+    compact = date.replace("-", "")
+    reports_dir = VAULT / "10_AgentBus" / "reports"
+    outbox_dir = VAULT / "10_AgentBus" / "outbox" / "Bucky"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    outbox_dir.mkdir(parents=True, exist_ok=True)
+    morning_report = reports_dir / f"{compact}_daily_plus_dashboard_report.md"
+    outbox_message = outbox_dir / f"{compact}_090000_daily_plus_dashboard_bucky.md"
+
+    body = f"""---
+type: bucky-morning-report
+scope: daily-plus-dashboard
+date: {date}
+created_at: {now}
+owner: Bucky
+status: needs-attention
+dashboard: docs/daily-plus.html
+public_url: {PUBLIC_URL}
+---
+
+# Daily Plus Morning Report - {date}
+
+## User Summary
+
+- Status: `needs-attention`
+- Reason: {reason}
+- Dashboard: [{PUBLIC_URL}]({PUBLIC_URL})
+- Pulse report: `{report_path.relative_to(ROOT)}`
+- Source note: `{capture_path.relative_to(ROOT)}`
+
+## Bucky Operating Rule
+
+- Do not overwrite the public dashboard with an empty or failed Pulse capture.
+- Tell the user that Daily Plus ran but needs attention.
+- Fix collection/login/source access first, then regenerate the dashboard.
+"""
+    morning_report.write_text(body, encoding="utf-8")
+
+    outbox_body = f"""---
+type: bucky-user-report
+scope: daily-plus-dashboard
+date: {date}
+created_at: {now}
+status: needs-attention
+dashboard: docs/daily-plus.html
+public_url: {PUBLIC_URL}
+---
+
+# Bucky Daily Plus 09:00 Report - {date}
+
+오늘의 플러스는 실행됐지만 정상 카드 수집에 실패했습니다.
+
+- 원인: {reason}
+- 대시보드: [{PUBLIC_URL}]({PUBLIC_URL})
+- 원본 수집: `{capture_path.relative_to(ROOT)}`
+- 진화 리포트: `{report_path.relative_to(ROOT)}`
+
+다음 조치:
+- ChatGPT Pulse 접근 또는 로그인 상태를 복구한다.
+- 빈/404 캡처를 저장하지 않도록 collector 검증을 유지한다.
+- 정상 수집 후 대시보드를 다시 생성한다.
+"""
+    outbox_message.write_text(outbox_body, encoding="utf-8")
+    return morning_report
+
+
 def build_report() -> Path:
-    output = generate(None)
     report_path = latest_report(None)
     report_text = read_text(report_path)
     meta = parse_frontmatter(report_text)
     date = meta.get("date") or report_path.stem
+    capture_path = VAULT / "04_Wiki" / "daily-plus" / f"{date}.md"
+    capture_text = read_text(capture_path) if capture_path.exists() else ""
+
+    if report_needs_attention(report_text, capture_text):
+        if _looks_like_error_capture(capture_text):
+            reason = "ChatGPT Pulse source returned a not-found page."
+        else:
+            reason = "Pulse report has no cards or upgrade candidates."
+        return write_attention_report(report_path, capture_path, reason)
+
+    output = generate(None)
     candidates = parse_candidates(report_text)
     attach_statuses(date, candidates)
     statuses = Counter(item.status for item in candidates)
