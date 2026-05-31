@@ -117,6 +117,10 @@
   .toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; border-radius: 999px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(15,23,42,.28); opacity: 0; pointer-events: none; transition: opacity .16s ease; }
   .toast.show { opacity: 1; }
 
+  .session-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .session-table th { background: var(--surface-2); padding: 8px 10px; text-align: left; border: 1px solid var(--line); font-weight: 700; color: var(--ink); }
+  .session-table td { padding: 7px 10px; border: 1px solid var(--line); color: var(--text); vertical-align: top; }
+  .session-table tr:nth-child(even) td { background: #fafbfc; }
   footer { padding: 22px clamp(14px, 3vw, 42px); color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }
   @media (max-width: 840px) {
     .hero-grid { grid-template-columns: 1fr; }
@@ -280,6 +284,44 @@
 <li><strong>P1 Card 5</strong><span>결정 우선 압축 매니페스트</span><em>스테이징</em></li>
 <li><strong>P1 Card 6</strong><span>버키 트리거와 스모크 훅</span><em>스테이징</em></li>
       </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>이번 세션 업데이트 내용 요약</h2>
+      <span class="muted">AgentBus Phase 1 게이트 완료 + 구현 상세</span>
+    </div>
+    <div class="panel">
+
+      <h3 style="margin:20px 0 10px;font-size:16px">Gate 완료 현황</h3>
+      <div style="overflow-x:auto">
+        <table class="session-table">
+          <thead><tr><th>#</th><th>Gate</th><th>내용</th><th>상태</th><th>커밋</th></tr></thead>
+          <tbody><tr><td>1</td><td>Gate 1</td><td>registry repair 40</td><td>✅ 완료</td><td>이전 세션</td></tr>
+<tr><td>2</td><td>Gate 2</td><td>cleanup 564</td><td>✅ 완료</td><td>이전 세션</td></tr>
+<tr><td>3</td><td>Gate 3</td><td>external blockers 9</td><td>✅ 코드완료 / 빌링대기</td><td>fbab23d</td></tr>
+<tr><td>4</td><td>Gate 4</td><td>Sniper v0.2 dirty worktree</td><td>✅ 완료</td><td>bea8ecf</td></tr>
+<tr><td>5</td><td>Gate 5</td><td>Discord voice live integration</td><td>✅ 완료</td><td>cac6df8</td></tr>
+<tr><td>6</td><td>Gate 6</td><td>Hermes cleanup</td><td>✅ 기완료</td><td>이전 세션</td></tr>
+<tr><td>7</td><td>Gate 7</td><td>T013/T020 fresh scoped task</td><td>✅ 완료</td><td>f0678d7</td></tr></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin:20px 0 10px;font-size:16px">이번 세션 구현 상세</h3>
+      <div style="overflow-x:auto">
+        <table class="session-table">
+          <thead><tr><th>항목</th><th>내용</th><th>파일</th><th>커밋</th></tr></thead>
+          <tbody><tr><td>Card 1</td><td>Admin 레이아웃 (로그아웃+탭+브레드크럼)</td><td>app/admin/layout.tsx</td><td>bea8ecf</td></tr>
+<tr><td>Card 2</td><td>통관리스크 7카테고리 DB + 150달러 분기</td><td>lib/calculator.ts</td><td>bea8ecf</td></tr>
+<tr><td>Card 3</td><td>Product.category 타입 확장</td><td>lib/types.ts</td><td>bea8ecf</td></tr>
+<tr><td>Card 4</td><td>마진 계산기 카테고리 셀렉터 + 통관 안내</td><td>app/admin/margins/page.tsx</td><td>bea8ecf</td></tr>
+<tr><td>Card 5</td><td>/voice join / leave / status 슬래시 커맨드</td><td>scripts/discord_bot.py</td><td>cac6df8</td></tr>
+<tr><td>Card 6</td><td>음성 발화 Vault 자동 로깅</td><td>scripts/discord_bot.py</td><td>cac6df8</td></tr>
+<tr><td>Card 7</td><td>T013/T020 자동 실행 타이머 연결</td><td>scripts/agent_dispatcher.py</td><td>f0678d7</td></tr>
+<tr><td>Card 8</td><td>STT/NLP CLI(구독) 우선 라우팅</td><td>scripts/bucky_stt_enhancer.py</td><td>fbab23d</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
@@ -644,7 +686,7 @@
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
       <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-05-31.md</code></div>
       <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-05-31.md</code></div>
-      <div>생성 시각: <code>2026-05-31 15:32:44 KST</code></div>
+      <div>생성 시각: <code>2026-05-31 17:15:08 KST</code></div>
     </div>
   </section>
 </main>

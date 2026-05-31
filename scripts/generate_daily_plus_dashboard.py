@@ -19,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 VAULT = ROOT / "ObsidianVault"
 DOCS = ROOT / "docs"
+SESSION_LOG_PATH = VAULT / "00_UPGRADE" / "daily-plus-session-log.md"
 
 
 @dataclass
@@ -580,6 +581,54 @@ def render_trend(history: list[DailySnapshot]) -> str:
     return "\n".join(rows)
 
 
+def parse_session_log(path: Path) -> dict[str, list[list[str]]]:
+    """Read daily-plus-session-log.md and return table data by section heading."""
+    if not path.exists():
+        return {}
+    text = read_text(path)
+    text = re.sub(r"^---.*?---\s*", "", text, flags=re.S)
+    sections: dict[str, list[list[str]]] = {}
+    current_heading = ""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            current_heading = stripped[3:].strip()
+            sections.setdefault(current_heading, [])
+        elif stripped.startswith("|") and current_heading:
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if any("---" in c for c in cells):
+                continue
+            sections[current_heading].append(cells)
+    return sections
+
+
+def render_session_section(session: dict[str, list[list[str]]]) -> str:
+    if not session:
+        return ""
+    parts: list[str] = []
+    for heading, rows in session.items():
+        if not rows or len(rows) < 2:
+            continue
+        headers = rows[0]
+        data_rows = rows[1:]
+        header_html = "".join(f"<th>{esc(h)}</th>" for h in headers)
+        rows_html = "\n".join(
+            "<tr>" + "".join(f"<td>{esc(c)}</td>" for c in row) + "</tr>"
+            for row in data_rows
+        )
+        parts.append(f"""
+      <h3 style="margin:20px 0 10px;font-size:16px">{esc(heading)}</h3>
+      <div style="overflow-x:auto">
+        <table class="session-table">
+          <thead><tr>{header_html}</tr></thead>
+          <tbody>{rows_html}</tbody>
+        </table>
+      </div>""")
+    if not parts:
+        return ""
+    return "\n".join(parts)
+
+
 def render_history_table(history: list[DailySnapshot]) -> str:
     if not history:
         return ""
@@ -607,6 +656,7 @@ def render_dashboard(
     history: list[DailySnapshot],
     report_path: Path,
     capture_path: Path,
+    session_html: str = "",
 ) -> str:
     status_counts = Counter(item.status for item in candidates)
     category_counts = Counter(item.category for item in candidates)
@@ -733,6 +783,10 @@ def render_dashboard(
   .legend .approval::before {{ background: #fdba74; }}
   .legend .applied::before {{ background: #86efac; }}
 {DASHBOARD_INTERACTION_CSS}
+  .session-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+  .session-table th {{ background: var(--surface-2); padding: 8px 10px; text-align: left; border: 1px solid var(--line); font-weight: 700; color: var(--ink); }}
+  .session-table td {{ padding: 7px 10px; border: 1px solid var(--line); color: var(--text); vertical-align: top; }}
+  .session-table tr:nth-child(even) td {{ background: #fafbfc; }}
   footer {{ padding: 22px clamp(14px, 3vw, 42px); color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }}
   @media (max-width: 840px) {{
     .hero-grid {{ grid-template-columns: 1fr; }}
@@ -836,6 +890,16 @@ def render_dashboard(
     </div>
   </section>
 
+  {f'''<section>
+    <div class="section-title">
+      <h2>이번 세션 업데이트 내용 요약</h2>
+      <span class="muted">AgentBus Phase 1 게이트 완료 + 구현 상세</span>
+    </div>
+    <div class="panel">
+      {session_html}
+    </div>
+  </section>''' if session_html else ""}
+
   <section>
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
@@ -886,9 +950,12 @@ def generate(date: str | None) -> Path:
     if not candidates:
         raise RuntimeError(f"No candidates parsed from {report_path}")
 
+    session = parse_session_log(SESSION_LOG_PATH)
+    session_html = render_session_section(session)
+
     DOCS.mkdir(parents=True, exist_ok=True)
     output = DOCS / "daily-plus.html"
-    html_text = render_dashboard(date, capture_meta, report_meta, candidates, history, report_path, capture_path)
+    html_text = render_dashboard(date, capture_meta, report_meta, candidates, history, report_path, capture_path, session_html)
     html_text = "\n".join(line.rstrip() for line in html_text.splitlines()) + "\n"
     output.write_text(
         html_text,
