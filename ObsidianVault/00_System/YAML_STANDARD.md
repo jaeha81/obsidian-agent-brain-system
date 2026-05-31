@@ -64,6 +64,22 @@ Bucky 에이전트가 생성·검증하는 모든 Obsidian 노트의 frontmatter
 
 ---
 
+## 지식관리 선택 필드 (신규 노트 권장)
+
+> art-1/art-2 기반 지식 분류용 선택 필드. 필수 필드(type/status/created)는 불변.
+
+| 필드 | 타입 | 설명 | 예시 |
+|------|------|------|------|
+| `category` | string | 대분류 | `ai_automation`, `interior_design`, `business_model` |
+| `subcategory` | string | 세부 분류 | `make_com`, `client_consulting` |
+| `keywords` | list | 핵심 키워드 3~10개 | `["AI", "자동화", "Make.com"]` |
+| `summary` | string | 한 줄 요약 | `"Make.com 웹훅 자동화 설계"` |
+| `next_action` | string | 다음 실행 행동 | `"Bucky에게 검토 요청"` |
+| `review_date` | ISO date | 재검토 예정일 | `2026-06-10` |
+| `business_value` | string | 사업화 가치 | `high`, `medium`, `low` |
+| `automation_value` | string | 자동화 가치 | `high`, `medium`, `low` |
+| `confidence` | string | 신뢰도 | `high`, `medium`, `low` |
+
 ## 금지 패턴
 
 - `api_key`, `password`, `secret`, `token` 필드에 실제 값 입력 금지

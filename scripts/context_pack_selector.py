@@ -138,6 +138,26 @@ RULES: tuple[PackRule, ...] = (
         triggers=("sync", "agentbus", "discord", "queue", "handoff", "동기화", "에이전트버스", "디스코드", "큐"),
     ),
     PackRule(
+        key="design",
+        primary_worker="Bucky Design Director",
+        role="design improvement / quality elevation",
+        packs=CORE_PACKS
+        + (
+            "ObsidianVault/06_Context_Packs/bucky-design-improvement-policy.md",
+            "ObsidianVault/06_Context_Packs/web-delivery-pack.md",
+        ),
+        notes=(
+            "Use for design improvement, redesign, UI/UX quality elevation, and from-scratch premium builds.",
+            "Apply AI-Slop prohibition: no emoji-as-icon, no generic Hero+Cards+CTA, premium SaaS reference level.",
+            "Link skills: redesign-skill, taste-skill, design:design-critique, jh-variant, Pencil MCP.",
+        ),
+        triggers=(
+            "design", "redesign", "ui", "ux", "디자인", "개선", "퀄리티", "quality",
+            "예쁘게", "스타일", "레이아웃", "layout", "figma", "pencil", "variant",
+            "리디자인", "비주얼", "visual", "테마", "theme",
+        ),
+    ),
+    PackRule(
         key="development_workflow",
         primary_worker="Bucky Delivery Planner",
         role="development workflow / QA planning",

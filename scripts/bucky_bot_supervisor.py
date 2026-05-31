@@ -263,6 +263,8 @@ def stop_bot(proc: subprocess.Popen | None) -> None:
 
 
 def run() -> int:
+    global _restart_count
+
     send_webhook(f"🟢 **Bucky 슈퍼바이저 시작** | PC: `{socket.gethostname()}`")
     log(f"Home PC supervisor starting on {socket.gethostname()}")
     log(f"Restart signal: {SIGNAL_FILE}")

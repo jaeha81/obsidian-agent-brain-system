@@ -75,6 +75,7 @@ The gate must pass before treating legacy material as Bucky-managed context. A p
 | Security / runtime | `ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md` |
 | Vault records / ingest | `ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md` |
 | User/project terrain | `ObsidianVault/06_Context_Packs/bucky-user-project-terrain.md` |
+| Design improvement / UI·UX quality | `ObsidianVault/06_Context_Packs/bucky-design-improvement-policy.md` |
 | Sync / AgentBus | `ObsidianVault/05_Frameworks/guides/sync-protocol.md`, `ObsidianVault/05_Frameworks/AgentBus/agentbus_protocol.md` |
 
 ## Approval Gates
