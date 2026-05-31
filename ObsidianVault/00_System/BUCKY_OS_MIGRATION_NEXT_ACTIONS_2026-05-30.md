@@ -3,6 +3,8 @@ type: migration-next-actions
 status: active
 owner: Bucky
 created: 2026-05-30
+tags:
+  - #status/active
 ---
 
 # Bucky OS Migration Next Actions

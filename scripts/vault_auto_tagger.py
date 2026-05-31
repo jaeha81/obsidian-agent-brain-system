@@ -1,0 +1,248 @@
+# vault_auto_tagger.py
+# 기존 Vault 노트에 #area/ #status/ 태그 자동 추가
+# --dry-run: 변경 없이 통계만 출력
+# --apply: 실제 파일 수정
+
+import sys
+import os
+import re
+import argparse
+from pathlib import Path
+
+VAULT_ROOT = Path(__file__).parent.parent / "ObsidianVault"
+
+# 폴더명 → 추가할 area 태그 목록
+FOLDER_AREA_MAP = {
+    "10_AgentBus":          ["#area/ai_automation"],
+    "AgentBus":             ["#area/ai_automation"],
+    "06_Context_Packs":     ["#area/ai_automation"],
+    "05_Frameworks":        ["#area/ai_automation"],
+    "05_Logs":              ["#area/ai_automation"],
+    "03_Projects":          ["#area/business_model"],
+    "02_Project":           ["#area/business_model"],
+    "06_Projects":          ["#area/business_model"],
+    "07_Reports":           ["#area/gpt_feedback"],
+    "04_DAILY_REPORTS":     ["#area/gpt_feedback"],
+    "04_Wiki":              ["#area/research"],
+    "03_Knowledge":         ["#area/research"],
+    "06_Knowledge":         ["#area/research"],
+    "06_Resources":         ["#area/research"],
+    "09_Knowledge_Capture": ["#area/research"],
+    "Inbox":                ["#status/inbox"],
+    "01_RAW":               ["#status/inbox"],
+    "02_Processed":         ["#status/review_needed"],
+    "09_Archive":           ["#status/archive"],
+    "99_Archive":           ["#status/archive"],
+    # 시스템 폴더 — 태그 없음
+    "00_System":            [],
+    "00_Dashboard":         [],
+    "00_UPGRADE":           [],
+    "08_Templates":         [],
+    "_templates":           [],
+    "graphify-out":         [],
+    ".obsidian":            [],
+    ".smart-env":           [],
+}
+
+# YAML status 필드값 → status 태그 매핑
+STATUS_TAG_MAP = {
+    "active":       "#status/active",
+    "inbox":        "#status/inbox",
+    "draft":        "#status/inbox",
+    "review":       "#status/review_needed",
+    "review_needed":"#status/review_needed",
+    "waiting":      "#status/waiting",
+    "done":         "#status/completed",
+    "completed":    "#status/completed",
+    "hold":         "#status/hold",
+    "archive":      "#status/archive",
+    "archived":     "#status/archive",
+}
+
+
+def get_top_folder(path: Path) -> str:
+    """파일의 Vault 기준 최상위 폴더명 반환."""
+    try:
+        rel = path.relative_to(VAULT_ROOT)
+        parts = rel.parts
+        return parts[0] if len(parts) > 1 else ""
+    except ValueError:
+        return ""
+
+
+def parse_frontmatter(text: str):
+    """(frontmatter_dict, fm_end_line) 반환. frontmatter 없으면 ({}, -1)."""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, -1
+    end = -1
+    for i, line in enumerate(lines[1:], 1):
+        if line.strip() == "---":
+            end = i
+            break
+    if end == -1:
+        return {}, -1
+
+    fm_lines = lines[1:end]
+    fm = {}
+    current_key = None
+    list_items = []
+    for line in fm_lines:
+        list_match = re.match(r"^  - (.+)$", line)
+        key_match = re.match(r"^(\w+):\s*(.*)", line)
+        if list_match and current_key:
+            list_items.append(list_match.group(1).strip())
+            fm[current_key] = list_items[:]
+        elif key_match:
+            if current_key and list_items:
+                fm[current_key] = list_items[:]
+            current_key = key_match.group(1)
+            val = key_match.group(2).strip()
+            list_items = []
+            fm[current_key] = val if val else []
+    return fm, end
+
+
+def inject_tags(text: str, new_tags: list[str]) -> str | None:
+    """frontmatter tags 필드에 new_tags 추가. 변경 없으면 None 반환."""
+    if not new_tags:
+        return None
+
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        return None
+
+    # frontmatter 범위
+    end = -1
+    for i, line in enumerate(lines[1:], 1):
+        if line.strip() == "---":
+            end = i
+            break
+    if end == -1:
+        return None
+
+    fm_text = "".join(lines[1:end])
+    # 기존 tags 추출
+    existing = set()
+    tag_block_start = -1
+    tag_block_end = -1
+    in_tags = False
+    for i, line in enumerate(lines[1:end], 1):
+        if re.match(r"^tags:\s*$", line.strip()) or re.match(r"^tags:\s*\[", line.strip()):
+            tag_block_start = i
+            in_tags = True
+        elif in_tags and re.match(r"^  - (.+)", line):
+            existing.add(re.match(r"^  - (.+)", line).group(1).strip())
+            tag_block_end = i
+        elif in_tags and not line.startswith("  "):
+            in_tags = False
+
+    to_add = [t for t in new_tags if t not in existing]
+    if not to_add:
+        return None  # 이미 모두 있음
+
+    result = list(lines)
+
+    if tag_block_start != -1:
+        # tags 블록 있음 — 마지막 태그 줄 뒤에 추가
+        insert_at = tag_block_end if tag_block_end != -1 else tag_block_start
+        for tag in reversed(to_add):
+            result.insert(insert_at + 1, f"  - {tag}\n")
+    else:
+        # tags 블록 없음 — frontmatter 닫는 --- 앞에 삽입
+        tag_block = "tags:\n" + "".join(f"  - {t}\n" for t in to_add)
+        result.insert(end, tag_block)
+
+    return "".join(result)
+
+
+def process_file(path: Path, dry_run: bool) -> dict:
+    """파일 처리. 결과 dict 반환."""
+    result = {"path": str(path), "added": [], "skipped": False, "error": None}
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception as e:
+        result["error"] = str(e)
+        return result
+
+    top_folder = get_top_folder(path)
+    area_tags = FOLDER_AREA_MAP.get(top_folder, None)
+
+    if area_tags is None:
+        result["skipped"] = True
+        return result
+
+    # status 필드에서 status 태그 결정
+    fm, _ = parse_frontmatter(text)
+    status_val = fm.get("status", "")
+    status_tag = STATUS_TAG_MAP.get(str(status_val).lower().strip(), "")
+
+    tags_to_add = list(area_tags)
+    if status_tag:
+        tags_to_add.append(status_tag)
+
+    if not tags_to_add:
+        result["skipped"] = True
+        return result
+
+    new_text = inject_tags(text, tags_to_add)
+    if new_text is None:
+        result["skipped"] = True
+        return result
+
+    result["added"] = tags_to_add
+    if not dry_run:
+        path.write_text(new_text, encoding="utf-8")
+
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Vault 노트 자동 태거")
+    parser.add_argument("--dry-run", action="store_true", help="변경 없이 통계만 출력")
+    parser.add_argument("--apply", action="store_true", help="실제 파일 수정")
+    parser.add_argument("--folder", default=None, help="특정 폴더만 처리 (예: 10_AgentBus)")
+    args = parser.parse_args()
+
+    if not args.dry_run and not args.apply:
+        print("--dry-run 또는 --apply 지정 필요")
+        sys.exit(1)
+
+    dry_run = not args.apply
+
+    if args.folder:
+        target = VAULT_ROOT / args.folder
+        files = list(target.rglob("*.md"))
+    else:
+        files = list(VAULT_ROOT.rglob("*.md"))
+
+    total = len(files)
+    modified = 0
+    skipped = 0
+    errors = 0
+    tag_counts: dict[str, int] = {}
+
+    for f in files:
+        r = process_file(f, dry_run)
+        if r["error"]:
+            errors += 1
+        elif r["skipped"]:
+            skipped += 1
+        elif r["added"]:
+            modified += 1
+            for t in r["added"]:
+                tag_counts[t] = tag_counts.get(t, 0) + 1
+            if dry_run:
+                print(f"[DRY] {f.relative_to(VAULT_ROOT)} → {r['added']}")
+
+    mode = "DRY RUN" if dry_run else "APPLIED"
+    print(f"\n=== {mode} 완료 ===")
+    print(f"전체: {total}  수정: {modified}  스킵: {skipped}  오류: {errors}")
+    print("\n태그별 추가 예정:")
+    for tag, cnt in sorted(tag_counts.items(), key=lambda x: -x[1]):
+        print(f"  {tag}: {cnt}개")
+
+
+if __name__ == "__main__":
+    main()

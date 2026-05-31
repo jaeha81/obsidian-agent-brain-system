@@ -3,6 +3,8 @@ type: legacy-secret-manifest
 created: 2026-05-30T07:32:12
 status: active
 owner: Bucky
+tags:
+  - #status/active
 ---
 
 # Legacy Secret Manifest

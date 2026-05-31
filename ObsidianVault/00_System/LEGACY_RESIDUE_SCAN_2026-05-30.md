@@ -2,6 +2,8 @@
 type: legacy-residue-scan
 created: 2026-05-30T07:32:32
 status: active
+tags:
+  - #status/active
 ---
 
 # Legacy Residue Scan

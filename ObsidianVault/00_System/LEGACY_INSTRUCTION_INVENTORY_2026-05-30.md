@@ -3,6 +3,8 @@ type: legacy-instruction-inventory
 created: 2026-05-30T07:32:11
 status: active
 owner: Bucky
+tags:
+  - #status/active
 ---
 
 # Legacy Instruction Inventory

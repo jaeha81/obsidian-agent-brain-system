@@ -11,6 +11,9 @@ source:
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/03_Prompts/templates/jh-metadata-template.md
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/03_Prompts/templates/agent-skill.md
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/*/raw/memories2/11_Obsidian_세컨드브레인_체크포인트.md
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky Vault Ingestion and Record Policy

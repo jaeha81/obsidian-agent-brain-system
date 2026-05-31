@@ -8,6 +8,9 @@ source:
   - ObsidianVault/00_System/LEGACY_INSTRUCTION_INVENTORY_2026-05-30.md
   - ObsidianVault/03_Projects/agents/mneme.md
   - ObsidianVault/03_Projects/agents/agent-dispatcher.md
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky User Communication and Output Policy

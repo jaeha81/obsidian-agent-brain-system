@@ -6,7 +6,106 @@
   "hideUnresolved": true,
   "showOrphans": false,
   "collapse-color-groups": false,
-  "colorGroups": [],
+  "colorGroups": [
+    {
+      "query": "tag:#area/gpt_feedback",
+      "color": {
+        "a": 1,
+        "rgb": 14737632
+      }
+    },
+    {
+      "query": "tag:#area/ai_automation",
+      "color": {
+        "a": 1,
+        "rgb": 5614335
+      }
+    },
+    {
+      "query": "tag:#area/make_com",
+      "color": {
+        "a": 1,
+        "rgb": 16744272
+      }
+    },
+    {
+      "query": "tag:#area/obsidian_brain",
+      "color": {
+        "a": 1,
+        "rgb": 8978380
+      }
+    },
+    {
+      "query": "tag:#area/interior_design OR tag:#area/construction",
+      "color": {
+        "a": 1,
+        "rgb": 16748574
+      }
+    },
+    {
+      "query": "tag:#area/field_management",
+      "color": {
+        "a": 1,
+        "rgb": 11206570
+      }
+    },
+    {
+      "query": "tag:#area/client_consulting",
+      "color": {
+        "a": 1,
+        "rgb": 16776960
+      }
+    },
+    {
+      "query": "tag:#area/vendor_meeting",
+      "color": {
+        "a": 1,
+        "rgb": 16753920
+      }
+    },
+    {
+      "query": "tag:#area/content_monetization OR tag:#area/web_revenue",
+      "color": {
+        "a": 1,
+        "rgb": 65280
+      }
+    },
+    {
+      "query": "tag:#area/business_model",
+      "color": {
+        "a": 1,
+        "rgb": 16711935
+      }
+    },
+    {
+      "query": "tag:#area/stock_investment OR tag:#area/crypto_investment",
+      "color": {
+        "a": 1,
+        "rgb": 16711680
+      }
+    },
+    {
+      "query": "tag:#status/active",
+      "color": {
+        "a": 1,
+        "rgb": 255
+      }
+    },
+    {
+      "query": "tag:#status/review_needed",
+      "color": {
+        "a": 1,
+        "rgb": 16744272
+      }
+    },
+    {
+      "query": "tag:#status/archive",
+      "color": {
+        "a": 1,
+        "rgb": 8421504
+      }
+    }
+  ],
   "collapse-display": false,
   "showArrow": false,
   "textFadeMultiplier": 0.1,
@@ -17,6 +116,6 @@
   "repelStrength": 13.3854166666667,
   "linkStrength": 0.6015625,
   "linkDistance": 428,
-  "scale": 0.03018289506732411,
+  "scale": 0.030182895067324172,
   "close": false
 }

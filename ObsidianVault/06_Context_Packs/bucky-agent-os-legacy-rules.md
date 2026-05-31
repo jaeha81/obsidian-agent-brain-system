@@ -5,6 +5,9 @@ created: 2026-05-30
 updated: 2026-05-30
 owner: Bucky
 scope: JH agent operating system
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky Agent OS Legacy Rules Context Pack

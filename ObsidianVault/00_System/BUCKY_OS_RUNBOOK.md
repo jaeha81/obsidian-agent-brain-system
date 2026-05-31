@@ -3,6 +3,8 @@ type: runbook
 status: active
 owner: Bucky
 updated: 2026-05-30
+tags:
+  - #status/active
 ---
 
 # Bucky OS Runbook

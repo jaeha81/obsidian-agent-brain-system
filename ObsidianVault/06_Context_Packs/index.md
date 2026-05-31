@@ -1,6 +1,8 @@
 ---
 type: index
 updated: 2026-05-30
+tags:
+  - #area/ai_automation
 ---
 
 # 06_Context_Packs Index

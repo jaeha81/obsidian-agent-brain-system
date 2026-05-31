@@ -3,6 +3,8 @@ type: legacy-secret-review-policy
 created: 2026-05-30
 status: active
 owner: Bucky
+tags:
+  - #status/active
 ---
 
 # Legacy Secret Review Policy

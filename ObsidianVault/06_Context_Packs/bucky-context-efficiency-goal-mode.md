@@ -7,6 +7,9 @@ source:
   - ObsidianVault/09_Archive/legacy-import/legacy-import/OBSIDIAN-SECOND/claude-knowledge/preferences/context-usage-principle.md
   - ObsidianVault/09_Archive/legacy-import/legacy-import/OBSIDIAN-SECOND/claude-knowledge/errors/context-waste-patterns.md
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/Codex_Goal_Mode_Playbook.md
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky Context Efficiency and Goal Mode Pack

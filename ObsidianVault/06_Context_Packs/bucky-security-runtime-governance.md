@@ -9,6 +9,9 @@ source:
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/12_ai_tools.md
   - ObsidianVault/09_Archive/legacy-import/legacy-import/Obsidian-Vault/raw/memories2/06_기술스택_개발원칙 (1).md
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories2/12_보안_법적기준.md
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky Security and Runtime Governance

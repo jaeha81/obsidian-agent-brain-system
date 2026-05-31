@@ -3,6 +3,8 @@ type: system-doc
 status: active
 created: 2026-05-30
 owner: Bucky
+tags:
+  - #status/active
 ---
 
 # Bucky Vault YAML 표준

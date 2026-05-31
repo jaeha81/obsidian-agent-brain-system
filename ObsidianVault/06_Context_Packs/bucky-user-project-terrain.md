@@ -12,6 +12,9 @@ source:
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/07_jh_brain.md
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/08_agent_hub_3d.md
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/10_business_strategy.md
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky User and Project Terrain

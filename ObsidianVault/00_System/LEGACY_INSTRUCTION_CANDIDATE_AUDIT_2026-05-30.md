@@ -3,6 +3,8 @@ type: audit
 status: active
 created: 2026-05-30
 owner: Bucky
+tags:
+  - #status/active
 ---
 
 # Legacy Instruction Candidate Audit - 2026-05-30

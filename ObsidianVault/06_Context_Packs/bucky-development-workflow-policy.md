@@ -6,6 +6,9 @@ owner: Bucky
 source:
   - ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/needs-merge/Obsidian-Vault/wiki/concept-dev-workflow.md
   - ObsidianVault/03_Knowledge/bridges/01_raw-memories-02_dev_workflow-md.md
+tags:
+  - #area/ai_automation
+  - #status/active
 ---
 
 # Bucky Development Workflow Policy
