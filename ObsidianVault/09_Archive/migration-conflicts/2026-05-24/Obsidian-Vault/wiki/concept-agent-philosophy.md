@@ -3,6 +3,7 @@ type: concept
 updated: 2026-04-27
 sources: [01_Projects/agents/COMMON-PHILOSOPHY.md, 01_Projects/agents/mneme.md]
 tags: [philosophy, agent, principles, evolution]
+  - #status/archive
 ---
 
 # 에이전트 공통 핵심 철학

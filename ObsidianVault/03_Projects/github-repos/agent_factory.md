@@ -2,6 +2,7 @@
 tags:
   - github
   - system
+  - #area/business_model
 repo: "https://github.com/jaeha81/agent_factory"
 language: "Python"
 last_commit: "2026-03-18"

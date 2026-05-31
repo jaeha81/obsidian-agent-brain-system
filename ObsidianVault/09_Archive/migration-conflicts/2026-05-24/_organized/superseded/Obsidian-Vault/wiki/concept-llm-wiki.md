@@ -3,6 +3,7 @@ type: concept
 updated: 2026-04-19
 sources: [source-llm-wiki-pattern]
 tags: [llm, knowledge-management, wiki, second-brain, rag]
+  - #status/archive
 ---
 
 # LLM Wiki — 복리 지식 베이스 패턴

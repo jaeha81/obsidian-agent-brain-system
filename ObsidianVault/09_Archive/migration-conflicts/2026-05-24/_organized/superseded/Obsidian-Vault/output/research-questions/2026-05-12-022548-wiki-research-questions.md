@@ -3,6 +3,7 @@ type: research-questions
 updated: 2026-05-12
 engine: jh-local-knowledge-graph
 tags: [local-graph, research-questions]
+  - #status/archive
 ---
 
 # Local Graph Research Questions - wiki

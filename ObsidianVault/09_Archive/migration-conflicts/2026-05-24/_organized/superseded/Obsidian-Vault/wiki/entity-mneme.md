@@ -3,6 +3,7 @@ type: entity
 updated: 2026-04-27
 sources: [01_Projects/agents/mneme.md]
 tags: [agent, master, mneme, jh-brain]
+  - #status/archive
 ---
 
 # 므네메 (MNEME) — 마스터 에이전트

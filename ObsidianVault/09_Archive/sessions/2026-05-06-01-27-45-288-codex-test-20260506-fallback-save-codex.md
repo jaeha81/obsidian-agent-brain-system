@@ -1,6 +1,7 @@
 ---
 tags:
   - orphan
+  - #status/archive
 ---
 
 # Codex ?몄뀡 湲곗뼲 ??2026-05-06 01:27:45

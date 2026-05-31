@@ -3,6 +3,7 @@ type: synthesis
 updated: 2026-05-12
 sources: [source-infranodus-llm-wiki-video, concept-llm-wiki]
 tags: [jh-system, infranodus, obsidian, graph-view, upgrade-analysis]
+  - #status/archive
 ---
 
 # JH InfraNodus Upgrade Analysis

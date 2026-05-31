@@ -2,6 +2,7 @@
 tags:
   - legal
   - context-pack
+  - #status/archive
 ---
 
 # Legal Context Pack — 주택법_분양청약

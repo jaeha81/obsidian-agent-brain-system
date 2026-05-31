@@ -4,6 +4,8 @@ project: "{{project}}"
 agent: "{{agent}}"
 created: "{{date}}"
 status: draft
+tags:
+  - #status/inbox
 ---
 
 # Bucky 지침 패킷

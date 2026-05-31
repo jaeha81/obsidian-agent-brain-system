@@ -4,6 +4,8 @@ priority: P1
 status: stabilized
 from: Codex
 created: 2026-05-31T18:50:00+09:00
+tags:
+  - #area/ai_automation
 ---
 
 # Recovery Status Pointer

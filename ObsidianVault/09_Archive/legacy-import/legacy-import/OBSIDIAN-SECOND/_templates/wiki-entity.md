@@ -3,6 +3,7 @@ type: entity
 updated: {{date:YYYY-MM-DD}}
 sources: []
 tags: []
+  - #status/archive
 ---
 
 # [엔티티명]

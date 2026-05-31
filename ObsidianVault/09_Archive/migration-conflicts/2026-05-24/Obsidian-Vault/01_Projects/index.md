@@ -3,6 +3,9 @@ type: reference
 system: JH-Obsidian-Vault
 date: 2026-04-29
 status: active
+tags:
+  - #status/archive
+  - #status/active
 ---
 
 # JH 프로젝트 전체 현황 인덱스

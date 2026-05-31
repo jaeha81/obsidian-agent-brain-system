@@ -3,6 +3,7 @@ type: entity
 updated: 2026-04-27
 sources: [01_Projects/agents/sub-agents.md, CLAUDE.md]
 tags: [agent, ecosystem, roles, harness]
+  - #status/archive
 ---
 
 # JH 에이전트 생태계

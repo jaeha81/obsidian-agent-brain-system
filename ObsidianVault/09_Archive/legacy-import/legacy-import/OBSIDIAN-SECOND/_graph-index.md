@@ -3,6 +3,7 @@ type: reference
 system: JH-Obsidian-Second
 date: 2026-04-26
 tags: [index, graph, hub]
+  - #status/archive
 summary: "JH Obsidian Second 전체 노트 허브 — 지식 자산 연결 지점"
 ---
 

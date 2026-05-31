@@ -3,6 +3,7 @@ type: pattern
 updated: 2026-05-12
 sources: [source-infranodus-llm-wiki-video]
 tags: [pattern, graph-gap, research, llm-wiki, infranodus]
+  - #status/archive
 ---
 
 # Graph Gap Driven Research

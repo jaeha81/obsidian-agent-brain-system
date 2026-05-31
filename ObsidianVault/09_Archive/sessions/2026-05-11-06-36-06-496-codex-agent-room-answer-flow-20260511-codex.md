@@ -1,6 +1,7 @@
 ---
 tags:
   - orphan
+  - #status/archive
 ---
 
 # Codex session memory - 2026-05-11 06:36:06

@@ -6,6 +6,8 @@ system: JH-Obsidian-Vault
 status: done
 date: 2026-04-27
 tags: [견적시스템, 사용가이드, PDF, Excel, Supabase, SQLite]
+  - #status/archive
+  - #status/completed
 summary: JH 견적시스템 전체 사용 가이드 — 설치, 실행, 파일 업로드, 공정 분류, 결과 다운로드
 ---
 

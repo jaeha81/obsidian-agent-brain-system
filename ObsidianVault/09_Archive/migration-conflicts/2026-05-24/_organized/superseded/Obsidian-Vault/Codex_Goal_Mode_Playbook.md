@@ -10,6 +10,8 @@ tags:
   - second-brain
   - ai-agent
   - workflow
+  - #status/archive
+  - #status/active
 status: active
 ---
 

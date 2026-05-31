@@ -9,6 +9,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: typeless-voice-ai-20260525

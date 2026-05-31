@@ -5,6 +5,8 @@ system: JH-Obsidian-Second
 status: done
 date: 2026-04-21
 tags: [jh-windows, launcher, electron, vbs, windows-encoding, insight]
+  - #status/archive
+  - #status/completed
 summary: "JH Windows 런처 개발 시 반복 등장한 Windows 실행 환경 문제와 해결 패턴"
 next_action: "새 Windows 실행 스크립트 작성 시 참고"
 ---

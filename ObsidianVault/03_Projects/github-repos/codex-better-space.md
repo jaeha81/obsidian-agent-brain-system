@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/codex-better-space"
 language: "TypeScript"
 last_commit: "2026-04-28"

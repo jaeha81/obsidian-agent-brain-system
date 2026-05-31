@@ -8,6 +8,8 @@ priority: P1
 owner: user
 date: 2026-04-28
 tags: [ai-api, routing, architecture, universal-prompt]
+  - #status/archive
+  - #status/active
 summary: 모든 신규 프로젝트에서 AI API를 선정·라우팅·보안 설계할 때 호출하는 범용 아키텍트 프롬프트
 next_action: 신규 프로젝트 시작 시 이 프롬프트를 LLM에 입력하여 API 스택 결정
 related: [skills/jh-ai-api-router]

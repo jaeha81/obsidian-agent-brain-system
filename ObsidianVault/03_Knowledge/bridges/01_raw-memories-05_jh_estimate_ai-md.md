@@ -7,6 +7,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: 05_jh_estimate_ai

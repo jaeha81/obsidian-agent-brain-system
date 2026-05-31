@@ -9,6 +9,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: 2026-04-28-claude-code

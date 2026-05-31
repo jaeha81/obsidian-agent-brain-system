@@ -9,6 +9,7 @@ tags:
   - ai-tool
   - discord-integration
   - bucky-upgrade
+  - #area/research
 status: processed
 ---
 

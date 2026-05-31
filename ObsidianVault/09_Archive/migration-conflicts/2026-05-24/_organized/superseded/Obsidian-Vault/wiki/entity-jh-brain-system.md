@@ -3,6 +3,7 @@ type: entity
 updated: 2026-04-27
 sources: [CLAUDE.md, AGENT_MEMORY.md]
 tags: [system, jh-brain, architecture, express]
+  - #status/archive
 ---
 
 # JH Brain System

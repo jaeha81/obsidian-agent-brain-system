@@ -8,6 +8,8 @@ priority: P2
 owner: user
 date: {{date:YYYY-MM-DD}}
 tags: []
+  - #status/archive
+  - #status/inbox
 summary: ""
 next_action: ""
 ---

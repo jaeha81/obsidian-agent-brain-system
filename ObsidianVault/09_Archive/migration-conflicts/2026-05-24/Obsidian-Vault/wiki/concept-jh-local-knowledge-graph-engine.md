@@ -3,6 +3,7 @@ type: concept
 updated: 2026-05-12
 sources: [concept-infranodus-graph-knowledge-base, decision-adopt-infranodus-graph-layer]
 tags: [local-graph, knowledge-graph, gap-analysis, codex]
+  - #status/archive
 ---
 
 # JH Local Knowledge Graph Engine

@@ -2,6 +2,7 @@
 type: index
 updated: 2026-05-12
 tags: [infranodus, knowledge-graph, ontology, gap-analysis]
+  - #status/archive
 ---
 
 # InfraNodus Graph Memory

@@ -3,6 +3,7 @@ type: knowledge
 source: https://youtu.be/VMvZuhcDdnw
 title: "Build $10,000 Websites using Claude Code (Ultimate Guide)"
 tags: [ai-agent, jh/pattern, web-delivery, claude-code]
+  - #area/research
 created: 2026-05-30
 ---
 

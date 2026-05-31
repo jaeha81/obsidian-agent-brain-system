@@ -8,6 +8,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: 01_personal_career

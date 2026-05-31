@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/jh-free-ott-hub"
 language: "Python"
 last_commit: "2026-04-29"

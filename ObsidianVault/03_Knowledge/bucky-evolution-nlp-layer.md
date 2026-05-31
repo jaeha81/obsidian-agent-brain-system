@@ -1,5 +1,6 @@
 ---
 tags: [bucky, evolution, nlp, stt, stripe, pattern]
+  - #area/research
 created: 2026-05-25
 type: knowledge
 status: implemented

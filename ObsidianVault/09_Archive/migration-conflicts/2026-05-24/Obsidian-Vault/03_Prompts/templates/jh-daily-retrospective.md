@@ -5,6 +5,8 @@ system: JH-Brain
 status: done
 date: {{date:YYYY-MM-DD}}
 tags: [daily, retrospective]
+  - #status/archive
+  - #status/completed
 ---
 
 # 일일 회고 — {{date:YYYY-MM-DD}}

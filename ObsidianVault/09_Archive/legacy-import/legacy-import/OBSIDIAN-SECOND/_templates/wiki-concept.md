@@ -3,6 +3,7 @@ type: concept
 updated: {{date:YYYY-MM-DD}}
 sources: []
 tags: []
+  - #status/archive
 ---
 
 # [개념명]

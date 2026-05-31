@@ -5,6 +5,8 @@ system: JH-Brain
 status: done
 date: 2026-04-30
 tags: [daily, retrospective]
+  - #status/archive
+  - #status/completed
 ---
 
 # 일일 회고 — 2026-04-30

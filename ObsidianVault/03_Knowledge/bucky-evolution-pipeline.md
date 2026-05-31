@@ -4,6 +4,7 @@ tags:
   - evolution
   - pipeline
   - vibe-coding
+  - #area/research
 created: 2026-05-25
 ---
 

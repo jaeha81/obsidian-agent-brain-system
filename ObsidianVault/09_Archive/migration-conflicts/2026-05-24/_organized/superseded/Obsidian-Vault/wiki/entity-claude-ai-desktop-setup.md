@@ -2,6 +2,7 @@
 updated: 2026-04-19
 type: entity
 tags: [setup, claude-ai, desktop, projects]
+  - #status/archive
 ---
 
 # Claude.ai Desktop — Projects 설정 가이드

@@ -3,6 +3,7 @@ type: knowledge-bridge-index
 created: 2026-05-27
 tags:
   - knowledge-bridge-index
+  - #area/research
 ---
 
 # Knowledge Bridge Index 008

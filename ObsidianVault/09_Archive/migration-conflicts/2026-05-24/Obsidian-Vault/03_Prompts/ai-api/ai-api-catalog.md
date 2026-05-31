@@ -7,6 +7,8 @@ status: active
 priority: P1
 date: 2026-04-29
 tags: [ai-api, catalog, routing, costs]
+  - #status/archive
+  - #status/active
 summary: 신규 프로젝트 시 AI API 선정 기준이 되는 카탈로그. /jh-ai-api-router 스킬과 함께 사용.
 related: [04_Prompts/ai-api-routing-architect.md, skills/jh-ai-api-router]
 last_review: 2026-04-29

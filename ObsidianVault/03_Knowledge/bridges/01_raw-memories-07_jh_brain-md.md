@@ -10,6 +10,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: 07_jh_brain

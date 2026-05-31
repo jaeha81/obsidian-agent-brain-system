@@ -3,6 +3,7 @@ type: synthesis
 updated: {{date:YYYY-MM-DD}}
 sources: []
 tags: []
+  - #status/archive
 ---
 
 # [주제] 종합

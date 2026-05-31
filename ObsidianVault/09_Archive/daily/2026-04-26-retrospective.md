@@ -6,6 +6,8 @@ status: done
 date: 2026-04-26
 tags: [daily, retrospective]
   - orphan
+  - #status/archive
+  - #status/completed
 ---
 
 # 일일 회고 — 2026-04-26

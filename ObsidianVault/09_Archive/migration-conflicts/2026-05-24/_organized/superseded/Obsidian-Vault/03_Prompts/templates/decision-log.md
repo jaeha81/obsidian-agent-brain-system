@@ -3,6 +3,9 @@ date: <% tp.date.now("YYYY-MM-DD") %>
 type: decision
 topic: <% tp.file.title %>
 status: active
+tags:
+  - #status/archive
+  - #status/active
 ---
 
 # 결정: <% tp.file.title %>

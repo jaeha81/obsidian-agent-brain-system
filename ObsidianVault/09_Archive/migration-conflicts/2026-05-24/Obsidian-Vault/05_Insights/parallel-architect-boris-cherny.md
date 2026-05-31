@@ -8,6 +8,8 @@ priority: P2
 owner: claude
 date: 2026-04-24
 tags: [parallel-workflow, claude-code, boris-cherny, agent-ops, productivity]
+  - #status/archive
+  - #status/completed
 summary: "Claude Code 제작자 Boris Cherny의 고속 병렬 AI 워크플로 — worktree 환경 분리, 자가 검증 루프, 계획 모드 우선의 3대 원칙"
 next_action: "분류 후 `05_Insights/parallel-workflow-boris-cherny.md` 또는 `03_Strategy/` 로 이동"
 ---

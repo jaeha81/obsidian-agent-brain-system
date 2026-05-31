@@ -2,6 +2,8 @@
 type: reference
 system: JH-Brain
 date: 2026-04-21
+tags:
+  - #status/archive
 ---
 
 # JH Obsidian Vault — 개발 기억 저장소

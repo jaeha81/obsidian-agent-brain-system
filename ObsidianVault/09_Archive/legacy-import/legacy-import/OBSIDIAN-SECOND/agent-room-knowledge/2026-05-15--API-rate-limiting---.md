@@ -1,6 +1,7 @@
 ---
 title: ??? API? rate limiting ?? ?? ????
 tags: [agent-room, goal-mode, question]
+  - #status/archive
 createdAt: 2026-05-15T17:18:44.000Z
 messageId: d16a0fa6-be52-4415-be4a-1c2af7f51e96
 speaker: user

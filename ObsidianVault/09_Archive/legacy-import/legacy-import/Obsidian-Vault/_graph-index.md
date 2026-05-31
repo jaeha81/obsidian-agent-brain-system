@@ -3,6 +3,7 @@ type: reference
 system: JH-Brain
 date: 2026-04-23
 tags: [index, graph, hub]
+  - #status/archive
 summary: "JH Obsidian Vault 전체 노트 허브 — 카테고리별 연결"
 ---
 

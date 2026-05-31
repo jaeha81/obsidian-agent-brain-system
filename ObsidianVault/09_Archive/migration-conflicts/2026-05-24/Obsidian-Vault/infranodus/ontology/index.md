@@ -2,6 +2,7 @@
 type: index
 updated: 2026-05-12
 tags: [ontology, infranodus, graph-memory]
+  - #status/archive
 ---
 
 # Ontology Graphs

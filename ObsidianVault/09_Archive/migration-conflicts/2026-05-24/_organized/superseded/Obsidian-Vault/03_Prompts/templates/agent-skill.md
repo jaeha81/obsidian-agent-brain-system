@@ -3,6 +3,8 @@ date: <% tp.date.now("YYYY-MM-DD") %>
 type: skill
 agent:
 version: 1.0
+tags:
+  - #status/archive
 ---
 
 # 스킬: <% tp.file.title %>

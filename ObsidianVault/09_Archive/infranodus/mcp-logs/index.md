@@ -3,6 +3,7 @@ type: index
 updated: 2026-05-12
 tags: [mcp, infranodus, tool-output]
   - orphan
+  - #status/archive
 ---
 
 # MCP Logs

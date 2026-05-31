@@ -2,6 +2,7 @@
 tags:
   - github
   - system
+  - #area/business_model
 repo: "https://github.com/jaeha81/JH-Agent-Room"
 language: "JavaScript"
 last_commit: "2026-05-20"

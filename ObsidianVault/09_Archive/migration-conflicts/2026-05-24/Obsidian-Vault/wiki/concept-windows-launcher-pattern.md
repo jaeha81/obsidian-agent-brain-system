@@ -3,6 +3,7 @@ type: concept
 updated: 2026-04-25
 sources: [source-jh-windows-launcher-insight]
 tags: [windows, launcher, powershell, vbs, encoding, electron]
+  - #status/archive
 ---
 
 # Windows 런처 개발 패턴

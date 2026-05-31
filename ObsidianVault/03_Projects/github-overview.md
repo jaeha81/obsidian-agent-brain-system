@@ -3,6 +3,7 @@ tags:
   - github
   - overview
   - dev-status
+  - #area/business_model
 generated: "2026-05-25T11:21:56"
 github_user: "jaeha81"
 total_repos: 39

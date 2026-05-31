@@ -3,6 +3,7 @@ type: concept
 updated: 2026-05-12
 sources: [source-infranodus-llm-wiki-video]
 tags: [infranodus, knowledge-graph, obsidian, llm-wiki, living-memory]
+  - #status/archive
 ---
 
 # InfraNodus Graph Knowledge Base

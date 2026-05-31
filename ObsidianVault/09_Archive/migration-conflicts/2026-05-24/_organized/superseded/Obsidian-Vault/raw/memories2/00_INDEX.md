@@ -2,6 +2,7 @@
 title: JH 백과사전 INDEX
 created: 2026-04-26
 tags: [인덱스, 목차, 백과사전]
+  - #status/archive
 ---
 
 # 재하 백과사전 — INDEX

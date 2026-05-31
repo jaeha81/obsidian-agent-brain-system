@@ -9,6 +9,8 @@ related:
   - Discord Bucky bot outage
   - Codex Playwright runtime recovery
   - Obsidian Agent Brain System runtime
+tags:
+  - #area/ai_automation
 ---
 
 # C: Drive Cleanup Incident Notice

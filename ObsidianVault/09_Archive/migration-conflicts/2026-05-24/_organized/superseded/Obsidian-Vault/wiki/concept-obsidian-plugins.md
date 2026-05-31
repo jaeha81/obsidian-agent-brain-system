@@ -3,6 +3,7 @@ type: concept
 updated: 2026-04-26
 sources: []
 tags: [obsidian, plugins, setup, knowledge-management]
+  - #status/archive
 ---
 
 # Obsidian 플러그인 구성 — SECOND 볼트

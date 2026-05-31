@@ -3,6 +3,7 @@ type: gap-analysis
 updated: 2026-05-12
 engine: jh-local-knowledge-graph
 tags: [local-graph, gap-analysis, jh]
+  - #status/archive
 ---
 
 # Local Graph Gap Analysis - wiki

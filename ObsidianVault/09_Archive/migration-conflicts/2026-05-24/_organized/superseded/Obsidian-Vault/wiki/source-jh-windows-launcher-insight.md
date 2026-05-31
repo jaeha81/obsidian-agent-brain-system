@@ -4,6 +4,7 @@ category: note
 date_added: 2026-04-25
 source_url:
 tags: [windows, launcher, powershell, jh-windows, insight]
+  - #status/archive
 ---
 
 # JH Windows 런처 개발 패턴 인사이트 — 2026-04-21 세션

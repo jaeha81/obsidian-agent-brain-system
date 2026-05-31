@@ -3,6 +3,7 @@ type: concept
 updated: 2026-04-27
 sources: [~/.claude/CLAUDE.md]
 tags: [workflow, development, plan-first, stages]
+  - #status/archive
 ---
 
 # JH 개발 워크플로우

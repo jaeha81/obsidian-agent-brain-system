@@ -2,6 +2,7 @@
 tags:
   - github
   - system
+  - #area/business_model
 repo: "https://github.com/jaeha81/obsidian-agent-brain-system"
 language: "Python"
 last_commit: "2026-05-25"

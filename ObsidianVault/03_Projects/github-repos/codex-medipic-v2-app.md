@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/codex-medipic-v2-app"
 language: "TypeScript"
 last_commit: "2026-05-11"

@@ -8,6 +8,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: 2026-05-25-discord-버키-진화-p0-완료-knowledge-capture-시스템-구축됨

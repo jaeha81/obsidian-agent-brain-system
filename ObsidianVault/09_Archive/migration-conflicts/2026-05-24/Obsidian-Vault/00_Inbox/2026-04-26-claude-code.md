@@ -2,6 +2,8 @@
 date: 2026-04-26
 source: claude-code
 type: session-capture
+tags:
+  - #status/archive
 ---
 
 ���� ĸó 2026-04-26 23:37

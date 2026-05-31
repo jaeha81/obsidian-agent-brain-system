@@ -4,6 +4,7 @@ updated: 2026-05-12
 source_type: youtube-transcript
 source_url: https://youtu.be/t61HGh4NsPs
 tags: [infranodus, llm-wiki, obsidian, knowledge-graph, graphrag]
+  - #status/archive
 ---
 
 # InfraNodus LLM Wiki Video Source

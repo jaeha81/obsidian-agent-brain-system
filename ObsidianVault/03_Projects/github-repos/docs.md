@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/docs"
 language: "MDX"
 last_commit: "2026-02-14"

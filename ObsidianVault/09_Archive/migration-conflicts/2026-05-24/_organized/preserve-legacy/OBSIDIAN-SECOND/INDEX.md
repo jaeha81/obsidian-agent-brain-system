@@ -2,6 +2,8 @@
 type: reference
 system: JH-Obsidian-Second
 date: 2026-04-25
+tags:
+  - #status/archive
 ---
 
 # JH Obsidian Second — LLM Wiki 지식 기반 볼트

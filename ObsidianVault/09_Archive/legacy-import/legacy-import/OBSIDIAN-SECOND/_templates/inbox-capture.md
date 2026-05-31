@@ -4,6 +4,7 @@ date: {{date:YYYY-MM-DD}}
 status: unprocessed
 source:
 tags: []
+  - #status/archive
 ---
 
 # [제목]

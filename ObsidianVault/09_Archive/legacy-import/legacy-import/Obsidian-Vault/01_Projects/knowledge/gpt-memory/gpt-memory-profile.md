@@ -3,6 +3,7 @@ type: knowledge
 source: gpt-memory
 date: 2026-04-27
 tags: [gpt, memory, profile, jaya, user]
+  - #status/archive
 summary: "재하(Jaya) 사용자 프로필 — 직업, 재정, AI 협업 철학, 답변 선호도, 개인 관심사"
 ---
 

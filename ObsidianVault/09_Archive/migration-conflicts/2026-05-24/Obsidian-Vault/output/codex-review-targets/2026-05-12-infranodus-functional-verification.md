@@ -2,6 +2,7 @@
 type: verification
 updated: 2026-05-12
 tags: [codex, infranodus, obsidian, verification]
+  - #status/archive
 ---
 
 # InfraNodus Functional Verification

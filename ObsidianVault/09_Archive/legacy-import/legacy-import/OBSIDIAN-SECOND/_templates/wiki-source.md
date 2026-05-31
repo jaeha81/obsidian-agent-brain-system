@@ -4,6 +4,7 @@ category: article
 date_added: {{date:YYYY-MM-DD}}
 source_url:
 tags: []
+  - #status/archive
 ---
 
 # [소스 제목]

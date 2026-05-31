@@ -7,6 +7,8 @@ status: archived
 date: 2026-04-28
 month: 2026-04
 tags: [monthly-review, growth-loop]
+  - #status/archive
+  - #status/archive
 ---
 
 # 월간 회고 — 2026-04

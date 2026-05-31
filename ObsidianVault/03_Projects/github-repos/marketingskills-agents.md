@@ -2,6 +2,7 @@
 tags:
   - github
   - system
+  - #area/business_model
 repo: "https://github.com/jaeha81/marketingskills-agents"
 language: "TypeScript"
 last_commit: "2026-05-11"

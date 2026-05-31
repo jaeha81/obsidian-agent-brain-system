@@ -14,6 +14,7 @@ tags:
   - RAG
   - AI-memory
   - prompt-engineering
+  - #area/research
 status: knowledge
 has_transcript: false
 ---

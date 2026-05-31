@@ -7,6 +7,7 @@ hubs:
   - "Obsidian"
 tags:
   - knowledge-bridge
+  - #area/research
 ---
 
 # Bridge: 2026-05-26-github---jaeha81jh-ideago-app-github

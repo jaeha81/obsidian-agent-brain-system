@@ -4,6 +4,7 @@ updated: 2026-05-12
 source_type: youtube-transcript
 source_url: https://youtu.be/TiB4Meb-Bio
 tags: [infranodus, text-analysis, knowledge-graph, gap-analysis, diagnostics]
+  - #status/archive
 ---
 
 # InfraNodus Visual AI Text Analysis Video

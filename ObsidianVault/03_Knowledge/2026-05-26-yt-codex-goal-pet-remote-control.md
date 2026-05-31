@@ -12,6 +12,7 @@ tags:
   - bucky
   - remote-control
   - ai-agent
+  - #area/research
 status: knowledge
 has_transcript: true
 transcript_file: "qMU5CB9M7hI.ko-orig.vtt"

@@ -3,6 +3,9 @@ type: reference
 system: JH-Obsidian-Vault
 date: 2026-04-29
 status: active
+tags:
+  - #status/archive
+  - #status/active
 ---
 tags:
   - orphan

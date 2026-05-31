@@ -5,6 +5,8 @@ system: JH-Obsidian-Second
 status: archived
 date: 2026-04-21
 tags: [session-log, jh-ecosystem, auto-capture, archive]
+  - #status/archive
+  - #status/archive
 summary: "2026-04-21 JH 생태계 자동화 구축 세션 통합 로그 (31개 캡처 → 1개로 합산)"
 ---
 

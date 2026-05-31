@@ -2,6 +2,7 @@
 tags:
   - legal
   - context-pack
+  - #status/archive
 ---
 
 # Legal Context Pack — 건축법_기초

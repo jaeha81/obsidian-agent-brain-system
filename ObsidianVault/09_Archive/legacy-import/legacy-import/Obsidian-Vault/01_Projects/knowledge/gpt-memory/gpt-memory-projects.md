@@ -3,6 +3,7 @@ type: knowledge
 source: gpt-memory
 date: 2026-04-27
 tags: [gpt, memory, projects, jaya]
+  - #status/archive
 summary: "재하(Jaya)의 진행 중인 프로젝트 목록 — 현황, 목표, 도메인"
 ---
 

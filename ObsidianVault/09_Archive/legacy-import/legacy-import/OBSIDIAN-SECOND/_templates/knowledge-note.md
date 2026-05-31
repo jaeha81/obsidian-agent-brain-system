@@ -3,6 +3,7 @@ type: knowledge
 updated: {{date:YYYY-MM-DD}}
 domain:
 tags: []
+  - #status/archive
 ---
 
 # [지식 제목]

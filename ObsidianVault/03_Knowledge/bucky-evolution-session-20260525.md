@@ -7,6 +7,8 @@ tags:
   - stt-upgrade
   - landing-page
   - self-reflection
+  - #area/research
+  - #status/active
 status: active
 ---
 

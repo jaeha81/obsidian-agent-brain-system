@@ -2,6 +2,7 @@
 type: index
 updated: 2026-05-12
 tags: [mcp, infranodus, tool-output]
+  - #status/archive
 ---
 
 # MCP Logs

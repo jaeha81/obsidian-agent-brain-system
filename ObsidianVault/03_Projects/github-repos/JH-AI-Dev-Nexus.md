@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/JH-AI-Dev-Nexus"
 language: "TypeScript"
 last_commit: "2026-05-16"

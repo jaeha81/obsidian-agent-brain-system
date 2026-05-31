@@ -5,6 +5,8 @@ system: JH-Brain
 status: archived
 date: 2026-04-26
 tags: [session-log, archive]
+  - #status/archive
+  - #status/archive
 ---
 
 # 세션 아카이브 — 2026-04-26

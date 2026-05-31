@@ -4,6 +4,7 @@ category: article
 date_added: 2026-04-19
 source_url: (대화 직접 제공)
 tags: [llm, knowledge-management, wiki, rag, second-brain]
+  - #status/archive
 ---
 
 # LLM Wiki — A Pattern for Building Personal Knowledge Bases Using LLMs

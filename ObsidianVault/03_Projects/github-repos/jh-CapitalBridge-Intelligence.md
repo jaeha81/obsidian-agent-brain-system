@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/jh-CapitalBridge-Intelligence"
 language: "TypeScript"
 last_commit: "2026-05-10"

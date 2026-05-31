@@ -1,6 +1,7 @@
 ---
 title: ���� �̵��� [REDACTED] Ű �߰� ��������
 tags: [agent-room, goal-mode, implementation]
+  - #status/archive
 createdAt: 2026-05-15T17:19:48.421Z
 messageId: 286edc86-ec19-4641-bbd5-013bd302ef6c
 speaker: user

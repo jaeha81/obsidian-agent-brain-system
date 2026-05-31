@@ -2,6 +2,7 @@
 type: index
 updated: 2026-05-12
 tags: [output, research-questions, actions]
+  - #status/archive
 ---
 
 # Output

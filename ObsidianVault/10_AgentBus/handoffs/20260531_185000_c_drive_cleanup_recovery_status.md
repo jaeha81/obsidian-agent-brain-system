@@ -9,6 +9,8 @@ related:
   - C: drive cleanup recovery
   - Discord Bucky bot
   - Codex Playwright runtime
+tags:
+  - #area/ai_automation
 ---
 
 # C: Drive Cleanup Recovery Status

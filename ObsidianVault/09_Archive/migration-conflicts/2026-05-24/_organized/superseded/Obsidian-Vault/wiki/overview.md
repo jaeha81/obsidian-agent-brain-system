@@ -2,6 +2,7 @@
 type: synthesis
 updated: 2026-04-27
 tags: [overview, jh-brain, dev-vault]
+  - #status/archive
 ---
 
 # JH 개발 볼트 — 위키 합성 개요

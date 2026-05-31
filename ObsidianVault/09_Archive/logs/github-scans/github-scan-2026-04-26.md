@@ -1,6 +1,7 @@
 ---
 tags:
   - orphan
+  - #status/archive
 ---
 
 # GitHub 전체 스캔 — 2026. 4. 26.

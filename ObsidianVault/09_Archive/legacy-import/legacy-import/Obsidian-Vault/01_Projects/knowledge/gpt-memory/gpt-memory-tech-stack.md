@@ -3,6 +3,7 @@ type: knowledge
 source: gpt-memory
 date: 2026-04-27
 tags: [gpt, memory, tech-stack, automation, agent, make, fastapi, nextjs]
+  - #status/archive
 summary: "재하(Jaya)의 현재 기술 스택, Make.com 자동화 완성 워크플로우, 멀티에이전트 아키텍처"
 ---
 

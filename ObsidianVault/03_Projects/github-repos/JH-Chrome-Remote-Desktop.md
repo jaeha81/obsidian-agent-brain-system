@@ -2,6 +2,7 @@
 tags:
   - github
   - project
+  - #area/business_model
 repo: "https://github.com/jaeha81/JH-Chrome-Remote-Desktop"
 language: "Python"
 last_commit: "2026-04-10"

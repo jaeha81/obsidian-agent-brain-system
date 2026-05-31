@@ -3,6 +3,7 @@ type: decision
 updated: 2026-05-12
 sources: [source-infranodus-llm-wiki-video, jh-infranodus-upgrade-analysis]
 tags: [decision, infranodus, graph-layer, obsidian, mcp]
+  - #status/archive
 ---
 
 # Adopt InfraNodus Graph Layer

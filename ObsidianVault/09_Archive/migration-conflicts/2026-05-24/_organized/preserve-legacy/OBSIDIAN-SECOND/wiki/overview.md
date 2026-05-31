@@ -3,6 +3,7 @@ type: synthesis
 updated: 2026-04-27
 sources: [source-llm-wiki-pattern, source-jh-windows-launcher-insight]
 tags: [meta, overview]
+  - #status/archive
 ---
 
 # Overview — 나의 세컨드 브레인

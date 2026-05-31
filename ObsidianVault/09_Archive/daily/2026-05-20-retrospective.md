@@ -6,6 +6,8 @@ status: done
 date: 2026-05-20
 tags: [daily, retrospective, jh-jarvis, i18n, frontend]
   - orphan
+  - #status/archive
+  - #status/completed
 ---
 
 # 일일 회고 — 2026-05-20

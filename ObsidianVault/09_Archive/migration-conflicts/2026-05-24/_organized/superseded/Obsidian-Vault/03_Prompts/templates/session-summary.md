@@ -2,6 +2,8 @@
 date: <% tp.date.now("YYYY-MM-DD") %>
 type: session-summary
 agent: 므네메
+tags:
+  - #status/archive
 ---
 
 # 세션 요약 — <% tp.date.now("YYYY-MM-DD HH:mm") %>

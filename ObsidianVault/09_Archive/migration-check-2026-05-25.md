@@ -1,5 +1,6 @@
 ---
 tags: [migration, system, archive]
+  - #status/archive
 created: 2026-05-25
 type: migration-check
 ---
