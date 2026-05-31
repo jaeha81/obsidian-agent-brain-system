@@ -3539,4 +3539,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    # --check: 문법 검사만 하고 Discord 연결 없이 즉시 종료 (Claude Code 훅 등 외부 헬스체크용)
+    if "--check" in sys.argv:
+        print("discord_bot.py syntax OK", flush=True)
+        raise SystemExit(0)
     main()
