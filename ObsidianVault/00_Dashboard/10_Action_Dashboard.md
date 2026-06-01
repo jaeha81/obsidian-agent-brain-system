@@ -18,7 +18,10 @@ tags:
 ```dataview
 TABLE category AS "분류", summary AS "요약", priority AS "우선순위", next_action AS "다음 행동"
 FROM ""
-WHERE status = "inbox" OR status = "review_needed" OR status = "active"
+WHERE (status = "inbox" OR status = "review_needed" OR status = "active") AND summary
+  AND !contains(file.path, "10_AgentBus/inbox") AND !contains(file.path, "10_AgentBus/outbox")
+  AND !contains(file.path, "10_AgentBus/completed") AND !contains(file.path, "10_AgentBus/failed")
+  AND !contains(file.path, "Inbox/DiscordCaptures")
 SORT priority ASC, file.mtime DESC
 LIMIT 30
 ```
@@ -28,8 +31,11 @@ LIMIT 30
 ```dataview
 TABLE summary AS "요약", automation_value AS "자동화 가치", next_action AS "다음 행동"
 FROM #area/ai_automation
-WHERE status != "archive" AND status != "completed"
+WHERE summary AND status != "archive" AND status != "completed"
+  AND !contains(file.path, "10_AgentBus/inbox") AND !contains(file.path, "10_AgentBus/outbox")
+  AND !contains(file.path, "10_AgentBus/completed") AND !contains(file.path, "10_AgentBus/failed")
 SORT file.mtime DESC
+LIMIT 20
 ```
 
 ## 사업화 가능 아이디어
@@ -37,7 +43,7 @@ SORT file.mtime DESC
 ```dataview
 TABLE category AS "분류", summary AS "요약", business_value AS "사업 가치", automation_value AS "자동화 가치", next_action AS "다음 행동"
 FROM ""
-WHERE business_value = "high" OR automation_value = "high"
+WHERE (business_value = "high" OR automation_value = "high") AND summary
 SORT file.mtime DESC
 LIMIT 20
 ```
@@ -47,7 +53,7 @@ LIMIT 20
 ```dataview
 TABLE summary AS "요약", status AS "상태", next_action AS "다음 행동"
 FROM ""
-WHERE status = "review_needed"
+WHERE status = "review_needed" AND summary
 SORT file.mtime DESC
 LIMIT 15
 ```

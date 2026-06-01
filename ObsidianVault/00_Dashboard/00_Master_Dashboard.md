@@ -35,7 +35,10 @@ Obsidian Agent Brain System의 중앙 지식 지도. 모든 영역의 허브 노
 ```dataview
 TABLE category AS "분류", summary AS "요약", priority AS "우선순위", next_action AS "다음 행동"
 FROM ""
-WHERE status = "inbox" OR status = "review_needed"
+WHERE (status = "inbox" OR status = "review_needed") AND summary
+  AND !contains(file.path, "10_AgentBus/inbox") AND !contains(file.path, "10_AgentBus/outbox")
+  AND !contains(file.path, "10_AgentBus/completed") AND !contains(file.path, "10_AgentBus/failed")
+  AND !contains(file.path, "Inbox/DiscordCaptures")
 SORT file.mtime DESC
 LIMIT 20
 ```
@@ -45,7 +48,7 @@ LIMIT 20
 ```dataview
 TABLE category AS "분류", summary AS "요약", next_action AS "다음 행동", review_date AS "검토일"
 FROM ""
-WHERE priority = "p1"
+WHERE priority = "p1" AND summary
 SORT file.mtime DESC
 ```
 

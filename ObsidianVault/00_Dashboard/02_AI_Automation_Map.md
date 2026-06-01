@@ -31,16 +31,19 @@ AI 자동화 시스템 허브. 구현 중/완료/아이디어 전체 추적.
 ## AI 자동화 대시보드
 
 ```dataview
-TABLE summary AS "요약", keywords AS "키워드", automation_value AS "자동화 가치", next_action AS "다음 행동"
+TABLE summary AS "요약", automation_value AS "자동화 가치", next_action AS "다음 행동"
 FROM #area/ai_automation
+WHERE summary AND !contains(file.path, "10_AgentBus/inbox") AND !contains(file.path, "10_AgentBus/outbox") AND !contains(file.path, "10_AgentBus/completed") AND !contains(file.path, "10_AgentBus/failed")
 SORT file.mtime DESC
+LIMIT 20
 ```
 
 ## Make.com 워크플로우
 
 ```dataview
-TABLE summary AS "요약", keywords AS "키워드", status AS "상태", next_action AS "다음 행동"
+TABLE summary AS "요약", status AS "상태", next_action AS "다음 행동"
 FROM #area/make_com
+WHERE summary
 SORT priority ASC, file.mtime DESC
 ```
 
@@ -49,6 +52,6 @@ SORT priority ASC, file.mtime DESC
 ```dataview
 TABLE summary AS "요약", status AS "상태", automation_value AS "자동화 가치"
 FROM #area/ai_automation OR #area/make_com
-WHERE status = "hold" OR status = "inbox"
+WHERE summary AND (status = "hold" OR status = "inbox")
 SORT file.mtime DESC
 ```
