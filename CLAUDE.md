@@ -81,3 +81,19 @@ For security, auth, payment, deployment, public release, customer data, or agent
 - `rollback_or_recovery`
 
 Do not paste or persist `.env`, API keys, passwords, webhook URLs, DB credentials, PII, or customer secrets.
+
+## VS Code Context Activation
+
+사용자가 "VS코드 확인", "VS코드 작업 이어서", "VS코드에 들어가" 등을 요청하면 즉시 실행:
+
+```bash
+python -X utf8 scripts/vscode_context.py
+```
+
+출력에서 `active_workspace`와 `recent_edited_files`를 읽어 현재 작업 맥락을 파악한 뒤 답변한다.
+
+특정 파일을 VS Code에서 열어야 할 때:
+
+```bash
+python -X utf8 scripts/vscode_context.py --open "경로/파일.py:라인번호"
+```
