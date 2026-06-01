@@ -180,6 +180,49 @@ An agent may report completion only when current evidence proves the requested o
 - record/handoff path is saved when required
 - no broader claim is made than the evidence supports
 
+## Execution Environment — VS Code Integration (2026-06-02 추가)
+
+Claude Code는 세 가지 실행 환경에서 작동한다:
+
+| env | 설명 | 가능한 작업 |
+|-----|------|------------|
+| `local` | 터미널(bash/PowerShell) | 파일 수정, git, 스크립트 실행, 배포 |
+| `web-ext` | 웹 브라우저 Claude Code/Codex 확장 | 코드 리뷰, 제안, 질의 — 파일 직접 저장 불가 |
+| `vscode` | VS Code 내장 Claude Code 확장 | 파일 수정 + VS Code 에디터 컨텍스트 자동 인지 |
+
+### VS Code 컨텍스트 캡처 (터미널 → VS Code 상태 확인)
+
+사용자가 "VS코드 확인해", "VS코드 작업 이어서" 요청 시 Claude Code가 실행하는 절차:
+
+```bash
+# 1. 현재 VS Code 상태 캡처
+python -X utf8 scripts/vscode_context.py
+
+# 2. JSON 출력 (파싱용)
+python -X utf8 scripts/vscode_context.py --json
+
+# 3. VS Code에서 특정 파일 열기
+python -X utf8 scripts/vscode_context.py --open "apps/api/main.py:42"
+```
+
+`scripts/vscode_context.py`는:
+- 현재 활성 VS Code 워크스페이스 경로 반환
+- VS Code History에서 최근 편집 파일 목록 반환
+- 워크스페이스 내 최근 수정 파일 목록 반환
+
+### Bucky 패킷 env 필드
+
+패킷 발행 시 `env` 필드를 명시한다:
+
+```yaml
+env: local          # 터미널에서 실행
+env: web-ext        # 웹 확장에서 실행 (파일 수정 불가)
+env: vscode         # VS Code 내 확장에서 실행
+env: vscode+local   # VS Code 확장 + 터미널 병행
+```
+
+env가 `web-ext`인 경우 Claude/Codex는 파일 직접 저장·git 작업을 수행하지 않고 제안·리뷰만 제공한다.
+
 ## ⛔ 완료 보고 증거 강제 규칙 (HARD RULE — 2026-05-30 추가)
 
 **배경**: Bucky가 실제 도구 실행 없이 완료를 선언한 허위보고 패턴이 반복 확인됨 (JH-SHARED 이동은 archive-only / not current operating authority, Gate 1 registry repair 등).
