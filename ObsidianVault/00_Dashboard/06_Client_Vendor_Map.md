@@ -19,6 +19,13 @@ tags:
 
 ---
 
+## 핵심 노트
+
+- [[11_client_projects]] — 클라이언트 납품 프로젝트 목록 (의료미용 D2C, EONID 포트폴리오 등)
+- [[01_raw-memories-11_client_projects-md]] — Knowledge Bridge (클라이언트 프로젝트 연결)
+
+---
+
 ## 클라이언트/견적 대시보드
 
 ```dataview

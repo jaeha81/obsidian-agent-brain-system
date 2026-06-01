@@ -44,6 +44,54 @@ FOLDER_AREA_MAP = {
     ".smart-env":           [],
 }
 
+# 파일명/YAML title 키워드 → 추가할 area 태그
+# 파일명(stem)과 frontmatter title 필드만 검사 — body 스캔은 오탐이 많아 제외
+KEYWORD_AREA_MAP = [
+    # (키워드 목록, 추가할 태그)  — 키워드는 소문자, 언더스코어/하이픈 포함 가능
+    (
+        ["interior-design", "interior_design", "spaceplanner", "인테리어_견적", "인테리어-견적", "견적시스템"],
+        "#area/interior_design",
+    ),
+    (
+        ["client_project", "client-project", "11_client"],
+        "#area/client_consulting",
+    ),
+    (
+        ["시공관리", "현장관리", "field_management"],
+        "#area/construction",
+    ),
+]
+
+
+def _extract_yaml_title(text: str) -> str:
+    """frontmatter의 title 값만 추출 (소문자). 없으면 빈 문자열."""
+    if not text.startswith("---"):
+        return ""
+    lines = text.splitlines()
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        m = re.match(r'^title:\s*["\']?(.+?)["\']?\s*$', line, re.IGNORECASE)
+        if m:
+            return m.group(1).lower()
+    return ""
+
+
+def get_keyword_area_tags(path: Path, text: str) -> list[str]:
+    """파일명과 YAML title 키워드로 추가 area 태그 반환 (오탐 최소화)."""
+    filename_lower = path.stem.lower()
+    title_lower = _extract_yaml_title(text)
+    search_targets = [filename_lower, title_lower]
+    tags = []
+    for keywords, tag in KEYWORD_AREA_MAP:
+        for kw in keywords:
+            kw_lower = kw.lower()
+            if any(kw_lower in target for target in search_targets):
+                tags.append(tag)
+                break
+    return tags
+
+
 # YAML status 필드값 → status 태그 매핑
 STATUS_TAG_MAP = {
     "active":       "#status/active",
@@ -181,6 +229,12 @@ def process_file(path: Path, dry_run: bool) -> dict:
     tags_to_add = list(area_tags)
     if status_tag:
         tags_to_add.append(status_tag)
+
+    # 키워드 기반 추가 태그 (폴더 태그가 없거나 있어도 추가)
+    keyword_tags = get_keyword_area_tags(path, text)
+    for t in keyword_tags:
+        if t not in tags_to_add:
+            tags_to_add.append(t)
 
     if not tags_to_add:
         result["skipped"] = True

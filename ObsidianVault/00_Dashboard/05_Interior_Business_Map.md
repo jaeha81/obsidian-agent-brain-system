@@ -19,6 +19,14 @@ tags:
 
 ---
 
+## 핵심 노트
+
+- [[05_인테리어_견적시스템]] — 14단계 견적 흐름 / JH-견적시스템 아키텍처
+- [[2026-05-27-spaceplanner---interior-design-platform]] — SpacePlanner 3D 플랫폼 리서치
+- [[2026-05-27-spaceplanner---interior-design-platform (1)]] — SpacePlanner 리서치 사본
+
+---
+
 ## 인테리어 업무 대시보드
 
 ```dataview

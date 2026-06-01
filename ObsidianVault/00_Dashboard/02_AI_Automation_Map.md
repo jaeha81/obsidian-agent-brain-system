@@ -19,6 +19,15 @@ AI 자동화 시스템 허브. 구현 중/완료/아이디어 전체 추적.
 
 ---
 
+## 핵심 노트
+
+- [[00_overview]] — JH 메모리 전체 개요
+- [[07_jh_brain]] — JH Brain 에이전트 아키텍처
+- [[06_jh_harness]] — JH Harness 시스템
+- [[10_AgentBus/index]] — AgentBus 인덱스
+
+---
+
 ## AI 자동화 대시보드
 
 ```dataview

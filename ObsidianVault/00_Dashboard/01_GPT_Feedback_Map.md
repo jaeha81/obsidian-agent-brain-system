@@ -28,11 +28,19 @@ GPT 채팅 기록 및 오늘의 플러스 피드백 허브.
 
 ---
 
+## 핵심 노트
+
+- [[2026-05-30-오늘의-플러스-운영-리포트]] — 오늘의 플러스 운영 현황
+- [[20260523_harness_subscription_agent_update]] — Harness 구독 에이전트 업데이트
+- [[20260522_init_completion_report]] — Init 완료 리포트
+
+---
+
 ## GPT 피드백 기록 대시보드
 
 ```dataview
-TABLE summary AS "요약", keywords AS "키워드", status AS "상태", next_action AS "다음 행동"
-FROM #area/gpt_feedback
+TABLE file.mtime AS "수정일", summary AS "요약", status AS "상태"
+FROM "07_Reports" OR "04_DAILY_REPORTS"
 SORT file.mtime DESC
 LIMIT 20
 ```
@@ -41,8 +49,8 @@ LIMIT 20
 
 ```dataview
 LIST
-FROM "ObsidianVault/01_RAW"
-WHERE contains(file.name, "GPT_Feedback") OR contains(file.name, "Daily_Report")
+FROM "01_RAW"
+WHERE contains(file.name, "플러스") OR contains(file.name, "report") OR contains(file.name, "리포트")
 SORT file.mtime DESC
 LIMIT 10
 ```

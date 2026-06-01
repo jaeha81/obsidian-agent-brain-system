@@ -9,6 +9,7 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+  - #area/client_consulting
 ---
 
 # Bridge: 11_client_projects
