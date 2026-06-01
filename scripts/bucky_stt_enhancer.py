@@ -255,15 +255,77 @@ def postprocess_for_bucky(raw_text: str, context: Optional[list] = None) -> str:
 # ── CLI 테스트 ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import sys
-    tests = sys.argv[1:] or [
-        "음 그 저기 배포해줘 https://github.com/user/bucky",
-        "어 그러니까 패턴 분석 한번 해봐",
-        "대시보드 만들어줘 미니멀하게",
-        "안녕 버키야",
-    ]
-    for t in tests:
-        r = enhance_stt(t)
-        print(f"\n원문: {t}")
-        print(f"정제: {r['text']}")
-        print(f"의도: {r['intent']} | 명령어: {r['detected_command']} | 신뢰도: {r['confidence']:.0%}")
+    import argparse
+    import datetime
+
+    parser = argparse.ArgumentParser(description="Bucky STT Enhancer")
+    parser.add_argument("--test-mode", action="store_true", help="현장 STT 스모크 테스트 (WER 측정)")
+    parser.add_argument("--input", type=str, default="", help="테스트할 STT 텍스트 (파일경로 또는 직접 입력)")
+    parser.add_argument("texts", nargs="*", help="직접 입력 텍스트")
+    args = parser.parse_args()
+
+    if args.test_mode:
+        # 현장 STT 6단계 스모크 테스트
+        test_sentences = [
+            args.input if args.input else "어 그 저기 화장실 타일 줄눈 처리 해줘",
+            "석고보드 두께 12.5밀리 확인해줘",
+            "LH 아파트 실측 도면 올려줘",
+            "몰딩 마감재 MDF 단가 조회해",
+            "철근 배근 간격 200 피치로 수정해줘",
+        ]
+        ref_sentences = [
+            "화장실 타일 줄눈 처리 해줘",
+            "석고보드 두께 12.5밀리 확인해줘",
+            "LH 아파트 실측 도면 올려줘",
+            "몰딩 마감재 MDF 단가 조회해",
+            "철근 배근 간격 200 피치로 수정해줘",
+        ]
+        print("=" * 60)
+        print("현장 STT 스모크 테스트 — WER 측정")
+        print("=" * 60)
+        total_words, error_words = 0, 0
+        results = []
+        for stt_in, ref in zip(test_sentences, ref_sentences):
+            r = enhance_stt(stt_in)
+            out = r["text"]
+            ref_tokens = ref.split()
+            out_tokens = out.split()
+            errors = sum(1 for a, b in zip(ref_tokens, out_tokens) if a != b) + abs(len(ref_tokens) - len(out_tokens))
+            total_words += len(ref_tokens)
+            error_words += errors
+            results.append((stt_in, ref, out, errors, len(ref_tokens)))
+            print(f"\n원문STT : {stt_in}")
+            print(f"참조    : {ref}")
+            print(f"정제결과: {out}")
+            print(f"오류단어: {errors}/{len(ref_tokens)} | 의도: {r['intent']} | 명령어: {r['detected_command']}")
+
+        wer = (error_words / total_words * 100) if total_words else 0
+        verdict = "합격 ✅" if wer < 15 else "불합격 ❌"
+        print("\n" + "=" * 60)
+        print(f"WER: {wer:.1f}% (목표 < 15%) — {verdict}")
+        print("=" * 60)
+
+        # 결과 저장
+        today = datetime.date.today().isoformat()
+        out_path = ROOT / "ObsidianVault/05_Frameworks/guides" / f"stt-test-result-{today}.md"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(f"---\ndate: {today}\ntype: stt-test-result\nwer: {wer:.1f}\nverdict: {'pass' if wer < 15 else 'fail'}\n---\n\n")
+            f.write(f"# STT 현장 스모크 테스트 결과 — {today}\n\n")
+            f.write(f"**WER: {wer:.1f}% | {verdict}**\n\n")
+            f.write("| 원문STT | 참조 | 정제결과 | 오류 |\n|---|---|---|---|\n")
+            for stt_in, ref, out, errors, total in results:
+                f.write(f"| {stt_in} | {ref} | {out} | {errors}/{total} |\n")
+        print(f"\n결과 저장: {out_path}")
+    else:
+        texts = args.texts or [
+            "음 그 저기 배포해줘 https://github.com/user/bucky",
+            "어 그러니까 패턴 분석 한번 해봐",
+            "대시보드 만들어줘 미니멀하게",
+            "안녕 버키야",
+        ]
+        for t in texts:
+            r = enhance_stt(t)
+            print(f"\n원문: {t}")
+            print(f"정제: {r['text']}")
+            print(f"의도: {r['intent']} | 명령어: {r['detected_command']} | 신뢰도: {r['confidence']:.0%}")
