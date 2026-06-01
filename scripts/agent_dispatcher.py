@@ -29,6 +29,12 @@ from dotenv import load_dotenv
 from bucky_client import BuckyError, run_bucky
 from harness_router import build_development_brief, is_harness_router_enabled
 
+try:
+    from agent_keyword_router import log_routing as _kw_log_routing
+except ImportError:
+    def _kw_log_routing(body: str, source: str = "") -> str:  # type: ignore[misc]
+        return ""
+
 # ── 환경 설정 ──────────────────────────────────────────────────────────────────
 
 _ROOT = Path(__file__).parent.parent
@@ -421,6 +427,11 @@ def process_file(filepath: Path) -> None:
 
     task_type = fm.get("type", "unknown")
     print(f"[Dispatcher] {filepath.name}  type={task_type}")
+
+    # 키워드 라우팅 힌트 로그 (기존 라우팅 유지 — 참고용)
+    kw_hint = _kw_log_routing(body, source=filepath.stem[:20])
+    if kw_hint:
+        print(f"  {kw_hint}")
 
     # 처리 시작 표시
     update_frontmatter(filepath, {"status": "processing", "processing_started": iso()})

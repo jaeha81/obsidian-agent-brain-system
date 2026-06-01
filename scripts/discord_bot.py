@@ -114,6 +114,16 @@ try:
 except ImportError:
     _SELF_REFLECTION_ENABLED = False
 
+try:
+    from agent_keyword_router import classify as _kw_classify, format_routing_hint as _kw_hint
+    _KW_ROUTER_ENABLED = True
+except ImportError:
+    _KW_ROUTER_ENABLED = False
+    def _kw_classify(text: str):  # type: ignore[misc]
+        return None, []
+    def _kw_hint(agent, matched) -> str:  # type: ignore[misc]
+        return ""
+
 _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8")
 
@@ -3122,9 +3132,20 @@ class BuckyDiscordBot(discord.Client):
             if body:
                 if _WORKER_POOL_ENABLED and tq:
                     task = await asyncio.to_thread(tq.add, body[:60], body, None, "discord")
-                    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}.get(task["agent"], "")
+                    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖", "gemini": "🔭"}.get(task["agent"], "")
                     tid = task["id"]
                     title_short = task["title"][:40]
+
+                    # 키워드 라우팅 힌트
+                    kw_agent, kw_matched = _kw_classify(body)
+                    kw_hint_str = _kw_hint(kw_agent, kw_matched)
+                    routing_line = (
+                        f"→ `{task['agent'].upper()}` 배정"
+                        + (f" | {kw_hint_str}" if kw_hint_str else "")
+                        + " · 백그라운드 실행 시작"
+                    )
+                    if kw_hint_str:
+                        print(f"[KeywordRouter] !task → {kw_agent} | {kw_matched[:3]}", flush=True)
 
                     # 스레드 생성 — 결과 격리용
                     thread = None
@@ -3141,7 +3162,7 @@ class BuckyDiscordBot(discord.Client):
                     thread_mention = f" → {thread.mention}" if thread else ""
                     await message.channel.send(
                         f"📥 `{tid}` {agent_icon} **{task['title']}**\n"
-                        f"→ `{task['agent'].upper()}` 배정 · 백그라운드 실행 시작{thread_mention}"
+                        f"{routing_line}{thread_mention}"
                     )
                     pool = _get_worker_pool()
                     pool.submit(

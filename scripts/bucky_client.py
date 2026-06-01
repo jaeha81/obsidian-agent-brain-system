@@ -35,6 +35,14 @@ except Exception:  # router 없을 때도 동작
     def fallback_chain(primary: str) -> list[str]:  # type: ignore
         return [primary]
 
+try:
+    from cli_call_logger import log as _cli_log
+    _CLI_LOG_ENABLED = True
+except ImportError:
+    def _cli_log(**kwargs) -> None:  # type: ignore[misc]
+        pass
+    _CLI_LOG_ENABLED = False
+
 
 # Sonnet/Haiku/Opus 한도 초과 패턴 (Claude CLI stderr/stdout)
 LIMIT_PATTERNS = re.compile(
@@ -148,7 +156,10 @@ def run_bucky(
     last_err: BuckyError | None = None
     for attempt_model in chain:
         try:
-            return _invoke_bucky(prompt, system_prompt, timeout, attempt_model, with_tools=False)
+            return _invoke_bucky(
+                prompt, system_prompt, timeout, attempt_model,
+                with_tools=False, task_type=task_type or "", source="run_bucky",
+            )
         except BuckyLimitError as exc:
             last_err = exc
             print(
@@ -166,7 +177,10 @@ def _invoke_bucky(
     model: str,
     *,
     with_tools: bool,
+    task_type: str = "",
+    source: str = "",
 ) -> str:
+    import time as _time
     timeout_s = timeout or int(os.getenv("BUCKY_TIMEOUT", "900"))
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
@@ -188,6 +202,7 @@ def _invoke_bucky(
     else:
         cmd = build_bucky_command(system_prompt, model=model)
 
+    t0 = _time.monotonic()
     result = subprocess.run(
         cmd,
         input=prompt,
@@ -199,12 +214,28 @@ def _invoke_bucky(
         timeout=timeout_s,
         env=env,
     )
-    if result.returncode != 0:
+    duration_ms = int((_time.monotonic() - t0) * 1000)
+
+    success = result.returncode == 0
+    output = _strip_preamble(result.stdout).strip() if success else ""
+
+    _cli_log(
+        command=bucky_command(),
+        prompt=prompt,
+        response=output or (result.stderr or result.stdout or "").strip(),
+        success=success,
+        duration_ms=duration_ms,
+        model=model,
+        task_type=task_type,
+        source=source or ("with_tools" if with_tools else "no_tools"),
+    )
+
+    if not success:
         detail = (result.stderr or result.stdout or "").strip()
         if LIMIT_PATTERNS.search(detail):
             raise BuckyLimitError(f"{model} usage limit hit: {detail[:200]}")
         raise BuckyError(f"Bucky runtime failed with code {result.returncode}: {detail}")
-    return _strip_preamble(result.stdout).strip()
+    return output
 
 
 def run_bucky_with_tools(
