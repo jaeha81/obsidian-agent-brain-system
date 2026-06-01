@@ -132,6 +132,16 @@ DASHBOARD_INTERACTION_CSS = """
   .message-actions button { border: 1px solid var(--line); border-radius: 8px; min-height: 40px; padding: 8px 13px; cursor: pointer; font-weight: 800; background: #fff; color: var(--ink); }
   .message-actions .send { background: #eff6ff; color: var(--blue); border-color: #bfdbfe; }
   .message-actions .copy { background: #f8fafc; color: #475569; }
+  .knowledge-intake { display: grid; gap: 10px; }
+  .knowledge-intake .intake-grid { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 10px; }
+  .knowledge-intake textarea, .knowledge-intake input, .knowledge-intake select { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); padding: 11px 12px; font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+  .knowledge-intake textarea { min-height: 132px; resize: vertical; }
+  .knowledge-intake textarea:focus, .knowledge-intake input:focus, .knowledge-intake select:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,118,110,.12); }
+  .knowledge-intake .file-row { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 10px; }
+  .intake-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .intake-actions button { border: 1px solid var(--line); border-radius: 8px; min-height: 40px; padding: 8px 13px; cursor: pointer; font-weight: 800; background: #fff; color: var(--ink); }
+  .intake-actions .send-discord { background: #f0fdfa; color: var(--teal); border-color: #99f6e4; }
+  .intake-actions .copy { background: #f8fafc; color: #475569; }
   .toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 60; background: #0f172a; color: #fff; border-radius: 999px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(15,23,42,.28); opacity: 0; pointer-events: none; transition: opacity .16s ease; }
   .toast.show { opacity: 1; }
 """
@@ -142,6 +152,8 @@ DASHBOARD_INTERACTION_JS = """
 (function () {
   var DEFAULT_BUCKY_ENDPOINT = "";
   var ENDPOINT_KEY = "dailyPlusBuckyOsIntakeUrl";
+  var DISCORD_WEBHOOK_KEY = "bucky-webhook";
+  var DISCORD_WEBHOOK_NAME_KEY = "bucky-wh-name";
   var ACTIVE_COMMAND = null;
 
   function showToast(message) {
@@ -229,6 +241,63 @@ DASHBOARD_INTERACTION_JS = """
       }
       throw error;
     }
+  }
+
+  async function postDiscordWebhookWithFiles(content, files) {
+    var url = localStorage.getItem(DISCORD_WEBHOOK_KEY) || "";
+    var username = localStorage.getItem(DISCORD_WEBHOOK_NAME_KEY) || "JH Daily Plus";
+    if (!url) throw new Error("Discord webhook URL is not configured.");
+
+    var safeFiles = Array.prototype.slice.call(files || [], 0, 10);
+    if (!safeFiles.length) {
+      var response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: content, username: username })
+      });
+      if (!response.ok) throw new Error("Discord HTTP " + response.status);
+      return { files: 0 };
+    }
+
+    var form = new FormData();
+    form.append("payload_json", JSON.stringify({ content: content, username: username }));
+    safeFiles.forEach(function (file, index) {
+      form.append("files[" + index + "]", file, file.name);
+    });
+    var uploadResponse = await fetch(url, { method: "POST", body: form });
+    if (!uploadResponse.ok) throw new Error("Discord upload HTTP " + uploadResponse.status);
+    return { files: safeFiles.length };
+  }
+
+  function buildKnowledgeIntakePayload() {
+    var typeEl = document.getElementById("dailyPlusIntakeType");
+    var titleEl = document.getElementById("dailyPlusIntakeTitle");
+    var bodyEl = document.getElementById("dailyPlusIntakeBody");
+    var tagsEl = document.getElementById("dailyPlusIntakeTags");
+    var filesEl = document.getElementById("dailyPlusIntakeFiles");
+    var type = typeEl ? typeEl.value : "auto";
+    var title = titleEl ? titleEl.value.trim() : "";
+    var body = bodyEl ? bodyEl.value.trim() : "";
+    var tags = tagsEl ? tagsEl.value.trim() : "";
+    var files = filesEl ? Array.prototype.slice.call(filesEl.files || [], 0, 10) : [];
+    var fileLines = files.map(function (file) {
+      return "- " + file.name + " (" + Math.ceil(file.size / 1024) + " KB)";
+    });
+    var isSingleUrl = /^https?:\\/\\/\\S+$/i.test(body);
+    var command = isSingleUrl ? "!capture " + body : "!capture " + (title || body || "[Daily Plus dashboard file intake]");
+
+    return [
+      command,
+      "",
+      "[Daily Plus Knowledge Intake]",
+      "type: " + type,
+      "title: " + (title || "(untitled)"),
+      "tags: " + (tags || "(none)"),
+      "source: daily-plus-dashboard",
+      fileLines.length ? "files:\\n" + fileLines.join("\\n") : "files: (none)",
+      "",
+      body && !isSingleUrl ? body : ""
+    ].join("\\n").trim();
   }
 
   function commandText(action, card) {
@@ -364,6 +433,42 @@ DASHBOARD_INTERACTION_JS = """
     copyButton.addEventListener("click", async function () {
       var input = document.getElementById("buckyMessage");
       await copyPayload(input ? input.value : "");
+    });
+  }
+
+  var intakeCopyButton = document.getElementById("copyDailyPlusIntake");
+  if (intakeCopyButton) {
+    intakeCopyButton.addEventListener("click", async function () {
+      await copyPayload(buildKnowledgeIntakePayload());
+    });
+  }
+
+  var intakeSendButton = document.getElementById("sendDailyPlusIntake");
+  if (intakeSendButton) {
+    intakeSendButton.addEventListener("click", async function () {
+      var filesEl = document.getElementById("dailyPlusIntakeFiles");
+      var payload = buildKnowledgeIntakePayload();
+      if (!payload && (!filesEl || !filesEl.files || !filesEl.files.length)) {
+        setMessageStatus("링크, 글, 자료 또는 파일을 먼저 넣어 주세요.", true);
+        return;
+      }
+      intakeSendButton.disabled = true;
+      intakeSendButton.textContent = "Discord 전송 중...";
+      try {
+        var result = await postDiscordWebhookWithFiles(payload, filesEl ? filesEl.files : []);
+        setMessageStatus("Discord를 통해 Bucky Intake 전송 완료" + (result.files ? " (" + result.files + " files)" : ""));
+        showToast("Bucky Intake 전송 완료");
+        ["dailyPlusIntakeTitle", "dailyPlusIntakeBody", "dailyPlusIntakeTags", "dailyPlusIntakeFiles"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+      } catch (error) {
+        setMessageStatus("Discord Intake 전송 실패: " + error.message, true);
+        showToast("Discord Intake 전송 실패");
+      } finally {
+        intakeSendButton.disabled = false;
+        intakeSendButton.textContent = "Discord로 Bucky Intake 전송";
+      }
     });
   }
 })();
@@ -800,6 +905,9 @@ def render_dashboard(
     .command-actions {{ grid-template-columns: 1fr; }}
     .message-actions {{ justify-content: stretch; }}
     .message-actions button {{ flex: 1; }}
+    .knowledge-intake .intake-grid, .knowledge-intake .file-row {{ grid-template-columns: 1fr; }}
+    .intake-actions {{ justify-content: stretch; }}
+    .intake-actions button {{ flex: 1; }}
     .command-tray {{ left: 8px; right: 8px; bottom: 8px; max-height: 88vh; overflow: auto; }}
   }}
 </style>
