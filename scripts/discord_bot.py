@@ -235,7 +235,7 @@ BUCKY_SYSTEM_PROMPT: str = os.getenv(
 )
 
 # ── 동적 컨텍스트 로더 (BUCKY_CONTEXT.md, 5분 캐시) ─────────────────────────
-_VAULT = Path(__file__).parent.parent / "ObsidianVault"
+_VAULT = VAULT  # VAULT_PATH 환경변수 준수 (Multi-Vault 대비)
 _CONTEXT_FILE = _VAULT / "00_System" / "BUCKY_CONTEXT.md"
 _REQUIRED_CONTEXT_PACKS = [
     _VAULT / "06_Context_Packs" / "bucky-agent-os-legacy-rules.md",
@@ -2942,7 +2942,7 @@ class BuckyDiscordBot(discord.Client):
                 "`!context-pack <내용>` / `!pack <내용>` / `!팩 <내용>` — 최소 컨텍스트 팩 선택\n"
                 "**[멀티태스크 — 워커풀]**\n"
                 "`!task <내용>` — 자동 라우팅 (Claude/Codex/Bucky) 백그라운드 실행\n"
-                "`!code <내용>` — Codex 강제 배정 (구현/코드 작업)\n"
+                "`!code <내용>` — Codex 강제 배정 (검수/디버깅/분석)\n"
                 "`!think <내용>` — Claude 강제 배정 (분석/설계/전략)\n"
                 "`!tasks` / `!태스크` / `!현황` — 오늘 태스크 전체 현황\n"
                 "`!status T001` — 특정 태스크 상세 조회\n"
