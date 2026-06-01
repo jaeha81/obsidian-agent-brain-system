@@ -83,6 +83,7 @@ def build_note(capture: dict[str, Any], today: date) -> str:
             card_sections.append("\n\n".join(body_parts))
         sections.append("\n\n".join(card_sections))
 
+    summary_text = overview[:200].replace("\n", " ").strip() if overview else f"ChatGPT Pulse {date_str}"
     joined = "\n\n".join(sections)
     return f"""---
 date: {date_str}
@@ -91,6 +92,10 @@ source_url: {source_url}
 collected_at: {collected_at}
 collection_status: {collection_status}
 card_count: {len(cards)}
+category: gpt_feedback
+summary: "{summary_text}"
+next_action: review
+status: inbox
 tags:
   - pulse
   - daily-plus
