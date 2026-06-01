@@ -4,6 +4,10 @@ created: 2026-05-27
 tags:
   - knowledge-hub
   - #area/research
+summary: "Bucky AgentBus Claude Code"
+category: research
+status: active
+next_action: review
 ---
 
 # Codex

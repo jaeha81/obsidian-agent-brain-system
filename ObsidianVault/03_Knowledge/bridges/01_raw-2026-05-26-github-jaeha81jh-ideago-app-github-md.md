@@ -8,6 +8,10 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+summary: "JH System Obsidian"
+category: research
+status: active
+next_action: review
 ---
 
 # Bridge: 2026-05-26-github---jaeha81jh-ideago-app-github

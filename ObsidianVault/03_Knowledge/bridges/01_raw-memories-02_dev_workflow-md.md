@@ -10,6 +10,10 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+summary: "Codex Claude Code JH System Obsidian"
+category: research
+status: active
+next_action: review
 ---
 
 # Bridge: 02_dev_workflow

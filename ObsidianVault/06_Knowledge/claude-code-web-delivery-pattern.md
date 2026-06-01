@@ -5,6 +5,10 @@ title: "Build $10,000 Websites using Claude Code (Ultimate Guide)"
 tags: [ai-agent, jh/pattern, web-delivery, claude-code]
   - #area/research
 created: 2026-05-30
+summary: "1. **클라이언트 브리프 → 구현 스펙 자동 변환**"
+category: research
+status: active
+next_action: review
 ---
 
 # Claude Code 고가치 웹 납품 패턴

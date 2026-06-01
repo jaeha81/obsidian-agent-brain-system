@@ -6,6 +6,10 @@ tags:
   - vibe-coding
   - #area/research
 created: 2026-05-25
+summary: "사용자 입력 (음성/텍스트/링크)"
+category: research
+status: active
+next_action: review
 ---
 
 # Bucky 자가 진화 파이프라인

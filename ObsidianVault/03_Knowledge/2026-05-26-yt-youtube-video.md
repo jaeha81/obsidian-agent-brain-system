@@ -17,6 +17,9 @@ tags:
   - #area/research
 status: knowledge
 has_transcript: false
+summary: "현업이 알려주는 LLM Wiki (Feat. RAG와의 차이)"
+category: research
+next_action: review
 ---
 
 # 언제까지 AI에게 매번 같은 설명을 다시 해야할까?

@@ -11,6 +11,9 @@ tags:
   - template
   - #area/research
 status: processed
+summary: "YouTube 영상 학습 내용. AI 보조 개발로 기획부터 배포까지 24분 안에 완성하는 워크플로우."
+category: research
+next_action: review
 ---
 
 # Vibe Coding — AI 서비스 24분 완성 파이프라인

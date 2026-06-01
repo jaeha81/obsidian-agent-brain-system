@@ -11,6 +11,9 @@ tags:
   - bucky-upgrade
   - #area/research
 status: processed
+summary: ""Speak, don't type" — 음성을 자연스러운 텍스트로 변환하는 AI 도구."
+category: research
+next_action: review
 ---
 
 # Typeless — AI 음성받아쓰기 서비스 분석

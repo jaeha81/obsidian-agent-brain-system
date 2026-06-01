@@ -16,6 +16,9 @@ tags:
 status: knowledge
 has_transcript: true
 transcript_file: "qMU5CB9M7hI.ko-orig.vtt"
+summary: "영상은 Codex 앱을 오래 실행되는 목표형 에이전트로 쓰는 세 가지 사용 패턴을 설명한다."
+category: research
+next_action: review
 ---
 
 # Codex Goal / Pet / Remote Control 적용 노트

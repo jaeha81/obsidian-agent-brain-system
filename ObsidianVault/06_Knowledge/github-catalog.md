@@ -8,6 +8,10 @@ active: 38
 stale: 1
 system_repos: 7
 project_repos: 32
+summary: "생성: 2026-05-25 | 전체: **39개** | 활성: 38 | 지연: 1 | 시스템: 7 | 프로젝트: 32"
+category: research
+status: active
+next_action: review
 ---
 
 # GitHub 레포지토리 카탈로그

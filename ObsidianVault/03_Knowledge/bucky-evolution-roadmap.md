@@ -12,6 +12,9 @@ tags:
   - #area/research
   - #status/active
 status: active
+summary: "핵심 원칙: **"사용할수록 똑똑해지는 시스템"**"
+category: research
+next_action: review
 ---
 
 # Bucky 진화 로드맵

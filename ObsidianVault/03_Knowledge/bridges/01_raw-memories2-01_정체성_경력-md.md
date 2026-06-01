@@ -9,6 +9,10 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+summary: "Claude Code JH System Obsidian"
+category: research
+status: active
+next_action: review
 ---
 
 # Bridge: 01_정체성_경력

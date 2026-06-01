@@ -4,6 +4,10 @@ created: 2026-05-27
 tags:
   - knowledge-bridge-index
   - #area/research
+summary: "JH System Obsidian Bucky Graphify"
+category: research
+status: active
+next_action: review
 ---
 
 # Knowledge Bridge Index 008

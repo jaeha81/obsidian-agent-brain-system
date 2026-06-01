@@ -8,6 +8,10 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+summary: "JH System Obsidian"
+category: research
+status: active
+next_action: review
 ---
 
 # Bridge: 2026-05-26-chatgpt---오늘의-플러스-동기화-예시-스크립트

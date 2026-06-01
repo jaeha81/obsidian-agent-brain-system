@@ -10,6 +10,9 @@ tags:
   - #area/research
   - #status/active
 status: active
+summary: "- 버키는 서브 에이전트들과 함께 사용자 데이터를 흡수, 시스템 품질을 올릴 것"
+category: research
+next_action: review
 ---
 
 # Bucky 자가 진화 시스템 — 2026-05-25 세션

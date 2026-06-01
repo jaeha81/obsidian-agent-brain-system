@@ -17,6 +17,8 @@ FOLDER_DEFAULTS = {
     "06_Projects":      {"category": "business_model",   "status": "active"},
     "04_Wiki":          {"category": "research",         "status": "active"},
     "03_Knowledge":     {"category": "research",         "status": "active"},
+    "06_Knowledge":     {"category": "research",         "status": "active"},
+    "06_Resources":     {"category": "reference",        "status": "active"},
 }
 
 SECTION_KEYWORDS = ["역할", "개요", "목적", "overview", "summary", "description", "소개"]

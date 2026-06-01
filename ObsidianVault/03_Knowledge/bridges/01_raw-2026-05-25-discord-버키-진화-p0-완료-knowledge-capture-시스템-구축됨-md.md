@@ -9,6 +9,10 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+summary: "Bucky JH System Obsidian"
+category: research
+status: active
+next_action: review
 ---
 
 # Bridge: 2026-05-25-discord-버키-진화-p0-완료-knowledge-capture-시스템-구축됨

@@ -11,6 +11,10 @@ hubs:
 tags:
   - knowledge-bridge
   - #area/research
+summary: "Bucky Graphify Claude Code JH System Obsidian"
+category: research
+status: active
+next_action: review
 ---
 
 # Bridge: 09_past_projects
