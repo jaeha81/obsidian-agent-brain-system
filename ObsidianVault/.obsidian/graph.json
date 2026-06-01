@@ -1,10 +1,10 @@
 {
   "collapse-filter": false,
   "search": "-path:01_RAW -path:09_Archive -path:10_AgentBus -path:00_UPGRADE -path:graphify-out -path:Inbox/DiscordCaptures -path:.obsidian -path:legacy-import -path:10_AgentBus/claims",
-  "showTags": false,
-  "showAttachments": false,
+  "showTags": true,
+  "showAttachments": true,
   "hideUnresolved": true,
-  "showOrphans": false,
+  "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
     {
@@ -86,15 +86,15 @@
     }
   ],
   "collapse-display": false,
-  "showArrow": false,
-  "textFadeMultiplier": 0.2,
+  "showArrow": true,
+  "textFadeMultiplier": -0.8,
   "nodeSizeMultiplier": 0.610416666666667,
-  "lineSizeMultiplier": 1.14635416666667,
+  "lineSizeMultiplier": 0.9421875,
   "collapse-forces": false,
-  "centerStrength": 0.244791666666667,
-  "repelStrength": 14.1666666666667,
-  "linkStrength": 0.34375,
+  "centerStrength": 0.453125,
+  "repelStrength": 11.1458333333333,
+  "linkStrength": 0.916666666666667,
   "linkDistance": 500,
-  "scale": 0.13168724279835328,
+  "scale": 0.5087618855792542,
   "close": false
 }
