@@ -1,3 +1,10 @@
 {
-  "restrictedMode": false
+  "restrictedMode": false,
+  "userIgnoreFilters": [
+    "legacy-import/**",
+    "**/*.ajson",
+    "10_AgentBus/claims/**",
+    "**/*.claim",
+    ".git/**"
+  ]
 }
