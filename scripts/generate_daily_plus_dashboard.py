@@ -954,22 +954,6 @@ def render_dashboard(
 
   <section>
     <div class="section-title">
-      <h2>Bucky 메시지</h2>
-      <span class="muted">사용자 메시지로 전달</span>
-    </div>
-    <div class="panel message-box">
-      <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
-      <input id="buckyEndpoint" type="url" placeholder="Bucky OS HTTPS intake URL" aria-label="Bucky OS intake endpoint">
-      <div class="message-actions">
-        <button type="button" class="send" id="sendBuckyMessage">Bucky 전송</button>
-        <button type="button" class="copy" id="copyBuckyMessage">복사</button>
-      </div>
-      <p class="muted" id="messageStatus">Bucky OS 수신 URL 설정 후 전송합니다.</p>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-title">
       <h2>Bucky Knowledge Intake</h2>
       <span class="muted">Discord webhook -> Bucky -> Obsidian raw storage</span>
     </div>
@@ -994,6 +978,22 @@ def render_dashboard(
         <button type="button" class="send-discord" id="sendDailyPlusIntake">Discord로 Bucky Intake 전송</button>
       </div>
       <p class="muted">Discord webhook URL은 Repo Dashboard와 같은 브라우저 저장값(<code>bucky-webhook</code>)을 사용합니다. 파일은 Discord 첨부로 전송되고 Bucky bot이 RAW_IMPORT/Discord 및 Obsidian 01_RAW에 기록합니다.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>Bucky 메시지</h2>
+      <span class="muted">사용자 메시지로 전달</span>
+    </div>
+    <div class="panel message-box">
+      <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
+      <input id="buckyEndpoint" type="url" placeholder="Bucky OS HTTPS intake URL" aria-label="Bucky OS intake endpoint">
+      <div class="message-actions">
+        <button type="button" class="send" id="sendBuckyMessage">Bucky 전송</button>
+        <button type="button" class="copy" id="copyBuckyMessage">복사</button>
+      </div>
+      <p class="muted" id="messageStatus">Bucky OS 수신 URL 설정 후 전송합니다.</p>
     </div>
   </section>
 
