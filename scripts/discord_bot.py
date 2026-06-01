@@ -213,6 +213,7 @@ if VOICE_CHANNEL_ENABLED and VOICE_RECV_ENABLED and VOICE_ENABLED:
 _voice_clients: dict[int, discord.VoiceClient] = {}   # guild_id → VoiceClient
 _voice_text_ch: dict[int, "discord.abc.Messageable"] = {}  # guild_id → 텍스트 채널
 _speaking_locks: "dict[int, asyncio.Lock]" = {}
+_voice_paused: dict[int, bool] = {}  # guild_id → STT 일시정지 여부
 
 _whisper_model = None
 
@@ -841,6 +842,9 @@ def _make_voice_sink_class():
 
         def write(self, user, data) -> None:  # type: ignore
             uid = user.id if user is not None else 0
+            # STT 일시정지 중이면 오디오 수집 무시
+            if _voice_paused.get(self.guild_id, False):
+                return
             # wants_opus=True → data는 raw opus 패킷 bytes
             opus_pkt = bytes(data) if data else b""
             if not opus_pkt:
@@ -1823,6 +1827,30 @@ def _register_voice_commands(tree: app_commands.CommandTree) -> None:
         await _leave_voice_channel(guild_id)
         await interaction.followup.send("👋 음성 채널에서 퇴장했습니다.", ephemeral=True)
 
+    @voice_group.command(name="pause", description="STT 인식 일시정지 — 채널에 있지만 Bucky가 음성을 처리하지 않습니다")
+    async def cmd_voice_pause(interaction: discord.Interaction) -> None:
+        guild_id = interaction.guild_id or 0
+        if guild_id not in _voice_clients:
+            await interaction.response.send_message("ℹ️ 현재 음성 채널에 연결되어 있지 않습니다.", ephemeral=True)
+            return
+        if _voice_paused.get(guild_id, False):
+            await interaction.response.send_message("⏸️ 이미 음성 휴식 중입니다. `/voice resume` 으로 재개하세요.", ephemeral=True)
+            return
+        _voice_paused[guild_id] = True
+        await interaction.response.send_message("⏸️ **음성 휴식 시작** — STT 처리를 일시정지했습니다.\n채널에 머물면서 말씀하셔도 기록하지 않습니다.\n재개하려면 `/voice resume` 을 사용하세요.", ephemeral=False)
+
+    @voice_group.command(name="resume", description="STT 인식 재개 — 음성 휴식 종료 후 다시 Bucky가 응답합니다")
+    async def cmd_voice_resume(interaction: discord.Interaction) -> None:
+        guild_id = interaction.guild_id or 0
+        if guild_id not in _voice_clients:
+            await interaction.response.send_message("ℹ️ 현재 음성 채널에 연결되어 있지 않습니다.", ephemeral=True)
+            return
+        if not _voice_paused.get(guild_id, False):
+            await interaction.response.send_message("▶️ 이미 음성 인식 활성 상태입니다.", ephemeral=True)
+            return
+        _voice_paused[guild_id] = False
+        await interaction.response.send_message("▶️ **음성 인식 재개** — 이제 말씀하시면 Bucky가 다시 응답합니다.", ephemeral=False)
+
     @voice_group.command(name="status", description="현재 음성 채널 연결 상태를 확인합니다")
     async def cmd_voice_status(interaction: discord.Interaction) -> None:
         guild_id = interaction.guild_id or 0
@@ -1830,8 +1858,10 @@ def _register_voice_commands(tree: app_commands.CommandTree) -> None:
         lines = ["**[음성 채널 상태]**"]
         if vc and vc.is_connected():
             members_in_vc = [m.display_name for m in vc.channel.members if not m.bot]
+            paused = _voice_paused.get(guild_id, False)
             lines.append(f"🔊 채널: **{vc.channel.name}**")
             lines.append(f"🎤 참여자: {', '.join(members_in_vc) if members_in_vc else '없음'}")
+            lines.append(f"⏸️ STT 상태: {'**휴식 중** (일시정지)' if paused else '▶️ 활성'}")
             lines.append(f"📡 수신: {'✅ 활성' if _voice_recv else '⚠️ discord-ext-voice-recv 미설치'}")
             lines.append(f"🔉 TTS: {'✅ gTTS' if _gtts_available else '⚠️ gTTS 미설치'}")
             lines.append(f"🧠 Whisper: {'✅ ' + WHISPER_MODEL_NAME if VOICE_ENABLED else '⚠️ 미설치'}")
