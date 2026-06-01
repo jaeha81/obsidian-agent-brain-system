@@ -28,6 +28,8 @@ FOLDER_AREA_MAP = {
     "06_Knowledge":         ["#area/research"],
     "06_Resources":         ["#area/research"],
     "09_Knowledge_Capture": ["#area/research"],
+    "11_Interior_Business":  ["#area/interior_design", "#status/active"],
+    "12_Client_Consulting":  ["#area/client_consulting", "#status/active"],
     "Inbox":                ["#status/inbox"],
     "01_RAW":               ["#status/inbox"],
     "02_Processed":         ["#status/review_needed"],
@@ -151,6 +153,15 @@ def parse_frontmatter(text: str):
     return fm, end
 
 
+def create_frontmatter(path: Path, tags: list[str]) -> str:
+    """frontmatter 없는 노트에 최소 YAML 생성 후 원본 내용 붙임."""
+    import datetime
+    today = datetime.date.today().isoformat()
+    tag_lines = "".join(f"  - {t}\n" for t in tags)
+    header = f"---\ntitle: {path.stem}\ndate: {today}\nstatus: inbox\ntags:\n{tag_lines}---\n\n"
+    return header
+
+
 def inject_tags(text: str, new_tags: list[str]) -> str | None:
     """frontmatter tags 필드에 new_tags 추가. 변경 없으면 None 반환."""
     if not new_tags:
@@ -242,8 +253,12 @@ def process_file(path: Path, dry_run: bool) -> dict:
 
     new_text = inject_tags(text, tags_to_add)
     if new_text is None:
-        result["skipped"] = True
-        return result
+        # frontmatter 없는 노트 → 자동 생성 (Inbox / 새 폴더만)
+        if top_folder in ("Inbox", "01_RAW", "11_Interior_Business", "12_Client_Consulting"):
+            new_text = create_frontmatter(path, tags_to_add) + text
+        else:
+            result["skipped"] = True
+            return result
 
     result["added"] = tags_to_add
     if not dry_run:
