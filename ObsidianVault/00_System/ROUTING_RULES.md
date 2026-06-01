@@ -18,6 +18,36 @@ Bucky is the main orchestrator for JH agent work. Claude Code implements. Codex 
 | Hermes | AI backend | optional reasoning support for Bucky |
 | User | Final decision maker | approval, priority, sensitive decisions |
 
+## Execution Environment
+
+Claude Code와 Codex는 두 가지 환경에서 실행될 수 있다. Bucky는 패킷 발행 시 `env` 필드로 명시한다.
+
+| 환경 | 설명 | 사용 상황 |
+|---|---|---|
+| `local` | 집 PC 터미널 — `G:\내 드라이브\obsidian-agent-brain-system` 기준 | 파일 수정, git 작업, 스크립트 실행, 빌드/배포 |
+| `web-ext` | 웹 브라우저 확장 플러그인 (claude.ai/code 또는 Codex 웹) | 코드 리뷰, 빠른 질의, 브라우저에서 진행 중인 작업 |
+
+### 환경별 제약 사항
+
+**`local` 환경:**
+- 파일 시스템 직접 접근 가능 → 파일 수정·저장·커밋·푸시 가능
+- 스크립트 실행, Docker, CLI 도구 사용 가능
+- Bucky 패킷 전체 실행 가능
+
+**`web-ext` 환경:**
+- 파일 시스템 직접 접근 불가 → 코드 제안/리뷰만 가능
+- 사용자가 브라우저에서 결과를 보고 로컬에서 직접 적용하거나 Bucky에 전달
+- git 작업 불가 — 결과를 Claude Code(local)에 relay 필요
+
+### Bucky 패킷 `env` 필드
+
+```yaml
+env: local | web-ext | both
+```
+
+- `both`: 동일 작업을 두 환경 모두에서 처리 가능 (예: 리뷰는 web-ext, 실제 적용은 local)
+- 생략 시 기본값: `local`
+
 ## Routing Flow
 
 ```text
