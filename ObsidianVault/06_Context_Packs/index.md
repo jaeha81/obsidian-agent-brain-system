@@ -3,6 +3,10 @@ type: index
 updated: 2026-05-30
 tags:
   - #area/ai_automation
+summary: "Agent work should load compact Context Packs instead of rereading long legacy source files."
+category: ai_automation
+status: active
+next_action: review
 ---
 
 # 06_Context_Packs Index

@@ -12,6 +12,9 @@ stars: 0
 forks: 0
 private: false
 generated: "2026-05-25T11:21:57"
+summary: "Sisyphus Dashboard — Windows Desktop App (Electron) for OpenCode AI Coding with Plugin System"
+category: business_model
+next_action: review
 ---
 
 # sisyphus-dashboard-desktop

@@ -12,6 +12,9 @@ stars: 0
 forks: 0
 private: false
 generated: "2026-05-25T11:21:57"
+summary: "**GitHub:** agent_factory"
+category: business_model
+next_action: review
 ---
 
 # agent_factory

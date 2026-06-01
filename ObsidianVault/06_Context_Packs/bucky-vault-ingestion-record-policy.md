@@ -14,6 +14,9 @@ source:
 tags:
   - #area/ai_automation
   - #status/active
+summary: "type: session-summary"
+category: ai_automation
+next_action: review
 ---
 
 # Bucky Vault Ingestion and Record Policy

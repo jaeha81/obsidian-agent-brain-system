@@ -12,6 +12,9 @@ stars: 0
 forks: 0
 private: false
 generated: "2026-05-25T11:21:56"
+summary: "**GitHub:** today-plus-obsidian-archiver"
+category: business_model
+next_action: review
 ---
 
 # today-plus-obsidian-archiver

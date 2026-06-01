@@ -15,6 +15,9 @@ source:
 tags:
   - #area/ai_automation
   - #status/active
+summary: "This pack gives Bucky a compact map of the user's domain, project family, and product direction. It is legacy-derived, so Bucky must verify current repo state, URLs, dates, funding programs, and imple"
+category: ai_automation
+next_action: review
 ---
 
 # Bucky User and Project Terrain

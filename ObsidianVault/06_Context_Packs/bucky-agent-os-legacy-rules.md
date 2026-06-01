@@ -8,6 +8,9 @@ scope: JH agent operating system
 tags:
   - #area/ai_automation
   - #status/active
+summary: "This pack absorbs useful operating rules from the old integrated JH setup into the current Obsidian Agent Brain System. Historical folders and generated global instruction files are reference-only; cu"
+category: ai_automation
+next_action: review
 ---
 
 # Bucky Agent OS Legacy Rules Context Pack

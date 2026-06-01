@@ -9,6 +9,9 @@ source:
 tags:
   - #area/ai_automation
   - #status/active
+summary: "This pack promotes useful development workflow rules from legacy material into the current Obsidian Agent Brain System. It is for Bucky packets that dispatch implementation, refactor, debugging, QA, o"
+category: ai_automation
+next_action: review
 ---
 
 # Bucky Development Workflow Policy

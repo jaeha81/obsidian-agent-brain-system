@@ -11,6 +11,9 @@ source:
 tags:
   - #area/ai_automation
   - #status/active
+summary: "This pack promotes user-facing communication preferences from legacy material into the current Obsidian Agent Brain System. It is a default pack for Bucky, Claude Code, and Codex because it affects ev"
+category: ai_automation
+next_action: review
 ---
 
 # Bucky User Communication and Output Policy

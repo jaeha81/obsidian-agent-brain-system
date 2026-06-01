@@ -10,6 +10,9 @@ source:
 tags:
   - #area/ai_automation
   - #status/active
+summary: "This pack promotes legacy integration-system operating rules into the current Obsidian Agent Brain System. Bucky must use these rules when dispatching work to Claude Code/Codex or when answering direc"
+category: ai_automation
+next_action: review
 ---
 
 # Bucky Context Efficiency and Goal Mode Pack

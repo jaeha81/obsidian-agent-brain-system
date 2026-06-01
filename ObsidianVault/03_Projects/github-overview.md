@@ -11,6 +11,10 @@ active: 38
 stale: 1
 inactive: 0
 forks: 0
+summary: "생성: 2026-05-25T11:21:56  |  전체: **39개**  |  🟢 활성: 38  |  🟡 지연: 1  |  🔴 비활성: 0  |  🍴 포크: 0"
+category: business_model
+status: active
+next_action: review
 ---
 
 # GitHub 레포 현황 대시보드 — jaeha81

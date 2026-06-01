@@ -12,6 +12,9 @@ source:
 tags:
   - #area/ai_automation
   - #status/active
+summary: "This pack promotes legacy runtime safety, security, and agent-control rules into the current Obsidian Agent Brain System."
+category: ai_automation
+next_action: review
 ---
 
 # Bucky Security and Runtime Governance

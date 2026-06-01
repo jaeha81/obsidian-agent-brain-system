@@ -12,6 +12,9 @@ stars: 0
 forks: 0
 private: false
 generated: "2026-05-25T11:21:58"
+summary: "**GitHub:** docs"
+category: business_model
+next_action: review
 ---
 
 # docs

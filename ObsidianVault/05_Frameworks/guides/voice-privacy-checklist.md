@@ -7,6 +7,9 @@ source: daily-plus 2026-06-01 Card 10
 tags:
   - #area/ai_automation
   - #status/active
+summary: "이 체크리스트는 참고용이며, 법적 판단은 전문 변호사 상담이 필요합니다."
+category: ai_automation
+next_action: review
 ---
 
 # 현장 음성 프라이버시 체크리스트
