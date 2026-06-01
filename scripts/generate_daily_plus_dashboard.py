@@ -970,6 +970,35 @@ def render_dashboard(
 
   <section>
     <div class="section-title">
+      <h2>Bucky Knowledge Intake</h2>
+      <span class="muted">Discord webhook -> Bucky -> Obsidian raw storage</span>
+    </div>
+    <div class="panel knowledge-intake">
+      <div class="intake-grid">
+        <select id="dailyPlusIntakeType" aria-label="Intake type">
+          <option value="auto">Auto detect</option>
+          <option value="link">Link or YouTube</option>
+          <option value="note">Note or article</option>
+          <option value="file">File/material</option>
+          <option value="pulse">Daily Plus context</option>
+        </select>
+        <input id="dailyPlusIntakeTitle" type="text" placeholder="Title or short label">
+      </div>
+      <textarea id="dailyPlusIntakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Bucky"></textarea>
+      <div class="file-row">
+        <input id="dailyPlusIntakeTags" type="text" placeholder="Tags, comma separated">
+        <input id="dailyPlusIntakeFiles" type="file" multiple>
+      </div>
+      <div class="intake-actions">
+        <button type="button" class="copy" id="copyDailyPlusIntake">Copy payload</button>
+        <button type="button" class="send-discord" id="sendDailyPlusIntake">Discord로 Bucky Intake 전송</button>
+      </div>
+      <p class="muted">Discord webhook URL은 Repo Dashboard와 같은 브라우저 저장값(<code>bucky-webhook</code>)을 사용합니다. 파일은 Discord 첨부로 전송되고 Bucky bot이 RAW_IMPORT/Discord 및 Obsidian 01_RAW에 기록합니다.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
       <h2>첫 오늘의 플러스 대비 진화</h2>
       <span class="muted">매일 09:00 보고 기준</span>
     </div>
