@@ -8,32 +8,48 @@
   "collapse-color-groups": false,
   "colorGroups": [
     {
+      "query": "tag:#area/ai_automation",
+      "color": { "a": 1, "rgb": 4349167 }
+    },
+    {
+      "query": "tag:#area/gpt_feedback",
+      "color": { "a": 1, "rgb": 3394815 }
+    },
+    {
+      "query": "tag:#area/interior_design",
+      "color": { "a": 1, "rgb": 16744448 }
+    },
+    {
+      "query": "tag:#area/client_consulting",
+      "color": { "a": 1, "rgb": 16719872 }
+    },
+    {
+      "query": "tag:#status/active",
+      "color": { "a": 1, "rgb": 65280 }
+    },
+    {
+      "query": "tag:#status/inbox",
+      "color": { "a": 1, "rgb": 8947848 }
+    },
+    {
+      "query": "tag:#status/archive",
+      "color": { "a": 1, "rgb": 6710886 }
+    },
+    {
       "query": "path:03_Knowledge",
-      "color": {
-        "a": 1,
-        "rgb": 65535
-      }
+      "color": { "a": 1, "rgb": 65535 }
     },
     {
       "query": "path:04_Wiki",
-      "color": {
-        "a": 1,
-        "rgb": 65280
-      }
+      "color": { "a": 1, "rgb": 65280 }
     },
     {
       "query": "path:05_Frameworks",
-      "color": {
-        "a": 1,
-        "rgb": 16750848
-      }
+      "color": { "a": 1, "rgb": 16750848 }
     },
     {
       "query": "path:03_Projects",
-      "color": {
-        "a": 1,
-        "rgb": 16737792
-      }
+      "color": { "a": 1, "rgb": 16737792 }
     }
   ],
   "collapse-display": false,
