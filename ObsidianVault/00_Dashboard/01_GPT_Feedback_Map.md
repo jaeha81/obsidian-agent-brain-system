@@ -19,8 +19,9 @@ GPT 채팅 기록 및 오늘의 플러스 피드백 허브.
 
 ## 연결 폴더
 
-- `ObsidianVault/01_RAW/` — 원본 임포트
-- `ObsidianVault/02_Processed/` — 처리 완료 노트
+- `04_Wiki/daily-plus/` — ChatGPT Pulse 자동 수집 (메인 소스)
+- `07_Reports/` — 운영 리포트
+- `04_DAILY_REPORTS/` — 일일 브리핑
 
 ## 핵심 태그
 
@@ -36,21 +37,29 @@ GPT 채팅 기록 및 오늘의 플러스 피드백 허브.
 
 ---
 
+## ChatGPT Pulse 일일 수집 (메인)
+
+```dataview
+TABLE date AS "날짜", card_count AS "카드수", collection_status AS "상태"
+FROM "04_Wiki/daily-plus"
+SORT date DESC
+LIMIT 14
+```
+
 ## GPT 피드백 기록 대시보드
 
 ```dataview
 TABLE file.mtime AS "수정일", summary AS "요약", status AS "상태"
-FROM "07_Reports" OR "04_DAILY_REPORTS"
+FROM #area/gpt_feedback
 SORT file.mtime DESC
 LIMIT 20
 ```
 
-## 최근 Daily 리포트
+## 최근 운영 리포트
 
 ```dataview
 LIST
-FROM "01_RAW"
-WHERE contains(file.name, "플러스") OR contains(file.name, "report") OR contains(file.name, "리포트")
+FROM "07_Reports" OR "04_DAILY_REPORTS"
 SORT file.mtime DESC
 LIMIT 10
 ```

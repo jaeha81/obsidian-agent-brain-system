@@ -91,7 +91,13 @@ source_url: {source_url}
 collected_at: {collected_at}
 collection_status: {collection_status}
 card_count: {len(cards)}
-tags: [pulse, daily-plus, knowledge, auto-collected]
+tags:
+  - pulse
+  - daily-plus
+  - knowledge
+  - auto-collected
+  - "#area/gpt_feedback"
+  - "#area/research"
 ---
 
 # ChatGPT Pulse - {date_str}
