@@ -160,6 +160,47 @@
   .bucky-send-btn:hover { background: rgba(188,140,255,0.3); }
   .bucky-close { color: var(--muted); background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; }
 
+  .intake-panel {
+    margin: 18px 32px 0;
+    background: var(--card);
+    border: 1px solid rgba(188,140,255,0.32);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .intake-title { color: var(--purple); font-size: 0.96rem; font-weight: 700; margin-bottom: 6px; }
+  .intake-sub { color: var(--muted); font-size: 0.78rem; line-height: 1.55; margin-bottom: 12px; }
+  .intake-grid { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 10px; }
+  .intake-panel input, .intake-panel textarea, .intake-panel select {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    font-family: inherit;
+  }
+  .intake-panel textarea { min-height: 106px; resize: vertical; }
+  .intake-panel input:focus, .intake-panel textarea:focus, .intake-panel select:focus {
+    outline: none;
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(188,140,255,0.12);
+  }
+  .intake-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .intake-actions button {
+    border: 1px solid rgba(188,140,255,0.45);
+    border-radius: 8px;
+    background: rgba(188,140,255,0.12);
+    color: var(--purple);
+    min-height: 36px;
+    padding: 7px 13px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .intake-actions button.secondary { border-color: var(--border); color: var(--muted); background: transparent; }
+  .intake-actions button:hover { background: rgba(188,140,255,0.22); }
+
   footer { text-align: center; padding: 28px; color: var(--muted); font-size: 0.77rem; border-top: 1px solid var(--border); margin-top: 8px; }
 
   /* Discord Webhook Modal */
@@ -182,6 +223,8 @@
     header, .controls, .stats-bar { padding: 12px 16px; }
     .search-box { width: 140px; }
     .bucky-panel { padding: 10px 16px; }
+    .intake-panel { margin: 12px; }
+    .intake-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -247,6 +290,32 @@
   </select>
   <input class="search-box" type="text" placeholder="레포 검색..." oninput="search(this.value)">
 </div>
+
+<section class="intake-panel" aria-label="Bucky knowledge intake">
+  <div class="intake-title">Bucky Knowledge Intake</div>
+  <div class="intake-sub">Paste a link, YouTube URL, note, article text, or attach files. The dashboard sends it to the configured Discord webhook, where Bucky stores it in Obsidian Agent Brain System raw intake.</div>
+  <div class="intake-grid">
+    <select id="intakeType" aria-label="Intake type">
+      <option value="auto">Auto detect</option>
+      <option value="link">Link or YouTube</option>
+      <option value="note">Note or article</option>
+      <option value="file">File/material</option>
+      <option value="repo">Repo context</option>
+    </select>
+    <input id="intakeTitle" type="text" placeholder="Title or short label">
+  </div>
+  <div style="margin-top:10px">
+    <textarea id="intakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Bucky"></textarea>
+  </div>
+  <div class="intake-grid" style="margin-top:10px">
+    <input id="intakeTags" type="text" placeholder="Tags, comma separated">
+    <input id="intakeFiles" type="file" multiple>
+  </div>
+  <div class="intake-actions">
+    <button type="button" class="secondary" onclick="copyIntakePayload()">Copy payload</button>
+    <button type="button" onclick="sendKnowledgeIntake()">Send to Bucky</button>
+  </div>
+</section>
 
 <div class="grid" id="grid"></div>
 
@@ -889,13 +958,78 @@ async function postWebhook(url, username, content) {
     return false;
   }
 }
+async function postWebhookWithFiles(url, username, content, files) {
+  if (!url) {
+    showToast('Webhook missing', 'Set Discord webhook first.');
+    return false;
+  }
+  const safeFiles = Array.from(files || []).slice(0, 10);
+  if (!safeFiles.length) return postWebhook(url, username, content);
+  try {
+    const form = new FormData();
+    form.append('payload_json', JSON.stringify({ content, username: username || 'JH Dashboard' }));
+    safeFiles.forEach((file, index) => form.append(`files[${index}]`, file, file.name));
+    const r = await fetch(url, { method: 'POST', body: form });
+    if (r.ok) { showToast('Discord upload complete', `${safeFiles.length} file(s) sent to Bucky`); return true; }
+    showToast('Upload failed', 'HTTP ' + r.status);
+    return false;
+  } catch(e) {
+    showToast('Upload error', e.message);
+    return false;
+  }
+}
+function buildIntakePayload() {
+  const type = document.getElementById('intakeType').value;
+  const title = document.getElementById('intakeTitle').value.trim();
+  const body = document.getElementById('intakeBody').value.trim();
+  const tags = document.getElementById('intakeTags').value.trim();
+  const files = document.getElementById('intakeFiles').files;
+  const fileLines = Array.from(files || []).slice(0, 10).map(f => `- ${f.name} (${Math.ceil(f.size / 1024)} KB)`);
+  const isSingleUrl = /^https?:\/\/\S+$/i.test(body);
+  const command = isSingleUrl ? `!capture ${body}` : `!capture ${title || body || '[Dashboard file intake]'}`;
+  return [
+    command,
+    '',
+    '[Dashboard Knowledge Intake]',
+    `type: ${type}`,
+    `title: ${title || '(untitled)'}`,
+    `tags: ${tags || '(none)'}`,
+    `source: jh-repo-dashboard`,
+    fileLines.length ? `files:\n${fileLines.join('\n')}` : 'files: (none)',
+    '',
+    body && !isSingleUrl ? body : ''
+  ].join('\n').trim();
+}
+async function copyIntakePayload() {
+  const payload = buildIntakePayload();
+  navigator.clipboard.writeText(payload).then(() => {
+    showToast('Payload copied', 'Paste it into the Bucky Discord channel if needed.');
+  }).catch(() => prompt('Bucky intake payload:', payload));
+}
+async function sendKnowledgeIntake() {
+  const url = localStorage.getItem('bucky-webhook');
+  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
+  const payload = buildIntakePayload();
+  const files = document.getElementById('intakeFiles').files;
+  if (!payload && (!files || !files.length)) {
+    showToast('Nothing to send', 'Add a link, note, or file first.');
+    return;
+  }
+  const ok = await postWebhookWithFiles(url, name, payload, files);
+  if (ok) {
+    document.getElementById('intakeTitle').value = '';
+    document.getElementById('intakeBody').value = '';
+    document.getElementById('intakeTags').value = '';
+    document.getElementById('intakeFiles').value = '';
+  }
+}
 document.getElementById('whOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeWebhookSettings();
 });
 
 // 기본 Webhook URL 자동 저장 (첫 로드 시)
 (function() {
-  const DEFAULT_WEBHOOK = 'https://discord.com/api/webhooks/1508364190203773078/QX88Hb8e7-TbSbSBY73HcBmTEKAblr_rTX0TUZCqZp-ErXRcIK7r5ZoXl8rojgaITLKC';
+  const DEFAULT_WEBHOOK = '';
   if (!localStorage.getItem('bucky-webhook')) {
     localStorage.setItem('bucky-webhook', DEFAULT_WEBHOOK);
     localStorage.setItem('bucky-wh-name', 'JH Dashboard');

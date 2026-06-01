@@ -648,6 +648,82 @@ async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
 
 # ── 음성 채널 TTS / 수신 헬퍼 ──────────────────────────────────────────────────
 
+def _safe_attachment_name(name: str) -> str:
+    safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in (name or "attachment"))
+    return safe[:120] or "attachment"
+
+
+async def capture_discord_attachments(
+    message: Message,
+    attachments: list[discord.Attachment],
+    *,
+    skip_urls: set[str] | None = None,
+) -> list[Path]:
+    """Persist generic Discord attachments so non-image/non-audio files are not lost."""
+    skip_urls = skip_urls or set()
+    max_bytes = int(os.getenv("DISCORD_ATTACHMENT_MAX_MB", "25")) * 1024 * 1024
+    now = datetime.now()
+    day = now.strftime("%Y-%m-%d")
+    raw_dir = _ROOT / "RAW_IMPORT" / "Discord" / day
+    note_dir = VAULT / "01_RAW" / "DiscordAttachments"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    note_dir.mkdir(parents=True, exist_ok=True)
+
+    saved_notes: list[Path] = []
+    channel_name = getattr(message.channel, "name", str(message.channel.id))
+    author_name = getattr(message.author, "name", "unknown")
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+
+    for idx, attachment in enumerate(attachments, 1):
+        if attachment.url in skip_urls:
+            continue
+        if attachment.size and attachment.size > max_bytes:
+            print(
+                f"[AttachmentCapture] skipped oversized file: {attachment.filename} "
+                f"({attachment.size} bytes)",
+                flush=True,
+            )
+            continue
+
+        safe_name = _safe_attachment_name(attachment.filename)
+        raw_path = raw_dir / f"{timestamp}_{idx}_{safe_name}"
+        data = await attachment.read()
+        raw_path.write_bytes(data)
+
+        note_path = note_dir / f"{timestamp}_discord_attachment_{idx}.md"
+        note = f"""---
+type: discord_attachment
+source: discord
+channel: "{channel_name}"
+channel_id: "{message.channel.id}"
+author: "{author_name}"
+author_id: "{message.author.id}"
+message_id: "{message.id}"
+filename: "{safe_name}"
+content_type: "{attachment.content_type or ''}"
+size_bytes: {attachment.size or len(data)}
+captured_at: {now.isoformat(timespec='seconds')}
+status: raw
+---
+
+# Discord attachment: {safe_name}
+
+## Context
+
+{message.content.strip() or "(no message text)"}
+
+## Stored File
+
+- Local raw import: `{raw_path.relative_to(_ROOT).as_posix()}`
+- Discord CDN: {attachment.url}
+"""
+        note_path.write_text(note, encoding="utf-8")
+        saved_notes.append(note_path)
+        print(f"[AttachmentCapture] saved: {raw_path}", flush=True)
+
+    return saved_notes
+
+
 def _get_speaking_lock(guild_id: int) -> asyncio.Lock:
     if guild_id not in _speaking_locks:
         _speaking_locks[guild_id] = asyncio.Lock()
@@ -2800,6 +2876,33 @@ class BuckyDiscordBot(discord.Client):
                         content = f"{content}\n[이미지 첨부 — Vision 분석 불가]\n{urls_txt}" if content else f"[이미지 첨부]\n{urls_txt}"
 
         # ── 내장 명령어 ────────────────────────────────────────────────────────
+        if message.attachments:
+            try:
+                image_urls = {a.url for a in image_atts} if "image_atts" in locals() else set()
+                generic_atts = []
+                for att in message.attachments:
+                    suffix = Path(att.filename or "").suffix.lower()
+                    is_audio = (
+                        (att.content_type and att.content_type.startswith("audio/"))
+                        or suffix in _AUDIO_EXTS
+                    )
+                    if not is_audio and att.url not in image_urls:
+                        generic_atts.append(att)
+                if generic_atts:
+                    notes = await capture_discord_attachments(message, generic_atts, skip_urls=image_urls)
+                    if notes:
+                        rels = ", ".join(n.relative_to(VAULT).as_posix() for n in notes[:3])
+                        content = (
+                            f"{content}\n\n[Discord attachment capture]\n{rels}"
+                            if content
+                            else f"[Discord attachment capture]\n{rels}"
+                        )
+                        await message.channel.send(
+                            f"Saved {len(notes)} attachment file(s) to Obsidian raw intake."
+                        )
+            except Exception as _att_err:
+                print(f"[AttachmentCapture] failed: {_att_err}", flush=True)
+
         if content == "!debug":
             guild_id = getattr(message.guild, "id", None)
             vc = _voice_clients.get(guild_id) if guild_id else None
