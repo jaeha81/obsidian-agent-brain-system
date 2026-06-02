@@ -15,6 +15,7 @@ ROOT = Path(__file__).parent.parent
 INBOX_DIR = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_inbox"
 TRACKER_PATH = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_tracker.json"
 DASHBOARD_PATH = ROOT / "docs" / "wishket.html"
+PROPOSALS_DIR = ROOT / "ObsidianVault" / "03_Projects" / "wishket-proposals"
 
 
 def load_inbox_projects() -> list[dict]:
@@ -65,16 +66,26 @@ def projects_to_js(projects: list[dict]) -> str:
     return "[\n" + ",\n".join(lines) + "\n]"
 
 
-def _load_env_webhook() -> str:
-    """프로젝트 .env에서 DISCORD_WEBHOOK_URL 읽기."""
-    env_path = ROOT / ".env"
-    if not env_path.exists():
-        return ""
-    for line in env_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if line.startswith("DISCORD_WEBHOOK_URL="):
-            return line.split("=", 1)[1].strip()
-    return ""
+def load_proposals() -> dict:
+    proposals = {}
+    if not PROPOSALS_DIR.exists():
+        return proposals
+    for path in sorted(glob.glob(str(PROPOSALS_DIR / "*.md"))):
+        try:
+            content = Path(path).read_text(encoding="utf-8")
+        except Exception:
+            continue
+        # Extract link from YAML frontmatter
+        link_match = re.search(r'^link:\s*(.+)$', content, re.MULTILINE)
+        if not link_match:
+            continue
+        link = link_match.group(1).strip()
+        # Strip YAML frontmatter block
+        fm_match = re.match(r'^---\n.*?\n---\n(.*)', content, re.DOTALL)
+        body = fm_match.group(1).strip() if fm_match else content.strip()
+        pid = "project-" + re.sub(r"[^a-zA-Z0-9]", "-", link.rstrip("/").split("/")[-1])
+        proposals[pid] = body
+    return proposals
 
 
 def update_dashboard(projects: list[dict]) -> bool:
@@ -89,14 +100,21 @@ def update_dashboard(projects: list[dict]) -> bool:
         print("ERROR: PROJECTS 블록을 찾을 수 없습니다.")
         return False
 
-    # 2) DEFAULT_WEBHOOK 주입 (.env 값으로)
-    webhook_url = _load_env_webhook()
-    if webhook_url:
-        updated = re.sub(
-            r"const DEFAULT_WEBHOOK = '.*?';",
-            f"const DEFAULT_WEBHOOK = '{webhook_url}';",
-            updated,
-        )
+    # 2) DEFAULT_WEBHOOK 주입
+    updated = re.sub(r"const DEFAULT_WEBHOOK = '.*?';", "const DEFAULT_WEBHOOK = '';", updated)
+
+    # 3) PROPOSALS 데이터 업데이트
+    proposals = load_proposals()
+    if proposals:
+        proposals_js = json.dumps(proposals, ensure_ascii=False, indent=2)
+        pat2 = r"(// ── 제안서 데이터.*?──\n)const PROPOSALS = \{[\s\S]*?\};"
+        def _rep(m):
+            return m.group(1) + "const PROPOSALS = " + proposals_js + ";"
+        updated, n2 = re.subn(pat2, _rep, updated)
+        if n2 == 0:
+            print("WARNING: PROPOSALS 블록을 찾을 수 없습니다.")
+        else:
+            print(f"제안서 주입: {len(proposals)}개")
 
     DASHBOARD_PATH.write_text(updated, encoding="utf-8")
     return True
