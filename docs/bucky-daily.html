@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bucky Daily Ops — $100 구독 최대 활용</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Pretendard', sans-serif; background: #f8f9fa; color: #1a1a2e; }
+
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white; padding: 48px 32px 36px; text-align: center;
+  }
+  .hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+  .hero p { opacity: 0.75; font-size: 1rem; }
+  .hero .badge {
+    display: inline-block; margin-top: 16px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
+  }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 32px 20px; }
+
+  /* ROI 카드 */
+  .roi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
+  .roi-card {
+    background: white; border-radius: 12px; padding: 24px;
+    border-left: 4px solid #e94560; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .roi-card .val { font-size: 2rem; font-weight: 800; color: #0f3460; }
+  .roi-card .label { font-size: 0.8rem; color: #666; margin-top: 4px; }
+  .roi-card.green { border-left-color: #27ae60; }
+  .roi-card.green .val { color: #27ae60; }
+  .roi-card.orange { border-left-color: #f39c12; }
+  .roi-card.orange .val { color: #f39c12; }
+
+  /* 섹션 헤더 */
+  .section { margin-bottom: 40px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .section-header h2 { font-size: 1.25rem; font-weight: 700; }
+  .section-header .num {
+    background: #0f3460; color: white;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* 루틴 타임라인 */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 6px; top: 0; bottom: 0;
+    width: 2px; background: #e8ecf0;
+  }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -18px; top: 6px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #0f3460; border: 2px solid white;
+    box-shadow: 0 0 0 2px #0f3460;
+  }
+  .timeline-item.done::before { background: #27ae60; box-shadow: 0 0 0 2px #27ae60; }
+  .timeline-item.pending::before { background: #e94560; box-shadow: 0 0 0 2px #e94560; }
+  .tl-time { font-size: 0.75rem; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+  .tl-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+  .tl-desc { font-size: 0.85rem; color: #666; line-height: 1.5; }
+  .tl-status {
+    display: inline-block; margin-top: 6px;
+    font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 10px;
+  }
+  .tl-status.ok { background: #d5f5e3; color: #27ae60; }
+  .tl-status.fail { background: #fde8e8; color: #e74c3c; }
+  .tl-status.queue { background: #fff3cd; color: #856404; }
+
+  /* 공고 카드 */
+  .proposal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .proposal-card {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-top: 3px solid #0f3460;
+    position: relative;
+  }
+  .proposal-card.priority-high { border-top-color: #e94560; }
+  .proposal-card.priority-med { border-top-color: #f39c12; }
+  .p-budget { font-size: 1.2rem; font-weight: 800; color: #0f3460; }
+  .p-title { font-weight: 600; margin: 6px 0 4px; font-size: 0.95rem; }
+  .p-fit { font-size: 0.8rem; color: #666; margin-bottom: 10px; }
+  .p-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+  .p-tag {
+    background: #f0f4ff; color: #0f3460;
+    font-size: 0.72rem; padding: 2px 8px; border-radius: 10px;
+  }
+  .p-actions { display: flex; gap: 8px; }
+  .btn-primary {
+    flex: 1; background: #0f3460; color: white; border: none;
+    padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; text-align: center; display: block;
+  }
+  .btn-secondary {
+    flex: 1; background: #f0f4ff; color: #0f3460; border: none;
+    padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; text-align: center; display: block;
+  }
+  .p-status {
+    position: absolute; top: 14px; right: 14px;
+    font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 10px;
+  }
+  .p-status.draft { background: #fff3cd; color: #856404; }
+  .p-status.sent { background: #d5f5e3; color: #27ae60; }
+
+  /* 개선 적용 카드 */
+  .improvement-list { display: flex; flex-direction: column; gap: 12px; }
+  .imp-item {
+    background: white; border-radius: 10px; padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .imp-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .imp-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+  .imp-desc { font-size: 0.82rem; color: #555; line-height: 1.5; }
+  .imp-source { font-size: 0.75rem; color: #999; margin-top: 4px; }
+  .imp-badge {
+    margin-left: auto; flex-shrink: 0;
+    font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 10px;
+  }
+  .imp-badge.applied { background: #d5f5e3; color: #27ae60; }
+  .imp-badge.queued { background: #fff3cd; color: #856404; }
+
+  /* 구독 효율 */
+  .sub-box {
+    background: linear-gradient(135deg, #0f3460, #1a1a2e);
+    color: white; border-radius: 16px; padding: 28px 32px;
+  }
+  .sub-box h3 { font-size: 1.1rem; margin-bottom: 16px; opacity: 0.9; }
+  .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sub-row:last-child { border-bottom: none; margin-bottom: 0; }
+  .sub-row .label { opacity: 0.75; font-size: 0.9rem; }
+  .sub-row .val { font-weight: 700; font-size: 0.95rem; }
+  .sub-row .val.green { color: #2ecc71; }
+  .sub-row .val.red { color: #e74c3c; }
+
+  footer { text-align: center; padding: 32px; color: #999; font-size: 0.8rem; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Bucky Daily Operations</h1>
+  <p>$100 구독이 매일 만들어내는 가치</p>
+  <div class="badge">Claude + Codex 구독 기준 — 2026년 6월 기준</div>
+</div>
+
+<div class="container">
+
+  <!-- ROI 요약 -->
+  <div class="roi-grid">
+    <div class="roi-card">
+      <div class="val">12개</div>
+      <div class="label">수집된 고유 위시켓 공고</div>
+    </div>
+    <div class="roi-card orange">
+      <div class="val">3개</div>
+      <div class="label">오늘 생성된 제안서</div>
+    </div>
+    <div class="roi-card green">
+      <div class="val">3,630만원</div>
+      <div class="label">오늘 응찰 가능 총 금액</div>
+    </div>
+    <div class="roi-card">
+      <div class="val">9개</div>
+      <div class="label">오늘의 플러스 인사이트 수집</div>
+    </div>
+  </div>
+
+  <!-- 1. 오늘 Bucky가 한 일 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="num">1</div>
+      <h2>오늘 Bucky가 실행한 일 (2026-06-03)</h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item done">
+        <div class="tl-time">04:10 KST</div>
+        <div class="tl-title">ChatGPT Plus 인사이트 자동 수집</div>
+        <div class="tl-desc">9개 카드 수집. 이부장 Stripe 패턴, 검증형 핸드오프 흐름, triage 매니페스트 등 시스템 개선 인사이트 확보.</div>
+        <span class="tl-status ok">✓ 완료</span>
+      </div>
+      <div class="timeline-item done">
+        <div class="tl-time">08:30 KST</div>
+        <div class="tl-title">위시켓 신규 공고 자동 수집</div>
+        <div class="tl-desc">SQL 데이터 엔지니어 공고 1건 신규 수집. 누적 12개 고유 공고 관리 중.</div>
+        <span class="tl-status ok">✓ 완료</span>
+      </div>
+      <div class="timeline-item done">
+        <div class="tl-time">오전</div>
+        <div class="tl-title">대시보드 최신화 + GitHub Pages 배포</div>
+        <div class="tl-desc">위시켓·오늘의 플러스·투자 리포트 3개 대시보드 갱신 완료. GitHub Pages에 즉시 반영.</div>
+        <span class="tl-status ok">✓ 완료</span>
+      </div>
+      <div class="timeline-item done">
+        <div class="tl-time">오후</div>
+        <div class="tl-title">위시켓 TOP 3 제안서 생성</div>
+        <div class="tl-desc">모델하우스 키오스크(2000만원), AI 에이전트(850만원/월), FastAPI Agent ETL(780만원/월) — 3개 제안서 Vault 저장.</div>
+        <span class="tl-status ok">✓ 완료</span>
+      </div>
+      <div class="timeline-item pending">
+        <div class="tl-time">오늘의 플러스 인사이트 적용</div>
+        <div class="tl-title">검증형 핸드오프 + triage 자동화 시스템 반영</div>
+        <div class="tl-desc">Claude-Codex 핸드오프 경계 강화, HMAC 서명 검증 패턴, triage 매니페스트 스크립트 개선.</div>
+        <span class="tl-status queue">⏳ 대기 중</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 오늘 응찰 가능 공고 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="num">2</div>
+      <h2>오늘 응찰 가능 공고 TOP 5</h2>
+    </div>
+    <div class="proposal-grid">
+      <div class="proposal-card priority-high">
+        <span class="p-status draft">제안서 준비완료</span>
+        <div class="p-budget">2,000만원</div>
+        <div class="p-title">모델하우스 AI 상담사 키오스크</div>
+        <div class="p-fit">건축설계 + AI 개발 = 재하님의 독점 경쟁력</div>
+        <div class="p-tags">
+          <span class="p-tag">건축도메인</span>
+          <span class="p-tag">React+Electron</span>
+          <span class="p-tag">Claude API</span>
+        </div>
+        <div class="p-actions">
+          <a href="https://www.wishket.com/project/155755/" target="_blank" class="btn-primary">지금 응찰</a>
+          <a href="https://github.com/jaeha81/obsidian-agent-brain-system/blob/master/ObsidianVault/03_Projects/wishket-proposals/2026-06-03-proposal-modelhouse-kiosk.md" target="_blank" class="btn-secondary">제안서 보기</a>
+        </div>
+      </div>
+
+      <div class="proposal-card priority-high">
+        <span class="p-status draft">제안서 준비완료</span>
+        <div class="p-budget">월 850만원</div>
+        <div class="p-title">AI 에이전트 설계 및 개발</div>
+        <div class="p-fit">Bucky 시스템 자체가 포트폴리오 — 실운영 증거 있음</div>
+        <div class="p-tags">
+          <span class="p-tag">멀티에이전트</span>
+          <span class="p-tag">Python</span>
+          <span class="p-tag">AgentBus</span>
+        </div>
+        <div class="p-actions">
+          <a href="https://www.wishket.com/project/155354/" target="_blank" class="btn-primary">지금 응찰</a>
+          <a href="https://github.com/jaeha81/obsidian-agent-brain-system/blob/master/ObsidianVault/03_Projects/wishket-proposals/2026-06-03-proposal-ai-agent-dev.md" target="_blank" class="btn-secondary">제안서 보기</a>
+        </div>
+      </div>
+
+      <div class="proposal-card priority-high">
+        <span class="p-status draft">제안서 준비완료</span>
+        <div class="p-budget">월 780만원</div>
+        <div class="p-title">Python/FastAPI AI Agent + ETL</div>
+        <div class="p-fit">현재 운영 중인 파이프라인 스크립트들이 직접 포트폴리오</div>
+        <div class="p-tags">
+          <span class="p-tag">FastAPI</span>
+          <span class="p-tag">ETL파이프라인</span>
+          <span class="p-tag">AI Agent</span>
+        </div>
+        <div class="p-actions">
+          <a href="https://www.wishket.com/project/155301/" target="_blank" class="btn-primary">지금 응찰</a>
+          <a href="https://github.com/jaeha81/obsidian-agent-brain-system/blob/master/ObsidianVault/03_Projects/wishket-proposals/2026-06-03-proposal-fastapi-ai-agent.md" target="_blank" class="btn-secondary">제안서 보기</a>
+        </div>
+      </div>
+
+      <div class="proposal-card">
+        <span class="p-status draft">제안서 필요</span>
+        <div class="p-budget">월 700만원</div>
+        <div class="p-title">공공 교육서비스 AI 개발</div>
+        <div class="p-fit">AI + 교육 플랫폼. 안정적 공공기관 프로젝트.</div>
+        <div class="p-tags">
+          <span class="p-tag">공공사업</span>
+          <span class="p-tag">교육AI</span>
+          <span class="p-tag">Python</span>
+        </div>
+        <div class="p-actions">
+          <a href="https://www.wishket.com/project/155776/" target="_blank" class="btn-primary">지금 응찰</a>
+          <span class="btn-secondary" style="cursor:default;opacity:0.5">제안서 준비중</span>
+        </div>
+      </div>
+
+      <div class="proposal-card priority-med">
+        <span class="p-status draft">제안서 필요</span>
+        <div class="p-budget">월 300만원</div>
+        <div class="p-title">Nest/Gemini AI 백엔드 (재택 20h)</div>
+        <div class="p-fit">주 20시간 재택. 낮은 진입장벽, 꾸준한 수입원.</div>
+        <div class="p-tags">
+          <span class="p-tag">NestJS</span>
+          <span class="p-tag">Gemini</span>
+          <span class="p-tag">재택</span>
+        </div>
+        <div class="p-actions">
+          <a href="https://www.wishket.com/project/155724/" target="_blank" class="btn-primary">지금 응찰</a>
+          <span class="btn-secondary" style="cursor:default;opacity:0.5">제안서 준비중</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 오늘의 플러스 → 시스템 개선 적용 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="num">3</div>
+      <h2>오늘의 플러스 → 시스템 개선 반영</h2>
+    </div>
+    <div class="improvement-list">
+      <div class="imp-item">
+        <div class="imp-icon">✅</div>
+        <div>
+          <div class="imp-title">중복 방지 + 변경 시에만 쓰기 패턴</div>
+          <div class="imp-desc">chatgpt_daily_collector.py에 hashlib 기반 내용 비교 + emit_on_change 로직 적용. 동일 내용 재수집 시 파일 덮어쓰기 차단.</div>
+          <div class="imp-source">출처: 오늘의 플러스 카드 #7 "웹훅과 Vault 쓰기 패턴"</div>
+        </div>
+        <span class="imp-badge applied">적용됨</span>
+      </div>
+      <div class="imp-item">
+        <div class="imp-icon">✅</div>
+        <div>
+          <div class="imp-title">triage 노트 자동 생성</div>
+          <div class="imp-desc">매일 수집 시 ObsidianVault/00_Inbox/daily-plus-triage/에 Bucky 판정 체크리스트 자동 생성. approve/implement/queue/archive 4단계 분류.</div>
+          <div class="imp-source">출처: 오늘의 플러스 카드 #6 "이부장 펄스 매니저 매니페스트"</div>
+        </div>
+        <span class="imp-badge applied">적용됨</span>
+      </div>
+      <div class="imp-item">
+        <div class="imp-icon">⏳</div>
+        <div>
+          <div class="imp-title">Claude-Codex 핸드오프 경계 강화</div>
+          <div class="imp-desc">AgentBus 승인 게이트에 타임스탬프·서명·SHA 검증 추가. 정책 허용 시에만 커밋하거나 승인 대기 처리.</div>
+          <div class="imp-source">출처: 오늘의 플러스 카드 #5 "검증형 핸드오프 흐름 안내"</div>
+        </div>
+        <span class="imp-badge queued">구현 예정</span>
+      </div>
+      <div class="imp-item">
+        <div class="imp-icon">⏳</div>
+        <div>
+          <div class="imp-title">14일/30주문 자동 A/B 판단 로직</div>
+          <div class="imp-desc">위시켓 응찰 제안서 A/B 실험: 14일 또는 30건 완료 시 ARPU와 전환률 기준으로 자동 전략 전환.</div>
+          <div class="imp-source">출처: 오늘의 플러스 카드 #3 "14일 30주문 자동 결정"</div>
+        </div>
+        <span class="imp-badge queued">구현 예정</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Bucky 매일 루틴 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="num">4</div>
+      <h2>Bucky 매일 자동 실행 루틴</h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item done">
+        <div class="tl-time">04:10 자동</div>
+        <div class="tl-title">ChatGPT Plus 인사이트 수집</div>
+        <div class="tl-desc">Bucky의 "두뇌 업그레이드" 시간. 매일 ChatGPT가 큐레이션한 최신 AI 패턴·방법론을 수집해 Vault에 저장한다. 오늘의 플러스 = Bucky 시스템 업그레이드 원료.</div>
+        <span class="tl-status ok">자동화됨</span>
+      </div>
+      <div class="timeline-item done">
+        <div class="tl-time">04:20 자동</div>
+        <div class="tl-title">triage 노트 생성 → Bucky 판정</div>
+        <div class="tl-desc">수집된 인사이트를 approve/implement/queue/archive 4단계로 자동 분류. approve된 것은 당일 스크립트에 즉시 적용.</div>
+        <span class="tl-status ok">자동화됨</span>
+      </div>
+      <div class="timeline-item done">
+        <div class="tl-time">08:30 자동</div>
+        <div class="tl-title">위시켓 신규 공고 수집</div>
+        <div class="tl-desc">AI·자동화·Python·건축 카테고리 공고를 자동 수집. 중복 제거 후 예산순 정렬. 150만원 이상 공고만 필터링.</div>
+        <span class="tl-status ok">자동화됨</span>
+      </div>
+      <div class="timeline-item pending">
+        <div class="tl-time">08:40 → 개선 필요</div>
+        <div class="tl-title">상위 공고 자동 제안서 생성</div>
+        <div class="tl-desc">신규 공고 발견 시 재하님 프로필·포트폴리오 기반 제안서 자동 초안 생성 → Vault 저장 → Discord 알림. <strong>현재: Anthropic API 크레딧 없어서 수동 생성 중.</strong></div>
+        <span class="tl-status fail">크레딧 필요</span>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-time">수시</div>
+        <div class="tl-title">Discord !골 명령으로 작업 배정</div>
+        <div class="tl-desc">재하님이 "!골 ___" 명령 입력 시 Bucky가 서브태스크 분해 → Claude Code / Codex 자동 배정 → 결과 #jh-results 알림.</div>
+        <span class="tl-status ok">자동화됨</span>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-time">매일 저녁</div>
+        <div class="tl-title">대시보드 + 리포트 자동 갱신</div>
+        <div class="tl-desc">wishket.html / daily-plus.html / investment-report.html 자동 재생성 → GitHub Pages 자동 push.</div>
+        <span class="tl-status queue">반자동</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 구독 효율 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="num">5</div>
+      <h2>$100 구독 효율 분석</h2>
+    </div>
+    <div class="sub-box">
+      <h3>월 구독비 vs 창출 가치</h3>
+      <div class="sub-row">
+        <span class="label">Claude + Codex 구독비</span>
+        <span class="val red">-$100/월 (약 13만원)</span>
+      </div>
+      <div class="sub-row">
+        <span class="label">응찰 → 수주 기대 수익 (1건 수주 시)</span>
+        <span class="val green">+780만원~2,000만원</span>
+      </div>
+      <div class="sub-row">
+        <span class="label">매일 자동 처리하는 개발 작업량</span>
+        <span class="val green">개발자 1인 주 20시간분</span>
+      </div>
+      <div class="sub-row">
+        <span class="label">Bucky 시스템 자체가 포트폴리오</span>
+        <span class="val green">수주 경쟁력 10배 향상</span>
+      </div>
+      <div class="sub-row">
+        <span class="label">지금 당장 해야 할 것</span>
+        <span class="val" style="color:#f39c12;">위시켓 제안서 3개 실제 응찰</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 링크 -->
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+    <a href="wishket.html" style="background:#0f3460;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9rem;">위시켓 대시보드</a>
+    <a href="daily-plus.html" style="background:#e94560;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9rem;">오늘의 플러스</a>
+    <a href="investment-report.html" style="background:#16213e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9rem;">투자·사업 리포트</a>
+  </div>
+
+</div>
+
+<footer>
+  <p>Bucky Agent OS — obsidian-agent-brain-system</p>
+  <p style="margin-top:4px;">마지막 업데이트: 2026-06-03</p>
+</footer>
+
+</body>
+</html>
