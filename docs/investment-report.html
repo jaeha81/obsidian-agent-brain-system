@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obsidian Agent Brain System — Investment Report 2026</title>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --border: #21262d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #d2a8ff;
+    --accent4: #ffa657;
+    --accent5: #ff7b72;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --card: #161b22;
+    --tag-bg: #1f2937;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(10,12,16,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 24px; }
+  .nav-logo { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 20px; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-badge { background: var(--accent2); color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+
+  /* HERO */
+  .hero { padding: 80px 32px 60px; max-width: 1200px; margin: 0 auto; }
+  .hero-tag { display: inline-block; border: 1px solid var(--accent); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 999px; margin-bottom: 20px; letter-spacing: .8px; text-transform: uppercase; }
+  .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--muted); font-size: 17px; max-width: 700px; margin-bottom: 32px; }
+  .hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+  .stat { border: 1px solid var(--border); border-radius: 10px; padding: 16px 24px; background: var(--card); }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* SECTIONS */
+  .section { max-width: 1200px; margin: 0 auto; padding: 48px 32px; border-top: 1px solid var(--border); }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 28px; }
+  .section-number { font-size: 11px; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; letter-spacing: .5px; }
+  .section-title { font-size: 22px; font-weight: 700; }
+  .section-desc { color: var(--muted); font-size: 14px; margin-top: -20px; margin-bottom: 28px; max-width: 800px; }
+
+  /* PRODUCT CARDS */
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .product-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color .2s, transform .2s; cursor: default; position: relative; overflow: hidden; }
+  .product-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .product-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .tier1::before { background: var(--accent); }
+  .tier2::before { background: var(--accent2); }
+  .tier3::before { background: var(--accent3); }
+  .tier4::before { background: var(--accent4); }
+  .tier5::before { background: var(--accent5); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .card-icon { font-size: 28px; }
+  .card-tier { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .6px; }
+  .tier1 .card-tier { background: rgba(88,166,255,.15); color: var(--accent); }
+  .tier2 .card-tier { background: rgba(63,185,80,.15); color: var(--accent2); }
+  .tier3 .card-tier { background: rgba(210,168,255,.15); color: var(--accent3); }
+  .tier4 .card-tier { background: rgba(255,166,87,.15); color: var(--accent4); }
+  .tier5 .card-tier { background: rgba(255,123,114,.15); color: var(--accent5); }
+  .card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .card-desc { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+  .card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tag { background: var(--tag-bg); color: var(--muted); font-size: 11px; padding: 3px 10px; border-radius: 999px; }
+  .card-bottom { border-top: 1px solid var(--border); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .card-price { font-size: 13px; color: var(--accent2); font-weight: 600; }
+  .maturity-bar { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 6px; flex: 1; max-width: 100px; }
+  .maturity-fill { height: 100%; border-radius: 999px; background: var(--accent2); }
+
+  /* UPGRADE TABLE */
+  .upgrade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .upgrade-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .upgrade-product { font-size: 11px; color: var(--accent3); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .upgrade-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .upgrade-desc { font-size: 12px; color: var(--muted); }
+  .upgrade-impact { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .high { background: rgba(63,185,80,.15); color: var(--accent2); }
+  .medium { background: rgba(255,166,87,.15); color: var(--accent4); }
+
+  /* REVENUE TABLE */
+  .revenue-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .revenue-table th { background: var(--card); color: var(--muted); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  .revenue-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .revenue-table tr:hover td { background: rgba(255,255,255,.02); }
+  .revenue-product { font-weight: 600; }
+  .revenue-price { color: var(--accent2); font-weight: 600; }
+  .revenue-model { color: var(--accent); font-size: 12px; }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .dot-ready { background: var(--accent2); }
+  .dot-partial { background: var(--accent4); }
+  .dot-pending { background: var(--muted); }
+
+  /* ROADMAP */
+  .roadmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .phase { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .phase-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
+  .phase-q { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .phase-items { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .phase-items li { font-size: 13px; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; }
+  .phase-items li::before { content: '→'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+  /* RISK */
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+  .risk-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; display: flex; gap: 16px; }
+  .risk-severity { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; height: fit-content; white-space: nowrap; margin-top: 2px; }
+  .risk-high { background: rgba(255,123,114,.15); color: var(--accent5); }
+  .risk-medium { background: rgba(255,166,87,.15); color: var(--accent4); }
+  .risk-low { background: rgba(63,185,80,.15); color: var(--accent2); }
+  .risk-title { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+  .risk-mitigation { font-size: 12px; color: var(--muted); }
+
+  /* THESIS */
+  .thesis-box { background: linear-gradient(135deg, rgba(88,166,255,.08) 0%, rgba(63,185,80,.08) 100%); border: 1px solid var(--accent); border-radius: 16px; padding: 40px 48px; }
+  .thesis-box h2 { font-size: 26px; font-weight: 800; margin-bottom: 16px; }
+  .thesis-box p { color: var(--muted); font-size: 15px; line-height: 1.7; max-width: 860px; }
+  .thesis-highlights { display: flex; gap: 16px; margin-top: 28px; flex-wrap: wrap; }
+  .thesis-highlight { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; }
+  .thesis-highlight .num { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .thesis-highlight .label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--muted); font-size: 12px; }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* UTIL */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; width: 80px; }
+  .progress-fill { height: 100%; border-radius: 999px; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 32px; }
+    .hero-stats { gap: 12px; }
+    .section { padding: 32px 16px; }
+    nav { padding: 12px 16px; }
+    .thesis-box { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Obsidian Agent Brain System <span>// Investment Report</span></div>
+  <div class="nav-links">
+    <a href="#products">Products</a>
+    <a href="#upgrades">Upgrades</a>
+    <a href="#revenue">Revenue</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#risks">Risks</a>
+    <a href="#thesis">Thesis</a>
+    <span class="nav-badge">2026-06-03</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Investment Analysis Report</div>
+  <h1>Obsidian Agent<br><span>Brain System</span></h1>
+  <p>수직형 AI 인프라 플랫폼 — 건설/인테리어 도메인 진입, 에이전트 오케스트레이션, 법령 자동화, 프리랜서 수익 파이프라인을 통합한 운영 증명된 AI OS.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">117</div>
+      <div class="stat-label">Python 스크립트</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">10,021</div>
+      <div class="stat-label">지식베이스 문서</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">6</div>
+      <div class="stat-label">핵심 제품/시스템</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">18개월</div>
+      <div class="stat-label">운영 이력</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1~3B원</div>
+      <div class="stat-label">Year 1 수익 목표</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="section" id="products">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <span class="section-title">핵심 제품 & 시스템</span>
+  </div>
+  <p class="section-desc">운영 중인 6개 핵심 시스템 — 현재 성숙도, 가격 잠재력, 타겟 고객 기준 분류.</p>
+
+  <div class="product-grid">
+
+    <div class="product-card tier1">
+      <div class="card-top">
+        <span class="card-icon">🤖</span>
+        <span class="card-tier">Tier 1 — Core</span>
+      </div>
+      <div class="card-title">Bucky Agent OS</div>
+      <div class="card-desc">멀티 에이전트 오케스트레이션 OS. Claude Code ↔ Codex 라우팅, 5~8개 병렬 워커, Discord 통합, 의도 분류 자동 배분. AI-first 팀을 위한 에이전트 운영체제.</div>
+      <div class="card-meta">
+        <span class="tag">Python</span>
+        <span class="tag">Discord</span>
+        <span class="tag">Claude API</span>
+        <span class="tag">B2B SaaS</span>
+      </div>
+      <div class="card-bottom">
+        <div>
+          <div class="card-price">$99 – $499 / mo</div>
+          <div style="font-size:11px;color:var(--muted);">MVP 70% 완성</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">완성도</div>
+          <div class="maturity-bar"><div class="maturity-fill" style="width:70%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card tier2">
+      <div class="card-top">
+        <span class="card-icon">🚌</span>
+        <span class="card-tier">Tier 1 — Infra</span>
+      </div>
+      <div class="card-title">AgentBus 프레임워크</div>
+      <div class="card-desc">파일 기반 에이전트 메시지 큐. inbox/outbox 패턴, 작업 상태 추적, 핸드오프/승인 워크플로우. n8n·Make와 경쟁하는 AI 네이티브 미들웨어.</div>
+      <div class="card-meta">
+        <span class="tag">Middleware</span>
+        <span class="tag">Task Queue</span>
+        <span class="tag">Workflow</span>
+        <span class="tag">Enterprise</span>
+      </div>
+      <div class="card-bottom">
+        <div>
+          <div class="card-price">$199 – $999 / mo</div>
+          <div style="font-size:11px;color:var(--muted);">MVP 60% 완성</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">완성도</div>
+          <div class="maturity-bar"><div class="maturity-fill" style="width:60%;background:var(--accent2)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card tier3">
+      <div class="card-top">
+        <span class="card-icon">📋</span>
+        <span class="card-tier">Tier 2 — Legal</span>
+      </div>
+      <div class="card-title">LegalizeKR</div>
+      <div class="card-desc">대한민국 법령 자동화 엔진. 건축법·주택법·전자상거래법 검색, MCP 서버 통합, Legal Context Pack 자동 생성. 건설/부동산/스타트업 컴플라이언스.</div>
+      <div class="card-meta">
+        <span class="tag">Legal Tech</span>
+        <span class="tag">MCP Server</span>
+        <span class="tag">K-Law</span>
+        <span class="tag">Construction</span>
+      </div>
+      <div class="card-bottom">
+        <div>
+          <div class="card-price">$99 – $999 / mo</div>
+          <div style="font-size:11px;color:var(--muted);">MVP 40% 완성</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">완성도</div>
+          <div class="maturity-bar"><div class="maturity-fill" style="width:40%;background:var(--accent3)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card tier2">
+      <div class="card-top">
+        <span class="card-icon">🎯</span>
+        <span class="card-tier">Tier 1 — Revenue</span>
+      </div>
+      <div class="card-title">Wishket 수익 자동화</div>
+      <div class="card-desc">프리랜서 공고 스크래핑 → 제안서 자동 생성 → 입찰 추적 → 수익 분석 파이프라인. 현재 50+ 입찰 추적 운영 중. 위시켓/Upwork 화이트라벨 가능.</div>
+      <div class="card-meta">
+        <span class="tag">Automation</span>
+        <span class="tag">Claude AI</span>
+        <span class="tag">Revenue Share</span>
+        <span class="tag">Freelance</span>
+      </div>
+      <div class="card-bottom">
+        <div>
+          <div class="card-price">5~15% 수익쉐어</div>
+          <div style="font-size:11px;color:var(--muted);">MVP 80% 완성 — 최근접 수익화</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">완성도</div>
+          <div class="maturity-bar"><div class="maturity-fill" style="width:80%;background:var(--accent2)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card tier4">
+      <div class="card-top">
+        <span class="card-icon">🕸️</span>
+        <span class="card-tier">Tier 2 — Dev</span>
+      </div>
+      <div class="card-title">Graphify</div>
+      <div class="card-desc">코드/지식 관계 그래프 자동 생성. GitHub 레포 → 구조 맵 → Context Pack 압축 → CI/CD 연동. 온보딩 비용 절감, 레거시 시스템 분석.</div>
+      <div class="card-meta">
+        <span class="tag">Knowledge Graph</span>
+        <span class="tag">DevOps</span>
+        <span class="tag">Auto Docs</span>
+        <span class="tag">CI/CD</span>
+      </div>
+      <div class="card-bottom">
+        <div>
+          <div class="card-price">$49 – $499 / mo</div>
+          <div style="font-size:11px;color:var(--muted);">POC 50% 완성</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">완성도</div>
+          <div class="maturity-bar"><div class="maturity-fill" style="width:50%;background:var(--accent4)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card tier5">
+      <div class="card-top">
+        <span class="card-icon">🚀</span>
+        <span class="card-tier">Tier 3 — Launch</span>
+      </div>
+      <div class="card-title">Landing Page + Stripe</div>
+      <div class="card-desc">GitHub 레포 → 랜딩페이지 자동 생성 → Vercel 배포 → Stripe 결제 버튼 주입. 인디해커·AI 스타트업 제품 출시 자동화. 현재 인프라 준비 완료.</div>
+      <div class="card-meta">
+        <span class="tag">No-Code</span>
+        <span class="tag">Vercel</span>
+        <span class="tag">Stripe</span>
+        <span class="tag">Indie Hacker</span>
+      </div>
+      <div class="card-bottom">
+        <div>
+          <div class="card-price">$9 – $99 / mo + 10% 수수료</div>
+          <div style="font-size:11px;color:var(--muted);">MVP 60% 완성</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">완성도</div>
+          <div class="maturity-bar"><div class="maturity-fill" style="width:60%;background:var(--accent5)"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- UPGRADES -->
+<div class="section" id="upgrades">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <span class="section-title">제품 업그레이드 로드맵</span>
+  </div>
+  <p class="section-desc">기존 제품의 가치를 가장 빠르게 높이는 업그레이드 항목 — 투자 수익 영향도 기준 정렬.</p>
+
+  <div class="upgrade-grid">
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">AgentBus</div>
+      <div class="upgrade-title">파일 → 데이터베이스 큐 마이그레이션</div>
+      <div class="upgrade-desc">현재 파일 기반 큐는 10개 에이전트 이상 확장 불가. Redis/SQLite 백엔드로 전환 시 수백 에이전트 지원 가능. 전체 시스템 확장성 전제 조건.</div>
+      <span class="upgrade-impact high">HIGH IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Bucky OS</div>
+      <div class="upgrade-title">클라우드 호스팅 버전</div>
+      <div class="upgrade-desc">현재 로컬 전용. 클라우드 SaaS 버전 출시 시 개인 설치 마찰 제거, 월정액 과금 가능. GCP/Railway 배포 예상 2주.</div>
+      <span class="upgrade-impact high">HIGH IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Wishket 자동화</div>
+      <div class="upgrade-title">승률 예측 모델</div>
+      <div class="upgrade-desc">과거 입찰 이력 기반 프로젝트별 승률 점수화. 승률 낮은 공고 자동 필터링 → 제안서 작성 시간 절약 + 수익률 향상.</div>
+      <span class="upgrade-impact high">HIGH IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Wishket 자동화</div>
+      <div class="upgrade-title">멀티 플랫폼 지원</div>
+      <div class="upgrade-desc">Upwork, Fiverr, PeoplePerHour, 크몽으로 확장. 동일 파이프라인에서 복수 플랫폼 관리 → TAM 10배 확장.</div>
+      <span class="upgrade-impact high">HIGH IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">LegalizeKR</div>
+      <div class="upgrade-title">실시간 법령 업데이트 모니터링</div>
+      <div class="upgrade-desc">개정 법령 자동 감지 → 컨텍스트 팩 자동 갱신 → Discord/이메일 알림. B2B 구독 핵심 가치 제안.</div>
+      <span class="upgrade-impact high">HIGH IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">LegalizeKR</div>
+      <div class="upgrade-title">계약서 위험 분석 자동화</div>
+      <div class="upgrade-desc">업로드한 계약서 → 관련 법령 매핑 → 위험 조항 플래깅. 인테리어/건설 현장 계약 리뷰 자동화. 직접 수익화 가능.</div>
+      <span class="upgrade-impact high">HIGH IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">AgentBus</div>
+      <div class="upgrade-title">Web UI 모니터링 대시보드</div>
+      <div class="upgrade-desc">태스크 상태, 에이전트별 처리량, 비용 추적, 재시도 로그. 비개발자가 사용하기 위한 필수 인터페이스.</div>
+      <span class="upgrade-impact medium">MEDIUM IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Graphify</div>
+      <div class="upgrade-title">GitHub Actions CI 연동</div>
+      <div class="upgrade-desc">PR 머지 시 자동 그래프 업데이트 → 지식베이스 항상 최신 유지. DevOps 통합으로 엔터프라이즈 판매 가능.</div>
+      <span class="upgrade-impact medium">MEDIUM IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Bucky OS</div>
+      <div class="upgrade-title">수직 템플릿 라이브러리</div>
+      <div class="upgrade-desc">건설/법률/회계/의료 등 도메인별 에이전트 템플릿 제공. 신규 고객 온보딩 시간 단축 + 프리미엄 구독 업셀.</div>
+      <span class="upgrade-impact medium">MEDIUM IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Discord Bot</div>
+      <div class="upgrade-title">Vision AI 복원 (Claude Billing)</div>
+      <div class="upgrade-desc">현재 Anthropic API 크레딧 부족으로 Tesseract fallback. 충전 후 Claude Vision으로 이미지 분석 복원. 즉시 실행 가능.</div>
+      <span class="upgrade-impact medium">MEDIUM IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Wishket 자동화</div>
+      <div class="upgrade-title">인보이스 자동화 + 수익 추적</div>
+      <div class="upgrade-desc">수주 확정 → 인보이스 자동 생성 → 세금계산서 발행 연동 → 수익 대시보드 업데이트. 프리랜서 재무 관리 완전 자동화.</div>
+      <span class="upgrade-impact medium">MEDIUM IMPACT</span>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-product">Landing Page</div>
+      <div class="upgrade-title">A/B 테스트 + 전환율 최적화</div>
+      <div class="upgrade-desc">동일 제품 복수 랜딩페이지 자동 생성 → 전환율 비교 → 최적 버전 자동 선택. Stripe 수익 극대화 핵심.</div>
+      <span class="upgrade-impact medium">MEDIUM IMPACT</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- REVENUE -->
+<div class="section" id="revenue">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <span class="section-title">수익 모델 & 시장 기회</span>
+  </div>
+  <p class="section-desc">제품별 가격 범위, 수익 모델, 상용화 준비 상태, 정부 지원 기회.</p>
+
+  <table class="revenue-table">
+    <thead>
+      <tr>
+        <th>제품</th>
+        <th>수익 모델</th>
+        <th>가격 범위</th>
+        <th>타겟 고객</th>
+        <th>상태</th>
+        <th>Year 1 목표</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="revenue-product">Wishket 자동화</span></td>
+        <td><span class="revenue-model">수익쉐어 + SaaS</span></td>
+        <td class="revenue-price">5~15% + $49/mo</td>
+        <td>프리랜서, 에이전시</td>
+        <td><span class="status-dot dot-ready"></span>즉시 수익화 가능</td>
+        <td class="revenue-price">~3,000만원</td>
+      </tr>
+      <tr>
+        <td><span class="revenue-product">Bucky Agent OS</span></td>
+        <td><span class="revenue-model">B2B SaaS</span></td>
+        <td class="revenue-price">$99~$499/mo</td>
+        <td>AI 스타트업, 팀</td>
+        <td><span class="status-dot dot-partial"></span>베타 준비 중</td>
+        <td class="revenue-price">~5,000만원</td>
+      </tr>
+      <tr>
+        <td><span class="revenue-product">LegalizeKR</span></td>
+        <td><span class="revenue-model">B2B SaaS + 컨설팅</span></td>
+        <td class="revenue-price">$99~$999/mo</td>
+        <td>건설사, 법무팀</td>
+        <td><span class="status-dot dot-partial"></span>MVP 완성 필요</td>
+        <td class="revenue-price">~8,000만원</td>
+      </tr>
+      <tr>
+        <td><span class="revenue-product">AgentBus</span></td>
+        <td><span class="revenue-model">미들웨어 SaaS</span></td>
+        <td class="revenue-price">$199~$999/mo</td>
+        <td>엔터프라이즈, 플랫폼</td>
+        <td><span class="status-dot dot-pending"></span>DB 마이그레이션 필요</td>
+        <td class="revenue-price">~2,000만원</td>
+      </tr>
+      <tr>
+        <td><span class="revenue-product">AI 바우처 (정부)</span></td>
+        <td><span class="revenue-model">정부 지원금</span></td>
+        <td class="revenue-price">3억~10억원</td>
+        <td>중소기업 고객</td>
+        <td><span class="status-dot dot-partial"></span>공급자 등록 필요</td>
+        <td class="revenue-price">3억~10억원</td>
+      </tr>
+      <tr>
+        <td><span class="revenue-product">TIPS AI 트랙</span></td>
+        <td><span class="revenue-model">VC + 정부 매칭</span></td>
+        <td class="revenue-price">5억~30억원</td>
+        <td>—</td>
+        <td><span class="status-dot dot-pending"></span>지원 준비 필요</td>
+        <td class="revenue-price">검토 중</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:24px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">보수 시나리오</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent2);">3억~5억원</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Year 1 수익 (위시켓 + AI바우처 + SaaS)</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">낙관 시나리오</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">1억~3억원</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">월간 반복 매출 (ARR 12억~36억 기준)</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">정부 지원 포함</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent3);">10억~30억원</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">TIPS + 바우처 + SaaS 합산</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">5년 가치 목표</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent4);">$100M+</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">수직 → 수평 확장, 아시아 법령 AI 시장</div>
+    </div>
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<div class="section" id="roadmap">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <span class="section-title">18개월 성장 로드맵</span>
+  </div>
+  <p class="section-desc">단계별 제품 출시 및 시장 확장 계획 — Phase 1(즉시 수익화) → Phase 3(수평 확장).</p>
+
+  <div class="roadmap">
+
+    <div class="phase">
+      <div class="phase-label" style="color:var(--accent);">Phase 1</div>
+      <div class="phase-q">Q2–Q3 2026 · MVP 출시</div>
+      <ul class="phase-items">
+        <li>Bucky Agent OS 공개 베타 (SaaS)</li>
+        <li>Wishket 자동화 화이트라벨 파일럿</li>
+        <li>Landing Page Generator 프리미엄 출시</li>
+        <li>LegalizeKR 건설/부동산 수직 버전</li>
+        <li>AI 바우처 공급기업 등록</li>
+        <li>Anthropic API 크레딧 충전 + Vision AI 복원</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label" style="color:var(--accent2);">Phase 2</div>
+      <div class="phase-q">Q4 2026–Q1 2027 · TAM 확장</div>
+      <ul class="phase-items">
+        <li>AgentBus 독립 제품 출시 (n8n 경쟁)</li>
+        <li>Graphify GitHub/GitLab CI 연동</li>
+        <li>Upwork/Fiverr 제안서 자동화 확장</li>
+        <li>AgentBus DB 마이그레이션 완료</li>
+        <li>TIPS AI 트랙 지원</li>
+        <li>첫 엔터프라이즈 계약 (법인 고객)</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label" style="color:var(--accent3);">Phase 3</div>
+      <div class="phase-q">Q2+ 2027 · 수평 확장</div>
+      <ul class="phase-items">
+        <li>일본·싱가포르 법령 시스템 확장</li>
+        <li>수직 템플릿 마켓플레이스</li>
+        <li>커스텀 에이전트 마켓</li>
+        <li>엔터프라이즈 AI ops 화이트라벨</li>
+        <li>Series A 준비 (ARR 30억 이상)</li>
+        <li>팀 빌딩 (ops/sales 채용)</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- RISKS -->
+<div class="section" id="risks">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <span class="section-title">리스크 분석</span>
+  </div>
+  <p class="section-desc">주요 운영·기술·시장 리스크와 완화 전략.</p>
+
+  <div class="risk-grid">
+
+    <div class="risk-item">
+      <span class="risk-severity risk-high">HIGH</span>
+      <div>
+        <div class="risk-title">AgentBus 확장성 한계</div>
+        <div class="risk-mitigation">완화: 3~6개월 DB 마이그레이션 (Redis/SQLite). 선행 조건으로 Phase 2 이전 완료 필수.</div>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-severity risk-high">HIGH</span>
+      <div>
+        <div class="risk-title">고객 획득 채널 미구축</div>
+        <div class="risk-mitigation">완화: 개발 에이전시 파트너십, 프리랜서 플랫폼 직접 협상, Product Hunt 런치 준비.</div>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-severity risk-high">HIGH</span>
+      <div>
+        <div class="risk-title">솔로 빌더 운영 위험</div>
+        <div class="risk-mitigation">완화: 핵심 제품 1개 집중 → 수익 발생 후 ops/sales 채용. 자동화로 운영 부하 최소화.</div>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-severity risk-medium">MEDIUM</span>
+      <div>
+        <div class="risk-title">Wishket 스크래핑 UI 변경 위험</div>
+        <div class="risk-mitigation">완화: Gmail 알림 병행 운영 중. 공식 API 지원 시 우선 전환. fallback 수동 입력 지원.</div>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-severity risk-medium">MEDIUM</span>
+      <div>
+        <div class="risk-title">법령 정보 최신성</div>
+        <div class="risk-mitigation">완화: 월간 법령 자동 업데이트 스케줄러 구현 예정. 기준일 명시 의무화.</div>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-severity risk-medium">MEDIUM</span>
+      <div>
+        <div class="risk-title">Claude CLI 의존성</div>
+        <div class="risk-mitigation">완화: Claude API 직접 연동 폴백 구현 중. 비용 한도 설정 및 캐싱으로 과금 통제.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- INVESTMENT THESIS -->
+<div class="section" id="thesis">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <span class="section-title">투자 테제</span>
+  </div>
+
+  <div class="thesis-box">
+    <h2>건설 AI를 위한 Stripe를 만든다.</h2>
+    <p>
+      Obsidian Agent Brain System은 <strong>수직형 AI 인프라 플랫폼</strong>이다. 18년 건설·인테리어 도메인 전문성과 AI 오케스트레이션 기술을 결합해, 기존 no-code 자동화 도구(n8n, Make, Zapier)가 해결하지 못하는 AI 네이티브 에이전트 운영 문제를 해결한다. 시스템은 로컬 환경에서 실제 운영 중이며, 117개 스크립트와 10,000개 이상의 지식 문서를 기반으로 작동한다. 즉시 수익화 가능한 진입점(Wishket 자동화)을 보유하고, 정부 AI 바우처와 TIPS 트랙을 통한 초기 자금 조달 경로가 열려 있다.
+    </p>
+    <div class="thesis-highlights">
+      <div class="thesis-highlight">
+        <div class="num">18년</div>
+        <div class="label">도메인 전문성<br>(건설/인테리어)</div>
+      </div>
+      <div class="thesis-highlight">
+        <div class="num">6개</div>
+        <div class="label">운영 증명된<br>핵심 제품</div>
+      </div>
+      <div class="thesis-highlight">
+        <div class="num">100K+</div>
+        <div class="label">타겟 고객<br>(K-건설 전문가)</div>
+      </div>
+      <div class="thesis-highlight">
+        <div class="num">$500K~2M</div>
+        <div class="label">초기 투자 요청<br>(5~10x ROI)</div>
+      </div>
+      <div class="thesis-highlight">
+        <div class="num">$100M+</div>
+        <div class="label">5년 목표 가치<br>(아시아 법령 AI)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>Obsidian Agent Brain System · Investment Report · <a href="https://github.com/jaeha81/obsidian-agent-brain-system">GitHub</a> · <a href="https://jaeha81.github.io/obsidian-agent-brain-system/wishket.html">위시켓 대시보드</a> · <a href="https://jaeha81.github.io/obsidian-agent-brain-system/daily-plus.html">오늘의 플러스</a></p>
+  <p style="margin-top:8px;">분석 기준일: 2026-06-03 · 스크립트 117개 · 지식 문서 10,021개 · Powered by Bucky Agent OS</p>
+</footer>
+
+</body>
+</html>
