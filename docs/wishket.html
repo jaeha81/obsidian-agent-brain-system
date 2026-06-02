@@ -415,6 +415,16 @@ const PROJECTS = [
     description: '모델하우스 AI 상담사 키오스크 소프트웨어 구축',
     source: 'web',
     scraped_at: '2026-06-02T08:30:02.867965'
+  },
+  {
+    id: 'project-155782',
+    title: 'SQL 기반 데이터 품질 진단 데이터 엔지니어 (주 32시간 재택+외근)',
+    link: 'https://www.wishket.com/project/155782/',
+    budget: '월 220만원',
+    budget_wan: 220,
+    description: 'SQL 기반 데이터 품질 진단 데이터 엔지니어 (주 32시간 재택+외근)',
+    source: 'web',
+    scraped_at: '2026-06-03T08:30:14.832486'
   }
 ];
 
@@ -614,7 +624,8 @@ function closeBuckyPanel() {
 }
 
 // ── Discord ──
-function getWebhookUrl() { return localStorage.getItem('wh_url') || ''; }
+const DEFAULT_WEBHOOK = 'https://discord.com/api/webhooks/1510000467638227005/Yx1cr1m3dQI9I1zGVFFVGBsLXYyHfcQSQeHpdG2R4drJNtpxBaSJInqS4kmLdp1Mo_3B';
+function getWebhookUrl() { return localStorage.getItem('wh_url') || DEFAULT_WEBHOOK || ''; }
 function getWebhookName() { return localStorage.getItem('wh_name') || 'Wishket Dashboard'; }
 
 async function sendOneToBucky(id) {

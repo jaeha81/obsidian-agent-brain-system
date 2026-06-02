@@ -65,8 +65,22 @@ def projects_to_js(projects: list[dict]) -> str:
     return "[\n" + ",\n".join(lines) + "\n]"
 
 
+def _load_env_webhook() -> str:
+    """프로젝트 .env에서 DISCORD_WEBHOOK_URL 읽기."""
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return ""
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line.startswith("DISCORD_WEBHOOK_URL="):
+            return line.split("=", 1)[1].strip()
+    return ""
+
+
 def update_dashboard(projects: list[dict]) -> bool:
     html = DASHBOARD_PATH.read_text(encoding="utf-8")
+
+    # 1) PROJECTS 데이터 업데이트
     new_js = projects_to_js(projects)
     pattern = r"(// ── 공고 데이터.*?──\n)const PROJECTS = \[[\s\S]*?\];"
     replacement = r"\g<1>const PROJECTS = " + new_js + ";"
@@ -74,6 +88,16 @@ def update_dashboard(projects: list[dict]) -> bool:
     if n == 0:
         print("ERROR: PROJECTS 블록을 찾을 수 없습니다.")
         return False
+
+    # 2) DEFAULT_WEBHOOK 주입 (.env 값으로)
+    webhook_url = _load_env_webhook()
+    if webhook_url:
+        updated = re.sub(
+            r"const DEFAULT_WEBHOOK = '.*?';",
+            f"const DEFAULT_WEBHOOK = '{webhook_url}';",
+            updated,
+        )
+
     DASHBOARD_PATH.write_text(updated, encoding="utf-8")
     return True
 

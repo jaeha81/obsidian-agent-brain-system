@@ -74,10 +74,11 @@ def generate_proposal_via_claude(project: dict) -> str:
 
     env = os.environ.copy()
     env["BUCKY_SUBPROCESS"] = "1"
+    claude_cmd = os.getenv("CLAUDE_COMMAND", "claude")
 
     try:
         result = subprocess.run(
-            ["claude", "--dangerously-skip-permissions", "-p", full_prompt],
+            [claude_cmd, "--dangerously-skip-permissions", "-p", full_prompt],
             capture_output=True,
             text=True,
             encoding="utf-8",
