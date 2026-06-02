@@ -168,7 +168,7 @@
       <h2>2026-06-03 처리 요약</h2>
       <div class="status-line">
         <span class="pill">수집: 2026-06-03T04:10:47+09:00</span>
-        <span class="pill">리포트: staged</span>
+        <span class="pill">리포트: processed</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
       <div class="summary">
@@ -182,14 +182,12 @@
     <aside class="panel">
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="stat blue"><strong>86</strong><span>평균 효율성</span></div>
-        <div class="stat green"><strong>84</strong><span>평균 호환성</span></div>
+        <div class="stat blue"><strong>65</strong><span>평균 효율성</span></div>
+        <div class="stat green"><strong>82</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>검증 자동화</strong><span>6</span></div>
-<div class="mini"><strong>Obsidian 큐</strong><span>1</span></div>
-<div class="mini"><strong>음성 파이프라인</strong><span>1</span></div>
-<div class="mini"><strong>에이전트 프롬프트</strong><span>1</span></div>
+        <div class="mini"><strong>지식 후보</strong><span>7</span></div>
+<div class="mini"><strong>지식 후보</strong><span>2</span></div>
       </div>
     </aside>
   </section>
@@ -248,8 +246,8 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-06-03</strong><p>9 후보 · 효율 86 · 호환 84</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>+1</strong><p>후보 수 변화 · 효율 +5 · 호환 +9</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-06-03</strong><p>9 후보 · 효율 65 · 호환 82</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>+1</strong><p>후보 수 변화 · 효율 -16 · 호환 +7</p></div>
         <div class="compare-card"><span>누적</span><strong>78</strong><p>8일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
@@ -350,11 +348,11 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 1</strong><span>이부장 원클릭 파일럿 런칭</span><em>스테이징</em></li>
-<li><strong>P1 Card 2</strong><span>이부장 Stripe 웹훅 무결성 처리</span><em>스테이징</em></li>
-<li><strong>P1 Card 3</strong><span>14일 30주문 자동 결정</span><em>스테이징</em></li>
-<li><strong>P1 Card 4</strong><span>이부장 최소 API 계약</span><em>스테이징</em></li>
-<li><strong>P1 Card 5</strong><span>검증형 핸드오프 흐름 안내</span><em>스테이징</em></li>
+        <li><strong>P2 Card 1</strong><span>이부장 원클릭 파일럿 런칭</span><em>스테이징</em></li>
+<li><strong>P2 Card 2</strong><span>이부장 Stripe 웹훅 무결성 처리</span><em>스테이징</em></li>
+<li><strong>P3 Card 3</strong><span>14일 30주문 자동 결정</span><em>스테이징</em></li>
+<li><strong>P3 Card 4</strong><span>이부장 최소 API 계약</span><em>스테이징</em></li>
+<li><strong>P3 Card 5</strong><span>검증형 핸드오프 흐름 안내</span><em>스테이징</em></li>
       </ul>
     </div>
   </section>
@@ -419,30 +417,30 @@
   <section>
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P1&#x27;: 7, &#x27;P2&#x27;: 2} · 상태 {&#x27;staged&#x27;: 9}</span>
+      <span class="muted">우선순위 {&#x27;P2&#x27;: 2, &#x27;P3&#x27;: 7} · 상태 {&#x27;staged&#x27;: 9}</span>
     </div>
     <div class="grid">
 
-      <article class="candidate" data-card="1" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="1" data-status="staged" data-priority="P2" data-category="implementation-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P2</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 1. 이부장 원클릭 파일럿 런칭</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">지식 후보 · owner: claude · target: 03_Projects / 이부장</p>
+        <p class="action">단일 파일 랜딩 + Stripe 결제 + 텔레메트리 통합 구현 검토.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -450,30 +448,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>이부장 원클릭 파일럿 런칭 이부장 원클릭 파일럿 런칭 지금 바로 쓸 수 있는 단일 파일 랜딩 + Bucky 매니페스트 예시를 가져왔어요. 목적은 간단합니다: 에이전트 훅 이름을 **“이부장”**으로 변경하고, Stripe Payment Link를 연결하며, 금고(vault)가 기대하는 텔레메트리 키를 정확히 내보내는 것( visit, preview, checkout:start, chec...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="2" data-status="staged" data-priority="P2" data-category="implementation-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P2</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 2. 이부장 Stripe 웹훅 무결성 처리</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">지식 후보 · owner: claude · target: 03_Projects / 이부장</p>
+        <p class="action">서명 검증, idempotency, Obsidian 주문 기록 핸들러 패턴 구현 검토.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -481,30 +479,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>이부장 Stripe 웹훅 무결성 처리 이부장 Stripe 웹훅 무결성 처리 여기서는 “안전하게 중복 재전달돼도 같은 결과만 남는” 멱등(webhook idempotency) 패턴을 바로 써먹을 수 있게 정리했어요. Stripe 서명 검증 → SQLite에 idempotency_key를 INSERT OR IGNORE → 내부 에이전트(‘이부장’)로 Obsidian 주문 노트 생성 → 텔레...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="3" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 3. 14일 30주문 자동 결정</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 이부장</p>
+        <p class="action">A/B 실험 자동 종료 + 승격 매니페스트를 지식 노트로 증류.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -512,30 +510,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>14일 30주문 자동 결정 14일 30주문 자동 결정 아래는 “14일 또는 30건 구매 달성 시 자동 종료, B의 성과가 기준을 만족하면 승격”을 한 번에 실행할 수 있는 결정 매니페스트(idempotent: 여러 번 실행해도 결과 동일)입니다. 실무자가 그대로 붙여 넣고 돌릴 수 있게 설계했어요. 왜 필요한가 (아주 짧게) 실험을 정해진 조건에서 자동 종료하고 ARPU 상승폭과 전환율...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="4" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 4. 이부장 최소 API 계약</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 이부장</p>
+        <p class="action">핸드오프 API 계약서를 지식 노트로 증류.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -543,30 +541,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>이부장 최소 API 계약 이부장 최소 API 계약 여기서는 에이전트(‘이부장’)가 리포지토리에 안전하게 작업을 넘기기 위한 구현 우선(implementation‑first) 핸드오프 계약서를 한 장으로 정리했어요. 팀원이 바로 붙여 넣어 코딩·테스트할 수 있도록 작고, 벤더 중립적이며, 멱등성 + HMAC 검증을 기본으로 합니다. 1) 요청에 필수인 HTTP 헤더 (서버가 반드시 검증)...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="5" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="5" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 5. 검증형 핸드오프 흐름 안내</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / agent-handoff</p>
+        <p class="action">타임스탬프·서명·SHA 검증 흐름을 핸드오프 정책 노트로 증류.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -574,30 +572,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>검증형 핸드오프 흐름 안내 검증형 핸드오프 흐름 안내 여기, “에이전트 → 레포” 핸드오프를 그대로 복붙해 넣으면 돌아가는 최소 표면적(flow) 으로 정리했어요. HMAC 서명·타임스탬프 스큐 확인 → 페이로드 무결성 → 멱등성 키 저장 → 정책 검증 → 커밋/롤백까지 한 번에요. (대상: Claude/Codex 등 에이전트가 서비스 런타임에 변경을 신청하는 경우) 0) 개념 한 줄...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="6" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="6" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 6. 이부장 펄스 매니저 매니페스트</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 이부장</p>
+        <p class="action">오늘의_플러스 triage 매니페스트를 지식 노트로 증류.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -605,61 +603,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>이부장 펄스 매니저 매니페스트 이부장 펄스 매니저 매니페스트 이건 “오늘의_플러스” 같은 일일 노트를 안전하게 받으면서 **중복 방지, 무결성(HMAC) 검증, 그리고 ‘변경 있을 때만 기록’**을 강제하는 초간단 매니페스트예요. 웹훅 pre-receive나 “버키(bridge)” 앞단에 그대로 붙여 넣으면 동작합니다. JSON {&quot;agent&quot;:&quot;ibujang&quot;,&quot;idempotency_...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="7" data-status="staged" data-priority="P2" data-category="obsidian-queue">
+      <article class="candidate" data-card="7" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P2</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 7. 웹훅과 Vault 쓰기 패턴</h3>
-        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
-        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / agent-handoff</p>
+        <p class="action">중복 방지·변경 감지·Obsidian 트리아지 노트 패턴을 지식 노트로 증류.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
-            <div class="bar"><span class="good" style="width:84%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
-          </div>
-        </div>
-        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>웹훅과 Vault 쓰기 패턴 웹훅과 Vault 쓰기 패턴 오늘은 “이부장(ibujang) 에이전트”를 바로 실전에 투입할 수 있게, 최소 구성 3가지를 한 번에 정리해 드릴게요—웹훅 트리거, 멱등성(idempotency), 그리고 Obsidian 트리아지 노트 자동작성 포맷입니다. 1) 최소 웹훅 페이로드 &amp; 헤더 이부장을 ‘승인(approve)’ 같은 간단한 의사결정으로 깨우는 가장...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="8" data-status="staged" data-priority="P1" data-category="voice-pipeline">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-high">high</span>
-        </div>
-        <h3>Card 8. 영상 추출 우선순위 체크리스트</h3>
-        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
-        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
             <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
-            <div class="bar"><span class="low" style="width:64%"></span></div>
-          </div>
         </div>
-        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -667,30 +634,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>영상 추출 우선순위 체크리스트 영상 추출 우선순위 체크리스트 영상 한 편을 자동으로 “읽어” 메타데이터로 정리하려면, 아래 3단계 체크리스트로 시작하면 딱 좋아요. 배경부터 간단히 설명할게요: 왜 필요한가? 검색·하이라이트·요약·콘텐츠 검열·저작권 확인 등을 빠르게 하려면, 영상에서 구조(샷·장면), 말소리(자막/화자), 화면 정보(텍스트·키프레임)를 기계가 읽을 수 있는 형식으로 뽑아...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="9" data-status="staged" data-priority="P2" data-category="agent-prompting">
+      <article class="candidate" data-card="8" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P2</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-medium">medium</span>
+          <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 9. 가벼운 영상 도구체인 프롬프트</h3>
-        <p class="meta">에이전트 프롬프트 · owner: bucky · target: 03_Projects/agents / Bucky planner-executor prompts</p>
-        <p class="action">Stage prompt changes as role-specific snippets and keep approval notes.</p>
+        <h3>Card 8. 영상 추출 우선순위 체크리스트</h3>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / content-automation</p>
+        <p class="action">영상 파이프라인 체크리스트를 지식 노트로 증류.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>78</strong></div>
-            <div class="bar"><span class="mid" style="width:78%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>62</strong></div>
-            <div class="bar"><span class="low" style="width:62%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">Bucky/Claude/Codex 역할 경계를 건드리므로 review request로 먼저 검토한다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -698,7 +665,38 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>가벼운 영상 도구체인 프롬프트 가벼운 영상 도구체인 프롬프트 요즘 영상(유튜브, 강의, 회의 녹화 등)을 자동으로 잘게 나눠 자막·화자 분리·요약까지 뽑아주는 “가벼운 로컬 파이프라인”을 소개할게요—클라우드 거치지 않고 노트북/서버 한 대로 돌릴 수 있어요. 무엇을 할 수 있나요? 샷(컷) 단위 분할: 장면 전환 지점 자동 검출 → 구간별 대표 프레임(썸네일) 추출 음성 인식(ASR):...</p>
+          <p></p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="9" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status staged">스테이징</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 9. 가벼운 영상 도구체인 프롬프트</h3>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / content-automation</p>
+        <p class="action">ffmpeg, PySceneDetect, whisper.cpp, pyannote 파이프라인 프롬프트를 지식 노트로 증류.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
+          </div>
+        </div>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p></p>
         </details>
       </article>
     </div>
@@ -715,7 +713,7 @@
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
       <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-03.md</code></div>
       <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-03.md</code></div>
-      <div>생성 시각: <code>2026-06-03 09:25:02 KST</code></div>
+      <div>생성 시각: <code>2026-06-03 09:26:05 KST</code></div>
     </div>
   </section>
 </main>
