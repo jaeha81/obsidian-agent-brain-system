@@ -119,6 +119,111 @@ def cmd_reject(name: str) -> None:
     print(f"❌ 거절 완료: {path.name} → failed/")
 
 
+def list_pending_dicts() -> list:
+    """pending_approval/ 대기 태스크를 dict 목록으로 반환 (모듈 임포트용)."""
+    PENDING.mkdir(parents=True, exist_ok=True)
+    tasks = sorted(PENDING.glob("*.md"))
+    result = []
+    for idx, t in enumerate(tasks, 1):
+        try:
+            content = t.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            content = ""
+        fm, _ = _parse(content)
+        result.append({
+            "idx": idx,
+            "name": t.name,
+            "stem": t.stem,
+            "type": fm.get("type", "unknown"),
+            "queued_at": fm.get("queued_at", ""),
+            "approval_note": fm.get("approval_note", "")[:80],
+        })
+    return result
+
+
+def _resolve_key(key: str) -> Path | None:
+    """숫자 인덱스 또는 부분 이름으로 pending_approval/ 파일 찾기."""
+    tasks = sorted(PENDING.glob("*.md"))
+    if not tasks:
+        return None
+    # 숫자 → 인덱스
+    if key.isdigit():
+        idx = int(key)
+        if 1 <= idx <= len(tasks):
+            return tasks[idx - 1]
+        return None
+    # 정확한 파일명
+    exact = PENDING / key
+    if not exact.suffix:
+        exact = PENDING / (key + ".md")
+    if exact.exists():
+        return exact
+    # 부분 일치
+    key_lower = key.lower()
+    matches = [t for t in tasks if key_lower in t.stem.lower()]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        return None  # 모호함 — 호출자가 처리
+    return None
+
+
+def approve_by_key(key: str) -> dict:
+    """key(인덱스·부분명)로 태스크 승인. 반환: {ok, name, error}."""
+    PENDING.mkdir(parents=True, exist_ok=True)
+    tasks = sorted(PENDING.glob("*.md"))
+    # 모호함 감지
+    if key.isdigit():
+        path = _resolve_key(key)
+    else:
+        key_lower = key.lower()
+        matches = [t for t in tasks if key_lower in t.stem.lower()]
+        if len(matches) > 1:
+            return {"ok": False, "name": "", "error": f"모호한 키 '{key}' — {len(matches)}개 매칭"}
+        path = matches[0] if matches else _resolve_key(key)
+
+    if not path or not path.exists():
+        return {"ok": False, "name": key, "error": f"파일 없음: {key}"}
+
+    INBOX.mkdir(parents=True, exist_ok=True)
+    _write_fm(path, {
+        "status": "pending",
+        "requires_approval": False,
+        "approved_at": _iso(),
+        "approval_note": "approved via Discord !approve",
+    })
+    dest = INBOX / path.name
+    path.rename(dest)
+    return {"ok": True, "name": path.name, "error": ""}
+
+
+def reject_by_key(key: str, reason: str = "") -> dict:
+    """key(인덱스·부분명)로 태스크 거절. 반환: {ok, name, error}."""
+    PENDING.mkdir(parents=True, exist_ok=True)
+    tasks = sorted(PENDING.glob("*.md"))
+    if key.isdigit():
+        path = _resolve_key(key)
+    else:
+        key_lower = key.lower()
+        matches = [t for t in tasks if key_lower in t.stem.lower()]
+        if len(matches) > 1:
+            return {"ok": False, "name": "", "error": f"모호한 키 '{key}' — {len(matches)}개 매칭"}
+        path = matches[0] if matches else _resolve_key(key)
+
+    if not path or not path.exists():
+        return {"ok": False, "name": key, "error": f"파일 없음: {key}"}
+
+    FAILED.mkdir(parents=True, exist_ok=True)
+    _write_fm(path, {
+        "status": "rejected",
+        "rejected_at": _iso(),
+        "rejection_reason": reason or "rejected via Discord !reject",
+    })
+    dest = FAILED / path.name
+    path.rename(dest)
+    return {"ok": True, "name": path.name, "error": ""}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="pending_approval 태스크 관리")
     sub = ap.add_subparsers(dest="cmd")

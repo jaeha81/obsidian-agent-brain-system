@@ -2119,6 +2119,68 @@ async def _handle_jh_tasks(message: Message) -> None:
         await message.channel.send(pool.get_board_text())
         return
 
+    # ── AgentBus 승인 게이트 ───────────────────────────────────────────────────
+    if content in ("!pending", "!승인목록", "!approval"):
+        try:
+            import approve_task as _at
+            items = await asyncio.to_thread(_at.list_pending_dicts)
+            if not items:
+                await message.channel.send("⏸ 승인 대기 태스크 없음.")
+                return
+            lines = [f"⏸ **승인 대기 태스크** ({len(items)}개)\n"]
+            for it in items:
+                queued = it["queued_at"][:16] if it["queued_at"] else "-"
+                lines.append(
+                    f"`[{it['idx']}]` `{it['type']}` — {it['stem'][:50]}\n"
+                    f"      queued: {queued}  {it['approval_note'][:50]}"
+                )
+            lines.append("\n`!approve <번호>` / `!reject <번호>` 로 처리")
+            await message.channel.send("\n".join(lines))
+        except Exception as e:
+            await message.channel.send(f"⚠️ 승인 목록 조회 실패: {e}")
+        return
+
+    if content.startswith("!approve ") or content.startswith("!승인 "):
+        key = content.split(None, 1)[1].strip() if len(content.split(None, 1)) > 1 else ""
+        if not key:
+            await message.channel.send("사용법: `!approve <번호 또는 이름>`")
+            return
+        try:
+            import approve_task as _at
+            result = await asyncio.to_thread(_at.approve_by_key, key)
+            if result["ok"]:
+                await message.channel.send(
+                    f"✅ **승인 완료** — `{result['name']}`\n"
+                    f"   → inbox/ 로 이동 (재처리 예약)"
+                )
+            else:
+                await message.channel.send(f"⚠️ 승인 실패: {result['error']}")
+        except Exception as e:
+            await message.channel.send(f"⚠️ 오류: {e}")
+        return
+
+    if content.startswith("!reject ") or content.startswith("!거절 "):
+        parts = content.split(None, 2)
+        key = parts[1].strip() if len(parts) > 1 else ""
+        reason = parts[2].strip() if len(parts) > 2 else ""
+        if not key:
+            await message.channel.send("사용법: `!reject <번호 또는 이름> [사유]`")
+            return
+        try:
+            import approve_task as _at
+            result = await asyncio.to_thread(_at.reject_by_key, key, reason)
+            if result["ok"]:
+                reason_str = f" — {reason}" if reason else ""
+                await message.channel.send(
+                    f"❌ **거절 완료** — `{result['name']}`{reason_str}\n"
+                    f"   → failed/ 로 이동"
+                )
+            else:
+                await message.channel.send(f"⚠️ 거절 실패: {result['error']}")
+        except Exception as e:
+            await message.channel.send(f"⚠️ 오류: {e}")
+        return
+
     # ── 골모드: 목표 설정 ──────────────────────────────────────────────────────
     if content.startswith("!골 ") or content.startswith("!goal "):
         goal = content.split(None, 1)[1].strip()
@@ -2950,6 +3012,10 @@ class BuckyDiscordBot(discord.Client):
                 "`!reset` — 대화 기록 초기화\n"
                 "`!queue` / `!agentbus` / `!큐상태` — AgentBus 큐 읽기 전용 점검\n"
                 "`!context-pack <내용>` / `!pack <내용>` / `!팩 <내용>` — 최소 컨텍스트 팩 선택\n"
+                "**[AgentBus 승인 게이트]**\n"
+                "`!pending` / `!승인목록` — 승인 대기 태스크 목록\n"
+                "`!approve <번호|이름>` / `!승인 <번호|이름>` — 태스크 승인 → inbox 복귀\n"
+                "`!reject <번호|이름> [사유]` / `!거절 <번호|이름>` — 태스크 거절 → failed\n"
                 "**[멀티태스크 — 워커풀]**\n"
                 "`!task <내용>` — 자동 라우팅 (Claude/Codex/Bucky) 백그라운드 실행\n"
                 "`!code <내용>` — Codex 강제 배정 (검수/디버깅/분석)\n"
