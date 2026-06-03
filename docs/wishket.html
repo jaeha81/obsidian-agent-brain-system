@@ -5,15 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>위시켓 수익화 대시보드</title>
 <style>
-#pg-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0d1117;z-index:9999;align-items:center;justify-content:center;}
-#pg-box{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:40px 36px;text-align:center;width:320px;}
-#pg-input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;font-size:1rem;margin-bottom:6px;outline:none;box-sizing:border-box;}
-#pg-input:focus{border-color:#58a6ff;}
-#pg-btn{width:100%;padding:12px;border-radius:8px;border:none;background:#238636;color:white;font-size:1rem;cursor:pointer;font-weight:700;margin-top:4px;}
-#pg-btn:hover{background:#2ea043;}
-#pg-err{color:#f85149;font-size:0.82rem;height:18px;margin-bottom:4px;}
-</style>
-<style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg: #0d1117;
@@ -844,30 +835,5 @@ function downloadProposal(id) {
 render();
 </script>
 
-<div id="pg-overlay">
-  <div id="pg-box">
-    <div style="font-size:2.2rem;margin-bottom:14px;">🔐</div>
-    <h2 style="color:#c9d1d9;font-size:1.15rem;margin-bottom:6px;">위시켓 운영 대시보드</h2>
-    <p style="color:#8b949e;font-size:0.88rem;margin-bottom:22px;">접근 제한 구역 — 비밀번호를 입력하세요</p>
-    <input id="pg-input" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')pgSubmit()" />
-    <p id="pg-err"></p>
-    <button id="pg-btn" onclick="pgSubmit()">입장</button>
-  </div>
-</div>
-<script>
-(function(){
-  const H='9a02838cef35cd584f2ca164ea91d69da757d8295b9770e26a86546dd2521f01';
-  const K='bucky_auth_v1';
-  async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
-  window.pgSubmit=async function(){
-    const v=document.getElementById('pg-input').value;
-    if(!v)return;
-    const h=await sha256(v);
-    if(h===H){sessionStorage.setItem(K,'1');document.getElementById('pg-overlay').style.display='none';}
-    else{document.getElementById('pg-err').textContent='비밀번호가 틀렸습니다';document.getElementById('pg-input').value='';}
-  };
-  if(sessionStorage.getItem(K)!=='1'){document.getElementById('pg-overlay').style.display='flex';}
-})();
-</script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/portfolio.html
+  Cache-Control: public, max-age=3600
+
+/bucky-daily.html
+  Cache-Control: no-store
+
+/wishket.html
+  Cache-Control: no-store
+
+/investment-report.html
+  Cache-Control: no-store
