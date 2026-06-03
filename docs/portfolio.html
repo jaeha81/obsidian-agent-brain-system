@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JH AI 자동화 포트폴리오</title>
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --border: #21262d;
+    --text: #e6edf3; --muted: #7d8590; --accent: #58a6ff;
+    --green: #3fb950; --purple: #bc8cff; --orange: #ffa657;
+    --yellow: #d29922;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; line-height: 1.6; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1c2128 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 24px 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(88,166,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block; background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.3); color: var(--accent);
+    padding: 6px 16px; border-radius: 20px; font-size: 0.82rem;
+    font-weight: 600; letter-spacing: 0.04em; margin-bottom: 20px;
+  }
+  .hero h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--muted); font-size: 1.1rem; max-width: 580px; margin: 0 auto 32px; }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--accent); color: #0d1117;
+    padding: 14px 28px; border-radius: 8px;
+    font-weight: 700; font-size: 1rem; text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .hero-cta:hover { opacity: 0.85; }
+  .hero-sub {
+    margin-top: 14px; color: var(--muted); font-size: 0.88rem;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+  .stat-item {
+    flex: 1; min-width: 140px; padding: 20px 24px;
+    text-align: center; border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+  /* Section */
+  .section { max-width: 1100px; margin: 0 auto; padding: 64px 24px; }
+  .section-title {
+    font-size: 1.5rem; font-weight: 700; margin-bottom: 8px;
+  }
+  .section-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 40px; }
+
+  /* Product grid */
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .product-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .product-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .product-icon { font-size: 2rem; margin-bottom: 14px; }
+  .product-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .product-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; line-height: 1.6; }
+  .product-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 3px 10px; border-radius: 12px; font-size: 0.78rem;
+    font-weight: 600; border: 1px solid;
+  }
+  .tag-blue { color: var(--accent); border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.08); }
+  .tag-green { color: var(--green); border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.08); }
+  .tag-purple { color: var(--purple); border-color: rgba(188,140,255,0.3); background: rgba(188,140,255,0.08); }
+  .tag-orange { color: var(--orange); border-color: rgba(255,166,87,0.3); background: rgba(255,166,87,0.08); }
+  .tag-yellow { color: var(--yellow); border-color: rgba(210,153,34,0.3); background: rgba(210,153,34,0.08); }
+  .product-status {
+    display: inline-block; padding: 4px 10px; border-radius: 6px;
+    font-size: 0.78rem; font-weight: 600; margin-bottom: 12px;
+  }
+  .status-live { background: rgba(63,185,80,0.15); color: var(--green); }
+  .status-beta { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .status-dev { background: rgba(210,153,34,0.15); color: var(--yellow); }
+
+  /* Use cases */
+  .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .usecase-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px;
+  }
+  .usecase-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .usecase-card p { color: var(--muted); font-size: 0.88rem; }
+  .usecase-num {
+    font-size: 1.6rem; font-weight: 800; color: var(--accent);
+    opacity: 0.3; float: right; line-height: 1;
+  }
+
+  /* Tech stack */
+  .tech-list { display: flex; flex-wrap: wrap; gap: 10px; }
+  .tech-chip {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 8px;
+    font-size: 0.88rem; font-weight: 600; color: var(--text);
+  }
+  .tech-chip span { color: var(--muted); font-weight: 400; margin-left: 6px; font-size: 0.8rem; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* CTA section */
+  .cta-section {
+    text-align: center; padding: 80px 24px;
+    background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+    border-top: 1px solid var(--border);
+  }
+  .cta-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; }
+  .cta-section p { color: var(--muted); font-size: 1rem; margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .cta-btn {
+    display: inline-block; padding: 14px 32px; border-radius: 8px;
+    font-weight: 700; font-size: 1rem; text-decoration: none; margin: 6px;
+    transition: opacity 0.2s;
+  }
+  .cta-btn:hover { opacity: 0.85; }
+  .cta-primary { background: var(--accent); color: #0d1117; }
+  .cta-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border); padding: 24px;
+    text-align: center; color: var(--muted); font-size: 0.85rem;
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8rem; }
+    .stat-item { min-width: 100px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">AI 자동화 개발 포트폴리오</div>
+  <h1>건설·인테리어 도메인 특화<br><span>AI 에이전트 시스템</span></h1>
+  <p>10년 건축 설계 경험 × AI 자동화 기술로 만든 실무 검증 솔루션.<br>현장에서 실제로 작동하는 시스템을 구현합니다.</p>
+  <a href="mailto:dltkddlf231@gmail.com" class="hero-cta">
+    협업 문의하기 →
+  </a>
+  <p class="hero-sub">위시켓 프리랜서 응찰 중 · 빠른 응답 보장</p>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">6+</div>
+    <div class="stat-label">운영 중인 AI 제품</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">10년</div>
+    <div class="stat-label">건축·인테리어 경력</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">24/7</div>
+    <div class="stat-label">자동화 파이프라인</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">Claude</div>
+    <div class="stat-label">AI 엔진 (검증 완료)</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">Discord</div>
+    <div class="stat-label">실시간 운영 채널</div>
+  </div>
+</div>
+
+<!-- Products -->
+<section class="section">
+  <h2 class="section-title">핵심 제품 & 시스템</h2>
+  <p class="section-sub">건설·AI·자동화 교차점에서 만들어진 실제 운영 중인 솔루션들</p>
+  <div class="product-grid">
+
+    <div class="product-card">
+      <div class="product-icon">🤖</div>
+      <span class="product-status status-live">운영 중</span>
+      <div class="product-name">Bucky AI 오케스트레이터</div>
+      <div class="product-desc">여러 AI 에이전트(Claude, Codex)를 중앙에서 조율하는 운영체제. 사용자 요청을 분류해 최적 에이전트로 자동 라우팅하고, 작업 결과를 통합 관리합니다.</div>
+      <div class="product-tags">
+        <span class="tag tag-blue">Claude API</span>
+        <span class="tag tag-purple">Multi-Agent</span>
+        <span class="tag tag-green">Discord 봇</span>
+        <span class="tag tag-orange">Python</span>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-icon">🏗️</div>
+      <span class="product-status status-live">운영 중</span>
+      <div class="product-name">모델하우스 AI 상담사</div>
+      <div class="product-desc">건축·인테리어 현장 지식을 학습한 AI 상담 키오스크. 방문객 질의에 실시간 대응하고, 자재 선정·비용 견적·시공 일정을 자동 안내합니다.</div>
+      <div class="product-tags">
+        <span class="tag tag-blue">RAG</span>
+        <span class="tag tag-green">건축 도메인 지식</span>
+        <span class="tag tag-purple">키오스크</span>
+        <span class="tag tag-orange">FastAPI</span>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-icon">📋</div>
+      <span class="product-status status-live">운영 중</span>
+      <div class="product-name">위시켓 자동화 에이전트</div>
+      <div class="product-desc">프리랜서 수주 플랫폼 공고를 24시간 모니터링하고 경쟁력 있는 제안서를 자동 생성합니다. 도메인 적합도 분석으로 수주 확률을 높입니다.</div>
+      <div class="product-tags">
+        <span class="tag tag-blue">자동화</span>
+        <span class="tag tag-green">제안서 생성</span>
+        <span class="tag tag-yellow">Python</span>
+        <span class="tag tag-purple">AI 작성</span>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-icon">📊</div>
+      <span class="product-status status-live">운영 중</span>
+      <div class="product-name">AgentBus 작업 관리 시스템</div>
+      <div class="product-desc">AI 에이전트 간 작업 분배·추적·결과 수집 파이프라인. 태스크 큐잉, 실패 재시도, Discord 실시간 상태 알림을 포함한 운영 인프라입니다.</div>
+      <div class="product-tags">
+        <span class="tag tag-orange">Task Queue</span>
+        <span class="tag tag-blue">Discord</span>
+        <span class="tag tag-green">모니터링</span>
+        <span class="tag tag-purple">Obsidian 연동</span>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-icon">🔍</div>
+      <span class="product-status status-beta">베타</span>
+      <div class="product-name">Graphify 코드베이스 분석기</div>
+      <div class="product-desc">대형 코드베이스를 지식 그래프로 변환해 AI가 효율적으로 탐색하도록 돕는 도구. Context 낭비 없이 필요한 구조만 추출합니다.</div>
+      <div class="product-tags">
+        <span class="tag tag-yellow">지식 그래프</span>
+        <span class="tag tag-blue">Context 최적화</span>
+        <span class="tag tag-orange">Python</span>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-icon">🛒</div>
+      <span class="product-status status-beta">베타</span>
+      <div class="product-name">스나이퍼 구매대행 플랫폼</div>
+      <div class="product-desc">iHerb·Amazon 해외직구 상품을 8개 지표로 자동 평가(100점 만점)하고 마진·통관 리스크를 계산해 60점 이상 상품만 등재하는 검증 플랫폼.</div>
+      <div class="product-tags">
+        <span class="tag tag-green">자동 검증</span>
+        <span class="tag tag-blue">Vercel 배포</span>
+        <span class="tag tag-purple">Make.com</span>
+        <span class="tag tag-orange">리스크 분석</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- Use cases -->
+<section class="section">
+  <h2 class="section-title">이런 문제를 해결합니다</h2>
+  <p class="section-sub">건설·부동산·인테리어 현장의 실제 문제를 AI로 해결한 경험</p>
+  <div class="usecase-grid">
+    <div class="usecase-card">
+      <span class="usecase-num">01</span>
+      <h3>현장 문서 자동화</h3>
+      <p>견적서·시방서·하자 보고서를 AI가 초안 생성. 설계사가 검토·확정하는 Human-in-the-loop 흐름으로 품질 유지.</p>
+    </div>
+    <div class="usecase-card">
+      <span class="usecase-num">02</span>
+      <h3>고객 상담 자동화</h3>
+      <p>모델하우스·분양 현장에서 방문객 질의를 AI가 1차 응답. 자재 옵션, 가격 범위, 공기(工期) 안내 자동화.</p>
+    </div>
+    <div class="usecase-card">
+      <span class="usecase-num">03</span>
+      <h3>수주 파이프라인 자동화</h3>
+      <p>프리랜서 플랫폼 공고 모니터링 → 적합도 분석 → 제안서 생성 → 응찰 기록까지 자동화된 수주 파이프라인.</p>
+    </div>
+    <div class="usecase-card">
+      <span class="usecase-num">04</span>
+      <h3>멀티 에이전트 운영</h3>
+      <p>Claude, Codex, 도메인 특화 에이전트를 단일 Discord 채널에서 통합 관리. 복잡한 작업의 병렬 처리.</p>
+    </div>
+    <div class="usecase-card">
+      <span class="usecase-num">05</span>
+      <h3>지식 베이스 구축</h3>
+      <p>Obsidian 기반 지식 관리 시스템에 AI 자동 분류·태깅·요약 파이프라인 구축. 사내 RAG 시스템의 토대.</p>
+    </div>
+    <div class="usecase-card">
+      <span class="usecase-num">06</span>
+      <h3>데이터 수집 & 분석</h3>
+      <p>AI 플랫폼 트렌드 자동 수집, 시장 공고 분석, KPI 대시보드 자동 갱신. 데이터 기반 의사결정 지원.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- Tech stack -->
+<section class="section">
+  <h2 class="section-title">기술 스택</h2>
+  <p class="section-sub">실제 운영 중인 시스템에서 사용하는 기술들</p>
+  <div class="tech-list">
+    <div class="tech-chip">Python <span>3.11+</span></div>
+    <div class="tech-chip">Claude API <span>Sonnet/Opus</span></div>
+    <div class="tech-chip">FastAPI <span>백엔드</span></div>
+    <div class="tech-chip">Discord.py <span>봇 운영</span></div>
+    <div class="tech-chip">Obsidian <span>지식 관리</span></div>
+    <div class="tech-chip">GitHub Actions <span>CI/CD</span></div>
+    <div class="tech-chip">Vercel <span>프론트엔드 배포</span></div>
+    <div class="tech-chip">Make.com <span>워크플로우</span></div>
+    <div class="tech-chip">PostgreSQL <span>데이터베이스</span></div>
+    <div class="tech-chip">Docker <span>컨테이너</span></div>
+    <div class="tech-chip">AutoCAD <span>건축 도면</span></div>
+    <div class="tech-chip">RAG <span>지식 검색</span></div>
+    <div class="tech-chip">HTML/CSS/JS <span>대시보드</span></div>
+    <div class="tech-chip">Git <span>버전 관리</span></div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>프로젝트 협업 문의</h2>
+  <p>건설·인테리어 AI 자동화, 에이전트 시스템 구축, 프리랜서 개발 프로젝트 — 빠르게 응답합니다.</p>
+  <a href="mailto:dltkddlf231@gmail.com" class="cta-btn cta-primary">이메일로 문의하기</a>
+  <a href="https://www.wishket.com" class="cta-btn cta-secondary" target="_blank">위시켓에서 응찰 확인</a>
+  <p style="margin-top:20px;color:#7d8590;font-size:0.85rem;">보통 24시간 이내 응답 · 첫 미팅 무료</p>
+</section>
+
+<footer>
+  <p>JH AI 자동화 포트폴리오 — 건축 설계 + AI 개발</p>
+  <p style="margin-top:4px;">dltkddlf231@gmail.com</p>
+</footer>
+
+</body>
+</html>
