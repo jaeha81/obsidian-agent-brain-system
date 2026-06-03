@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
   }
 
   const cookies = parseCookies(req.headers.cookie);
-  const sessionToken = process.env.SESSION_TOKEN;
+  const sessionToken = (process.env.SESSION_TOKEN || '').trim();
 
   if (!sessionToken || cookies.bucky_session !== sessionToken) {
     const redirect = encodeURIComponent('/' + page + '.html');

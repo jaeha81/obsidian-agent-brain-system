@@ -18,8 +18,8 @@ module.exports = async (req, res) => {
   const body = await parseBody(req);
   const { password, redirect } = body;
 
-  const expectedPassword = process.env.DASHBOARD_PASSWORD;
-  const sessionToken = process.env.SESSION_TOKEN;
+  const expectedPassword = (process.env.DASHBOARD_PASSWORD || '').trim();
+  const sessionToken = (process.env.SESSION_TOKEN || '').trim();
 
   if (!expectedPassword || !sessionToken) {
     res.status(500).send('서버 설정 오류: 환경변수가 설정되지 않았습니다.');
