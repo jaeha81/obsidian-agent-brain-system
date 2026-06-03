@@ -1,4 +1,6 @@
 {
+  "framework": null,
+  "buildCommand": null,
   "outputDirectory": "docs",
   "rewrites": [
     { "source": "/bucky-daily.html", "destination": "/api/protected?page=bucky-daily" },
