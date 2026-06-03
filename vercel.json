@@ -1,0 +1,13 @@
+{
+  "outputDirectory": "docs",
+  "rewrites": [
+    { "source": "/bucky-daily.html", "destination": "/api/protected?page=bucky-daily" },
+    { "source": "/wishket.html", "destination": "/api/protected?page=wishket" },
+    { "source": "/investment-report.html", "destination": "/api/protected?page=investment-report" }
+  ],
+  "functions": {
+    "api/protected.js": {
+      "includeFiles": "docs/**"
+    }
+  }
+}
