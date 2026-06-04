@@ -2392,7 +2392,9 @@ async def _init_jh_channels(client) -> None:
         )
 
     # 작업 채널 ID .env 영구 저장 (재시작 시 유지)
-    if JH_WORK_CHANNEL_IDS:
+    # stale_work_channel_ids가 있으면 JH_WORK_CHANNEL_IDS가 빈 set이 돼도 .env를 갱신해야 한다.
+    # 갱신하지 않으면 .env에 stale 값이 남아 다음 재시작 시 재로드된다.
+    if JH_WORK_CHANNEL_IDS or stale_work_channel_ids:
         _persist_env_key("JH_WORK_CHANNEL_IDS", ",".join(sorted(JH_WORK_CHANNEL_IDS)))
 
     # jh-status를 bucky-status 대신 현황판으로 사용

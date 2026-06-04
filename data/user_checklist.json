@@ -2,7 +2,7 @@
   "meta": {
     "version": "1.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Claude Code가 관리. 취소/삭제 전까지 영구 유지.",
-    "last_updated": "2026-06-04"
+    "last_updated": "2026-06-05"
   },
   "tasks": [
     {
@@ -128,7 +128,7 @@
     {
       "id": "CL-013",
       "title": "User-Bucky 체크리스트 대시보드 구축",
-      "description": "미완료 태스크 체크리스트를 대시보드에서 관리. 승인/구현/삭제 액션 버튼 포함. (현재 진행 중)",
+      "description": "미완료/진행중/처리완료 태스크를 대시보드에서 관리. 재개 버튼으로 Bucky Agent에 작업 재개 지시를 전송.",
       "priority": "P0",
       "category": "개발",
       "added": "2026-06-04",

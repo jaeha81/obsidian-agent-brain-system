@@ -55,6 +55,33 @@
   .num-wait { color: var(--muted); }
   .num-approved { color: var(--green); }
   .num-wip { color: var(--orange); }
+  .num-done { color: var(--purple); }
+
+  .ops-panel {
+    margin: 14px 32px 0;
+    border: 1px solid var(--border);
+    background: rgba(22,27,34,0.86);
+    border-radius: 8px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.4fr);
+    gap: 14px;
+  }
+  .ops-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .ops-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .ops-kpi { border: 1px solid var(--border); border-radius: 8px; padding: 9px; background: rgba(255,255,255,0.03); }
+  .ops-kpi strong { display: block; font-size: 1.25rem; }
+  .ops-kpi span { color: var(--muted); font-size: 0.7rem; }
+  .endpoint-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .endpoint-row input {
+    width: 100%; min-height: 36px; border: 1px solid var(--border); border-radius: 7px;
+    background: rgba(255,255,255,0.04); color: var(--text); padding: 7px 9px; font: 0.78rem 'Segoe UI', system-ui, sans-serif;
+  }
+  .endpoint-row button {
+    min-height: 36px; border-radius: 7px; border: 1px solid rgba(88,166,255,0.35);
+    background: rgba(88,166,255,0.1); color: var(--accent); padding: 0 12px; cursor: pointer; font-weight: 700;
+  }
+  .ops-hint { color: var(--muted); font-size: 0.72rem; line-height: 1.45; margin-top: 7px; }
 
   .controls {
     padding: 10px 32px; display: flex; gap: 8px; flex-wrap: wrap;
@@ -93,6 +120,7 @@
   .task-card:hover { border-color: #58a6ff55; transform: translateY(-1px); }
   .task-card.status-approved { border-color: rgba(63,185,80,0.45); background: rgba(63,185,80,0.04); }
   .task-card.status-wip { border-color: rgba(255,166,87,0.45); background: rgba(255,166,87,0.04); }
+  .task-card.status-done { border-color: rgba(188,140,255,0.45); background: rgba(188,140,255,0.04); }
   .task-card.status-deleted { opacity: 0.35; border-color: rgba(248,81,73,0.2); }
   .task-card.hidden { display: none; }
 
@@ -126,6 +154,7 @@
   }
   .s-approved { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
   .s-wip { background: rgba(255,166,87,0.15); color: var(--orange); border: 1px solid rgba(255,166,87,0.3); }
+  .s-done { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
   .s-deleted { background: rgba(248,81,73,0.12); color: var(--red); border: 1px solid rgba(248,81,73,0.25); }
   .s-pending { display: none; }
 
@@ -139,6 +168,10 @@
   .btn-approve:hover { background: rgba(63,185,80,0.15); border-color: var(--green); }
   .btn-wip { border-color: rgba(255,166,87,0.4); color: var(--orange); }
   .btn-wip:hover { background: rgba(255,166,87,0.15); border-color: var(--orange); }
+  .btn-resume { border-color: rgba(88,166,255,0.45); color: var(--accent); }
+  .btn-resume:hover { background: rgba(88,166,255,0.15); border-color: var(--accent); }
+  .btn-done { border-color: rgba(188,140,255,0.4); color: var(--purple); }
+  .btn-done:hover { background: rgba(188,140,255,0.15); border-color: var(--purple); }
   .btn-delete { border-color: rgba(248,81,73,0.3); color: var(--red); }
   .btn-delete:hover { background: rgba(248,81,73,0.12); border-color: var(--red); }
   .btn-reset { border-color: rgba(139,148,158,0.3); color: var(--muted); }
@@ -196,6 +229,9 @@
   @media (max-width: 600px) {
     header { padding: 14px 16px; }
     .stats-bar, .controls, .grid { padding-left: 16px; padding-right: 16px; }
+    .ops-panel { margin-left: 16px; margin-right: 16px; grid-template-columns: 1fr; }
+    .ops-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .endpoint-row { grid-template-columns: 1fr; }
     .grid { grid-template-columns: 1fr; }
   }
 </style>
@@ -221,7 +257,27 @@
   <div class="stat-box"><div class="num num-wait" id="cnt-wait">—</div><div class="label">대기</div></div>
   <div class="stat-box"><div class="num num-approved" id="cnt-approved">—</div><div class="label">승인됨</div></div>
   <div class="stat-box"><div class="num num-wip" id="cnt-wip">—</div><div class="label">진행중</div></div>
+  <div class="stat-box"><div class="num num-done" id="cnt-done">—</div><div class="label">처리완료</div></div>
 </div>
+
+<section class="ops-panel" aria-label="Bucky 작업 운영 보드">
+  <div>
+    <div class="ops-title">작업 운영 보드</div>
+    <div class="ops-summary">
+      <div class="ops-kpi"><strong id="ops-open">—</strong><span>미처리</span></div>
+      <div class="ops-kpi"><strong id="ops-done">—</strong><span>처리완료</span></div>
+      <div class="ops-kpi"><strong id="ops-deleted">—</strong><span>삭제/보류</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="ops-title">Bucky 전송 설정</div>
+    <div class="endpoint-row">
+      <input id="bucky-endpoint" type="url" placeholder="Bucky OS intake URL 또는 Discord webhook URL">
+      <button type="button" onclick="saveEndpoint()">저장</button>
+    </div>
+    <p class="ops-hint">각 카드의 재개 버튼은 이 주소로 태스크 ID, 제목, 설명, 메모를 전송합니다. 같은 브라우저의 <code>dailyPlusBuckyOsIntakeUrl</code> 또는 <code>bucky-webhook</code> 값도 자동으로 사용합니다.</p>
+  </div>
+</section>
 
 <div class="controls">
   <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">전체</button>
@@ -233,6 +289,7 @@
   <div class="filter-sep"></div>
   <button class="filter-btn" data-filter="s-approved" onclick="setFilter(this,'s-approved')">승인됨</button>
   <button class="filter-btn" data-filter="s-wip" onclick="setFilter(this,'s-wip')">진행중</button>
+  <button class="filter-btn" data-filter="s-done" onclick="setFilter(this,'s-done')">처리완료</button>
   <button class="show-deleted-btn" id="del-toggle" onclick="toggleDeleted()">삭제됨 표시</button>
 </div>
 
@@ -272,7 +329,7 @@ const TASKS = [
   {
     id: "CL-004",
     title: "Multi-Vault 구조 설계 및 전환",
-    desc: "vault-registry.md 설계. JH.AI-Core-Vault = 코어 권위, 프로젝트 Vault = 작업기억 전용. dry-run 검증 후 실제 전환.",
+    desc: "vault-registry.md 설계. JH.AI-Core-Vault = 코어 권위, 프로젝트 Vault = 작업기억 전용. 06_Context_Packs 동결 유지. dry-run 검증 후 실제 전환.",
     priority: "P2",
     category: "설계",
     added: "2026-06-02",
@@ -308,7 +365,7 @@ const TASKS = [
   {
     id: "CL-008",
     title: "Cloudflare Zero Trust Access 설정",
-    desc: "obsidian-agent-brain-system.pages.dev 보호. Zero Trust → Access → Self-hosted. Policy: dltkddlf231@gmail.com만 허용. /portfolio.html 예외.",
+    desc: "obsidian-agent-brain-system.pages.dev 보호. Zero Trust → Access → Applications → Self-hosted. Policy: dltkddlf231@gmail.com만 허용. /portfolio.html 예외 설정.",
     priority: "대기",
     category: "인프라",
     added: "2026-06-04",
@@ -326,7 +383,7 @@ const TASKS = [
   {
     id: "CL-010",
     title: "Anthropic API 크레딧 충전",
-    desc: "Agent Dispatcher E2E 검증에 필요. 현재 크레딧 소진 상태로 Claude API 호출 불가.",
+    desc: "Agent Dispatcher E2E 검증에 필요. 현재 크레딧 소진 상태.",
     priority: "대기",
     category: "설정",
     added: "2026-06-02",
@@ -335,7 +392,7 @@ const TASKS = [
   {
     id: "CL-011",
     title: "타오바오/아마존 쇼핑몰 착수",
-    desc: "사업자 등록, 첫 상품 테스트 미착수. 구매대행 사업화 첫 단계. Sniper 대시보드 연계.",
+    desc: "사업자 등록, 첫 상품 테스트 미착수. 구매대행 사업화 첫 단계.",
     priority: "대기",
     category: "사업",
     added: "2026-06-02",
@@ -349,16 +406,26 @@ const TASKS = [
     category: "설정",
     added: "2026-06-02",
     source: "2026-06-02 세션3"
+  },
+  {
+    id: "CL-013",
+    title: "User-Bucky 체크리스트 대시보드 구축",
+    desc: "미완료/진행중/처리완료 태스크를 대시보드에서 관리. 재개 버튼으로 Bucky Agent에 작업 재개 지시를 전송.",
+    priority: "P0",
+    category: "개발",
+    added: "2026-06-04",
+    source: "사용자 지시 2026-06-04"
   }
 ];
 
 const META = {
-  last_updated: "2026-06-04",
-  managed_by: "Claude Code"
+  last_updated: "2026-06-05",
+  managed_by: "Bucky Agent / Claude Code"
 };
 
 // ── localStorage 상태 관리 ──────────────────────────────────────────────
 const LS_KEY = "bucky_checklist_v1";
+const ENDPOINT_KEY = "buckyChecklistEndpoint";
 let state = {};
 let showDeleted = false;
 let currentFilter = "all";
@@ -376,6 +443,33 @@ function getTaskState(id) {
   return state[id] || { status: "pending", note: "" };
 }
 
+function getEndpoint() {
+  const input = document.getElementById("bucky-endpoint");
+  const typed = input ? input.value.trim() : "";
+  return typed || localStorage.getItem(ENDPOINT_KEY) || localStorage.getItem("dailyPlusBuckyOsIntakeUrl") || localStorage.getItem("bucky-webhook") || "";
+}
+
+function loadEndpoint() {
+  const input = document.getElementById("bucky-endpoint");
+  if (!input) return;
+  input.value = localStorage.getItem(ENDPOINT_KEY) || localStorage.getItem("dailyPlusBuckyOsIntakeUrl") || localStorage.getItem("bucky-webhook") || "";
+}
+
+function saveEndpoint() {
+  const input = document.getElementById("bucky-endpoint");
+  if (!input) return;
+  const value = input.value.trim();
+  if (!value) {
+    localStorage.removeItem(ENDPOINT_KEY);
+    showToast("전송 주소 초기화");
+    return;
+  }
+  localStorage.setItem(ENDPOINT_KEY, value);
+  if (value.includes("discord.com/api/webhooks")) localStorage.setItem("bucky-webhook", value);
+  else localStorage.setItem("dailyPlusBuckyOsIntakeUrl", value);
+  showToast("Bucky 전송 주소 저장");
+}
+
 // ── 액션 함수 ──────────────────────────────────────────────────────────
 function setStatus(id, newStatus) {
   const ts = getTaskState(id);
@@ -387,8 +481,108 @@ function setStatus(id, newStatus) {
   state[id] = ts;
   saveState();
   renderAll();
-  const msgs = { approved: "승인 완료", wip: "구현 시작", pending: "상태 초기화", deleted: "삭제됨" };
+  const msgs = { approved: "승인 완료", wip: "구현 시작", done: "처리 완료", pending: "상태 초기화", deleted: "삭제됨" };
   showToast(msgs[ts.status] || "상태 변경");
+}
+
+function buildResumeMessage(task) {
+  const ts = getTaskState(task.id);
+  return [
+    "[Bucky Checklist Resume]",
+    "source: user-bucky-checklist",
+    "target: Bucky",
+    "action: resume_task",
+    "task_id: " + task.id,
+    "status: " + ts.status,
+    "priority: " + task.priority,
+    "category: " + task.category,
+    "",
+    "## 사용자 요구사항",
+    task.title,
+    "",
+    "## 상세",
+    task.desc,
+    "",
+    "## 메모",
+    ts.note || "(none)",
+    "",
+    "## Bucky 작업 지시",
+    "이 항목을 새 세션으로 흩어뜨리지 말고 User-Bucky 체크리스트의 미처리 작업 재개로 처리해라.",
+    "이전 맥락이 부족하면 이 태스크 ID와 제목을 기준으로 필요한 상태를 먼저 확인하고, 다음 실행 단계를 사용자에게 간단히 보고해라."
+  ].join("\n");
+}
+
+async function sendResume(id) {
+  const task = TASKS.find(t => t.id === id);
+  if (!task) return;
+  const endpoint = getEndpoint();
+  const body = buildResumeMessage(task);
+  if (!endpoint) {
+    await copyText(body);
+    showToast("전송 주소 없음: 재개 지시문 복사됨");
+    return;
+  }
+  const button = document.getElementById("resume-" + id);
+  if (button) {
+    button.disabled = true;
+    button.textContent = "전송중";
+  }
+  try {
+    if (endpoint.includes("discord.com/api/webhooks")) {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: localStorage.getItem("bucky-wh-name") || "User-Bucky Checklist",
+          content: body.slice(0, 1900)
+        })
+      });
+      if (!response.ok) throw new Error("Discord webhook " + response.status);
+    } else {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "user-bucky-checklist",
+          type: "resume_task",
+          target: "Bucky",
+          action: "resume_task",
+          body,
+          task_id: task.id,
+          title: task.title,
+          priority: task.priority
+        })
+      });
+      if (!response.ok) throw new Error("Bucky endpoint " + response.status);
+    }
+    const ts = getTaskState(id);
+    ts.status = "wip";
+    ts.last_sent = new Date().toISOString();
+    state[id] = ts;
+    saveState();
+    renderAll();
+    showToast("Bucky에 재개 요청 전송");
+  } catch (error) {
+    await copyText(body);
+    showToast("전송 실패: 지시문 복사됨");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "재개";
+    }
+  }
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
 }
 
 function saveNote(id) {
@@ -412,7 +606,7 @@ function setFilter(btn, filter) {
     b.classList.remove("active", "active-red", "active-yellow", "active-purple");
   });
   currentFilter = filter;
-  const cls = filter === "P0" ? "active-red" : filter === "P1" ? "active-yellow" : filter === "大기" ? "active-purple" : "active";
+  const cls = filter === "P0" ? "active-red" : filter === "P1" ? "active-yellow" : filter === "대기" ? "active-purple" : "active";
   btn.classList.add(cls);
   renderAll();
 }
@@ -437,7 +631,7 @@ function renderAll() {
   const grid = document.getElementById("task-grid");
   grid.innerHTML = "";
 
-  let counts = { total: 0, P0: 0, P1: 0, P2: 0, "대기": 0, approved: 0, wip: 0 };
+  let counts = { total: 0, P0: 0, P1: 0, P2: 0, "대기": 0, approved: 0, wip: 0, done: 0, deleted: 0 };
   let visible = 0;
 
   TASKS.forEach(task => {
@@ -446,6 +640,8 @@ function renderAll() {
     if (task.priority in counts) counts[task.priority]++;
     if (ts.status === "approved") counts.approved++;
     if (ts.status === "wip") counts.wip++;
+    if (ts.status === "done") counts.done++;
+    if (ts.status === "deleted") counts.deleted++;
 
     // 필터 로직
     if (ts.status === "deleted" && !showDeleted) return;
@@ -454,6 +650,7 @@ function renderAll() {
     if (currentFilter !== "all") {
       if (currentFilter === "s-approved") show = ts.status === "approved";
       else if (currentFilter === "s-wip") show = ts.status === "wip";
+      else if (currentFilter === "s-done") show = ts.status === "done";
       else show = task.priority === currentFilter;
     }
     if (!show) return;
@@ -476,6 +673,10 @@ function renderAll() {
   document.getElementById("cnt-wait").textContent = counts["대기"];
   document.getElementById("cnt-approved").textContent = counts.approved;
   document.getElementById("cnt-wip").textContent = counts.wip;
+  document.getElementById("cnt-done").textContent = counts.done;
+  document.getElementById("ops-open").textContent = counts.total - counts.done - counts.deleted;
+  document.getElementById("ops-done").textContent = counts.done;
+  document.getElementById("ops-deleted").textContent = counts.deleted;
 
   document.getElementById("last-updated").textContent =
     `마지막 업데이트: ${META.last_updated} · 관리: ${META.managed_by} · 로컬 상태: localStorage`;
@@ -489,6 +690,7 @@ function buildCard(task, ts) {
     ? `<div class="status-badge s-${ts.status}">${
         ts.status === "approved" ? "승인됨" :
         ts.status === "wip" ? "구현 중" :
+        ts.status === "done" ? "처리 완료" :
         ts.status === "deleted" ? "삭제됨" : ""
       }</div>`
     : "";
@@ -519,11 +721,15 @@ function buildCard(task, ts) {
     </div>
     <div class="card-actions">
       ${!isDeleted ? `
+        <button class="action-btn btn-resume" id="resume-${task.id}" onclick="sendResume('${task.id}')">재개</button>
         <button class="action-btn btn-approve" onclick="setStatus('${task.id}','approved')">
           ${ts.status === 'approved' ? '↩ 취소' : '✓ 승인'}
         </button>
         <button class="action-btn btn-wip" onclick="setStatus('${task.id}','wip')">
           ${ts.status === 'wip' ? '↩ 취소' : '▶ 구현'}
+        </button>
+        <button class="action-btn btn-done" onclick="setStatus('${task.id}','done')">
+          ${ts.status === 'done' ? '↩ 취소' : '완료'}
         </button>
       ` : `
         <button class="action-btn btn-reset" onclick="setStatus('${task.id}','pending')">↩ 복원</button>
@@ -544,6 +750,7 @@ function escAttr(s) {
 
 // ── 초기화 ──────────────────────────────────────────────────────────────
 loadState();
+loadEndpoint();
 renderAll();
 </script>
 </body>
