@@ -12,6 +12,7 @@ approve_task.py — pending_approval/ 대기 태스크 관리 CLI
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -27,6 +28,7 @@ INBOX = VAULT / "10_AgentBus" / "inbox"
 FAILED = VAULT / "10_AgentBus" / "failed"
 
 _FM_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
+_JSON_BLOCK_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL)
 
 
 def _iso() -> str:
@@ -51,6 +53,21 @@ def _write_fm(filepath: Path, updates: dict) -> None:
         f"---\n{yaml.dump(fm, allow_unicode=True, default_flow_style=False)}---\n{body}",
         encoding="utf-8",
     )
+
+
+def _execute_approved_wishket_request(path: Path) -> str:
+    content = path.read_text(encoding="utf-8", errors="replace")
+    fm, body = _parse(content)
+    if fm.get("type") != "wishket_development_request":
+        return ""
+    match = _JSON_BLOCK_RE.search(body)
+    if not match:
+        raise ValueError("wishket payload JSON block not found")
+    from wishket_development_request import execute_local_creation, normalize_payload
+
+    payload = normalize_payload(json.loads(match.group(1)))
+    result = execute_local_creation(payload)
+    return result["created"]
 
 
 def cmd_list() -> None:
@@ -91,11 +108,17 @@ def cmd_approve(name: str) -> None:
         print(f"파일 없음: {path}")
         sys.exit(1)
     INBOX.mkdir(parents=True, exist_ok=True)
+    try:
+        execution_result = _execute_approved_wishket_request(path)
+    except Exception as e:
+        print(f"approval execution failed: {e}")
+        sys.exit(1)
     _write_fm(path, {
         "status": "pending",
         "requires_approval": False,
         "approved_at": _iso(),
         "approval_note": "approved via approve_task.py",
+        "execution_result": execution_result,
     })
     dest = INBOX / path.name
     path.rename(dest)
@@ -186,11 +209,16 @@ def approve_by_key(key: str) -> dict:
         return {"ok": False, "name": key, "error": f"파일 없음: {key}"}
 
     INBOX.mkdir(parents=True, exist_ok=True)
+    try:
+        execution_result = _execute_approved_wishket_request(path)
+    except Exception as e:
+        return {"ok": False, "name": path.name, "error": f"approval execution failed: {e}"}
     _write_fm(path, {
         "status": "pending",
         "requires_approval": False,
         "approved_at": _iso(),
         "approval_note": "approved via Discord !approve",
+        "execution_result": execution_result,
     })
     dest = INBOX / path.name
     path.rename(dest)

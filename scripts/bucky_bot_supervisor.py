@@ -210,6 +210,9 @@ def start_bot() -> subprocess.Popen:
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     stdout = LOG_FILE.open("a", encoding="utf-8", errors="replace")
     stderr = ERR_FILE.open("a", encoding="utf-8", errors="replace")
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
     proc = subprocess.Popen(
         [sys.executable, str(BOT_SCRIPT)],
         cwd=str(ROOT),
@@ -219,6 +222,7 @@ def start_bot() -> subprocess.Popen:
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
     # Keep redirected log handles alive for the child process on Windows.
     proc._bucky_stdout = stdout  # type: ignore[attr-defined]

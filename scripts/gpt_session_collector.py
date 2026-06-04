@@ -68,9 +68,9 @@ def save_state(state: dict) -> None:
 
 # ── 유틸리티 ──────────────────────────────────────────────────────────────────
 
-def slugify(text: str) -> str:
+def slugify(text: str | None) -> str:
     """제목을 파일명 안전 슬러그로 변환."""
-    text = text.strip()
+    text = (text or "").strip()
     # 한글·영문·숫자·공백·하이픈·언더스코어만 유지
     text = re.sub(r"[^\w\s가-힣\-]", "", text, flags=re.UNICODE)
     text = re.sub(r"\s+", "_", text)

@@ -9,6 +9,8 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import subprocess
+import sys
 
 from generate_daily_plus_dashboard import (
     ROOT,
@@ -90,7 +92,11 @@ public_url: {PUBLIC_URL}
 - Tell the user that Daily Plus ran but needs attention.
 - Fix collection/login/source access first, then regenerate the dashboard.
 """
-    morning_report.write_text(body, encoding="utf-8")
+    write_text_or_keep_existing(
+        morning_report,
+        body,
+        [f"date: {date}", "status: needs-attention", PUBLIC_URL],
+    )
 
     outbox_body = f"""---
 type: bucky-user-report
@@ -116,8 +122,58 @@ public_url: {PUBLIC_URL}
 - 빈/404 캡처를 저장하지 않도록 collector 검증을 유지한다.
 - 정상 수집 후 대시보드를 다시 생성한다.
 """
-    outbox_message.write_text(outbox_body, encoding="utf-8")
+    write_text_or_keep_existing(
+        outbox_message,
+        outbox_body,
+        [f"date: {date}", "status: needs-attention", PUBLIC_URL],
+    )
     return morning_report
+
+
+def generate_dashboard(date: str | None) -> Path:
+    try:
+        return generate(date)
+    except PermissionError as exc:
+        script = ROOT / "scripts" / "generate_daily_plus_dashboard.py"
+        prefix = "[daily-plus-dashboard] wrote "
+        variants = [[]] if not date else [["--date", date], []]
+        last_error = ""
+        for extra_args in variants:
+            result = subprocess.run(
+                [sys.executable, str(script), *extra_args],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+            if result.returncode == 0:
+                for line in reversed(result.stdout.splitlines()):
+                    if line.startswith(prefix):
+                        return Path(line[len(prefix) :].strip())
+                return ROOT / "docs" / "daily-plus.html"
+            last_error = result.stderr.strip() or result.stdout.strip()
+
+        raise RuntimeError(last_error) from exc
+
+
+def dashboard_is_current(output: Path, date: str) -> bool:
+    if not output.exists():
+        return False
+    text = output.read_text(encoding="utf-8")
+    return date in text and f"pulse-evolution\\{date}.md" in text
+
+
+def write_text_or_keep_existing(path: Path, body: str, required_markers: list[str]) -> None:
+    try:
+        path.write_text(body, encoding="utf-8")
+    except PermissionError:
+        if not path.exists():
+            raise
+        text = path.read_text(encoding="utf-8")
+        if not all(marker in text for marker in required_markers):
+            raise
 
 
 def build_report() -> Path:
@@ -135,7 +191,12 @@ def build_report() -> Path:
             reason = "Pulse report has no cards or upgrade candidates."
         return write_attention_report(report_path, capture_path, reason)
 
-    output = generate(None)
+    output = ROOT / "docs" / "daily-plus.html"
+    try:
+        output = generate_dashboard(date)
+    except RuntimeError:
+        if not dashboard_is_current(output, date):
+            raise
     candidates = parse_candidates(report_text)
     attach_statuses(date, candidates)
     statuses = Counter(item.status for item in candidates)
@@ -200,7 +261,11 @@ At 09:00 KST, Bucky should point the user to the dashboard and summarize:
 - Dashboard generator: `scripts/generate_daily_plus_dashboard.py`
 - Morning report script: `scripts/daily_plus_morning_report.py`
 """
-    morning_report.write_text(body, encoding="utf-8")
+    write_text_or_keep_existing(
+        morning_report,
+        body,
+        [f"date: {date}", "status: ready", PUBLIC_URL],
+    )
     outbox_body = f"""---
 type: bucky-user-report
 scope: daily-plus-dashboard
@@ -231,7 +296,11 @@ public_url: {PUBLIC_URL}
 - 직접 구현보다 큐/승인대기 중심으로 분리되어 있어, 무리한 자동 변경 없이 다음 액션을 고르기 좋다.
 - 사용자는 대시보드에서 첫 오늘의 플러스 대비 진화 추세와 오늘 실행 후보를 바로 확인하면 된다.
 """
-    outbox_message.write_text(outbox_body, encoding="utf-8")
+    write_text_or_keep_existing(
+        outbox_message,
+        outbox_body,
+        [f"date: {date}", "status: ready", PUBLIC_URL],
+    )
     return morning_report
 
 

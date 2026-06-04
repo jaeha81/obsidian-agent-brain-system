@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Usage Dashboard</title>
+<style>
+  :root { --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#0f172a; color:#fff; padding:28px clamp(18px,4vw,48px) 24px; }
+  nav { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
+  nav a.active, nav a:hover { color:#fff; border-color:#60a5fa; }
+  h1 { margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }
+  header p { max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }
+  main { padding:24px clamp(14px,3vw,42px) 48px; display:grid; gap:22px; }
+  .panel, .agent-card { background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 28px rgba(15,23,42,.05); }
+  .panel { padding:20px; }
+  .agent-grid { display:grid; grid-template-columns:repeat(2,minmax(280px,1fr)); gap:14px; }
+  .agent-card { padding:18px; display:grid; gap:14px; }
+  .agent-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .agent-head h3 { margin:0; font-size:20px; }
+  .agent-head span { border-radius:999px; padding:5px 9px; font-size:12px; font-weight:800; border:1px solid var(--line); }
+  .balanced .agent-head span { color:var(--green); background:#f0fdf4; border-color:#bbf7d0; }
+  .underused .agent-head span { color:var(--amber); background:#fff7ed; border-color:#fed7aa; }
+  .limit .agent-head span { color:var(--red); background:#fef2f2; border-color:#fecaca; }
+  .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(90px,1fr)); gap:10px; }
+  .metric-grid div { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; min-height:82px; }
+  .metric-grid strong { display:block; font-size:24px; }
+  .metric-grid span, .note, td, th, dd, dt { color:var(--muted); font-size:13px; line-height:1.5; }
+  .bar { height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
+  .bar span { display:block; height:100%; background:var(--blue); border-radius:inherit; }
+  dl { display:grid; gap:8px; margin:0; }
+  dl div { display:grid; grid-template-columns:120px 1fr; gap:12px; }
+  dt { font-weight:800; color:var(--ink); }
+  dd { margin:0; }
+  .ops-grid { display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:12px; }
+  .ops-grid div { border:1px solid var(--line); border-radius:8px; background:#fbfdff; padding:14px; }
+  .ops-grid strong { display:block; margin-bottom:8px; }
+  .ops-grid span { color:var(--muted); font-size:13px; line-height:1.5; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; }
+  th { background:#eef3f8; color:var(--ink); }
+  .guardrails { display:grid; grid-template-columns:repeat(3,minmax(220px,1fr)); gap:12px; }
+  .guardrails div { border-left:4px solid var(--blue); background:#fbfdff; padding:14px; border-radius:8px; }
+  .guardrails strong { display:block; margin-bottom:6px; }
+  footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
+  @media (max-width:900px) { .agent-grid, .ops-grid, .guardrails { grid-template-columns:1fr; } .metric-grid { grid-template-columns:repeat(2,1fr); } dl div { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="index.html">Repo Dashboard</a>
+    <a href="wishket.html">Wishket</a>
+    <a href="daily-plus.html">Daily Plus</a>
+    <a href="ai-usage.html" class="active">AI Usage</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">GitHub</a>
+  </nav>
+  <h1>AI Usage Dashboard</h1>
+  <p>Codex and Claude Code subscription usage, reset-window planning, and fallback guardrails for keeping development moving when one lane reaches a time or usage limit.</p>
+</header>
+<main>
+  <section class="agent-grid">
+
+      <article class="agent-card limit">
+        <div class="agent-head">
+          <h3>Claude Code</h3>
+          <span>LIMIT-RISK</span>
+        </div>
+        <div class="metric-grid">
+          <div><strong>101</strong><span>sessions</span></div>
+          <div><strong>11,649</strong><span>messages</span></div>
+          <div><strong>100%</strong><span>active days</span></div>
+          <div><strong>100%</strong><span>target use</span></div>
+        </div>
+        <div class="bar"><span style="width:100%"></span></div>
+        <dl>
+          <div><dt>Tokens</dt><dd>4,384,728 total / 496,010,344 cached</dd></div>
+          <div><dt>Budget</dt><dd>$23.33 for 7 days, $100/month</dd></div>
+          <div><dt>Unit cost</dt><dd>$0.23 per session / $0.002 per message</dd></div>
+          <div><dt>Plan</dt><dd>LIMIT-RISK: Split work into smaller sessions, save handoff notes early, and keep the other agent ready for review or analysis. Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window.</dd></div>
+        </dl>
+      </article>
+
+
+      <article class="agent-card limit">
+        <div class="agent-head">
+          <h3>Codex</h3>
+          <span>LIMIT-RISK</span>
+        </div>
+        <div class="metric-grid">
+          <div><strong>134</strong><span>sessions</span></div>
+          <div><strong>20,974</strong><span>messages</span></div>
+          <div><strong>100%</strong><span>active days</span></div>
+          <div><strong>100%</strong><span>target use</span></div>
+        </div>
+        <div class="bar"><span style="width:100%"></span></div>
+        <dl>
+          <div><dt>Tokens</dt><dd>0 total / 0 cached</dd></div>
+          <div><dt>Budget</dt><dd>$23.33 for 7 days, $100/month</dd></div>
+          <div><dt>Unit cost</dt><dd>$0.17 per session / $0.001 per message</dd></div>
+          <div><dt>Plan</dt><dd>LIMIT-RISK: Split work into smaller sessions, save handoff notes early, and keep the other agent ready for review or analysis. Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window.</dd></div>
+        </dl>
+      </article>
+
+  </section>
+  <section class="panel">
+    <h2>Reset Window Operating Plan</h2>
+
+      <div class="ops-grid">
+        <div><strong>Window 1</strong><span>Start with Claude Code implementation. Keep prompts scoped to one repo and one goal.</span></div>
+        <div><strong>Window 2</strong><span>Use Codex for review, failing-test analysis, and architecture risk checks while Claude quota cools.</span></div>
+        <div><strong>Window 3</strong><span>Resume Claude Code for fixes from review. Stop before context gets heavy and write handoff notes.</span></div>
+        <div><strong>Window 4+</strong><span>Use remaining capacity for documentation, small automation, and queued low-risk improvements.</span></div>
+      </div>
+      <p class="note">Current dashboard reset window: 5 hours. Claude Max documentation currently describes a five-hour reset; if the account banner shows four hours, run with <code>AI_USAGE_RESET_HOURS=4</code>.</p>
+
+  </section>
+  <section class="panel">
+    <h2>Recommended Allocation</h2>
+    <div class="guardrails">
+      <div><strong>Claude Code 60%</strong><span>Use for implementation, repo edits, test fixes, and long-running development sessions.</span></div>
+      <div><strong>Codex 40%</strong><span>Use for independent review, debugging, verification, and compact handoff generation.</span></div>
+      <div><strong>Limit fallback</strong><span>When blocked, save a handoff, queue the task, switch agents, and resume after the next reset window.</span></div>
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Daily Breakdown</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Claude Code</th><th>Codex</th></tr></thead>
+      <tbody><tr><td>2026-05-27</td><td>3s / 398m</td><td>11s / 1081m</td></tr>
+<tr><td>2026-05-28</td><td>6s / 337m</td><td>16s / 6653m</td></tr>
+<tr><td>2026-05-29</td><td>11s / 1568m</td><td>9s / 805m</td></tr>
+<tr><td>2026-05-30</td><td>15s / 1954m</td><td>12s / 5468m</td></tr>
+<tr><td>2026-05-31</td><td>17s / 2535m</td><td>21s / 2665m</td></tr>
+<tr><td>2026-06-01</td><td>6s / 697m</td><td>10s / 1193m</td></tr>
+<tr><td>2026-06-02</td><td>33s / 3032m</td><td>17s / 1154m</td></tr>
+<tr><td>2026-06-03</td><td>10s / 1128m</td><td>38s / 1955m</td></tr></tbody>
+    </table>
+  </section>
+</main>
+<footer>
+  Generated: 2026-06-03 20:40:34 KST. Costs use $100/month per lane. Official service banners remain the final source for live limits.
+</footer>
+</body>
+</html>

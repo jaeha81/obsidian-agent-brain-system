@@ -14,6 +14,7 @@ Login model:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -22,7 +23,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -167,9 +168,74 @@ def build_recovery_capture(source_error: str) -> dict[str, Any]:
     }
 
 
+def _sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _write_triage_note(capture: dict[str, Any], today: date, manifest_sha256: str) -> None:
+    """Card 6/7 패턴: 오늘의_플러스 수집 후 Bucky 트리아지 노트 자동 생성."""
+    triage_dir = VAULT_BASE / "00_Inbox" / "daily-plus-triage"
+    triage_dir.mkdir(parents=True, exist_ok=True)
+    date_str = today.strftime("%Y-%m-%d")
+    triage_path = triage_dir / f"{date_str}-triage.md"
+
+    cards = capture.get("cards") or []
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    card_lines = []
+    for i, card in enumerate(cards, 1):
+        title = card.get("title") or f"Card {i}"
+        summary = (card.get("summary") or "").strip()[:120]
+        card_lines.append(f"- [ ] {i}. **{title}** — {summary}")
+
+    cards_block = "\n".join(card_lines) if card_lines else "- (카드 없음)"
+
+    content = f"""---
+title: {date_str}-오늘의_플러스-triage
+triage: pending
+agent: bucky
+manifest_sha256: {manifest_sha256}
+created_at: {now_iso}
+card_count: {len(cards)}
+actions: [approve, implement, queue, archive]
+status: inbox
+tags:
+  - daily-plus
+  - triage
+  - "#status/inbox"
+---
+
+## 오늘의 플러스 트리아지 — {date_str}
+
+> Bucky 시스템 업그레이드·개선 적용 가능 항목 분류
+
+### 카드 목록 (approve / implement / queue / archive 분류 필요)
+
+{cards_block}
+
+### 트리아지 기준
+
+- **approve**: 즉시 시스템 반영 가능 (스크립트·설정·패턴)
+- **implement**: 코드 작업 필요 (Claude Code/Codex 위임)
+- **queue**: 미래 착수 (인프라·의존성 필요)
+- **archive**: 현 시스템 무관 (별도 서비스/제품)
+"""
+    triage_path.write_text(content, encoding="utf-8")
+    print(f"[TRIAGE] Saved: {triage_path}")
+
+
 def _write_note_and_evolve(capture: dict[str, Any], output_path: Path, today: date, *, force: bool, evolve: bool) -> None:
     validate_capture_for_note(capture)
     note_content = build_note(capture, today)
+
+    # emit_on_change: 내용이 바뀐 경우에만 쓰기 (Card 6/7 패턴)
+    new_sha = _sha256_text(note_content)
+    if output_path.exists() and not force:
+        existing_sha = _sha256_text(output_path.read_text(encoding="utf-8"))
+        if existing_sha == new_sha:
+            print(f"[NO_CHANGE] Content unchanged, skip write: {output_path}")
+            return
+
     output_path.write_text(note_content, encoding="utf-8")
 
     cards = capture.get("cards") or []
@@ -182,6 +248,10 @@ def _write_note_and_evolve(capture: dict[str, Any], output_path: Path, today: da
     print(f"[INFO] Cards: {len(cards)}")
     print(f"[INFO] Detail characters: {sum(len(card.get('detailText') or '') for card in cards)}")
     print(f"[PREVIEW]\n{overview[:300]}...")
+
+    # 트리아지 노트 자동 생성 (Card 6 이부장 펄스 매니저 패턴)
+    _write_triage_note(capture, today, new_sha)
+
     if evolve:
         _run_pulse_evolution(output_path, force=force)
 

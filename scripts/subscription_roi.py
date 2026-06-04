@@ -195,6 +195,70 @@ def format_int(n: int) -> str:
     return f"{n:,}"
 
 
+def summarize_usage(
+    report: AgentReport,
+    days: int,
+    monthly_usd: float = SUB_COST_MONTHLY,
+    reset_hours: float = 5,
+    target_sessions_per_reset: int = 2,
+) -> dict[str, object]:
+    """Return subscription-efficiency metrics for dashboard rendering."""
+    windows_per_day = 24 / reset_hours if reset_hours > 0 else 0
+    reset_windows = round(days * windows_per_day)
+    target_sessions = max(1, reset_windows * max(1, target_sessions_per_reset))
+    prorated_budget = monthly_usd * (days / 30) if days else 0
+    active_days = len(report.active_days)
+    sessions = report.total_sessions
+    messages = report.total_messages
+    total_tokens = report.total_tokens
+
+    return {
+        "agent": report.name,
+        "days": days,
+        "monthly_usd": monthly_usd,
+        "reset_hours": reset_hours,
+        "reset_windows": reset_windows,
+        "target_sessions": target_sessions,
+        "sessions": sessions,
+        "messages": messages,
+        "input_tokens": report.total_input_tokens,
+        "output_tokens": report.total_output_tokens,
+        "cached_tokens": report.total_cached_tokens,
+        "total_tokens": total_tokens,
+        "active_days": active_days,
+        "active_day_percent": round(min(100, (active_days / days * 100) if days else 0), 1),
+        "session_utilization_percent": round(min(100, sessions / target_sessions * 100), 1),
+        "prorated_budget_usd": round(prorated_budget, 2),
+        "cost_per_session_usd": round((prorated_budget / sessions), 2) if sessions else None,
+        "cost_per_message_usd": round((prorated_budget / messages), 3) if messages else None,
+    }
+
+
+def usage_recommendation(agent_name: str, summary: dict[str, object]) -> str:
+    """Compact operational guidance for underuse, balance, and limit interruptions."""
+    utilization = float(summary.get("session_utilization_percent") or 0)
+    active_days = float(summary.get("active_day_percent") or 0)
+
+    if agent_name.lower().startswith("codex"):
+        lane = "review, bug reproduction, diff risk checks, and handoff verification"
+    elif "claude" in agent_name.lower():
+        lane = "implementation, refactors, file edits, and long-running coding work"
+    else:
+        lane = "the assigned lane"
+
+    if utilization < 35 or active_days < 50:
+        status = "UNDERUSED"
+        action = f"Schedule more {lane} in each reset window before the quota expires."
+    elif utilization > 85:
+        status = "LIMIT-RISK"
+        action = "Split work into smaller sessions, save handoff notes early, and keep the other agent ready for review or analysis."
+    else:
+        status = "BALANCED"
+        action = f"Keep using this agent for {lane}; preserve handoff notes before heavy context growth."
+
+    return f"{status}: {action} Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window."
+
+
 def render_report(reports: list[AgentReport], days: int) -> str:
     lines = []
     lines.append(f"# Subscription ROI Report — last {days} days")
