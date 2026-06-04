@@ -22,7 +22,7 @@ Add tests that build in-memory `AgentReport` samples and assert utilization, cos
 
 - [x] **Step 2: Run tests to verify failure**
 
-Run: `python -m unittest tests.test_subscription_roi -v`  
+Run: `python -m unittest tests.test_subscription_roi -v`
 Expected before implementation: import errors for the new calculation functions.
 
 - [x] **Step 3: Implement calculations**
@@ -31,7 +31,7 @@ Add configurable monthly cost, reset-hours, target session helpers, and a compac
 
 - [x] **Step 4: Re-run tests**
 
-Run: `python -m unittest tests.test_subscription_roi -v`  
+Run: `python -m unittest tests.test_subscription_roi -v`
 Expected: PASS.
 
 ### Task 2: Static Dashboard Generator
@@ -51,7 +51,7 @@ Generator collects 7-day and 30-day reports, renders a static operational page, 
 
 - [x] **Step 3: Run generator**
 
-Run: `python scripts/generate_ai_usage_dashboard.py`  
+Run: `python scripts/generate_ai_usage_dashboard.py`
 Expected: writes `docs/ai-usage.html`.
 
 ### Task 3: Public Dashboard Links
@@ -67,7 +67,7 @@ Add `AI Usage` links to the repo dashboard and Daily Plus generated nav.
 
 - [x] **Step 2: Regenerate Daily Plus dashboard**
 
-Run: `python scripts/generate_daily_plus_dashboard.py`  
+Run: `python scripts/generate_daily_plus_dashboard.py`
 Expected: `docs/daily-plus.html` contains the `AI Usage` nav link.
 
 ### Task 4: Verification
