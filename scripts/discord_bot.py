@@ -467,6 +467,55 @@ status: {status}
     return out_path
 
 
+def _extract_json_objects(text: str) -> list[dict]:
+    """Extract small JSON objects from Discord message content."""
+    candidates: list[str] = []
+    for block in text.split("```"):
+        stripped = block.strip()
+        if stripped.startswith("json"):
+            candidates.append(stripped[4:].strip())
+        elif stripped.startswith("{") and stripped.endswith("}"):
+            candidates.append(stripped)
+    if text.strip().startswith("{") and text.strip().endswith("}"):
+        candidates.append(text.strip())
+
+    objects: list[dict] = []
+    for candidate in candidates:
+        try:
+            parsed = _json_mod.loads(candidate)
+        except Exception:
+            continue
+        if isinstance(parsed, dict):
+            objects.append(parsed)
+    return objects
+
+
+async def _handle_wishket_development_payload(message: Message, content: str) -> bool:
+    """Queue Wishket development payloads behind the existing approval gate."""
+    for obj in _extract_json_objects(content):
+        if obj.get("type") != "wishket_development_request":
+            continue
+        try:
+            from wishket_development_request import build_plan, normalize_payload, queue_for_approval
+
+            payload = normalize_payload(obj)
+            plan = build_plan(payload)
+            queued_path = await asyncio.to_thread(queue_for_approval, payload)
+            await message.channel.send(
+                "**Wishket 개발요청 접수**\n"
+                f"- slug: `{payload['project_slug']}`\n"
+                f"- local folder: `{plan['local_project']['target']}`\n"
+                f"- approval: required before folder/GitHub/worker execution\n"
+                f"- queued: `{queued_path.name}`\n\n"
+                "`!pending`으로 승인 대기 목록 확인, `!approve <번호>`로 승인."
+            )
+            return True
+        except Exception as e:
+            await message.channel.send(f"Wishket 개발요청 처리 실패: {e}")
+            return True
+    return False
+
+
 BUCKY_CHAT_FILE = VAULT / "10_AgentBus" / "chat" / "BUCKY_CHAT.md"
 _CHAT_HEADER = "---\ntype: bucky-chat\nagent: Bucky\n---\n\n# Bucky Chat\n\n"
 _CHAT_MAX_ENTRIES = 50
@@ -504,6 +553,216 @@ _FILLER_PATTERN = _re.compile(
 
 _URL_PATTERN = _re.compile(r'https?://[^\s<>"\']+')
 _YOUTUBE_PATTERN = _re.compile(r'(youtu\.be/|youtube\.com/watch\?|youtube\.com/shorts/)[\w?=&-]+')
+_DAILY_PLUS_INTAKE_MARKER = "[Daily Plus Knowledge Intake]"
+
+
+def parse_daily_plus_intake_content(content: str) -> dict | None:
+    """Parse Daily Plus dashboard intake webhook content."""
+    if _DAILY_PLUS_INTAKE_MARKER not in content:
+        return None
+
+    lines = content.splitlines()
+    first_line = lines[0].strip() if lines else ""
+    capture_target = ""
+    if first_line.startswith("!capture "):
+        capture_target = first_line[len("!capture "):].strip()
+
+    try:
+        marker_index = next(i for i, line in enumerate(lines) if line.strip() == _DAILY_PLUS_INTAKE_MARKER)
+    except StopIteration:
+        return None
+
+    meta: dict[str, str] = {}
+    body_lines: list[str] = []
+    in_body = False
+    for line in lines[marker_index + 1:]:
+        stripped = line.strip()
+        if not in_body and not stripped:
+            in_body = True
+            continue
+        if not in_body and ":" in line:
+            key, value = line.split(":", 1)
+            meta[key.strip().lower()] = value.strip()
+            continue
+        body_lines.append(line)
+
+    if not capture_target:
+        capture_target = meta.get("title", "").strip()
+
+    return {
+        "capture_target": capture_target,
+        "body": "\n".join(body_lines).strip(),
+        "type": meta.get("type", "auto"),
+        "title": meta.get("title", "(untitled)"),
+        "tags": meta.get("tags", ""),
+        "source": meta.get("source", "daily-plus-dashboard"),
+        "session_id": meta.get("session_id", ""),
+        "follow_up_state": meta.get("follow_up_state", ""),
+        "files": meta.get("files", ""),
+    }
+
+
+def _extract_attachment_paths_from_content(content: str) -> list[str]:
+    marker = "[Discord attachment capture]"
+    if marker not in content:
+        return []
+    after = content.split(marker, 1)[1]
+    first_line = after.strip().splitlines()[0] if after.strip() else ""
+    return [part.strip() for part in first_line.split(",") if part.strip()]
+
+
+def build_daily_plus_intake_session_prompt(
+    payload: dict,
+    saved_paths: list[str] | None = None,
+    attachment_paths: list[str] | None = None,
+) -> str:
+    """Build the Bucky chat prompt for an intake that must continue as a session."""
+    saved_paths = saved_paths or []
+    attachment_paths = attachment_paths or []
+    saved_block = "\n".join(f"- {path}" for path in saved_paths) or "- (none)"
+    attachment_block = "\n".join(f"- {path}" for path in attachment_paths) or "- (none)"
+
+    return "\n".join(
+        [
+            "[Daily Plus Knowledge Intake]",
+            f"session_id: {payload.get('session_id') or 'daily-plus-intake'}",
+            f"source: {payload.get('source') or 'daily-plus-dashboard'}",
+            f"type: {payload.get('type') or 'auto'}",
+            f"title: {payload.get('title') or '(untitled)'}",
+            f"tags: {payload.get('tags') or '(none)'}",
+            f"follow_up_state: {payload.get('follow_up_state') or 'awaiting_user_instruction'}",
+            "",
+            "## Intake 원본",
+            str(payload.get("body") or payload.get("capture_target") or "").strip(),
+            "",
+            "## 저장 증거",
+            saved_block,
+            "",
+            "## 첨부 저장 증거",
+            attachment_block,
+            "",
+            "## Bucky 작업 지시",
+            "이 입력은 단순 저장 완료 로그가 아니라 Discord 사용자 세션으로 이어지는 작업입니다.",
+            "1. 원본 데이터, 링크, YouTube, 지식베이스, 첨부 정보를 분석하세요.",
+            "2. 저장된 Obsidian raw 경로를 참조해 분석 브리핑을 작성하세요.",
+            "3. 분석 브리핑 끝에 다음 사용자 작업 지시를 기다리는 상태임을 명시하세요.",
+            "4. 필요한 후속 질문이 있으면 Discord에서 바로 사용자에게 물어보세요.",
+            "",
+            "완료 형식: 요약 -> 핵심 분석 -> 저장 위치 -> 다음 행동/질문 -> 다음 사용자 작업 지시를 기다리는 상태",
+        ]
+    )
+
+
+def build_daily_plus_intake_fallback_reply(
+    payload: dict,
+    saved_paths: list[str] | None = None,
+    reason: str = "",
+) -> str:
+    saved_paths = saved_paths or []
+    saved_block = "\n".join(f"- {path}" for path in saved_paths) or "- (none)"
+    body = str(payload.get("body") or payload.get("capture_target") or "").strip()
+    reason_line = f"\n- fallback reason: {reason}" if reason else ""
+    return "\n".join(
+        [
+            "## 분석 브리핑",
+            "",
+            "### 요약",
+            "Daily Plus Knowledge Intake 입력을 수신했고 원본 저장 흐름까지 처리했습니다.",
+            reason_line.strip(),
+            "",
+            "### 핵심 분석",
+            body or "(본문 없음)",
+            "",
+            "### 저장 위치",
+            saved_block,
+            "",
+            "### 다음 행동/질문",
+            "Bucky CLI 응답이 지연되거나 실패해 fallback briefing으로 기록했습니다. 사용자가 다음 지시를 주면 같은 Discord 채널 세션에서 이어서 처리합니다.",
+            "",
+            "**다음 사용자 작업 지시를 기다리는 상태입니다.**",
+        ]
+    )
+
+
+async def _handle_daily_plus_intake_payload(message: Message, content: str, channel_id: str) -> bool:
+    payload = parse_daily_plus_intake_content(content)
+    if not payload:
+        return False
+
+    _dbg_log = _ROOT / "discord_intake_debug.log"
+    _dbg_lines = [
+        f"[DailyPlus][DEBUG] raw content (first 300 chars): {repr(content[:300])}",
+        f"[DailyPlus][DEBUG] parsed body: {repr((payload.get('body') or '')[:150])}",
+        f"[DailyPlus][DEBUG] parsed target: {repr((payload.get('capture_target') or '')[:100])}",
+    ]
+    for _l in _dbg_lines:
+        print(_l, flush=True)
+    try:
+        import datetime as _dt
+        with _dbg_log.open("a", encoding="utf-8") as _f:
+            _ts = _dt.datetime.now().isoformat(timespec="seconds")
+            for _l in _dbg_lines:
+                _f.write(f"{_ts} {_l}\n")
+    except Exception:
+        pass
+
+    saved_paths: list[str] = []
+    attachment_paths = _extract_attachment_paths_from_content(content)
+    target = (payload.get("capture_target") or "").strip()
+    body = (payload.get("body") or "").strip()
+    tags = [
+        tag.strip()
+        for tag in (payload.get("tags") or "").split(",")
+        if tag.strip() and tag.strip().lower() != "(none)"
+    ]
+    if "daily-plus-intake" not in tags:
+        tags.append("daily-plus-intake")
+
+    await message.channel.send("Daily Plus Intake 수신: 원본 저장 후 Bucky 분석 브리핑을 시작합니다.")
+    async with message.channel.typing():
+        try:
+            if getattr(message, "attachments", None):
+                notes = await capture_discord_attachments(message, message.attachments)
+                attachment_paths.extend(str(note) for note in notes)
+
+            if target.startswith("http") and _YOUTUBE_PATTERN.search(target):
+                from bucky_youtube_capture import capture_youtube
+                yt_result = await asyncio.to_thread(capture_youtube, target, tags)
+                if yt_result.get("success") and yt_result.get("filepath"):
+                    saved_paths.append(str(yt_result["filepath"]))
+                else:
+                    saved_paths.append(f"YouTube capture failed: {yt_result.get('error', '')}")
+            elif target.startswith("http") and _KNOWLEDGE_CAPTURE_ENABLED:
+                fp = await asyncio.to_thread(_kc_capture_url, target)
+                saved_paths.append(str(fp))
+            elif _KNOWLEDGE_CAPTURE_ENABLED:
+                text = body or target or content
+                fp = await asyncio.to_thread(_kc_capture_text, text, message.author.name)
+                saved_paths.append(str(fp))
+
+            prompt = build_daily_plus_intake_session_prompt(
+                payload,
+                saved_paths=saved_paths,
+                attachment_paths=attachment_paths,
+            )
+            timeout_s = int(os.getenv("DAILY_PLUS_INTAKE_BUCKY_TIMEOUT", "90"))
+            try:
+                reply = await asyncio.wait_for(ask_bucky(channel_id, prompt), timeout=timeout_s)
+            except Exception as exc:
+                reply = build_daily_plus_intake_fallback_reply(
+                    payload,
+                    saved_paths=saved_paths + attachment_paths,
+                    reason=f"{type(exc).__name__}: {exc}",
+                )
+        except Exception as e:
+            await message.channel.send(f"Daily Plus Intake 처리 실패: {e}")
+            return True
+
+    append_to_bucky_chat(message.author.name, content, reply)
+    write_discord_message(message, reply, status="answered")
+    for chunk in split_message(reply):
+        await message.channel.send(chunk)
+    return True
 
 _CLAUDE_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 # CLI(구독) 있으면 API key 없어도 STT 고도화 활성
@@ -1584,6 +1843,13 @@ class WishketDashboardView(discord.ui.View):
         )
         skip_btn.callback = self._on_skip
 
+        dev_btn = discord.ui.Button(
+            label="개발요청",
+            style=discord.ButtonStyle.primary,
+            custom_id="wk_dev_request",
+        )
+        dev_btn.callback = self._on_dev_request
+
         link = p.get("link", "")
         if link and link.startswith("http"):
             link_btn = discord.ui.Button(
@@ -1594,6 +1860,7 @@ class WishketDashboardView(discord.ui.View):
             self.add_item(link_btn)
 
         self.add_item(apply_btn)
+        self.add_item(dev_btn)
         self.add_item(skip_btn)
 
     def _make_embed(self) -> discord.Embed:
@@ -1639,6 +1906,35 @@ class WishketDashboardView(discord.ui.View):
             await interaction.message.edit(embed=self._make_embed(), view=self)
         else:
             await interaction.message.edit(content="✅ 모든 공고 검토 완료!", embed=None, view=None)
+
+    async def _on_dev_request(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True)
+        p = self.projects[self.idx]
+        try:
+            from wishket_development_request import build_plan, normalize_payload, queue_for_approval
+
+            payload = normalize_payload(
+                {
+                    "type": "wishket_development_request",
+                    "source": "wishket_discord_dashboard",
+                    "project_title": p.get("title", ""),
+                    "summary": p.get("description", ""),
+                    "budget": p.get("budget", ""),
+                    "url": p.get("link", ""),
+                }
+            )
+            plan = build_plan(payload)
+            queued_path = await asyncio.to_thread(queue_for_approval, payload)
+            await interaction.followup.send(
+                "**Wishket 개발요청 접수**\n"
+                f"- slug: `{payload['project_slug']}`\n"
+                f"- local folder: `{plan['local_project']['target']}`\n"
+                f"- queued: `{queued_path.name}`\n"
+                "- approval required before folder/GitHub/worker execution\n\n"
+                "`!pending` / `!approve <번호>`로 처리."
+            )
+        except Exception as e:
+            await interaction.followup.send(f"Wishket 개발요청 처리 실패: {e}")
 
     async def _on_skip(self, interaction: discord.Interaction) -> None:
         self._advance()
@@ -2296,6 +2592,42 @@ async def _handle_work_channel(message: Message) -> None:
         _track = False
 
     content = message.content.strip()
+
+    # ── 음성 첨부파일 처리 (#jh-chat과 동일한 STT 파이프라인) ──────────────────────
+    _AUDIO_EXTS = {".ogg", ".mp3", ".wav", ".m4a", ".webm", ".aac", ".flac"}
+    if VOICE_ENABLED and message.attachments:
+        for att in message.attachments:
+            _is_audio = (
+                (att.content_type and att.content_type.startswith("audio/"))
+                or Path(att.filename).suffix.lower() in _AUDIO_EXTS
+            )
+            if _is_audio:
+                async with message.channel.typing():
+                    try:
+                        transcript = await transcribe_discord_audio(att)
+                        if transcript:
+                            if _NLP_ENABLED:
+                                try:
+                                    import sys as _sys
+                                    if str(Path(__file__).parent) not in _sys.path:
+                                        _sys.path.insert(0, str(Path(__file__).parent))
+                                    from bucky_nlp_preprocessor import preprocess
+                                    nlp_result = await asyncio.to_thread(preprocess, transcript)
+                                    voice_text = nlp_result.get("structured_prompt", transcript)
+                                    voice_text = f"[음성] {voice_text}"
+                                except Exception:
+                                    voice_text = f"[음성] {transcript}"
+                            else:
+                                voice_text = f"[음성] {transcript}"
+                            content = f"{content} {voice_text}".strip() if content else voice_text
+                        else:
+                            await message.channel.send("⚠️ 음성을 인식하지 못했습니다.")
+                            return
+                    except Exception as e:
+                        await message.channel.send(f"⚠️ 음성 인식 실패: {e}")
+                        return
+                break
+
     if not content:
         return
 
@@ -2780,6 +3112,11 @@ class BuckyDiscordBot(discord.Client):
 
         content = message.content.strip()
         channel_id = str(message.channel.id)
+        if await _handle_daily_plus_intake_payload(message, content, channel_id):
+            return
+
+        if await _handle_wishket_development_payload(message, content):
+            return
 
         # ── Sync Sentinel — PC/스토리지/Git/Docker 상태 확인 ─────────────────────
         if content in ("!sync", "!pc", "!sync-status", "!pc-status", "!동기화상태", "!PC상태"):

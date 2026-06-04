@@ -154,6 +154,7 @@ DASHBOARD_INTERACTION_JS = """
   var ENDPOINT_KEY = "dailyPlusBuckyOsIntakeUrl";
   var DISCORD_WEBHOOK_KEY = "bucky-webhook";
   var DISCORD_WEBHOOK_NAME_KEY = "bucky-wh-name";
+  var DAILY_PLUS_SESSION_KEY = "dailyPlusBuckySessionId";
   var ACTIVE_COMMAND = null;
 
   function showToast(message) {
@@ -178,6 +179,15 @@ DASHBOARD_INTERACTION_JS = """
     if (input) input.value = value;
     localStorage.setItem(ENDPOINT_KEY, value);
     return value;
+  }
+
+  function dailyPlusSessionId() {
+    var current = localStorage.getItem(DAILY_PLUS_SESSION_KEY) || "";
+    if (!current) {
+      current = "daily-plus-intake-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem(DAILY_PLUS_SESSION_KEY, current);
+    }
+    return current;
   }
 
   function setMessageStatus(message, isError) {
@@ -209,6 +219,9 @@ DASHBOARD_INTERACTION_JS = """
       type: "daily_plus_user_command",
       source: "daily-plus-dashboard",
       target: "Bucky",
+      session_id: dailyPlusSessionId(),
+      channel_role: "daily-plus-intake",
+      follow_up_state: "awaiting_user_instruction",
       action: action || "message",
       createdAt: new Date().toISOString(),
       body: body
@@ -294,6 +307,10 @@ DASHBOARD_INTERACTION_JS = """
       "title: " + (title || "(untitled)"),
       "tags: " + (tags || "(none)"),
       "source: daily-plus-dashboard",
+      "session_id: " + dailyPlusSessionId(),
+      "channel_role: daily-plus-intake",
+      "follow_up_state: awaiting_user_instruction",
+      "requested_response: analyze_and_brief_then_wait",
       fileLines.length ? "files:\\n" + fileLines.join("\\n") : "files: (none)",
       "",
       body && !isSingleUrl ? body : ""
@@ -918,6 +935,7 @@ def render_dashboard(
     <a href="index.html">Repo Dashboard</a>
     <a href="wishket.html">Wishket</a>
     <a href="daily-plus.html" class="active">Daily Plus</a>
+    <a href="ai-usage.html">AI Usage</a>
     <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">GitHub</a>
   </nav>
   <h1>오늘의 플러스 운영 리포트</h1>
