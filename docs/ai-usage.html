@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Usage Dashboard</title>
+<title>AI 사용량 대시보드</title>
 <style>
   :root { --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
   header { background:#0f172a; color:#fff; padding:28px clamp(18px,4vw,48px) 24px; }
-  nav { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
   nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
   nav a.active, nav a:hover { color:#fff; border-color:#60a5fa; }
+  nav .auth-start { margin-left:auto; }
   h1 { margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }
   header p { max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }
   main { padding:24px clamp(14px,3vw,42px) 48px; display:grid; gap:22px; }
@@ -52,14 +53,16 @@
 <body>
 <header>
   <nav>
-    <a href="index.html">Repo Dashboard</a>
-    <a href="wishket.html">Wishket</a>
-    <a href="daily-plus.html">Daily Plus</a>
-    <a href="ai-usage.html" class="active">AI Usage</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html">위시켓</a>
+    <a href="daily-plus.html">오늘의플러스</a>
+    <a href="ai-usage.html" class="active">AI사용량</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/api/logout">로그아웃</a>
   </nav>
-  <h1>AI Usage Dashboard</h1>
-  <p>Codex and Claude Code subscription usage, reset-window planning, and fallback guardrails for keeping development moving when one lane reaches a time or usage limit.</p>
+  <h1>AI 사용량 대시보드</h1>
+  <p>Codex와 Claude Code 구독 사용량, 리셋 창 운영 계획, 한쪽 사용량이 막혔을 때의 전환 기준을 한 화면에서 확인합니다.</p>
 </header>
 <main>
   <section class="agent-grid">
@@ -67,20 +70,20 @@
       <article class="agent-card limit">
         <div class="agent-head">
           <h3>Claude Code</h3>
-          <span>LIMIT-RISK</span>
+          <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>101</strong><span>sessions</span></div>
-          <div><strong>11,649</strong><span>messages</span></div>
-          <div><strong>100%</strong><span>active days</span></div>
-          <div><strong>100%</strong><span>target use</span></div>
+          <div><strong>101</strong><span>세션</span></div>
+          <div><strong>11,649</strong><span>메시지</span></div>
+          <div><strong>100%</strong><span>활성일</span></div>
+          <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>Tokens</dt><dd>4,384,728 total / 496,010,344 cached</dd></div>
-          <div><dt>Budget</dt><dd>$23.33 for 7 days, $100/month</dd></div>
-          <div><dt>Unit cost</dt><dd>$0.23 per session / $0.002 per message</dd></div>
-          <div><dt>Plan</dt><dd>LIMIT-RISK: Split work into smaller sessions, save handoff notes early, and keep the other agent ready for review or analysis. Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window.</dd></div>
+          <div><dt>토큰</dt><dd>총 4,384,728 / 캐시 496,010,344</dd></div>
+          <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.23 / 메시지당 $0.002</dd></div>
+          <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
         </dl>
       </article>
 
@@ -88,48 +91,48 @@
       <article class="agent-card limit">
         <div class="agent-head">
           <h3>Codex</h3>
-          <span>LIMIT-RISK</span>
+          <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>134</strong><span>sessions</span></div>
-          <div><strong>20,974</strong><span>messages</span></div>
-          <div><strong>100%</strong><span>active days</span></div>
-          <div><strong>100%</strong><span>target use</span></div>
+          <div><strong>134</strong><span>세션</span></div>
+          <div><strong>20,974</strong><span>메시지</span></div>
+          <div><strong>100%</strong><span>활성일</span></div>
+          <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>Tokens</dt><dd>0 total / 0 cached</dd></div>
-          <div><dt>Budget</dt><dd>$23.33 for 7 days, $100/month</dd></div>
-          <div><dt>Unit cost</dt><dd>$0.17 per session / $0.001 per message</dd></div>
-          <div><dt>Plan</dt><dd>LIMIT-RISK: Split work into smaller sessions, save handoff notes early, and keep the other agent ready for review or analysis. Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window.</dd></div>
+          <div><dt>토큰</dt><dd>총 0 / 캐시 0</dd></div>
+          <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.17 / 메시지당 $0.001</dd></div>
+          <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
         </dl>
       </article>
 
   </section>
   <section class="panel">
-    <h2>Reset Window Operating Plan</h2>
+    <h2>리셋 창 운영 계획</h2>
 
       <div class="ops-grid">
-        <div><strong>Window 1</strong><span>Start with Claude Code implementation. Keep prompts scoped to one repo and one goal.</span></div>
-        <div><strong>Window 2</strong><span>Use Codex for review, failing-test analysis, and architecture risk checks while Claude quota cools.</span></div>
-        <div><strong>Window 3</strong><span>Resume Claude Code for fixes from review. Stop before context gets heavy and write handoff notes.</span></div>
-        <div><strong>Window 4+</strong><span>Use remaining capacity for documentation, small automation, and queued low-risk improvements.</span></div>
+        <div><strong>창 1</strong><span>Claude Code로 구현을 시작합니다. 프롬프트는 레포 하나, 목표 하나로 제한합니다.</span></div>
+        <div><strong>창 2</strong><span>Claude 사용량이 식는 동안 Codex로 검수, 실패 테스트 분석, 구조 리스크 점검을 수행합니다.</span></div>
+        <div><strong>창 3</strong><span>검수 결과를 바탕으로 Claude Code에서 수정합니다. 컨텍스트가 무거워지기 전에 핸드오프를 남깁니다.</span></div>
+        <div><strong>창 4+</strong><span>남은 용량은 문서화, 작은 자동화, 큐에 쌓인 저위험 개선에 사용합니다.</span></div>
       </div>
-      <p class="note">Current dashboard reset window: 5 hours. Claude Max documentation currently describes a five-hour reset; if the account banner shows four hours, run with <code>AI_USAGE_RESET_HOURS=4</code>.</p>
+      <p class="note">현재 대시보드 리셋 창: 5시간. 계정 배너가 4시간으로 표시되면 <code>AI_USAGE_RESET_HOURS=4</code>로 실행합니다.</p>
 
   </section>
   <section class="panel">
-    <h2>Recommended Allocation</h2>
+    <h2>권장 배분</h2>
     <div class="guardrails">
-      <div><strong>Claude Code 60%</strong><span>Use for implementation, repo edits, test fixes, and long-running development sessions.</span></div>
-      <div><strong>Codex 40%</strong><span>Use for independent review, debugging, verification, and compact handoff generation.</span></div>
-      <div><strong>Limit fallback</strong><span>When blocked, save a handoff, queue the task, switch agents, and resume after the next reset window.</span></div>
+      <div><strong>Claude Code 60%</strong><span>구현, 레포 편집, 테스트 수정, 긴 개발 세션에 사용합니다.</span></div>
+      <div><strong>Codex 40%</strong><span>독립 검수, 디버깅, 검증, 짧은 핸드오프 작성에 사용합니다.</span></div>
+      <div><strong>한도 fallback</strong><span>막히면 핸드오프를 저장하고 작업을 큐에 넣은 뒤 에이전트를 전환해 다음 리셋 창 이후 재개합니다.</span></div>
     </div>
   </section>
   <section class="panel">
-    <h2>Daily Breakdown</h2>
+    <h2>일별 사용량</h2>
     <table>
-      <thead><tr><th>Date</th><th>Claude Code</th><th>Codex</th></tr></thead>
+      <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
       <tbody><tr><td>2026-05-27</td><td>3s / 398m</td><td>11s / 1081m</td></tr>
 <tr><td>2026-05-28</td><td>6s / 337m</td><td>16s / 6653m</td></tr>
 <tr><td>2026-05-29</td><td>11s / 1568m</td><td>9s / 805m</td></tr>
@@ -142,7 +145,7 @@
   </section>
 </main>
 <footer>
-  Generated: 2026-06-03 20:40:34 KST. Costs use $100/month per lane. Official service banners remain the final source for live limits.
+  생성: 2026-06-03 20:40:34 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 </body>
 </html>

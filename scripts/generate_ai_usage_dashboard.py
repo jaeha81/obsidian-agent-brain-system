@@ -53,6 +53,24 @@ def status_class(recommendation: str) -> str:
     return "balanced"
 
 
+def status_label(recommendation: str) -> str:
+    key = recommendation.split(":", 1)[0]
+    return {
+        "LIMIT-RISK": "한도 위험",
+        "UNDERUSED": "사용 여유",
+        "BALANCED": "균형",
+    }.get(key, key)
+
+
+def plan_label(recommendation: str) -> str:
+    key = recommendation.split(":", 1)[0]
+    if key == "LIMIT-RISK":
+        return "한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다."
+    if key == "UNDERUSED":
+        return "사용 여유: 해당 에이전트에 검수, 정리, 저위험 자동화 작업을 더 배정할 수 있습니다."
+    return "균형: 현재 배분을 유지하면서 작업 단위를 작게 관리합니다."
+
+
 def render_agent_card(report: AgentReport, days: int, reset_hours: float, target_sessions_per_reset: int) -> str:
     summary = summarize_usage(
         report,
@@ -70,20 +88,20 @@ def render_agent_card(report: AgentReport, days: int, reset_hours: float, target
       <article class="agent-card {status_class(recommendation)}">
         <div class="agent-head">
           <h3>{esc(report.name)}</h3>
-          <span>{esc(recommendation.split(':', 1)[0])}</span>
+          <span>{esc(status_label(recommendation))}</span>
         </div>
         <div class="metric-grid">
-          <div><strong>{format_int(int(summary["sessions"]))}</strong><span>sessions</span></div>
-          <div><strong>{format_int(int(summary["messages"]))}</strong><span>messages</span></div>
-          <div><strong>{summary["active_day_percent"]}%</strong><span>active days</span></div>
-          <div><strong>{summary["session_utilization_percent"]}%</strong><span>target use</span></div>
+          <div><strong>{format_int(int(summary["sessions"]))}</strong><span>세션</span></div>
+          <div><strong>{format_int(int(summary["messages"]))}</strong><span>메시지</span></div>
+          <div><strong>{summary["active_day_percent"]}%</strong><span>활성일</span></div>
+          <div><strong>{summary["session_utilization_percent"]}%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:{esc(summary["session_utilization_percent"])}%"></span></div>
         <dl>
-          <div><dt>Tokens</dt><dd>{format_int(int(summary["total_tokens"]))} total / {format_int(int(summary["cached_tokens"]))} cached</dd></div>
-          <div><dt>Budget</dt><dd>${summary["prorated_budget_usd"]:.2f} for {days} days, ${SUB_COST_MONTHLY}/month</dd></div>
-          <div><dt>Unit cost</dt><dd>{cost_session_text} per session / {cost_message_text} per message</dd></div>
-          <div><dt>Plan</dt><dd>{esc(recommendation)}</dd></div>
+          <div><dt>토큰</dt><dd>총 {format_int(int(summary["total_tokens"]))} / 캐시 {format_int(int(summary["cached_tokens"]))}</dd></div>
+          <div><dt>예산</dt><dd>{days}일 기준 ${summary["prorated_budget_usd"]:.2f}, 월 ${SUB_COST_MONTHLY}</dd></div>
+          <div><dt>단가</dt><dd>세션당 {cost_session_text} / 메시지당 {cost_message_text}</dd></div>
+          <div><dt>운영안</dt><dd>{esc(plan_label(recommendation))}</dd></div>
         </dl>
       </article>
 """
@@ -92,7 +110,7 @@ def render_agent_card(report: AgentReport, days: int, reset_hours: float, target
 def render_daily_rows(reports: list[AgentReport]) -> str:
     days = sorted({day for report in reports for day in report.by_day if day != "unknown"})
     if not days:
-        return "<tr><td colspan=\"3\">No local session logs found in the selected window.</td></tr>"
+        return "<tr><td colspan=\"3\">선택한 기간의 로컬 세션 로그가 없습니다.</td></tr>"
     rows = []
     for day in days[-14:]:
         cells = [f"<td>{esc(day)}</td>"]
@@ -109,12 +127,12 @@ def render_daily_rows(reports: list[AgentReport]) -> str:
 def render_reset_plan(reset_hours: float) -> str:
     return f"""
       <div class="ops-grid">
-        <div><strong>Window 1</strong><span>Start with Claude Code implementation. Keep prompts scoped to one repo and one goal.</span></div>
-        <div><strong>Window 2</strong><span>Use Codex for review, failing-test analysis, and architecture risk checks while Claude quota cools.</span></div>
-        <div><strong>Window 3</strong><span>Resume Claude Code for fixes from review. Stop before context gets heavy and write handoff notes.</span></div>
-        <div><strong>Window 4+</strong><span>Use remaining capacity for documentation, small automation, and queued low-risk improvements.</span></div>
+        <div><strong>창 1</strong><span>Claude Code로 구현을 시작합니다. 프롬프트는 레포 하나, 목표 하나로 제한합니다.</span></div>
+        <div><strong>창 2</strong><span>Claude 사용량이 식는 동안 Codex로 검수, 실패 테스트 분석, 구조 리스크 점검을 수행합니다.</span></div>
+        <div><strong>창 3</strong><span>검수 결과를 바탕으로 Claude Code에서 수정합니다. 컨텍스트가 무거워지기 전에 핸드오프를 남깁니다.</span></div>
+        <div><strong>창 4+</strong><span>남은 용량은 문서화, 작은 자동화, 큐에 쌓인 저위험 개선에 사용합니다.</span></div>
       </div>
-      <p class="note">Current dashboard reset window: {reset_hours:g} hours. Claude Max documentation currently describes a five-hour reset; if the account banner shows four hours, run with <code>AI_USAGE_RESET_HOURS=4</code>.</p>
+      <p class="note">현재 대시보드 리셋 창: {reset_hours:g}시간. 계정 배너가 4시간으로 표시되면 <code>AI_USAGE_RESET_HOURS=4</code>로 실행합니다.</p>
 """
 
 
@@ -132,15 +150,16 @@ def render_dashboard(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Usage Dashboard</title>
+<title>AI 사용량 대시보드</title>
 <style>
   :root {{ --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }}
   * {{ box-sizing:border-box; }}
   body {{ margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }}
   header {{ background:#0f172a; color:#fff; padding:28px clamp(18px,4vw,48px) 24px; }}
-  nav {{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }}
+  nav {{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }}
   nav a {{ color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }}
   nav a.active, nav a:hover {{ color:#fff; border-color:#60a5fa; }}
+  nav .auth-start {{ margin-left:auto; }}
   h1 {{ margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }}
   header p {{ max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }}
   main {{ padding:24px clamp(14px,3vw,42px) 48px; display:grid; gap:22px; }}
@@ -181,41 +200,43 @@ def render_dashboard(
 <body>
 <header>
   <nav>
-    <a href="index.html">Repo Dashboard</a>
-    <a href="wishket.html">Wishket</a>
-    <a href="daily-plus.html">Daily Plus</a>
-    <a href="ai-usage.html" class="active">AI Usage</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html">위시켓</a>
+    <a href="daily-plus.html">오늘의플러스</a>
+    <a href="ai-usage.html" class="active">AI사용량</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/api/logout">로그아웃</a>
   </nav>
-  <h1>AI Usage Dashboard</h1>
-  <p>Codex and Claude Code subscription usage, reset-window planning, and fallback guardrails for keeping development moving when one lane reaches a time or usage limit.</p>
+  <h1>AI 사용량 대시보드</h1>
+  <p>Codex와 Claude Code 구독 사용량, 리셋 창 운영 계획, 한쪽 사용량이 막혔을 때의 전환 기준을 한 화면에서 확인합니다.</p>
 </header>
 <main>
   <section class="agent-grid">
     {cards}
   </section>
   <section class="panel">
-    <h2>Reset Window Operating Plan</h2>
+    <h2>리셋 창 운영 계획</h2>
     {render_reset_plan(reset_hours)}
   </section>
   <section class="panel">
-    <h2>Recommended Allocation</h2>
+    <h2>권장 배분</h2>
     <div class="guardrails">
-      <div><strong>Claude Code 60%</strong><span>Use for implementation, repo edits, test fixes, and long-running development sessions.</span></div>
-      <div><strong>Codex 40%</strong><span>Use for independent review, debugging, verification, and compact handoff generation.</span></div>
-      <div><strong>Limit fallback</strong><span>When blocked, save a handoff, queue the task, switch agents, and resume after the next reset window.</span></div>
+      <div><strong>Claude Code 60%</strong><span>구현, 레포 편집, 테스트 수정, 긴 개발 세션에 사용합니다.</span></div>
+      <div><strong>Codex 40%</strong><span>독립 검수, 디버깅, 검증, 짧은 핸드오프 작성에 사용합니다.</span></div>
+      <div><strong>한도 fallback</strong><span>막히면 핸드오프를 저장하고 작업을 큐에 넣은 뒤 에이전트를 전환해 다음 리셋 창 이후 재개합니다.</span></div>
     </div>
   </section>
   <section class="panel">
-    <h2>Daily Breakdown</h2>
+    <h2>일별 사용량</h2>
     <table>
-      <thead><tr><th>Date</th><th>Claude Code</th><th>Codex</th></tr></thead>
+      <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
       <tbody>{daily_rows}</tbody>
     </table>
   </section>
 </main>
 <footer>
-  Generated: {esc(generated_at)}. Costs use ${SUB_COST_MONTHLY}/month per lane. Official service banners remain the final source for live limits.
+  생성: {esc(generated_at)}. 비용은 라인당 월 ${SUB_COST_MONTHLY} 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 </body>
 </html>

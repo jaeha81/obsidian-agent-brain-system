@@ -1,4 +1,31 @@
 ---
+date: 2026-06-04
+title: 이번 세션 업데이트 내용 요약
+---
+
+## 2026-06-04 세션 요약
+
+| # | 항목 | 내용 | 상태 | 커밋/증거 |
+|---|------|------|------|-----------|
+| 1 | Daily Plus Intake 연동 | Discord Bucky 세션 UTF-8 인코딩 버그 수정 | ✅ 완료 | 088f45a |
+| 2 | Cloudflare Worker 보안 | 하드코딩 비밀번호 제거, env var 기반으로 전환 | ✅ 완료 | 088f45a |
+| 3 | Git 동기화 | remote 6커밋 머지 (Cloudflare 보안 커밋 포함) | ✅ 완료 | 72bd65b |
+| 4 | YouTube Intake | 헤르메스 에이전트 영상 → 03_Knowledge 저장 | ✅ 완료 | untracked |
+| 5 | user_checklist.json | 미완료 태스크 마스터 리스트 생성 (CL-001~) | ✅ 완료 | untracked |
+| 6 | checklist.html | 체크리스트 대시보드 생성 | ✅ 완료 | untracked |
+
+## 오늘의 플러스 2026-06-04 Intake 처리
+
+| 항목 | 내용 | 결과 | 파일 |
+|------|------|------|------|
+| Intake 연동 수정 | Discord → Vault UTF-8 저장 파이프라인 수정 | ✅ 완료 | scripts/daily_plus_morning_report.py |
+| 스모크 테스트 | 3회 시도 후 이스케이프 방식으로 해결 | ✅ 검증 | 01_RAW/2026-06-04-discord-*.md |
+| 헤르메스 YouTube | Jay Choi 채널 에이전트 영상 지식 수집 | ✅ 저장 | 03_Knowledge/2026-06-04-yt-헤르메스-*.md |
+
+---
+
+<!-- 이전 세션 (2026-06-01) -->
+---
 date: 2026-06-01
 title: 이번 세션 업데이트 내용 요약
 ---

@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "User-Bucky 미완료 태스크 마스터 리스트. Claude Code가 관리. 취소/삭제 전까지 영구 유지.",
+    "last_updated": "2026-06-04"
+  },
+  "tasks": [
+    {
+      "id": "CL-001",
+      "title": "AgentBus 7개 승인 게이트 구현",
+      "description": "requires_approval=true 태스크 승인/거부 워크플로우. Discord 명령: !approve <ID>, !reject <ID>. approve_task.py 기반 확장.",
+      "priority": "P0",
+      "category": "개발",
+      "added": "2026-06-02",
+      "source": "PART-1/2 지시 문서",
+      "refs": ["scripts/approve_task.py", "ObsidianVault/03_Projects/agents/bucky.md"]
+    },
+    {
+      "id": "CL-002",
+      "title": "!buki startproject 워크플로우 구현",
+      "description": "Gemini 리서치 → BUKI 요구사항 → Codex 설계검토 → Claude Code 계획 → Obsidian 저장. 순서 자동화 파이프라인.",
+      "priority": "P0",
+      "category": "개발",
+      "added": "2026-06-02",
+      "source": "PART-2 지시 문서",
+      "refs": ["scripts/bucky_bot_supervisor.py"]
+    },
+    {
+      "id": "CL-003",
+      "title": "Checkpoint 자동화 (!buki checkpoint)",
+      "description": "!buki checkpoint 명령 → 작업/결정/실패/다음액션 Obsidian 자동 저장. 세션 맥락 보존용.",
+      "priority": "P1",
+      "category": "개발",
+      "added": "2026-06-02",
+      "source": "PART-2 지시 문서",
+      "refs": ["scripts/bucky_bot_supervisor.py", "ObsidianVault/05_Logs/"]
+    },
+    {
+      "id": "CL-004",
+      "title": "Multi-Vault 구조 설계 및 전환",
+      "description": "vault-registry.md 설계. JH.AI-Core-Vault = 코어 권위, 프로젝트 Vault = 작업기억 전용. 06_Context_Packs 동결 유지. dry-run 검증 후 실제 전환.",
+      "priority": "P2",
+      "category": "설계",
+      "added": "2026-06-02",
+      "source": "PART-2 지시 문서",
+      "refs": ["ObsidianVault/00_System/folder-registry.md"]
+    },
+    {
+      "id": "CL-005",
+      "title": "!취소/<ID>, !재시도/<ID> Discord 명령 구현",
+      "description": "Discord Bot에 태스크 취소/재시도 명령 추가. AgentBus 상태 관리 강화.",
+      "priority": "P2",
+      "category": "개발",
+      "added": "2026-06-02",
+      "source": "PART-2 지시 문서",
+      "refs": ["scripts/bucky_bot_supervisor.py"]
+    },
+    {
+      "id": "CL-006",
+      "title": "음성→태스크 자동 분류 (STT → !task)",
+      "description": "음성 입력을 텍스트로 변환 후 자동 !task 생성. STT 파이프라인 구현.",
+      "priority": "P2",
+      "category": "개발",
+      "added": "2026-06-02",
+      "source": "PART-2 지시 문서",
+      "refs": []
+    },
+    {
+      "id": "CL-007",
+      "title": "Codex AgentBus 피드백 수신 (단방향→양방향)",
+      "description": "현재 Codex는 단방향. Codex 리뷰 결과를 AgentBus로 피드백 수신하는 양방향 구조로 개선.",
+      "priority": "P2",
+      "category": "개발",
+      "added": "2026-06-02",
+      "source": "PART-2 지시 문서",
+      "refs": []
+    },
+    {
+      "id": "CL-008",
+      "title": "Cloudflare Zero Trust Access 설정",
+      "description": "obsidian-agent-brain-system.pages.dev 보호. Zero Trust → Access → Applications → Self-hosted. Policy: dltkddlf231@gmail.com만 허용. /portfolio.html 예외 설정.",
+      "priority": "대기",
+      "category": "인프라",
+      "added": "2026-06-04",
+      "source": "집 PC 복귀 후 진행 필요",
+      "refs": ["docs/_worker.js"]
+    },
+    {
+      "id": "CL-009",
+      "title": "Gemini CLI 활성화",
+      "description": ".env에 GEMINI_API_KEY= 입력 + Gemini CLI 구독 설치. Agent Dispatcher Gemini 루트 활성화.",
+      "priority": "대기",
+      "category": "설정",
+      "added": "2026-06-02",
+      "source": "project_next_plan",
+      "refs": [".env"]
+    },
+    {
+      "id": "CL-010",
+      "title": "Anthropic API 크레딧 충전",
+      "description": "Agent Dispatcher E2E 검증에 필요. 현재 크레딧 소진 상태.",
+      "priority": "대기",
+      "category": "설정",
+      "added": "2026-06-02",
+      "source": "project_next_plan",
+      "refs": []
+    },
+    {
+      "id": "CL-011",
+      "title": "타오바오/아마존 쇼핑몰 착수",
+      "description": "사업자 등록, 첫 상품 테스트 미착수. 구매대행 사업화 첫 단계.",
+      "priority": "대기",
+      "category": "사업",
+      "added": "2026-06-02",
+      "source": "project_next_plan",
+      "refs": []
+    },
+    {
+      "id": "CL-012",
+      "title": "Graph 그룹 UI 수동 추가",
+      "description": "InfraNodus Obsidian 그래프 그룹 UI 수동 설정 필요. 태그 파이프라인은 완료됐으나 그룹 UI 미완.",
+      "priority": "P2",
+      "category": "설정",
+      "added": "2026-06-02",
+      "source": "2026-06-02 세션3",
+      "refs": ["ObsidianVault/.obsidian/graph.json"]
+    },
+    {
+      "id": "CL-013",
+      "title": "User-Bucky 체크리스트 대시보드 구축",
+      "description": "미완료 태스크 체크리스트를 대시보드에서 관리. 승인/구현/삭제 액션 버튼 포함. (현재 진행 중)",
+      "priority": "P0",
+      "category": "개발",
+      "added": "2026-06-04",
+      "source": "사용자 지시 2026-06-04",
+      "refs": ["docs/checklist.html", "data/user_checklist.json"]
+    }
+  ]
+}

@@ -834,9 +834,10 @@ def render_dashboard(
   * {{ box-sizing: border-box; }}
   body {{ margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }}
   header {{ background: #0f172a; color: #fff; padding: 28px clamp(18px, 4vw, 48px) 22px; }}
-  nav {{ display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }}
+  nav {{ display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }}
   nav a {{ color: #cbd5e1; text-decoration: none; border: 1px solid #334155; border-radius: 999px; padding: 7px 12px; font-size: 13px; }}
   nav a.active, nav a:hover {{ color: #fff; border-color: #60a5fa; }}
+  nav .auth-start {{ margin-left: auto; }}
   h1 {{ margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: 0; }}
   header p {{ color: #cbd5e1; max-width: 920px; line-height: 1.65; margin: 12px 0 0; }}
   main {{ padding: 24px clamp(14px, 3vw, 42px) 48px; }}
@@ -932,11 +933,13 @@ def render_dashboard(
 <body>
 <header>
   <nav>
-    <a href="index.html">Repo Dashboard</a>
-    <a href="wishket.html">Wishket</a>
-    <a href="daily-plus.html" class="active">Daily Plus</a>
-    <a href="ai-usage.html">AI Usage</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html">위시켓</a>
+    <a href="daily-plus.html" class="active">오늘의플러스</a>
+    <a href="ai-usage.html">AI사용량</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/api/logout">로그아웃</a>
   </nav>
   <h1>오늘의 플러스 운영 리포트</h1>
   <p>ChatGPT Pulse 수집 결과를 Bucky가 운영 관점으로 분류한 대시보드입니다. 첫 오늘의 플러스({esc(first_date)}) 대비 얼마나 진화했는지, 오늘 무엇이 처리됐고 무엇을 구현해야 하는지, 어떤 항목이 효율성과 호환성 측면에서 우선인지 한 화면에서 확인합니다.</p>

@@ -22,9 +22,10 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
   header { background: #0f172a; color: #fff; padding: 28px clamp(18px, 4vw, 48px) 22px; }
-  nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
   nav a { color: #cbd5e1; text-decoration: none; border: 1px solid #334155; border-radius: 999px; padding: 7px 12px; font-size: 13px; }
   nav a.active, nav a:hover { color: #fff; border-color: #60a5fa; }
+  nav .auth-start { margin-left: auto; }
   h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: 0; }
   header p { color: #cbd5e1; max-width: 920px; line-height: 1.65; margin: 12px 0 0; }
   main { padding: 24px clamp(14px, 3vw, 42px) 48px; }
@@ -154,11 +155,13 @@
 <body>
 <header>
   <nav>
-    <a href="index.html">Repo Dashboard</a>
-    <a href="wishket.html">Wishket</a>
-    <a href="daily-plus.html" class="active">Daily Plus</a>
-    <a href="ai-usage.html">AI Usage</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html">위시켓</a>
+    <a href="daily-plus.html" class="active">오늘의플러스</a>
+    <a href="ai-usage.html">AI사용량</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/api/logout">로그아웃</a>
   </nav>
   <h1>오늘의 플러스 운영 리포트</h1>
   <p>ChatGPT Pulse 수집 결과를 Bucky가 운영 관점으로 분류한 대시보드입니다. 첫 오늘의 플러스(2026-05-27) 대비 얼마나 진화했는지, 오늘 무엇이 처리됐고 무엇을 구현해야 하는지, 어떤 항목이 효율성과 호환성 측면에서 우선인지 한 화면에서 확인합니다.</p>
@@ -376,6 +379,29 @@
       <span class="muted">AgentBus Phase 1 게이트 완료 + 구현 상세</span>
     </div>
     <div class="panel">
+
+      <h3 style="margin:20px 0 10px;font-size:16px">2026-06-04 세션 요약</h3>
+      <div style="overflow-x:auto">
+        <table class="session-table">
+          <thead><tr><th>#</th><th>항목</th><th>내용</th><th>상태</th><th>커밋/증거</th></tr></thead>
+          <tbody><tr><td>1</td><td>Daily Plus Intake 연동</td><td>Discord Bucky 세션 UTF-8 인코딩 버그 수정</td><td>✅ 완료</td><td>088f45a</td></tr>
+<tr><td>2</td><td>Cloudflare Worker 보안</td><td>하드코딩 비밀번호 제거, env var 기반으로 전환</td><td>✅ 완료</td><td>088f45a</td></tr>
+<tr><td>3</td><td>Git 동기화</td><td>remote 6커밋 머지 (Cloudflare 보안 커밋 포함)</td><td>✅ 완료</td><td>72bd65b</td></tr>
+<tr><td>4</td><td>YouTube Intake</td><td>헤르메스 에이전트 영상 → 03_Knowledge 저장</td><td>✅ 완료</td><td>untracked</td></tr>
+<tr><td>5</td><td>user_checklist.json</td><td>미완료 태스크 마스터 리스트 생성 (CL-001~)</td><td>✅ 완료</td><td>untracked</td></tr>
+<tr><td>6</td><td>checklist.html</td><td>체크리스트 대시보드 생성</td><td>✅ 완료</td><td>untracked</td></tr></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin:20px 0 10px;font-size:16px">오늘의 플러스 2026-06-04 Intake 처리</h3>
+      <div style="overflow-x:auto">
+        <table class="session-table">
+          <thead><tr><th>항목</th><th>내용</th><th>결과</th><th>파일</th></tr></thead>
+          <tbody><tr><td>Intake 연동 수정</td><td>Discord → Vault UTF-8 저장 파이프라인 수정</td><td>✅ 완료</td><td>scripts/daily_plus_morning_report.py</td></tr>
+<tr><td>스모크 테스트</td><td>3회 시도 후 이스케이프 방식으로 해결</td><td>✅ 검증</td><td>01_RAW/2026-06-04-discord-*.md</td></tr>
+<tr><td>헤르메스 YouTube</td><td>Jay Choi 채널 에이전트 영상 지식 수집</td><td>✅ 저장</td><td>03_Knowledge/2026-06-04-yt-헤르메스-*.md</td></tr></tbody>
+        </table>
+      </div>
 
       <h3 style="margin:20px 0 10px;font-size:16px">Gate 완료 현황</h3>
       <div style="overflow-x:auto">
@@ -788,7 +814,7 @@
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
       <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-04.md</code></div>
       <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-04.md</code></div>
-      <div>생성 시각: <code>2026-06-04 17:59:13 KST</code></div>
+      <div>생성 시각: <code>2026-06-04 21:26:04 KST</code></div>
     </div>
   </section>
 </main>
@@ -904,12 +930,6 @@
     }
   }
 
-  function jsonStringifyEscaped(obj) {
-    return JSON.stringify(obj).replace(/[^\x00-\x7F]/g, function(c) {
-      return "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4);
-    });
-  }
-
   async function postDiscordWebhookWithFiles(content, files) {
     var url = localStorage.getItem(DISCORD_WEBHOOK_KEY) || "";
     var username = localStorage.getItem(DISCORD_WEBHOOK_NAME_KEY) || "JH Daily Plus";
@@ -920,14 +940,14 @@
       var response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: jsonStringifyEscaped({ content: content, username: username })
+        body: JSON.stringify({ content: content, username: username })
       });
       if (!response.ok) throw new Error("Discord HTTP " + response.status);
       return { files: 0 };
     }
 
     var form = new FormData();
-    form.append("payload_json", jsonStringifyEscaped({ content: content, username: username }));
+    form.append("payload_json", JSON.stringify({ content: content, username: username }));
     safeFiles.forEach(function (file, index) {
       form.append("files[" + index + "]", file, file.name);
     });

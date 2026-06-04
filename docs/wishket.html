@@ -33,8 +33,12 @@
   .header-info { flex: 1; }
   header h1 { font-size: 1.4rem; font-weight: 700; color: var(--orange); }
   header p { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
-  .header-link { font-size: 0.78rem; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; transition: all 0.2s; }
-  .header-link:hover { border-color: var(--accent); color: var(--accent); }
+  .jh-nav { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+  .jh-nav a {
+    font-size:0.78rem; color:var(--muted); text-decoration:none; border:1px solid var(--border);
+    padding:5px 12px; border-radius:20px; transition:all 0.2s; line-height:1.2;
+  }
+  .jh-nav a:hover, .jh-nav a.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,0.08); }
 
   .stats-bar {
     display: flex; gap: 12px; padding: 16px 32px;
@@ -222,9 +226,14 @@
     <h1>💰 위시켓 수익화 대시보드</h1>
     <p id="headerSub">Bucky Agent 자동 수집 · 마지막 스캔: <span id="lastScan">로딩 중...</span></p>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <a class="header-link" href="index.html">← 레포 대시보드</a>
-    <a href="/api/logout" style="color:rgba(255,255,255,0.5);font-size:0.78rem;text-decoration:none;border:1px solid rgba(255,255,255,0.2);padding:5px 12px;border-radius:6px;" onmouseover="this.style.color='rgba(255,255,255,0.85)'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">로그아웃</a>
+  <div class="jh-nav">
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html" class="active">위시켓</a>
+    <a href="daily-plus.html">오늘의플러스</a>
+    <a href="ai-usage.html">AI사용량</a>
+    <a href="https://github.com/jaeha81" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html">로그인</a>
+    <a href="/api/logout">로그아웃</a>
   </div>
 </header>
 

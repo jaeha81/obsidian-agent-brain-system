@@ -2354,10 +2354,12 @@ async def _init_jh_channels(client) -> None:
         ("jh-work-1", "⚙️ Claude Code 작업 채널 1 — 독립 세션, 병렬 실행"),
         ("jh-work-2", "⚙️ Claude Code 작업 채널 2 — 독립 세션, 병렬 실행"),
     ]
+    known_work_channel_ids: set[str] = set()
     for ch_name, topic in _work_specs:
         existing = discord.utils.get(guild.text_channels, name=ch_name)
         if existing:
             ch_id = str(existing.id)
+            known_work_channel_ids.add(ch_id)
             if ch_id not in JH_WORK_CHANNEL_IDS:
                 JH_WORK_CHANNEL_IDS.add(ch_id)
                 ALLOWED_CHANNELS.add(ch_id)
@@ -2366,6 +2368,7 @@ async def _init_jh_channels(client) -> None:
             try:
                 new_ch = await guild.create_text_channel(ch_name, topic=topic)
                 ch_id = str(new_ch.id)
+                known_work_channel_ids.add(ch_id)
                 JH_WORK_CHANNEL_IDS.add(ch_id)
                 ALLOWED_CHANNELS.add(ch_id)
                 await new_ch.send(
@@ -2377,6 +2380,16 @@ async def _init_jh_channels(client) -> None:
                 print(f"[Setup] #{ch_name} 생성: {new_ch.id}", flush=True)
             except discord.Forbidden:
                 print(f"[Setup] #{ch_name} 생성 실패: 권한 없음", flush=True)
+
+    stale_work_channel_ids = JH_WORK_CHANNEL_IDS - known_work_channel_ids
+    if stale_work_channel_ids:
+        JH_WORK_CHANNEL_IDS.intersection_update(known_work_channel_ids)
+        ALLOWED_CHANNELS.difference_update(stale_work_channel_ids)
+        print(
+            "[Setup] stale JH_WORK_CHANNEL_IDS ignored: "
+            + ",".join(sorted(stale_work_channel_ids)),
+            flush=True,
+        )
 
     # 작업 채널 ID .env 영구 저장 (재시작 시 유지)
     if JH_WORK_CHANNEL_IDS:
@@ -3181,9 +3194,17 @@ class BuckyDiscordBot(discord.Client):
             return
 
         # ── 작업 채널: 독립 Claude Code 인스턴스 (tools 허용, 진짜 병렬) ─────────────
-        if JH_WORK_CHANNEL_IDS and channel_id in JH_WORK_CHANNEL_IDS:
+        channel_name_for_route = str(getattr(message.channel, "name", ""))
+        is_named_work_channel = channel_name_for_route.startswith("jh-work")
+        if JH_WORK_CHANNEL_IDS and channel_id in JH_WORK_CHANNEL_IDS and is_named_work_channel:
             await _handle_work_channel(message)
             return
+        if JH_WORK_CHANNEL_IDS and channel_id in JH_WORK_CHANNEL_IDS:
+            print(
+                "[RouteGuard] configured work channel ignored because name is not jh-work*: "
+                f"{channel_id} #{channel_name_for_route}",
+                flush=True,
+            )
 
         # ── URL 자동 캡처 — YouTube는 알림 포함, 일반 URL은 조용히 처리 ──────────────
         if content and not content.startswith("!") and not content.startswith("/"):
