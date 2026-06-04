@@ -142,3 +142,7 @@ scripts/.codex_collector_state.json
 # Subtitle/caption files
 *.vtt
 *.orig.vtt
+
+.vercel
+
+.vercel

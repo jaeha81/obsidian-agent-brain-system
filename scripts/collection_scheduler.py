@@ -121,11 +121,13 @@ def run_collector(collector: dict, dry_run: bool = False, timeout: int = 300) ->
         if proc.returncode == 0:
             result["success"] = True
             # 저장된 파일 수 계산 (출력 줄 중 파일 경로 카운트)
-            saved = [ln for ln in proc.stdout.splitlines() if "\\" in ln or "/" in ln]
+            saved = [ln for ln in (proc.stdout or "").splitlines() if "\\" in ln or "/" in ln]
             result["files_saved"] = len(saved)
             log.info(f"  ✓ {collector['name']}: {result['files_saved']}개 파일, {result['duration_s']}s")
         else:
-            result["error"] = proc.stderr.strip()[:300] or proc.stdout.strip()[-300:]
+            stderr = (proc.stderr or "").strip()
+            stdout = (proc.stdout or "").strip()
+            result["error"] = stderr[:300] or stdout[-300:]
             log.warning(f"  ✗ {collector['name']}: {result['error']}")
 
     except subprocess.TimeoutExpired:

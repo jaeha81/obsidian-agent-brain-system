@@ -45,8 +45,8 @@ def save_state(state: dict) -> None:
     STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def slugify(text: str) -> str:
-    text = text.strip()
+def slugify(text: str | None) -> str:
+    text = (text or "").strip()
     text = re.sub(r"[^\w\s가-힣\-]", "", text, flags=re.UNICODE)
     text = re.sub(r"\s+", "_", text)
     return text[:80].strip("_") or "untitled"

@@ -150,7 +150,7 @@ DASHBOARD_INTERACTION_CSS = """
 DASHBOARD_INTERACTION_JS = """
 <script>
 (function () {
-  var DEFAULT_BUCKY_ENDPOINT = "";
+  var DEFAULT_BUCKY_ENDPOINT = "http://localhost:8765";
   var ENDPOINT_KEY = "dailyPlusBuckyOsIntakeUrl";
   var DISCORD_WEBHOOK_KEY = "bucky-webhook";
   var DISCORD_WEBHOOK_NAME_KEY = "bucky-wh-name";
