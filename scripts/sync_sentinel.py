@@ -11,10 +11,39 @@ import subprocess
 from pathlib import Path
 from typing import Callable
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional runtime dependency
+    load_dotenv = None
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_VAULT = ROOT / "ObsidianVault"
 CommandRunner = Callable[[list[str]], tuple[int, str]]
+KNOWN_PC_ROLES = {"primary", "secondary"}
+KNOWN_PC_NAMES = {"home", "office", "laptop"}
+
+
+def load_local_env() -> None:
+    if load_dotenv:
+        load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+
+
+def normalize_pc_role(value: str | None) -> str:
+    role = (value or "").strip().lower()
+    return role if role in KNOWN_PC_ROLES else "secondary"
+
+
+def normalize_pc_name(value: str | None) -> str:
+    name = (value or "").strip().lower()
+    return name if name in KNOWN_PC_NAMES else "unknown"
+
+
+def path_exists(path: Path) -> bool:
+    try:
+        return path.exists()
+    except OSError:
+        return False
 
 
 def classify_storage(path: Path) -> str:
@@ -64,18 +93,26 @@ def build_report(
     command_runner: CommandRunner = run_command,
 ) -> dict:
     source_env = env if env is not None else os.environ
-    pc_role = source_env.get("PC_ROLE", "primary").strip().lower() or "primary"
-    pc_name = source_env.get("PC_NAME", "home").strip().lower() or "home"
+    raw_pc_role = source_env.get("PC_ROLE")
+    raw_pc_name = source_env.get("PC_NAME")
+    pc_role = normalize_pc_role(raw_pc_role)
+    pc_name = normalize_pc_name(raw_pc_name)
     host = hostname or socket.gethostname()
     storage = classify_storage(root)
     vault_storage = classify_storage(vault)
     warnings: list[str] = []
 
+    if not raw_pc_role or not raw_pc_name:
+        warnings.append("pc_identity_unconfigured")
+    elif pc_role != raw_pc_role.strip().lower() or pc_name != raw_pc_name.strip().lower():
+        warnings.append("pc_identity_invalid")
+    if pc_role == "primary" and pc_name != "home":
+        warnings.append("primary_pc_name_not_home")
     if pc_role != "primary":
         warnings.append("secondary_pc_canonical_write_risk")
     if storage != "google_drive" and vault_storage != "google_drive":
         warnings.append("local_only_storage")
-    if not vault.exists():
+    if not path_exists(vault):
         warnings.append("vault_path_missing")
 
     git = git_status(command_runner)
@@ -119,6 +156,8 @@ def format_text(report: dict) -> str:
 
 
 def main() -> int:
+    load_local_env()
+
     parser = argparse.ArgumentParser(description="Check multi-PC sync and storage safety.")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
     parser.add_argument("--vault", type=Path, default=Path(os.getenv("VAULT_PATH", str(DEFAULT_VAULT))))

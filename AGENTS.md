@@ -14,6 +14,10 @@ Codex is the independent reviewer for the JH ecosystem. Claude Code implements; 
 4. For review tasks, inspect recent/uncommitted changes by default.
 5. Never commit or push unless the user explicitly changes this rule.
 
+## Work Completion Alarm
+
+When Codex finishes a local work item in this repo, run `python scripts/work_done_alarm.py --message "Codex 작업 완료"` before the final user report when feasible. If the local environment cannot play audio, the script must degrade to a terminal bell or printed completion notice instead of failing the work.
+
 ## Bucky Agent OS Rule
 
 Obsidian Agent Brain System is the instruction operating system for JH work. Bucky owns Codex/Claude Code instruction management.
