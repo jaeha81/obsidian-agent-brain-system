@@ -2,7 +2,7 @@ const PASSWORD = "ljh911314";
 const COOKIE_NAME = "bucky_auth";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
-const PUBLIC_PATHS = ["/portfolio.html", "/favicon.ico"];
+const PUBLIC_PATHS = ["/portfolio.html", "/portfolio", "/favicon.ico"];
 
 function isPublicPath(pathname) {
   return PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p));
