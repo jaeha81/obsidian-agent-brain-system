@@ -40,10 +40,17 @@ jobs:
       - name: 위시켓 대시보드 업데이트
         run: python scripts/generate_wishket_dashboard.py
 
+      - name: Daily Plus 대시보드 생성
+        working-directory: scripts
+        run: python daily_plus_morning_report.py
+        continue-on-error: true
+
       - name: 변경사항 스테이징 및 확인
         id: diff
         run: |
-          git add docs/index.html docs/wishket.html ObsidianVault/10_AgentBus/wishket_inbox/
+          git add docs/index.html docs/wishket.html docs/daily-plus.html \
+            ObsidianVault/10_AgentBus/wishket_inbox/ \
+            ObsidianVault/10_AgentBus/outbox/ || true
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: 커밋 & 푸시

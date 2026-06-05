@@ -100,19 +100,6 @@
   .command-btn.approve { color: var(--amber); background: #fff7ed; border-color: #fed7aa; }
   .command-btn.implement { color: var(--green); background: #f0fdf4; border-color: #bbf7d0; }
   .command-btn.queue { color: var(--teal); background: #f0fdfa; border-color: #99f6e4; }
-  .candidate.state-approve { border-top: 3px solid var(--amber); }
-  .candidate.state-implement { border-top: 3px solid var(--green); }
-  .candidate.state-queue { border-top: 3px solid var(--teal); }
-  .state-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; display: none; flex-shrink: 0; }
-  .state-approve .state-badge { display: inline; background: #fff7ed; color: var(--amber); border: 1px solid #fed7aa; }
-  .state-implement .state-badge { display: inline; background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
-  .state-queue .state-badge { display: inline; background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
-  .flt-bar { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
-  .flt-btn { border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; background: var(--surface); color: var(--muted); font-size: 12px; cursor: pointer; font-weight: 600; transition: all .12s; }
-  .flt-btn:hover { border-color: var(--blue); color: var(--blue); }
-  .flt-btn.active { border-color: var(--blue); color: var(--blue); background: #eff6ff; }
-  .candidate.filtered-out { display: none; }
-  .command-btn.is-active-state { font-weight: 900; box-shadow: 0 0 0 2px currentColor; }
   .command-tray { position: fixed; left: clamp(12px, 3vw, 28px); right: clamp(12px, 3vw, 28px); bottom: 14px; z-index: 50; background: #0f172a; color: #e5e7eb; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 18px 48px rgba(15,23,42,.35); padding: 14px; display: grid; gap: 10px; transform: translateY(calc(100% + 32px)); opacity: 0; pointer-events: none; transition: transform .18s ease, opacity .18s ease; }
   .command-tray.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
   .command-tray strong { color: #fff; }
@@ -480,14 +467,6 @@
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
       <span class="muted">우선순위 {&#x27;P3&#x27;: 3, &#x27;P1&#x27;: 8, &#x27;P2&#x27;: 1} · 상태 {&#x27;staged&#x27;: 12}</span>
-    </div>
-    <div class="flt-bar" id="cardFilterBar">
-      <button class="flt-btn active" type="button" data-flt="all">전체 <span id="cnt-all">12</span></button>
-      <button class="flt-btn" type="button" data-flt="approve">승인됨 <span id="cnt-approve">0</span></button>
-      <button class="flt-btn" type="button" data-flt="implement">구현중 <span id="cnt-implement">0</span></button>
-      <button class="flt-btn" type="button" data-flt="queue">후보 <span id="cnt-queue">0</span></button>
-      <button class="flt-btn" type="button" data-flt="pending">미처리 <span id="cnt-pending">12</span></button>
-      <button class="flt-btn" style="margin-left:auto;color:var(--red);border-color:#fecaca" type="button" id="resetCardStates">초기화</button>
     </div>
     <div class="grid">
 
@@ -876,7 +855,7 @@
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
       <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-05.md</code></div>
       <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-05.md</code></div>
-      <div>생성 시각: <code>2026-06-05 09:00:02 KST</code></div>
+      <div>생성 시각: <code>2026-06-05 14:14:51 KST</code></div>
     </div>
   </section>
 </main>
@@ -1224,147 +1203,6 @@
       }
     });
   }
-  // ── Card State Persistence ──
-  var CARD_STATES_KEY = "dailyPlusCardStates_v1";
-  var ACTIVE_FILTER = "all";
-
-  function loadCardStates() {
-    try { return JSON.parse(localStorage.getItem(CARD_STATES_KEY) || "{}"); }
-    catch (_) { return {}; }
-  }
-
-  function saveCardStates(states) {
-    try { localStorage.setItem(CARD_STATES_KEY, JSON.stringify(states)); }
-    catch (_) {}
-  }
-
-  function applyCardState(card, action) {
-    card.classList.remove("state-approve", "state-implement", "state-queue");
-    card.querySelectorAll(".command-btn").forEach(function (btn) {
-      btn.classList.remove("is-active-state");
-    });
-    var badge = card.querySelector(".state-badge");
-    if (!badge) {
-      badge = document.createElement("span");
-      badge.className = "state-badge";
-      var top = card.querySelector(".candidate-top");
-      if (top) top.appendChild(badge);
-    }
-    if (!action) { badge.textContent = ""; return; }
-    var labels = { approve: "✓ 승인됨", implement: "▶ 구현중", queue: "◎ 후보" };
-    card.classList.add("state-" + action);
-    badge.textContent = labels[action] || action;
-    var activeBtn = card.querySelector("[data-action='" + action + "']");
-    if (activeBtn) activeBtn.classList.add("is-active-state");
-  }
-
-  function updateFilterCounts() {
-    var states = loadCardStates();
-    var all = document.querySelectorAll(".candidate");
-    var counts = { approve: 0, implement: 0, queue: 0, pending: 0 };
-    all.forEach(function (card) {
-      var id = card.dataset.card;
-      var s = states[id] && states[id].action;
-      if (s === "approve") counts.approve++;
-      else if (s === "implement") counts.implement++;
-      else if (s === "queue") counts.queue++;
-      else counts.pending++;
-    });
-    var set = function (id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
-    set("cnt-all", all.length);
-    set("cnt-approve", counts.approve);
-    set("cnt-implement", counts.implement);
-    set("cnt-queue", counts.queue);
-    set("cnt-pending", counts.pending);
-  }
-
-  function updateSummaryStats() {
-    var states = loadCardStates();
-    var cards = document.querySelectorAll(".candidate");
-    var approveCount = 0, implementCount = 0;
-    cards.forEach(function (card) {
-      var id = card.dataset.card;
-      var s = states[id] && states[id].action;
-      if (s === "approve") approveCount++;
-      if (s === "implement") implementCount++;
-    });
-    var stats = document.querySelectorAll(".stat");
-    if (stats[1]) { var el = stats[1].querySelector("strong"); if (el) el.textContent = implementCount; }
-    if (stats[3]) { var el2 = stats[3].querySelector("strong"); if (el2) el2.textContent = approveCount; }
-  }
-
-  function filterCards(filter) {
-    ACTIVE_FILTER = filter;
-    var states = loadCardStates();
-    document.querySelectorAll(".candidate").forEach(function (card) {
-      var id = card.dataset.card;
-      var state = states[id] && states[id].action;
-      var show = filter === "all" ||
-        (filter === "pending" && !state) ||
-        (state === filter);
-      card.classList.toggle("filtered-out", !show);
-    });
-    document.querySelectorAll(".flt-btn[data-flt]").forEach(function (btn) {
-      btn.classList.toggle("active", btn.dataset.flt === filter);
-    });
-  }
-
-  (function initCardStates() {
-    var states = loadCardStates();
-    document.querySelectorAll(".candidate").forEach(function (card) {
-      var id = card.dataset.card;
-      if (states[id] && states[id].action) applyCardState(card, states[id].action);
-    });
-    updateFilterCounts();
-    updateSummaryStats();
-  })();
-
-  document.querySelectorAll(".candidate").forEach(function (card) {
-    var actions = card.querySelector(".command-actions");
-    if (!actions) return;
-    actions.addEventListener("click", function (event) {
-      var action = event.target && event.target.getAttribute("data-action");
-      if (!action) return;
-      var id = card.dataset.card;
-      var states = loadCardStates();
-      if (states[id] && states[id].action === action) {
-        delete states[id];
-        applyCardState(card, null);
-      } else {
-        states[id] = { action: action, ts: new Date().toISOString() };
-        applyCardState(card, action);
-      }
-      saveCardStates(states);
-      updateFilterCounts();
-      updateSummaryStats();
-      if (ACTIVE_FILTER !== "all") filterCards(ACTIVE_FILTER);
-    });
-  });
-
-  var filterBar = document.getElementById("cardFilterBar");
-  if (filterBar) {
-    filterBar.addEventListener("click", function (event) {
-      var target = event.target;
-      while (target && target !== filterBar) {
-        if (target.dataset && target.dataset.flt) { filterCards(target.dataset.flt); return; }
-        target = target.parentElement;
-      }
-    });
-  }
-
-  var resetCardStatesBtn = document.getElementById("resetCardStates");
-  if (resetCardStatesBtn) {
-    resetCardStatesBtn.addEventListener("click", function () {
-      if (!window.confirm("카드 상태를 모두 초기화할까요?")) return;
-      localStorage.removeItem(CARD_STATES_KEY);
-      document.querySelectorAll(".candidate").forEach(function (card) { applyCardState(card, null); });
-      filterCards("all");
-      updateFilterCounts();
-      updateSummaryStats();
-      showToast("카드 상태 초기화 완료");
-    });
-  }
-
 })();
 </script>
 
