@@ -5,9 +5,10 @@ wishket_inbox/ 폴더의 모든 JSON을 읽어 중복 제거 후
 docs/wishket.html의 PROJECTS 배열을 업데이트한다.
 """
 import json
-import re
-import glob
 import os
+import re
+import sys
+import glob
 from pathlib import Path
 from datetime import datetime
 
@@ -43,14 +44,32 @@ def load_inbox_projects() -> list[dict]:
                     "description": item.get("description", ""),
                     "source": item.get("source", "web"),
                     "scraped_at": item.get("scraped_at", ""),
+                    "score": item.get("score", 0),
+                    "priority": item.get("priority", "P4"),
                 }
-    return list(projects.values())
+    result = list(projects.values())
+    # 점수 없는 구 항목 동적 채점
+    try:
+        sys.path.insert(0, os.path.dirname(__file__))
+        from wishket_scorer import score_project  # type: ignore
+        for p in result:
+            if not p.get("score"):
+                scored = score_project(p)
+                p["score"] = scored["score"]
+                p["priority"] = scored["priority"]
+    except Exception:
+        pass
+    # 점수 내림차순 정렬 (동점 시 budget_wan 폴백)
+    result.sort(key=lambda p: (p["score"], p["budget_wan"]), reverse=True)
+    return result
 
 
 def projects_to_js(projects: list[dict]) -> str:
     lines = []
     for p in projects:
         desc = p["description"].replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ")
+        score = p.get("score", 0)
+        priority = p.get("priority", "P4")
         lines.append(
             f"  {{\n"
             f"    id: '{p['id']}',\n"
@@ -60,7 +79,9 @@ def projects_to_js(projects: list[dict]) -> str:
             f"    budget_wan: {p['budget_wan']},\n"
             f"    description: '{desc[:200]}',\n"
             f"    source: '{p['source']}',\n"
-            f"    scraped_at: '{p['scraped_at']}'\n"
+            f"    scraped_at: '{p['scraped_at']}',\n"
+            f"    score: {score},\n"
+            f"    priority: '{priority}'\n"
             f"  }}"
         )
     return "[\n" + ",\n".join(lines) + "\n]"

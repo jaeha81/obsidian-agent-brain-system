@@ -10,12 +10,19 @@ WISHKET_EMAIL + WISHKET_PASSWORD 설정 시 로그인 후 전체 공고 접근.
 import json
 import os
 import re
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
+
+sys.path.insert(0, str(Path(__file__).parent))
+try:
+    from wishket_scorer import score_projects as _score_projects
+except ImportError:
+    _score_projects = None
 
 _ROOT = Path(__file__).parent.parent
 INBOX = _ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_inbox"
@@ -228,6 +235,10 @@ def run() -> tuple[list[dict], Path]:
     if not projects:
         print("[Wishket] 관련 공고 없음")
         return [], Path("")
+    if _score_projects:
+        projects = _score_projects(projects)
+        for p in projects[:3]:
+            print(f"  [{p.get('priority','?')}] {p.get('score', 0):3d}점  {p['title'][:40]}")
     out = save_projects(projects)
     return projects, out
 

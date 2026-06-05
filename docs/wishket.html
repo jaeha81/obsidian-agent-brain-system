@@ -104,6 +104,11 @@
   .badge-bid { background: rgba(210,153,34,0.18); color: var(--yellow); border: 1px solid rgba(210,153,34,0.35); }
   .badge-won { background: rgba(63,185,80,0.18); color: var(--green); border: 1px solid rgba(63,185,80,0.35); }
   .badge-lost { background: rgba(139,148,158,0.18); color: var(--muted); border: 1px solid rgba(139,148,158,0.28); }
+  .score-badge { display: inline-flex; align-items: center; gap: 3px; border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
+  .score-p1 { background: rgba(63,185,80,0.15); color: #3fb950; border: 1px solid rgba(63,185,80,0.35); }
+  .score-p2 { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+  .score-p3 { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+  .score-p4 { background: rgba(139,148,158,0.12); color: var(--muted); border: 1px solid rgba(139,148,158,0.25); }
 
   .budget-row {
     display: flex; align-items: center; gap: 8px; margin: 8px 0;
@@ -268,6 +273,7 @@
   <button class="filter-btn" onclick="setFilter(this,'won')">🟢 낙찰</button>
   <button class="filter-btn" onclick="setFilter(this,'lost')">⚫ 탈락</button>
   <select class="sort-select" onchange="setSort(this.value)">
+    <option value="score">적합도 높은 순</option>
     <option value="budget">예산 높은 순</option>
     <option value="date">최신순</option>
     <option value="status">상태순</option>
@@ -353,46 +359,6 @@ const PROPOSALS = {
 // ── 공고 데이터 (generate_wishket_dashboard.py로 자동 업데이트) ──
 const PROJECTS = [
   {
-    id: 'project-155293',
-    title: 'GCP 기반 데이터 파이프라인 고도화 및 운영',
-    link: 'https://www.wishket.com/project/155293/',
-    budget: '월 650만원',
-    budget_wan: 650,
-    description: 'GCP 기반 데이터 파이프라인 고도화 및 운영',
-    source: 'web',
-    scraped_at: '2026-05-26T11:08:06.014796'
-  },
-  {
-    id: 'project-155604',
-    title: 'Electron/React/Go 기반 AI 플랫폼 풀스택 개발',
-    link: 'https://www.wishket.com/project/155604/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: 'Electron/React/Go 기반 AI 플랫폼 풀스택 개발',
-    source: 'web',
-    scraped_at: '2026-05-26T11:08:06.021622'
-  },
-  {
-    id: 'project-155477',
-    title: 'Python 시니어 백엔드 개발자 구인',
-    link: 'https://www.wishket.com/project/155477/',
-    budget: '월 730만원',
-    budget_wan: 730,
-    description: 'Python 시니어 백엔드 개발자 구인',
-    source: 'web',
-    scraped_at: '2026-05-27T08:30:03.620561'
-  },
-  {
-    id: 'project-155354',
-    title: 'AI 에이전트 설계 및 개발',
-    link: 'https://www.wishket.com/project/155354/',
-    budget: '월 850만원',
-    budget_wan: 850,
-    description: 'AI 에이전트 설계 및 개발',
-    source: 'web',
-    scraped_at: '2026-05-28T08:30:02.454086'
-  },
-  {
     id: 'project-155301',
     title: 'Python/FastAPI 기반 AI Agent 및 ETL개발',
     link: 'https://www.wishket.com/project/155301/',
@@ -400,97 +366,9 @@ const PROJECTS = [
     budget_wan: 780,
     description: 'Python/FastAPI 기반 AI Agent 및 ETL개발',
     source: 'web',
-    scraped_at: '2026-05-28T08:30:02.457782'
-  },
-  {
-    id: 'project-155720',
-    title: 'AI 세일즈 러닝 플랫폼 서비스 기획 및 UI/UX 기획',
-    link: 'https://www.wishket.com/project/155720/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: 'AI 세일즈 러닝 플랫폼 서비스 기획 및 UI/UX 기획',
-    source: 'web',
-    scraped_at: '2026-05-30T08:30:03.208032'
-  },
-  {
-    id: 'project-155724',
-    title: 'Nest/Gemini 기반 AI 백엔드 개발(주 20시간/재택 근무)',
-    link: 'https://www.wishket.com/project/155724/',
-    budget: '월 300만원',
-    budget_wan: 300,
-    description: 'Nest/Gemini 기반 AI 백엔드 개발(주 20시간/재택 근무)',
-    source: 'web',
-    scraped_at: '2026-05-30T08:30:03.211236'
-  },
-  {
-    id: 'project-155776',
-    title: '공공 교육서비스 AI 개발',
-    link: 'https://www.wishket.com/project/155776/',
-    budget: '월 700만원',
-    budget_wan: 700,
-    description: '공공 교육서비스 AI 개발',
-    source: 'web',
-    scraped_at: '2026-06-02T08:30:02.845470'
-  },
-  {
-    id: 'project-155692',
-    title: 'AI 기반 지능형 송풍기 최적 제어 시스템 개발',
-    link: 'https://www.wishket.com/project/155692/',
-    budget: '월 2000만원',
-    budget_wan: 2000,
-    description: 'AI 기반 지능형 송풍기 최적 제어 시스템 개발',
-    source: 'web',
-    scraped_at: '2026-06-02T08:30:02.860359'
-  },
-  {
-    id: 'project-155759',
-    title: '전력설비 부분방전 센서 데이터 수집 PCB 개발',
-    link: 'https://www.wishket.com/project/155759/',
-    budget: '월 2000만원',
-    budget_wan: 2000,
-    description: '전력설비 부분방전 센서 데이터 수집 PCB 개발',
-    source: 'web',
-    scraped_at: '2026-06-02T08:30:02.862876'
-  },
-  {
-    id: 'project-155755',
-    title: '모델하우스 AI 상담사 키오스크 소프트웨어 구축',
-    link: 'https://www.wishket.com/project/155755/',
-    budget: '월 2000만원',
-    budget_wan: 2000,
-    description: '모델하우스 AI 상담사 키오스크 소프트웨어 구축',
-    source: 'web',
-    scraped_at: '2026-06-02T08:30:02.867965'
-  },
-  {
-    id: 'project-155782',
-    title: 'SQL 기반 데이터 품질 진단 데이터 엔지니어 (주 32시간 재택+외근)',
-    link: 'https://www.wishket.com/project/155782/',
-    budget: '월 220만원',
-    budget_wan: 220,
-    description: 'SQL 기반 데이터 품질 진단 데이터 엔지니어 (주 32시간 재택+외근)',
-    source: 'web',
-    scraped_at: '2026-06-03T08:30:14.832486'
-  },
-  {
-    id: 'project-155834',
-    title: 'AI-Agent 플랫폼 개발 테크 리더 및 총괄 PL',
-    link: 'https://www.wishket.com/project/155834/',
-    budget: '월 800만원',
-    budget_wan: 800,
-    description: 'AI-Agent 플랫폼 개발 테크 리더 및 총괄 PL',
-    source: 'web',
-    scraped_at: '2026-06-04T21:05:30.438341'
-  },
-  {
-    id: 'project-155840',
-    title: 'Node.js/React 기반 음성봇 시스템 미드 레벨 풀스택 개발',
-    link: 'https://www.wishket.com/project/155840/',
-    budget: '월 600만원',
-    budget_wan: 600,
-    description: 'Node.js/React 기반 음성봇 시스템 미드 레벨 풀스택 개발',
-    source: 'web',
-    scraped_at: '2026-06-04T21:05:30.440051'
+    scraped_at: '2026-05-28T08:30:02.457782',
+    score: 73,
+    priority: 'P1'
   },
   {
     id: 'project-155868',
@@ -500,7 +378,153 @@ const PROJECTS = [
     budget_wan: 1500,
     description: '법령·판례 데이터 수집엔진 개발 및 구조화',
     source: 'web',
-    scraped_at: '2026-06-05T14:20:09.747937'
+    scraped_at: '2026-06-05T14:20:09.747937',
+    score: 66,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155692',
+    title: 'AI 기반 지능형 송풍기 최적 제어 시스템 개발',
+    link: 'https://www.wishket.com/project/155692/',
+    budget: '월 2000만원',
+    budget_wan: 2000,
+    description: 'AI 기반 지능형 송풍기 최적 제어 시스템 개발',
+    source: 'web',
+    scraped_at: '2026-06-02T08:30:02.860359',
+    score: 63,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155755',
+    title: '모델하우스 AI 상담사 키오스크 소프트웨어 구축',
+    link: 'https://www.wishket.com/project/155755/',
+    budget: '월 2000만원',
+    budget_wan: 2000,
+    description: '모델하우스 AI 상담사 키오스크 소프트웨어 구축',
+    source: 'web',
+    scraped_at: '2026-06-02T08:30:02.867965',
+    score: 63,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155604',
+    title: 'Electron/React/Go 기반 AI 플랫폼 풀스택 개발',
+    link: 'https://www.wishket.com/project/155604/',
+    budget: '월 500만원',
+    budget_wan: 500,
+    description: 'Electron/React/Go 기반 AI 플랫폼 풀스택 개발',
+    source: 'web',
+    scraped_at: '2026-05-26T11:08:06.021622',
+    score: 63,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155720',
+    title: 'AI 세일즈 러닝 플랫폼 서비스 기획 및 UI/UX 기획',
+    link: 'https://www.wishket.com/project/155720/',
+    budget: '월 500만원',
+    budget_wan: 500,
+    description: 'AI 세일즈 러닝 플랫폼 서비스 기획 및 UI/UX 기획',
+    source: 'web',
+    scraped_at: '2026-05-30T08:30:03.208032',
+    score: 62,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155354',
+    title: 'AI 에이전트 설계 및 개발',
+    link: 'https://www.wishket.com/project/155354/',
+    budget: '월 850만원',
+    budget_wan: 850,
+    description: 'AI 에이전트 설계 및 개발',
+    source: 'web',
+    scraped_at: '2026-05-28T08:30:02.454086',
+    score: 61,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155834',
+    title: 'AI-Agent 플랫폼 개발 테크 리더 및 총괄 PL',
+    link: 'https://www.wishket.com/project/155834/',
+    budget: '월 800만원',
+    budget_wan: 800,
+    description: 'AI-Agent 플랫폼 개발 테크 리더 및 총괄 PL',
+    source: 'web',
+    scraped_at: '2026-06-04T21:05:30.438341',
+    score: 61,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155840',
+    title: 'Node.js/React 기반 음성봇 시스템 미드 레벨 풀스택 개발',
+    link: 'https://www.wishket.com/project/155840/',
+    budget: '월 600만원',
+    budget_wan: 600,
+    description: 'Node.js/React 기반 음성봇 시스템 미드 레벨 풀스택 개발',
+    source: 'web',
+    scraped_at: '2026-06-04T21:05:30.440051',
+    score: 59,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155724',
+    title: 'Nest/Gemini 기반 AI 백엔드 개발(주 20시간/재택 근무)',
+    link: 'https://www.wishket.com/project/155724/',
+    budget: '월 300만원',
+    budget_wan: 300,
+    description: 'Nest/Gemini 기반 AI 백엔드 개발(주 20시간/재택 근무)',
+    source: 'web',
+    scraped_at: '2026-05-30T08:30:03.211236',
+    score: 59,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155776',
+    title: '공공 교육서비스 AI 개발',
+    link: 'https://www.wishket.com/project/155776/',
+    budget: '월 700만원',
+    budget_wan: 700,
+    description: '공공 교육서비스 AI 개발',
+    source: 'web',
+    scraped_at: '2026-06-02T08:30:02.845470',
+    score: 58,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155293',
+    title: 'GCP 기반 데이터 파이프라인 고도화 및 운영',
+    link: 'https://www.wishket.com/project/155293/',
+    budget: '월 650만원',
+    budget_wan: 650,
+    description: 'GCP 기반 데이터 파이프라인 고도화 및 운영',
+    source: 'web',
+    scraped_at: '2026-05-26T11:08:06.014796',
+    score: 54,
+    priority: 'P2'
+  },
+  {
+    id: 'project-155759',
+    title: '전력설비 부분방전 센서 데이터 수집 PCB 개발',
+    link: 'https://www.wishket.com/project/155759/',
+    budget: '월 2000만원',
+    budget_wan: 2000,
+    description: '전력설비 부분방전 센서 데이터 수집 PCB 개발',
+    source: 'web',
+    scraped_at: '2026-06-02T08:30:02.862876',
+    score: 44,
+    priority: 'P3'
+  },
+  {
+    id: 'project-155477',
+    title: 'Python 시니어 백엔드 개발자 구인',
+    link: 'https://www.wishket.com/project/155477/',
+    budget: '월 730만원',
+    budget_wan: 730,
+    description: 'Python 시니어 백엔드 개발자 구인',
+    source: 'web',
+    scraped_at: '2026-05-27T08:30:03.620561',
+    score: 40,
+    priority: 'P3'
   },
   {
     id: 'project-155863',
@@ -510,7 +534,21 @@ const PROJECTS = [
     budget_wan: 1000,
     description: 'C++/Python 기반 6축 다관절 로봇 비전 시스템 및 제어 플랫폼 개발',
     source: 'web',
-    scraped_at: '2026-06-05T14:20:09.749372'
+    scraped_at: '2026-06-05T14:20:09.749372',
+    score: 35,
+    priority: 'P3'
+  },
+  {
+    id: 'project-155782',
+    title: 'SQL 기반 데이터 품질 진단 데이터 엔지니어 (주 32시간 재택+외근)',
+    link: 'https://www.wishket.com/project/155782/',
+    budget: '월 220만원',
+    budget_wan: 220,
+    description: 'SQL 기반 데이터 품질 진단 데이터 엔지니어 (주 32시간 재택+외근)',
+    source: 'web',
+    scraped_at: '2026-06-03T08:30:14.832486',
+    score: 31,
+    priority: 'P3'
   }
 ];
 
@@ -520,7 +558,7 @@ const MAX_BUDGET = Math.max(...PROJECTS.map(p => p.budget_wan), 1);
 const STORAGE_KEY = 'wishket_status';
 let projectStatus = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 let currentFilter = 'all';
-let currentSort = 'budget';
+let currentSort = 'score';
 let searchQuery = '';
 let checkedIds = new Set();
 let pendingWonId = null;
@@ -533,7 +571,8 @@ function render() {
   const grid = document.getElementById('grid');
   let items = [...PROJECTS];
 
-  if (currentSort === 'budget') items.sort((a, b) => b.budget_wan - a.budget_wan);
+  if (currentSort === 'score') items.sort((a, b) => (b.score || 0) - (a.score || 0));
+  else if (currentSort === 'budget') items.sort((a, b) => b.budget_wan - a.budget_wan);
   else if (currentSort === 'date') items.sort((a, b) => b.scraped_at.localeCompare(a.scraped_at));
   else if (currentSort === 'status') {
     const ord = { won: 0, bid: 1, new: 2, lost: 3 };
@@ -563,6 +602,9 @@ function renderCard(p) {
 
   const hidden = shouldHide(p, state) ? ' hidden' : '';
 
+  const scoreClass = { P1: 'score-p1', P2: 'score-p2', P3: 'score-p3', P4: 'score-p4' }[p.priority || 'P4'] || 'score-p4';
+  const scoreLabel = p.score > 0 ? `${p.priority} ${p.score}점` : '';
+
   return `<div class="card status-${state}${hidden}" id="card-${p.id}">
   <div class="status-badge ${badgeClass}">${badgeLabel}</div>
   <div class="card-header">
@@ -571,6 +613,7 @@ function renderCard(p) {
       ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener">${p.title}</a>` : p.title}
     </div>
   </div>
+  ${scoreLabel ? `<div class="score-badge ${scoreClass}">${scoreLabel}</div>` : ''}
   <div class="budget-row">
     <span class="budget-num">${p.budget_wan > 0 ? p.budget_wan + '만원' : '미정'}</span>
     <span class="budget-label">${p.budget_wan > 0 ? '/월' : ''}</span>

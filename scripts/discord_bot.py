@@ -1866,11 +1866,21 @@ class WishketDashboardView(discord.ui.View):
     def _make_embed(self) -> discord.Embed:
         p = self.projects[self.idx]
         source_tag = "📧 Gmail" if p.get("source") == "gmail" else "🌐 Web"
+        score = p.get("score", 0)
+        priority = p.get("priority", "")
+        priority_color = {
+            "P1": 0x3FB950,  # green
+            "P2": 0x58A6FF,  # blue
+            "P3": 0xD29922,  # yellow
+            "P4": 0x8B949E,  # grey
+        }.get(priority, 0x00B4D8)
         embed = discord.Embed(
             title=p["title"][:256],
             url=p.get("link") or discord.utils.MISSING,
-            color=0x00B4D8,
+            color=priority_color,
         )
+        score_val = f"{priority} {score}점" if score and priority else p.get("budget", "미정")
+        embed.add_field(name="적합도", value=score_val, inline=True)
         embed.add_field(name="💰 예산", value=p.get("budget", "미정"), inline=True)
         embed.add_field(name="출처", value=source_tag, inline=True)
         if p.get("description"):
