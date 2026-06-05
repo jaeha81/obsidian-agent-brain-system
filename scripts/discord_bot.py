@@ -258,6 +258,131 @@ _CONTEXT_PACK_CHAR_LIMIT = int(os.getenv("BUCKY_CONTEXT_PACK_CHAR_LIMIT", "18000
 _context_cache: dict = {"text": "", "loaded_at": 0.0}
 _CONTEXT_TTL = 300  # 5분
 
+# ── Checklist 헬퍼 ─────────────────────────────────────────────────────────
+_CHECKLIST_JSON = _ROOT / "data" / "user_checklist.json"
+_CHECKLIST_DOCS_JSON = _ROOT / "docs" / "data" / "user_checklist.json"
+
+
+def _cl_load() -> dict:
+    try:
+        return _json_mod.loads(_CHECKLIST_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        return {"meta": {"version": "2.0", "last_updated": ""}, "tasks": []}
+
+
+def _cl_save(data: dict) -> None:
+    from datetime import date
+    data.setdefault("meta", {})["last_updated"] = str(date.today())
+    text = _json_mod.dumps(data, ensure_ascii=False, indent=2)
+    _CHECKLIST_JSON.write_text(text, encoding="utf-8")
+    try:
+        _CHECKLIST_DOCS_JSON.parent.mkdir(parents=True, exist_ok=True)
+        _CHECKLIST_DOCS_JSON.write_text(text, encoding="utf-8")
+    except Exception as e:
+        print(f"[Checklist] docs/ 동기화 실패: {e}", flush=True)
+
+
+def _cl_next_id(tasks: list) -> str:
+    nums = [int(t["id"].replace("CL-", "")) for t in tasks if t.get("id", "").startswith("CL-")]
+    return f"CL-{(max(nums) + 1 if nums else 1):03d}"
+
+
+def _cl_add(title: str, description: str = "", priority: str = "대기",
+             category: str = "기타", source: str = "discord") -> dict:
+    data = _cl_load()
+    tasks = data.get("tasks", [])
+    if any(t["title"].lower() == title.lower() for t in tasks):
+        return {}
+    task = {
+        "id": _cl_next_id(tasks),
+        "title": title,
+        "description": description,
+        "priority": priority,
+        "category": category,
+        "status": "pending",
+        "added": str(__import__("datetime").date.today()),
+        "source": source,
+        "refs": []
+    }
+    tasks.append(task)
+    data["tasks"] = tasks
+    _cl_save(data)
+    return task
+
+
+def _cl_set_status(cl_id: str, status: str) -> dict | None:
+    data = _cl_load()
+    for t in data.get("tasks", []):
+        if t["id"].upper() == cl_id.upper():
+            t["status"] = status
+            _cl_save(data)
+            return t
+    return None
+
+
+def _cl_list(status_filter: str = "") -> list:
+    data = _cl_load()
+    tasks = data.get("tasks", [])
+    if status_filter:
+        tasks = [t for t in tasks if t.get("status", "pending") == status_filter]
+    return tasks
+
+
+def _cl_format_list(tasks: list, max_items: int = 15) -> str:
+    if not tasks:
+        return "📭 태스크 없음"
+    pri_order = {"P0": 0, "P1": 1, "P2": 2, "대기": 3}
+    sorted_tasks = sorted(tasks, key=lambda t: (pri_order.get(t.get("priority", "대기"), 4),))
+    lines = []
+    status_icons = {"pending": "⏳", "in_progress": "🔄", "done": "✅", "rejected": "❌"}
+    for t in sorted_tasks[:max_items]:
+        icon = status_icons.get(t.get("status", "pending"), "⏳")
+        lines.append(f"`{t['id']}` {icon} **[{t.get('priority','?')}]** {t['title']}")
+    if len(sorted_tasks) > max_items:
+        lines.append(f"_... 외 {len(sorted_tasks) - max_items}개_")
+    return "\n".join(lines)
+
+
+import re as _re
+_CL_INCOMPLETE_PATTERNS = [
+    _re.compile(r'미완료\s*:\s*(.+?)(?:\n|$)', _re.IGNORECASE),
+    _re.compile(r'\*\*미완료\*\*\s*:\s*(.+?)(?:\n|$)', _re.IGNORECASE),
+    _re.compile(r'⏳\s+(.{10,80})(?:\n|$)'),
+    _re.compile(r'대기\s*:\s*(.+?)(?:\n|$)', _re.IGNORECASE),
+    _re.compile(r'- \[ \]\s+(.+?)(?:\n|$)'),
+    _re.compile(r'다음 세션[에서]?\s*:\s*(.+?)(?:\n|$)', _re.IGNORECASE),
+]
+
+
+async def _auto_detect_checklist(reply: str, channel) -> None:
+    """Bucky 응답에서 미완료 패턴 감지 → 체크리스트 자동 추가 (백그라운드)."""
+    try:
+        detected = []
+        for pat in _CL_INCOMPLETE_PATTERNS:
+            for m in pat.findall(reply):
+                item = m.strip().strip('*').strip('`').strip()
+                if 8 <= len(item) <= 120 and item not in detected:
+                    detected.append(item)
+
+        if not detected:
+            return
+
+        added = []
+        for title in detected[:3]:
+            task = await asyncio.to_thread(_cl_add, title, "", "대기", "자동감지", "discord-auto")
+            if task:
+                added.append(task["id"])
+
+        if added:
+            await channel.send(
+                f"📋 **미완료 항목 자동 등록** → {', '.join(added)}\n"
+                + "\n".join(f"> {t}" for t in detected[:len(added)])
+                + "\n_태스크 보드에서 관리: `/task-board.html`_"
+            )
+    except Exception as e:
+        print(f"[Checklist] 자동감지 실패: {e}", flush=True)
+
+
 def _read_required_context_packs() -> str:
     sections: list[str] = []
     remaining = _CONTEXT_PACK_CHAR_LIMIT
@@ -3406,6 +3531,11 @@ class BuckyDiscordBot(discord.Client):
                 "`!상품화 <GitHub URL>` — 랜딩 페이지 + 결제 + Vercel 배포 통합 파이프라인\n"
                 "`!랜딩 <GitHub URL 또는 이름>` — 랜딩 페이지만 생성\n"
                 "`!배포 <경로>` — 프로젝트를 Vercel에 배포\n"
+                "`!체크` / `!체크리스트` — 태스크 보드 현황 조회\n"
+                "`!체크추가 <제목>` — 태스크 수동 추가\n"
+                "`!체크완료 CL-001` — 태스크 완료 처리\n"
+                "`!체크진행 CL-001` — 태스크 진행중 처리\n"
+                "`!체크삭제 CL-001` — 태스크 거절 처리\n"
                 "`!capture <url>` / `!저장 <url>` — URL/텍스트를 Obsidian 01_RAW에 저장\n"
                 "`!캡처 <텍스트>` — 텍스트 메모 Obsidian 01_RAW에 저장\n"
                 "`!patterns` / `!패턴` — 반복 패턴 분석 → 스킬 자동 제안 (P1)\n"
@@ -3514,6 +3644,70 @@ class BuckyDiscordBot(discord.Client):
                     await message.channel.send(f"💭 **자기 반성 완료**\n> {preview}")
                 except Exception as e:
                     await message.channel.send(f"❌ 자기 반성 실패: {e}")
+            return
+
+        # ── 체크리스트 명령어 ─────────────────────────────────────────────────────
+        if content in ("!체크", "!체크리스트", "!cl", "!checklist", "!task-board"):
+            tasks = await asyncio.to_thread(_cl_list)
+            pending = [t for t in tasks if t.get("status", "pending") == "pending"]
+            in_prog = [t for t in tasks if t.get("status") == "in_progress"]
+            done = [t for t in tasks if t.get("status") == "done"]
+            lines = [
+                f"📋 **태스크 보드** — 전체 {len(tasks)}개",
+                f"⏳ 미처리 {len(pending)} · 🔄 진행중 {in_prog and len(in_prog) or 0} · ✅ 완료 {len(done)}",
+                "",
+            ]
+            if in_prog:
+                lines.append("**진행중**")
+                lines.append(_cl_format_list(in_prog, 5))
+                lines.append("")
+            if pending:
+                lines.append("**미처리 (우선순위 순)**")
+                lines.append(_cl_format_list(pending, 10))
+            await message.channel.send("\n".join(lines))
+            return
+
+        if content.startswith(("!체크추가 ", "!cl+ ", "!cl추가 ")):
+            prefix = next(p for p in ("!체크추가 ", "!cl+ ", "!cl추가 ") if content.startswith(p))
+            body = content[len(prefix):].strip()
+            if not body:
+                await message.channel.send("사용법: `!체크추가 <제목>`")
+                return
+            task = await asyncio.to_thread(_cl_add, body, "", "대기", "기타", "discord")
+            if task:
+                await message.channel.send(f"✅ `{task['id']}` 체크리스트 추가됨\n> {body}")
+            else:
+                await message.channel.send("⚠️ 이미 동일한 제목이 있습니다.")
+            return
+
+        if content.startswith(("!체크완료 ", "!cl완료 ", "!cl-done ")):
+            prefix = next(p for p in ("!체크완료 ", "!cl완료 ", "!cl-done ") if content.startswith(p))
+            cl_id = content[len(prefix):].strip().upper()
+            task = await asyncio.to_thread(_cl_set_status, cl_id, "done")
+            if task:
+                await message.channel.send(f"✅ `{cl_id}` 완료 처리됨\n> {task['title']}")
+            else:
+                await message.channel.send(f"⚠️ `{cl_id}` 를 찾을 수 없습니다.")
+            return
+
+        if content.startswith(("!체크진행 ", "!cl진행 ", "!cl-start ")):
+            prefix = next(p for p in ("!체크진행 ", "!cl진행 ", "!cl-start ") if content.startswith(p))
+            cl_id = content[len(prefix):].strip().upper()
+            task = await asyncio.to_thread(_cl_set_status, cl_id, "in_progress")
+            if task:
+                await message.channel.send(f"🔄 `{cl_id}` 진행중으로 변경됨\n> {task['title']}")
+            else:
+                await message.channel.send(f"⚠️ `{cl_id}` 를 찾을 수 없습니다.")
+            return
+
+        if content.startswith(("!체크삭제 ", "!cl삭제 ", "!cl-reject ")):
+            prefix = next(p for p in ("!체크삭제 ", "!cl삭제 ", "!cl-reject ") if content.startswith(p))
+            cl_id = content[len(prefix):].strip().upper()
+            task = await asyncio.to_thread(_cl_set_status, cl_id, "rejected")
+            if task:
+                await message.channel.send(f"❌ `{cl_id}` 거절 처리됨\n> {task['title']}")
+            else:
+                await message.channel.send(f"⚠️ `{cl_id}` 를 찾을 수 없습니다.")
             return
 
         # ── 음성 채널 입장 ──────────────────────────────────────────────────────
@@ -4113,6 +4307,9 @@ class BuckyDiscordBot(discord.Client):
 
                 # Obsidian PC 채팅창에 동기화
                 append_to_bucky_chat(message.author.name, content, reply)
+
+                # 미완료 태스크 자동 감지 (백그라운드)
+                asyncio.ensure_future(_auto_detect_checklist(reply, message.channel))
 
                 out_path = write_discord_message(message, reply, status="answered")
         else:
