@@ -3413,10 +3413,28 @@ class BuckyDiscordBot(discord.Client):
                 f"`!입장` / `!join` — 내가 있는 음성 채널 입장 ({vc_status})\n"
                 f"`!퇴장` / `!leave` — 음성 채널 퇴장\n"
                 f"TTS: {tts_status} | 실시간 수신: {recv_status}\n"
+                "`!봇재시작` / `!restart` — 봇 프로세스 재시작 (관리자 전용)\n"
                 "`!help` — 도움말\n"
                 "_그 외 메시지는 Bucky가 답변합니다._"
             )
             return
+
+        if content in ("!봇재시작", "!restart", "!reload"):
+            # 서버 관리자 또는 서버 소유자만 허용
+            is_admin = (
+                message.guild
+                and message.guild.get_member(message.author.id)
+                and (
+                    message.guild.get_member(message.author.id).guild_permissions.administrator
+                    or message.author.id == message.guild.owner_id
+                )
+            )
+            if not is_admin:
+                await message.channel.send("⚠️ 관리자 권한이 필요합니다.")
+                return
+            await message.channel.send("🔄 봇 재시작 중... (5초 후 복귀)")
+            await asyncio.sleep(1)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
 
         if content == "!reset":
             conversation_history[channel_id].clear()
