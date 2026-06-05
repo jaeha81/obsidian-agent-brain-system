@@ -3219,10 +3219,18 @@ class BuckyDiscordBot(discord.Client):
                 return
             ch = self.get_channel(int(notify_ch_id))
             if ch:
-                await ch.send(
+                full_msg = (
                     f"🔔 **봇 재시작 — 미완료 작업 있음**\n{report}\n\n"
                     f"`!재개 [작업내용]` 으로 재실행 가능"
                 )
+                if len(full_msg) <= 2000:
+                    await ch.send(full_msg)
+                else:
+                    header = "🔔 **봇 재시작 — 미완료 작업 있음** (내용 길어 분할 전송)\n"
+                    footer = "\n`!재개 [작업내용]` 으로 재실행 가능"
+                    body = report
+                    chunk_size = 2000 - len(header) - len(footer)
+                    await ch.send(header + body[:chunk_size] + footer)
         except Exception as e:
             print(f"[Startup] 미완료 보고 실패: {e}", flush=True)
 
