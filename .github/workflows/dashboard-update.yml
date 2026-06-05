@@ -24,25 +24,32 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Python 의존성 설치
+        run: pip install requests beautifulsoup4
+
       - name: 레포 대시보드 업데이트
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/update_dashboard.py
 
+      - name: 위시켓 공고 스크래핑
+        run: python scripts/wishket_scraper.py
+        continue-on-error: true
+
       - name: 위시켓 대시보드 업데이트
         run: python scripts/generate_wishket_dashboard.py
 
-      - name: 변경사항 확인
+      - name: 변경사항 스테이징 및 확인
         id: diff
         run: |
-          git diff --quiet docs/index.html docs/wishket.html || echo "changed=true" >> $GITHUB_OUTPUT
+          git add docs/index.html docs/wishket.html ObsidianVault/10_AgentBus/wishket_inbox/
+          git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: 커밋 & 푸시
         if: steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "Bucky Dashboard Bot"
           git config user.email "bucky-bot@jh-system"
-          git add docs/index.html docs/wishket.html
           git commit -m "chore: 대시보드 자동 업데이트 $(date +'%Y-%m-%d') [skip ci]"
           git push
