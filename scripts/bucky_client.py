@@ -181,7 +181,15 @@ def _invoke_bucky(
     source: str = "",
 ) -> str:
     import time as _time
-    timeout_s = timeout or int(os.getenv("BUCKY_TIMEOUT", "900"))
+    # chat: 120s, code/tools: 300s, explicit override takes precedence
+    if timeout:
+        timeout_s = timeout
+    elif task_type in ("code", "review", "debug"):
+        timeout_s = int(os.getenv("BUCKY_TIMEOUT_CODE", "300"))
+    elif with_tools:
+        timeout_s = int(os.getenv("BUCKY_TIMEOUT_TOOLS", "300"))
+    else:
+        timeout_s = int(os.getenv("BUCKY_TIMEOUT", "120"))
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
     env["BUCKY_SUBPROCESS"] = "1"
