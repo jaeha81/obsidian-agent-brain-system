@@ -1,0 +1,16 @@
+# Normalize line endings: all text files use LF in the repo
+* text=auto eol=lf
+
+# Python files: always LF
+*.py text eol=lf
+
+# Windows scripts: keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files: no conversion
+*.db binary
+*.png binary
+*.jpg binary
+*.ico binary

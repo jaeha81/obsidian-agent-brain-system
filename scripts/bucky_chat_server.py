@@ -18,7 +18,9 @@ Endpoints:
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import re
 import sys
 import time
 import uuid
@@ -26,6 +28,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+INTAKE_QUEUE_DIR = ROOT / "data" / "intake_queue"
 SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
@@ -47,6 +50,7 @@ def _cors(response):
 
 @app.route("/chat", methods=["OPTIONS"])
 @app.route("/health", methods=["OPTIONS"])
+@app.route("/intake", methods=["OPTIONS"])
 def _preflight():
     return "", 204
 
@@ -129,6 +133,36 @@ def intake():
         _sessions[session_id] = history[-(MAX_HISTORY * 2):]
 
     return jsonify({"reply": reply, "session_id": session_id})
+
+
+@app.post("/intake")
+def intake_dashboard():
+    """Dashboard intake — atomic queue write, 202 Accepted immediately.
+
+    Never calls run_bucky() or requests anything from port 8766.
+    The discord_bot async consumer picks up queue files.
+    """
+    data = request.get_json(silent=True) or {}
+    dashboard_type = (data.get("dashboard_type") or "").strip()
+    if not dashboard_type:
+        return jsonify({"error": "dashboard_type is required"}), 400
+
+    request_id = (data.get("request_id") or str(uuid.uuid4())).strip()
+    payload = {**data, "request_id": request_id, "enqueued_at": time.time()}
+
+    INTAKE_QUEUE_DIR.mkdir(parents=True, exist_ok=True)
+    safe_type = re.sub(r"[^a-z0-9_-]", "_", dashboard_type.lower())
+    ts_ms = int(time.time() * 1000)
+    filename = f"{ts_ms}_{safe_type}_{request_id[:8]}.json"
+    tmp_path = INTAKE_QUEUE_DIR / (filename + ".tmp")
+    final_path = INTAKE_QUEUE_DIR / filename
+    try:
+        tmp_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        tmp_path.rename(final_path)
+    except Exception as exc:
+        return jsonify({"error": f"queue write failed: {exc}"}), 500
+
+    return jsonify({"status": "accepted", "request_id": request_id, "queue_file": filename}), 202
 
 
 @app.delete("/chat")
