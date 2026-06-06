@@ -275,7 +275,7 @@
       <input id="bucky-endpoint" type="url" placeholder="Bucky OS intake URL 또는 Discord webhook URL">
       <button type="button" onclick="saveEndpoint()">저장</button>
     </div>
-    <p class="ops-hint">각 카드의 재개 버튼은 이 주소로 태스크 ID, 제목, 설명, 메모를 전송합니다. 같은 브라우저의 <code>dailyPlusBuckyOsIntakeUrl</code> 또는 <code>bucky-webhook</code> 값도 자동으로 사용합니다.</p>
+    <p class="ops-hint">Bucky OS base URL 입력 시 자동으로 <code>/intake</code>로 정규화됩니다. Discord webhook URL은 fallback으로 사용됩니다. 같은 브라우저의 <code>dailyPlusBuckyOsIntakeUrl</code> 또는 <code>bucky-webhook</code> 값도 자동으로 사용합니다.</p>
   </div>
 </section>
 
@@ -298,7 +298,7 @@
 
 <script>
 // ── 태스크 데이터 (Claude Code가 유지) ──────────────────────────────────
-const TASKS = [
+let TASKS = [
   {
     id: "CL-001",
     title: "AgentBus 7개 승인 게이트 구현",
@@ -423,6 +423,21 @@ const META = {
   managed_by: "Bucky Agent / Claude Code"
 };
 
+async function loadTasksFromJson() {
+  try {
+    const r = await fetch('./data/user_checklist.json?t=' + Date.now());
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    if (d.tasks && d.tasks.length) {
+      TASKS = d.tasks.map(t => ({ ...t, desc: t.description || t.desc || '' }));
+      if (d.meta && d.meta.last_updated) META.last_updated = d.meta.last_updated;
+    }
+  } catch (_) {
+    // fallback to embedded TASKS
+  }
+  renderAll();
+}
+
 // ── localStorage 상태 관리 ──────────────────────────────────────────────
 const LS_KEY = "bucky_checklist_v1";
 const ENDPOINT_KEY = "buckyChecklistEndpoint";
@@ -458,16 +473,26 @@ function loadEndpoint() {
 function saveEndpoint() {
   const input = document.getElementById("bucky-endpoint");
   if (!input) return;
-  const value = input.value.trim();
+  let value = input.value.trim();
   if (!value) {
     localStorage.removeItem(ENDPOINT_KEY);
     showToast("전송 주소 초기화");
     return;
   }
+  if (!value.includes("discord.com/api/webhooks")) {
+    try {
+      const u = new URL(value);
+      if (!u.pathname.endsWith("/intake")) {
+        u.pathname = u.pathname.replace(/\/$/, "") + "/intake";
+        value = u.toString();
+        input.value = value;
+      }
+    } catch (_) {}
+  }
   localStorage.setItem(ENDPOINT_KEY, value);
   if (value.includes("discord.com/api/webhooks")) localStorage.setItem("bucky-webhook", value);
   else localStorage.setItem("dailyPlusBuckyOsIntakeUrl", value);
-  showToast("Bucky 전송 주소 저장");
+  showToast("Bucky 전송 주소 저장됨");
 }
 
 // ── 액션 함수 ──────────────────────────────────────────────────────────
@@ -523,12 +548,34 @@ async function sendResume(id) {
     return;
   }
   const button = document.getElementById("resume-" + id);
-  if (button) {
-    button.disabled = true;
-    button.textContent = "전송중";
-  }
+  if (button) { button.disabled = true; button.textContent = "전송중"; }
+
+  const isIntake = !endpoint.includes("discord.com/api/webhooks");
+  const ts = getTaskState(id);
+
   try {
-    if (endpoint.includes("discord.com/api/webhooks")) {
+    if (isIntake) {
+      // /intake 우선 /* INTAKE_PAYLOAD: dashboard_type=checklist */
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dashboard_type: "checklist",
+          target_channel: "jh-태스크보드",
+          action: "resume_task",
+          item_id: task.id,
+          title: task.title,
+          summary: (task.desc || "").slice(0, 500),
+          priority: task.priority,
+          status: ts.status,
+          note: ts.note || "",
+          source_dashboard_url: location.href,
+          body
+        })
+      });
+      if (!response.ok) throw new Error("intake " + response.status);
+    } else {
+      // Discord webhook
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -538,24 +585,7 @@ async function sendResume(id) {
         })
       });
       if (!response.ok) throw new Error("Discord webhook " + response.status);
-    } else {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source: "user-bucky-checklist",
-          type: "resume_task",
-          target: "Bucky",
-          action: "resume_task",
-          body,
-          task_id: task.id,
-          title: task.title,
-          priority: task.priority
-        })
-      });
-      if (!response.ok) throw new Error("Bucky endpoint " + response.status);
     }
-    const ts = getTaskState(id);
     ts.status = "wip";
     ts.last_sent = new Date().toISOString();
     state[id] = ts;
@@ -563,13 +593,30 @@ async function sendResume(id) {
     renderAll();
     showToast("Bucky에 재개 요청 전송");
   } catch (error) {
+    if (isIntake) {
+      // /intake 실패 → Discord webhook fallback
+      const whUrl = localStorage.getItem("bucky-webhook");
+      if (whUrl) {
+        try {
+          await fetch(whUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: "User-Bucky Checklist", content: body.slice(0, 1900) })
+          });
+          ts.status = "wip";
+          ts.last_sent = new Date().toISOString();
+          state[id] = ts;
+          saveState();
+          renderAll();
+          showToast("intake 실패 → webhook 전송 완료");
+          return;
+        } catch (_) {}
+      }
+    }
     await copyText(body);
     showToast("전송 실패: 지시문 복사됨");
   } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = "재개";
-    }
+    if (button) { button.disabled = false; button.textContent = "재개"; }
   }
 }
 
@@ -751,7 +798,7 @@ function escAttr(s) {
 // ── 초기화 ──────────────────────────────────────────────────────────────
 loadState();
 loadEndpoint();
-renderAll();
+loadTasksFromJson();
 </script>
 </body>
 </html>
