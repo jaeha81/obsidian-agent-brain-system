@@ -11,7 +11,9 @@ credentials/
 
 # Local config (contains real paths — never commit)
 configs/paths.json
-.claude/
+.claude/*
+!.claude/commands/
+!.claude/commands/**
 .raw_watcher_state.json
 
 # RAW sensitive data
