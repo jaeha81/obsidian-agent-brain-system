@@ -26,9 +26,14 @@ from datetime import datetime, timezone, date
 # ── 설정 ──────────────────────────────────────────────────────────────────────
 VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 OUTPUT_BASE = VAULT_BASE / "01_RAW" / "gpt-sessions"
-PROFILE_DIR = Path(os.environ.get("USERPROFILE", "~")) / ".playwright-gpt-sessions"
+
+# 전용 Playwright 프로파일 (실제 Chrome 프로파일과 독립 — 충돌 없음)
+# 환경변수 GPT_COLLECTOR_PROFILE_DIR 로 오버라이드 가능
+_DEDICATED_PROFILE = Path(__file__).resolve().parent.parent / ".gpt_collector_profile"
+PROFILE_DIR = Path(os.environ.get("GPT_COLLECTOR_PROFILE_DIR", str(_DEDICATED_PROFILE)))
+
 STATE_FILE = Path(__file__).parent / ".gpt_collector_state.json"
-BROWSER_CHANNEL = os.environ.get("GPT_COLLECTOR_BROWSER_CHANNEL", "msedge")
+BROWSER_CHANNEL = "chrome"
 
 # ChatGPT 비공식 API 엔드포인트
 API_BASE = "https://chatgpt.com/backend-api"
@@ -334,13 +339,12 @@ def save_conversation(
 # ── 로그인 모드 ──────────────────────────────────────────────────────────────
 
 async def login_mode():
-    """브라우저를 열어 ChatGPT 로그인 후 세션을 저장한다."""
+    """전용 Playwright 프로파일로 ChatGPT 로그인 후 세션을 저장한다."""
     from playwright.async_api import async_playwright
 
-    PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    log.info(f"브라우저를 열어 ChatGPT에 로그인하세요.")
-    log.info(f"로그인 완료 후 이 창을 닫으면 세션이 저장됩니다.")
-    log.info(f"프로파일 경로: {PROFILE_DIR}")
+    log.info(f"전용 프로파일 경로: {PROFILE_DIR}")
+    log.info("Chrome을 열어 ChatGPT에 로그인하세요.")
+    log.info("로그인 완료 후 이 창을 닫으면 세션이 저장됩니다.")
 
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
@@ -364,12 +368,16 @@ async def login_mode():
 # ── 수집 모드 ─────────────────────────────────────────────────────────────────
 
 async def collect_mode(dry_run: bool = False, full: bool = False):
-    """저장된 세션으로 ChatGPT 대화를 증분 수집한다."""
+    """전용 Playwright 프로파일 세션으로 ChatGPT 대화를 증분 수집한다.
+
+    실제 Chrome과 독립된 전용 프로파일을 사용하므로 Chrome 실행 여부와 무관하게 동작한다.
+    최초 실행 전 --login으로 전용 프로파일에 세션을 저장해야 한다.
+    """
     from playwright.async_api import async_playwright
 
     if not PROFILE_DIR.exists():
-        log.error("저장된 세션 없음. 먼저 --login으로 로그인하세요:")
-        log.error("  python gpt_session_collector.py --login")
+        log.error(f"전용 프로파일이 없습니다: {PROFILE_DIR}")
+        log.error("먼저 --login 플래그로 전용 프로파일에 ChatGPT 로그인을 완료하세요.")
         sys.exit(1)
 
     state = load_state()
@@ -406,7 +414,8 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
             sys.exit(1)
 
         if "login" in page.url or "auth" in page.url:
-            log.error("세션 만료됨. --login으로 다시 로그인하세요.")
+            log.error("ChatGPT 로그인이 확인되지 않습니다.")
+            log.error("Chrome에서 chatgpt.com에 로그인한 뒤 다시 시도하거나 --login 플래그로 재로그인하세요.")
             await context.close()
             sys.exit(1)
 
@@ -501,7 +510,10 @@ def main():
         if args.login:
             asyncio.run(login_mode())
         else:
-            asyncio.run(collect_mode(dry_run=args.dry_run, full=args.full))
+            asyncio.run(collect_mode(
+                dry_run=args.dry_run,
+                full=args.full,
+            ))
     except KeyboardInterrupt:
         log.info("사용자 중단")
     except Exception as e:
