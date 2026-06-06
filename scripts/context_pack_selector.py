@@ -8,6 +8,22 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+# Repo root is the parent of the scripts/ directory.
+# Pack paths like "ObsidianVault/..." are relative to this root.
+_REPO_ROOT: Path = Path(__file__).parent.parent
+
+# Allowed top-level roots under _REPO_ROOT that inject_context_packs may read.
+_ALLOWED_ROOTS: frozenset[str] = frozenset(
+    {
+        "ObsidianVault",
+        "CLAUDE.md",
+    }
+)
+
+# Default character budget for inject_context_packs — generous enough for
+# several context packs while keeping injected context below LLM limits.
+_DEFAULT_MAX_CHARS: int = 200_000
+
 
 @dataclass(frozen=True)
 class PackRule:
@@ -172,6 +188,122 @@ RULES: tuple[PackRule, ...] = (
 )
 
 
+def _resolve_safe_path(pack_path: str, vault_root: Path) -> Path | None:
+    """Return an absolute Path for *pack_path* under *vault_root*, or None if unsafe.
+
+    Blocked:
+    - Absolute paths (security: the caller should not be able to read arbitrary FS paths).
+    - Any path component equal to '..', including obfuscated forms after resolution.
+    - Paths that resolve outside *vault_root* after normalization.
+    - Paths whose first component is not in _ALLOWED_ROOTS.
+    """
+    raw = Path(pack_path)
+    if raw.is_absolute():
+        return None
+    if ".." in raw.parts:
+        return None
+    # First component must be an allowed root (or the exact allowed file)
+    first = raw.parts[0] if raw.parts else ""
+    # Allow exact filename matches (e.g. "CLAUDE.md") as well as directory roots
+    if first not in _ALLOWED_ROOTS and pack_path not in _ALLOWED_ROOTS:
+        return None
+    resolved = (vault_root / raw).resolve()
+    # Final guard: resolved path must still be inside vault_root
+    try:
+        resolved.relative_to(vault_root.resolve())
+    except ValueError:
+        return None
+    return resolved
+
+
+def inject_context_packs(
+    packs: list[str],
+    *,
+    vault_root: Path | None = None,
+    max_chars: int | None = None,
+) -> dict[str, str]:
+    """Read pack files from *vault_root* and return ``{pack_path: content}``.
+
+    *vault_root*: directory against which relative pack paths are resolved.
+    Default is the repository root (parent of ``scripts/``), correct when pack
+    paths start with ``ObsidianVault/``.
+
+    *max_chars*: total character budget shared across all packs.
+    Default: ``_DEFAULT_MAX_CHARS`` (200 000).  Packs are processed in list
+    order; each consumes from the shared budget.  Each file is read with a
+    streaming limit of ``remaining + 1`` chars — the full file is never loaded
+    into memory when it would exceed the remaining budget.
+
+    Markers embedded in the returned string values:
+
+    - ``[BLOCKED: ...]`` — path failed security validation; not read.
+    - ``[NOT FOUND: ...]`` — file does not exist.
+    - ``[BINARY: ...]`` — file is not valid UTF-8; byte size from stat reported.
+    - ``content + \\n[TRUNCATED: ...]`` — file was cut to fit remaining budget.
+    - ``[BUDGET_EXHAUSTED: ...]`` — budget already spent; file skipped entirely.
+
+    Security guarantees (see _resolve_safe_path):
+    - Absolute paths are blocked.
+    - ``..`` path components are blocked.
+    - Paths that resolve outside *vault_root* are blocked.
+    - Only paths whose first component is in ``_ALLOWED_ROOTS`` are permitted.
+    """
+    root = vault_root if vault_root is not None else _REPO_ROOT
+    budget = max_chars if max_chars is not None else _DEFAULT_MAX_CHARS
+    used = 0
+    result: dict[str, str] = {}
+
+    for pack in packs:
+        safe = _resolve_safe_path(pack, root)
+        if safe is None:
+            result[pack] = f"[BLOCKED: unsafe path '{pack}']"
+            continue
+
+        if used >= budget:
+            result[pack] = (
+                f"[BUDGET_EXHAUSTED: {used:,}/{budget:,} chars used, '{pack}' skipped]"
+            )
+            continue
+
+        # stat() first: fast existence check + byte size for BINARY marker.
+        try:
+            file_bytes = safe.stat().st_size
+        except FileNotFoundError:
+            result[pack] = f"[NOT FOUND: '{pack}']"
+            continue
+        except OSError as exc:
+            result[pack] = f"[ERROR: {exc}]"
+            continue
+
+        # Streaming read: load at most (remaining + 1) chars — never the full file.
+        # One extra char lets us detect truncation without a separate seek.
+        remaining = budget - used
+        try:
+            with safe.open("r", encoding="utf-8", errors="strict") as fh:
+                chunk = fh.read(remaining + 1)
+        except UnicodeDecodeError:
+            result[pack] = (
+                f"[BINARY: '{pack}' is not valid UTF-8; {file_bytes:,} bytes]"
+            )
+            continue
+        except OSError as exc:
+            result[pack] = f"[ERROR: {exc}]"
+            continue
+
+        if len(chunk) > remaining:
+            result[pack] = (
+                chunk[:remaining]
+                + f"\n[TRUNCATED: first {remaining:,} chars read;"
+                f" budget {budget:,} chars total]"
+            )
+            used = budget  # budget fully consumed after truncation
+        else:
+            result[pack] = chunk
+            used += len(chunk)
+
+    return result
+
+
 def _score(rule: PackRule, text: str, task_type: str) -> int:
     haystack = f"{task_type}\n{text}".lower()
     return sum(1 for trigger in rule.triggers if trigger.lower() in haystack)
@@ -237,6 +369,12 @@ def format_text(selection: dict) -> str:
     lines.extend(f"- {pack}" for pack in selection["packs"])
     lines.append("Notes:")
     lines.extend(f"- {note}" for note in selection["notes"])
+    if "injected_context" in selection:
+        lines.append("")
+        lines.append("Injected Context:")
+        for path, content in selection["injected_context"].items():
+            lines.append(f"=== {path} ===")
+            lines.append(content)
     return "\n".join(lines)
 
 
@@ -246,19 +384,63 @@ def main() -> int:
     parser.add_argument("--project", default="")
     parser.add_argument("--format", choices=("json", "text"), default="json")
     parser.add_argument("--packet", action="store_true", help="emit a compact Bucky instruction packet")
+    parser.add_argument(
+        "--inject",
+        action="store_true",
+        help=(
+            "read selected pack files and embed their contents in the output. "
+            "When combined with --packet the injected content appears under the "
+            "'injected_context' key inside the packet JSON."
+        ),
+    )
+    parser.add_argument(
+        "--vault-root",
+        default="",
+        help=(
+            "root directory for resolving pack paths (default: repo root, i.e. "
+            "parent of scripts/). Pack paths like 'ObsidianVault/...' are "
+            "relative to this root."
+        ),
+    )
+    parser.add_argument(
+        "--max-chars",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            f"character budget for --inject across all packs "
+            f"(default: {_DEFAULT_MAX_CHARS:,}). "
+            "Excess content is marked [TRUNCATED] or [BUDGET_EXHAUSTED]."
+        ),
+    )
     parser.add_argument("body", nargs="*", help="Task body text.")
     args = parser.parse_args()
 
     body = " ".join(args.body)
-    payload = (
-        build_instruction_packet(task_type=args.task_type, body=body, project=args.project)
-        if args.packet
-        else select_context_pack(task_type=args.task_type, body=body)
-    )
-    if args.format == "text" and not args.packet:
-        print(format_text(payload))
-    else:
+    vault_root = Path(args.vault_root) if args.vault_root else None
+
+    if args.packet:
+        payload = build_instruction_packet(task_type=args.task_type, body=body, project=args.project)
+        if args.inject:
+            # --packet + --inject: injected file contents go into 'injected_context'.
+            payload["injected_context"] = inject_context_packs(
+                payload["context_packs"],
+                vault_root=vault_root,
+                max_chars=args.max_chars,
+            )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        payload = select_context_pack(task_type=args.task_type, body=body)
+        if args.inject:
+            payload["injected_context"] = inject_context_packs(
+                payload["packs"],
+                vault_root=vault_root,
+                max_chars=args.max_chars,
+            )
+        if args.format == "text":
+            print(format_text(payload))
+        else:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
 
 

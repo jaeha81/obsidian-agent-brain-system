@@ -107,6 +107,26 @@
 
 ---
 
+---
+
+## 이번 작업 — inject_context_packs() 구현 (2026-06-07)
+
+능동 브레인 기능(#5)의 보안 강화로 `context_pack_selector.py`에 `inject_context_packs()` 추가.
+
+| 항목 | 내용 |
+|---|---|
+| 최종 시그니처 | `inject_context_packs(packs, *, vault_root=None, max_chars=None)` |
+| 읽기 방식 | **스트리밍** — `stat()` 존재 확인 후 `open(text, remaining+1)` chars만 로드; 파일 전체를 메모리에 적재하지 않음 |
+| 보안 차단 | 절대 경로 / `..` 포함 경로 / `_ALLOWED_ROOTS` 외 경로 |
+| `vault_root` 기본값 | repo root (`scripts/` 부모) — pack 경로가 `ObsidianVault/...` 형태이므로 |
+| `max_chars` 기본값 | `200_000` 공유 예산; 초과 시 `[TRUNCATED:]` / `[BUDGET_EXHAUSTED:]` 마커 반환 |
+| 5종 마커 | `[BLOCKED:]` / `[NOT FOUND:]` / `[BINARY: N bytes]` (stat 크기) / `[TRUNCATED: first N chars; budget M]` / `[BUDGET_EXHAUSTED: used/budget, 'path' skipped]` |
+| `--packet + --inject` 정책 | packet JSON에 `injected_context` 필드로 삽입 |
+| `--max-chars N` | CLI 플래그로 예산 지정 |
+| 테스트 | `tests/test_context_pack_selector.py` **55개 전부 통과** |
+
+---
+
 ## 관련 파일
 
 - [[yt-jonathon-mj-tiktok-분석]] — 39개 영상 원천 데이터
