@@ -95,6 +95,8 @@ WHISPER_MODEL=medium  # 현재: small
 - [[bucky-evolution-roadmap]] — P0 단계: 음성 → Knowledge Auto-Capture로 연결
 - [[vault-galaxy-graph-bridge]] — 전체 지식 허브 MOC (음성 캡처 → Vault 기록)
 - [[webhook-vault-write-pattern]] — 음성 STT 결과를 Vault에 기록하는 패턴
+- [[ROUTING_RULES]] — 음성 입력 → 라우팅 규칙 → Claude Code / Codex 실행
+- [[hubs/Claude Code]] — STT 입력이 최종적으로 Claude Code 태스크로 전환됨
 
 ## 다음 할 일
 

@@ -85,6 +85,14 @@ Before large migration, cross-project instruction work, global Claude/Codex inst
 python -X utf8 scripts/bucky_os_gate.py --fail-on-error
 ```
 
+## 관련 지식
+
+- [[bucky-evolution-roadmap]] — P0→P3 자가 진화 로드맵 (Claude Code가 구현)
+- [[bucky-evolution-pipeline]] — STT → NLP → AgentBus → Claude Code 실행 흐름
+- [[typeless-voice-stt-analysis]] — 음성 입력 → 라우팅 트리거 경로
+- [[hubs/AgentBus]] — Claude Code / Codex 메시지 라우팅 허브
+- [[vault-galaxy-graph-bridge]] — 전체 지식 MOC
+
 Startup checks also surface this gate through:
 
 ```powershell

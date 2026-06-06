@@ -175,10 +175,17 @@ python scripts/github_repo_cataloger.py --dry-run
 
 ## 관련 파일
 
-- [[06_Knowledge/github-catalog]] — 실제 39개 레포 목록 (표 형식, 2026-05-25)
+- [[github-catalog]] — 실제 39개 레포 목록 (표 형식, 2026-05-25)
 - [[03_Projects/github-overview]] — 자동 생성 대시보드 (스크립트 출력)
 - `scripts/github_repo_cataloger.py` — 카탈로그 자동 생성 스크립트
 - [[05_Frameworks/LegalizeKR/github_sync_policy]] — GitHub 동기화 정책
+
+## 관련 허브
+
+- [[github-catalog]] — 전체 레포 목록 (표 형식)
+- [[hubs/AgentBus]] — 에이전트 버스 허브
+- [[jh-system]] — JH 통합 시스템
+- [[vault-galaxy-graph-bridge]] — 전체 지식 허브 MOC
 
 ---
 
