@@ -3154,6 +3154,11 @@ class BuckyDiscordBot(discord.Client):
                         queue_file.rename(_processed_dir / queue_file.name)
                     except Exception as exc:
                         print(f"[IntakeConsumer] 처리 실패 {queue_file.name}: {exc}", flush=True)
+                        try:
+                            with (_queue_dir / "consumer_errors.log").open("a", encoding="utf-8") as _f:
+                                _f.write(f"{queue_file.name}\t{type(exc).__name__}\t{exc}\tch_id={ch_id!r}\n")
+                        except Exception:
+                            pass
                         queue_file.rename(_failed_dir / queue_file.name)
 
             except Exception as exc:
