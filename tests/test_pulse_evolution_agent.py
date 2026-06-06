@@ -42,6 +42,44 @@ Pulse
 음성 메모는 원본, 전사, 저장 상태, 리플레이 키를 남겨 데이터 손실을 막아야 합니다.
 """
 
+LOCALIZED_NOTE = """---
+date: 2026-06-06
+source: ChatGPT Pulse
+source_url: https://chatgpt.com/pulse
+card_count: 1
+---
+
+# ChatGPT Pulse - 2026-06-06
+
+## Overview (KO)
+
+한국어 개요
+
+## Overview
+
+English overview
+
+## Pulse Cards
+
+### 1. PlanSwift QC pilot test plan
+
+#### Summary (KO)
+
+한국어 요약
+
+#### Summary
+
+English summary
+
+#### Detail (KO)
+
+한국어 상세
+
+#### Detail
+
+English detail
+"""
+
 
 class PulseEvolutionAgentTests(unittest.TestCase):
     def test_parse_daily_note_reads_all_cards_and_details(self):
@@ -63,6 +101,13 @@ class PulseEvolutionAgentTests(unittest.TestCase):
         self.assertEqual(candidates[0].owner, "distiller")
         self.assertEqual(candidates[1].category, "voice-pipeline")
         self.assertEqual(candidates[1].priority, "P1")
+
+    def test_parse_daily_note_prefers_korean_summary_and_detail_when_present(self):
+        capture = pea.parse_daily_note(LOCALIZED_NOTE)
+
+        self.assertEqual(capture.overview, "한국어 개요")
+        self.assertEqual(capture.cards[0].summary, "한국어 요약")
+        self.assertEqual(capture.cards[0].detail, "한국어 상세")
 
     def test_evolve_note_file_writes_report_index_and_agentbus_task(self):
         workspace_tmp = Path(__file__).resolve().parents[1]

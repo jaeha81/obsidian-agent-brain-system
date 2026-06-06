@@ -345,6 +345,8 @@
     <input type="url" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
     <label>봇 이름 (선택, 기본: JH Dashboard)</label>
     <input type="text" id="whName" placeholder="JH Dashboard">
+    <label style="margin-top:10px;display:block">Bucky OS 엔드포인트 (로컬, 선택)</label>
+    <input type="url" id="buckyOsUrl" placeholder="http://localhost:8765">
     <div style="margin-top:12px"><button class="wh-btn" onclick="testWebhook()">🧪 연결 테스트</button></div>
     <div class="wh-btns">
       <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
@@ -934,6 +936,7 @@ function showToast(title, msg, duration=3500) {
 function openWebhookSettings() {
   document.getElementById('whUrl').value = localStorage.getItem('bucky-webhook') || '';
   document.getElementById('whName').value = localStorage.getItem('bucky-wh-name') || '';
+  document.getElementById('buckyOsUrl').value = localStorage.getItem(BUCKY_OS_KEY) || 'http://localhost:8765';
   document.getElementById('whOverlay').classList.add('show');
 }
 function closeWebhookSettings() {
@@ -942,8 +945,10 @@ function closeWebhookSettings() {
 function saveWebhook() {
   localStorage.setItem('bucky-webhook', document.getElementById('whUrl').value.trim());
   localStorage.setItem('bucky-wh-name', document.getElementById('whName').value.trim() || 'JH Dashboard');
+  const osUrl = document.getElementById('buckyOsUrl').value.trim();
+  if (osUrl) localStorage.setItem(BUCKY_OS_KEY, osUrl);
   closeWebhookSettings();
-  showToast('✅ Webhook 저장됨', '이제 버튼 클릭 시 Discord로 직접 전송됩니다');
+  showToast('✅ 설정 저장됨', 'Bucky OS + Discord 연동 준비 완료');
 }
 async function testWebhook() {
   const url = document.getElementById('whUrl').value.trim();
@@ -1048,18 +1053,49 @@ document.getElementById('whOverlay').addEventListener('click', function(e) {
 })();
 
 // ── Bucky Discord 연동 ─────────────────────────────────────────────
+const BUCKY_OS_KEY = 'repoBuckyOsEndpoint';
+
+function getBuckyOsEndpoint() {
+  return (localStorage.getItem(BUCKY_OS_KEY) || 'http://localhost:8765').replace(/\/$/, '');
+}
+
 function makeBuckyMsg(repo) {
   return `🤖 버키 작업 요청\n레포: ${repo.name}\n액션: ${repo.action}\n링크: ${repo.url}`;
 }
 
+async function postToIntake(payload) {
+  const endpoint = getBuckyOsEndpoint() + '/intake';
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
 async function sendToBucky(id) {
   const repo = repos.find(r => r.id === id);
-  const url = localStorage.getItem('bucky-webhook');
-  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
   const now = new Date().toLocaleString('ko-KR');
+  const intakePayload = {
+    dashboard_type: 'repo',
+    action: 'start',
+    title: repo.name,
+    summary: repo.action,
+    url: repo.url,
+    source: 'repo-dashboard',
+    created_at: new Date().toISOString()
+  };
+  try {
+    await postToIntake(intakePayload);
+    showToast('✅ Bucky 전송 완료', `${repo.name} → jh-레포대시보드 채널`);
+    return;
+  } catch (_) { /* fallback to Discord webhook */ }
+  const webhookUrl = localStorage.getItem('bucky-webhook');
+  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
   const content = `🤖 **Bucky 작업 요청**\n\n**레포**: \`${repo.name}\`\n**액션**: ${repo.action}\n**링크**: ${repo.url}\n**시각**: ${now}`;
-  if (url) {
-    await postWebhook(url, name, content);
+  if (webhookUrl) {
+    await postWebhook(webhookUrl, name, content);
   } else {
     navigator.clipboard.writeText(makeBuckyMsg(repo)).then(() => {
       showToast('📋 복사됨 (Webhook 미설정)', 'Discord 채널에 붙여넣기 하세요');
@@ -1090,13 +1126,27 @@ function updateBuckyPanel() {
 async function sendAllToBucky() {
   const checked = repos.filter(r => r.checked);
   if (checked.length === 0) return;
-  const url = localStorage.getItem('bucky-webhook');
+  const now = new Date().toLocaleString('ko-KR');
+  const intakePayload = {
+    dashboard_type: 'repo',
+    action: 'batch_start',
+    title: `일괄 작업 ${checked.length}개`,
+    summary: checked.map((r, i) => `${i+1}. ${r.name}: ${r.action}`).join('\n'),
+    items: checked.map(r => ({ id: r.id, name: r.name, action: r.action, url: r.url })),
+    source: 'repo-dashboard',
+    created_at: new Date().toISOString()
+  };
+  try {
+    await postToIntake(intakePayload);
+    showToast(`✅ ${checked.length}개 전송 완료`, 'jh-레포대시보드 채널에서 확인하세요');
+    return;
+  } catch (_) { /* fallback to Discord webhook */ }
+  const webhookUrl = localStorage.getItem('bucky-webhook');
   const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
   const lines = checked.map((r, i) => `${i+1}. \`${r.name}\`\n   → ${r.action}`).join('\n\n');
-  const now = new Date().toLocaleString('ko-KR');
   const content = `🤖 **Bucky 일괄 작업 요청 (${checked.length}개)**\n\n${lines}\n\n> 모든 항목을 우선순위순으로 진행해줘. | ${now}`;
-  if (url) {
-    await postWebhook(url, name, content);
+  if (webhookUrl) {
+    await postWebhook(webhookUrl, name, content);
   } else {
     const plainMsg = `🤖 버키 일괄 작업 요청 (${checked.length}개)\n\n${checked.map((r,i)=>`${i+1}. [${r.name}]\n   → ${r.action}`).join('\n\n')}\n\n모든 항목을 우선순위순으로 진행해줘.`;
     navigator.clipboard.writeText(plainMsg).then(() => {

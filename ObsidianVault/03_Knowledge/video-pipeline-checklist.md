@@ -93,3 +93,9 @@ pip install scenedetect pyannote.audio torch pytesseract
 - VAD로 말소리 구간만 STT → 처리 비용 대폭 절감
 - 샷 단위 병렬 처리
 - 키프레임 해시로 중복 처리 방지
+
+## 관련 허브
+
+- [[vibe-coding-pipeline]] — AI 서비스 24분 파이프라인
+- [[vault-galaxy-graph-bridge]] — 전체 지식 허브
+- [[jh-system]] — JH 통합 시스템

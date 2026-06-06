@@ -28,6 +28,7 @@ Agent work should load compact Context Packs instead of rereading long legacy so
 - [[06_Context_Packs/bucky-agent-os-legacy-rules|Bucky Agent OS legacy operating rules]]
 - [[06_Context_Packs/bucky-migration-build-charter|Bucky migration and build charter]]
 - [[06_Context_Packs/bucky-context-efficiency-goal-mode|Bucky context efficiency and Goal Mode rules]]
+- [[06_Context_Packs/bucky-goal-mode-autonomous-execution|Bucky Goal Mode 목표위임 자율실행 프롬프트 (승인게이트·기억기록·패턴감지)]]
 - [[06_Context_Packs/bucky-user-communication-output-policy|Bucky user communication and output policy]]
 - [[06_Context_Packs/bucky-development-workflow-policy|Bucky development workflow policy]]
 - [[06_Context_Packs/bucky-ai-api-routing-policy|Bucky AI API routing policy]]

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 from generate_daily_plus_dashboard import (
     ROOT,
@@ -166,14 +167,21 @@ def dashboard_is_current(output: Path, date: str) -> bool:
 
 
 def write_text_or_keep_existing(path: Path, body: str, required_markers: list[str]) -> None:
-    try:
-        path.write_text(body, encoding="utf-8")
-    except PermissionError:
-        if not path.exists():
-            raise
-        text = path.read_text(encoding="utf-8")
-        if not all(marker in text for marker in required_markers):
-            raise
+    last_error: PermissionError | None = None
+    for attempt in range(3):
+        try:
+            path.write_text(body, encoding="utf-8")
+            return
+        except PermissionError as exc:
+            last_error = exc
+            if path.exists():
+                text = path.read_text(encoding="utf-8")
+                if all(marker in text for marker in required_markers):
+                    return
+            if attempt < 2:
+                time.sleep(0.5)
+                continue
+            raise last_error
 
 
 def build_report() -> Path:
@@ -194,9 +202,13 @@ def build_report() -> Path:
     output = ROOT / "docs" / "daily-plus.html"
     try:
         output = generate_dashboard(date)
-    except RuntimeError:
+    except RuntimeError as exc:
         if not dashboard_is_current(output, date):
-            raise
+            return write_attention_report(
+                report_path,
+                capture_path,
+                f"Public dashboard refresh failed: {exc}",
+            )
     candidates = parse_candidates(report_text)
     attach_statuses(date, candidates)
     statuses = Counter(item.status for item in candidates)

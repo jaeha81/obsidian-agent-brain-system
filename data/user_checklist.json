@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-05"
+    "last_updated": "2026-06-06"
   },
   "tasks": [
     {
@@ -14,7 +14,10 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "PART-1/2 지시 문서",
-      "refs": ["scripts/approve_task.py", "ObsidianVault/03_Projects/agents/bucky.md"]
+      "refs": [
+        "scripts/approve_task.py",
+        "ObsidianVault/03_Projects/agents/bucky.md"
+      ]
     },
     {
       "id": "CL-002",
@@ -25,7 +28,9 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "PART-2 지시 문서",
-      "refs": ["scripts/bucky_bot_supervisor.py"]
+      "refs": [
+        "scripts/bucky_bot_supervisor.py"
+      ]
     },
     {
       "id": "CL-003",
@@ -36,7 +41,10 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "PART-2 지시 문서",
-      "refs": ["scripts/bucky_bot_supervisor.py", "ObsidianVault/05_Logs/"]
+      "refs": [
+        "scripts/bucky_bot_supervisor.py",
+        "ObsidianVault/05_Logs/"
+      ]
     },
     {
       "id": "CL-004",
@@ -47,7 +55,9 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "PART-2 지시 문서",
-      "refs": ["ObsidianVault/00_System/folder-registry.md"]
+      "refs": [
+        "ObsidianVault/00_System/folder-registry.md"
+      ]
     },
     {
       "id": "CL-005",
@@ -58,7 +68,9 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "PART-2 지시 문서",
-      "refs": ["scripts/bucky_bot_supervisor.py"]
+      "refs": [
+        "scripts/bucky_bot_supervisor.py"
+      ]
     },
     {
       "id": "CL-006",
@@ -91,7 +103,9 @@
       "status": "pending",
       "added": "2026-06-04",
       "source": "집 PC 복귀 후 진행 필요",
-      "refs": ["docs/_worker.js"]
+      "refs": [
+        "docs/_worker.js"
+      ]
     },
     {
       "id": "CL-009",
@@ -102,7 +116,9 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "project_next_plan",
-      "refs": [".env"]
+      "refs": [
+        ".env"
+      ]
     },
     {
       "id": "CL-010",
@@ -135,7 +151,9 @@
       "status": "pending",
       "added": "2026-06-02",
       "source": "2026-06-02 세션3",
-      "refs": ["ObsidianVault/.obsidian/graph.json"]
+      "refs": [
+        "ObsidianVault/.obsidian/graph.json"
+      ]
     },
     {
       "id": "CL-013",
@@ -146,7 +164,35 @@
       "status": "done",
       "added": "2026-06-04",
       "source": "사용자 지시 2026-06-04",
-      "refs": ["docs/task-board.html", "data/user_checklist.json"]
+      "refs": [
+        "docs/task-board.html",
+        "data/user_checklist.json"
+      ]
+    },
+    {
+      "id": "CL-014",
+      "title": "봇 재시작 필요 (Discord에서 git pull 후 재시작 하면 적용)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-06",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-015",
+      "title": "Obsidian 3D Graph 플러그인 설치 + Galaxy 스타일 적용",
+      "description": "현재 galaxy-graph.css는 2D 그래프만 변경함. TikTok @metakaihos 영상처럼 3D 회전하려면 커뮤니티 플러그인 '3D Graph' (HEmile) 필요. 설치 경로: Obsidian Settings → Community Plugins → Browse → '3D Graph'. 설치 후 galaxy CSS 색상값을 3D Graph 플러그인 설정에도 동일하게 적용해야 함. 기존 galaxy-graph.css는 유지(2D 뷰 fallback).",
+      "priority": "P1",
+      "category": "설정",
+      "status": "pending",
+      "added": "2026-06-06",
+      "source": "사용자 지시 2026-06-06b — 3D 회전 안됨",
+      "refs": [
+        "ObsidianVault/.obsidian/snippets/galaxy-graph.css",
+        "ObsidianVault/.obsidian/graph.json"
+      ]
     }
   ]
 }

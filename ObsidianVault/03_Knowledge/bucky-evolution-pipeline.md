@@ -119,3 +119,7 @@ PRICE_YEARLY_ID=price_...
 - [ ] 패턴 추출기 스케줄 등록 (매일 자정)
 - [ ] Discord `/analyze` 명령어 → pattern_extractor 실행
 - [ ] NLP 전처리기 → Discord 슬래시 명령어 실시간 연동
+
+## 관련 개념
+
+[[bucky-evolution-roadmap]] · [[jh-system]] · [[vibe-coding-pipeline]] · [[webhook-vault-write-pattern]] · [[pattern-extractor]] · [[knowledge-auto-capture]] · [[typeless-voice-stt-analysis]]

@@ -110,3 +110,4 @@ curl -X POST https://bucky.internal/exec \
 
 - [[ibujang-api-contract-and-handoff]] — API 계약 상세
 - [[ibujang-pulse-manager-manifest]] — 펄스 매니저 HMAC 매니페스트
+- [[bucky-evolution-roadmap]] · [[bucky-evolution-pipeline]] · [[jh-system]] · [[vibe-coding-pipeline]]

@@ -143,11 +143,14 @@ def intake_dashboard():
     The discord_bot async consumer picks up queue files.
     """
     data = request.get_json(silent=True) or {}
-    dashboard_type = (data.get("dashboard_type") or "").strip()
+    if not isinstance(data, dict):
+        return jsonify({"error": "JSON object payload is required"}), 400
+
+    dashboard_type = str(data.get("dashboard_type") or "").strip()
     if not dashboard_type:
         return jsonify({"error": "dashboard_type is required"}), 400
 
-    request_id = (data.get("request_id") or str(uuid.uuid4())).strip()
+    request_id = str(data.get("request_id") or uuid.uuid4()).strip()
     payload = {**data, "request_id": request_id, "enqueued_at": time.time()}
 
     INTAKE_QUEUE_DIR.mkdir(parents=True, exist_ok=True)

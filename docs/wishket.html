@@ -298,6 +298,8 @@
     <input type="url" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
     <label>봇 이름 (선택, 기본: Wishket Dashboard)</label>
     <input type="text" id="whName" placeholder="Wishket Dashboard">
+    <label style="margin-top:10px;display:block">Bucky OS 엔드포인트 (로컬, 선택)</label>
+    <input type="url" id="buckyOsUrl" placeholder="http://localhost:8765">
     <div style="margin-top:12px"><button class="wh-btn" onclick="testWebhook()">🧪 연결 테스트</button></div>
     <div class="wh-btns">
       <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
@@ -599,10 +601,22 @@ function closeBuckyPanel() {
   updateBuckyPanel();
 }
 
-// ── Discord ──
+// ── Discord + Bucky OS ──
 const DEFAULT_WEBHOOK = '';
+const WK_BUCKY_OS_KEY = 'wkBuckyOsEndpoint';
 function getWebhookUrl() { return localStorage.getItem('wh_url') || DEFAULT_WEBHOOK || ''; }
 function getWebhookName() { return localStorage.getItem('wh_name') || 'Wishket Dashboard'; }
+function getWkBuckyEndpoint() { return (localStorage.getItem(WK_BUCKY_OS_KEY) || 'http://localhost:8765').replace(/\/$/, ''); }
+
+async function postToWkIntake(payload) {
+  const res = await fetch(getWkBuckyEndpoint() + '/intake', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
 
 function makeProjectSlug(p) {
   const linkId = (p.link || '').match(/\/project\/(\d+)\/?/);
@@ -619,8 +633,11 @@ function makeProjectSlug(p) {
 function buildDevelopmentRequestPayload(p) {
   return {
     type: 'wishket_development_request',
+    dashboard_type: 'wishket',
+    action: 'start',
     source: 'wishket_dashboard',
     project_title: p.title,
+    title: p.title,
     project_slug: makeProjectSlug(p),
     summary: p.description || '',
     budget: p.budget || '',
@@ -639,11 +656,17 @@ function buildDevelopmentRequestPayload(p) {
 }
 
 async function sendDevelopmentRequest(id) {
-  const url = getWebhookUrl();
-  if (!url) { openWebhookSettings(); return; }
   const p = PROJECTS.find(x => x.id === id);
   if (!p) return;
   const payload = buildDevelopmentRequestPayload(p);
+  // /intake 우선, Discord webhook 폴백
+  try {
+    const result = await postToWkIntake(payload);
+    showToast('✅ 개발요청 접수', `${p.title} → jh-위시켓 채널 (${result.request_id ? result.request_id.slice(0,8) : 'OK'})`);
+    return;
+  } catch (_) { /* fallback */ }
+  const webhookUrl = getWebhookUrl();
+  if (!webhookUrl) { openWebhookSettings(); return; }
   const content = [
     '**Wishket 개발요청**',
     'Bucky approval gate required before folder/GitHub/worker execution.',
@@ -651,7 +674,7 @@ async function sendDevelopmentRequest(id) {
     JSON.stringify(payload, null, 2),
     '```'
   ].join('\n');
-  await sendWebhook(url, getWebhookName(), content);
+  await sendWebhook(webhookUrl, getWebhookName(), content);
 }
 
 async function sendOneToBucky(id) {
@@ -706,16 +729,19 @@ async function sendWebhook(url, name, content) {
 function openWebhookSettings() {
   document.getElementById('whUrl').value = localStorage.getItem('wh_url') || '';
   document.getElementById('whName').value = localStorage.getItem('wh_name') || '';
+  document.getElementById('buckyOsUrl').value = localStorage.getItem(WK_BUCKY_OS_KEY) || 'http://localhost:8765';
   document.getElementById('whOverlay').classList.add('show');
 }
 function closeWebhookSettings() { document.getElementById('whOverlay').classList.remove('show'); }
 function saveWebhook() {
   const url = document.getElementById('whUrl').value.trim();
   const name = document.getElementById('whName').value.trim();
+  const osUrl = document.getElementById('buckyOsUrl').value.trim();
   if (url) localStorage.setItem('wh_url', url);
   if (name) localStorage.setItem('wh_name', name);
+  if (osUrl) localStorage.setItem(WK_BUCKY_OS_KEY, osUrl);
   closeWebhookSettings();
-  showToast('저장 완료', 'Discord Webhook이 설정되었습니다.');
+  showToast('저장 완료', 'Bucky OS + Discord 설정이 저장되었습니다.');
 }
 async function testWebhook() {
   const url = document.getElementById('whUrl').value.trim();

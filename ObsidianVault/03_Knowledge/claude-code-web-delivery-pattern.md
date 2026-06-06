@@ -41,3 +41,10 @@ next_action: review
 - `agent_dispatcher.py`에 `wishket_bid` 태스크 타입 추가
 - `review_checklist_runner.py`에 납품 체크 항목 확장
 - 수익 대시보드에 클라이언트 프로젝트 탭 추가
+
+## 관련 허브
+
+- [[jh-system]] — JH 통합 구축 시스템
+- [[vibe-coding-pipeline]] — 배포 파이프라인
+- [[webhook-vault-write-pattern]] — Vault 쓰기 패턴
+- [[vault-galaxy-graph-bridge]] — 전체 지식 허브

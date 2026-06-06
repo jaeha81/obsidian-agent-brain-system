@@ -98,3 +98,9 @@ next_action: review
 *자동 생성: `scripts/github_repo_cataloger.py` — 2026-05-25*
 *GitHub API (Public, 토큰 없이 조회)*
 *상세 대시보드: [[github-overview]]*
+
+## 관련 허브
+
+- [[github-repo-catalog]] — GitHub 레포 카탈로그
+- [[jh-system]] — JH 통합 시스템
+- [[vault-galaxy-graph-bridge]] — 전체 지식 허브

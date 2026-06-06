@@ -56,6 +56,81 @@ CHROME_EXE = os.environ.get("GPT_COLLECTOR_CHROME_EXE") or (
     r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 )
 
+HANGUL_RE = re.compile(r"[가-힣]")
+LATIN_RE = re.compile(r"[A-Za-z]")
+
+
+def _needs_korean_localization(text: str) -> bool:
+    hangul = len(HANGUL_RE.findall(text))
+    latin = len(LATIN_RE.findall(text))
+    if latin == 0:
+        return False
+    return hangul == 0 or latin > hangul * 2
+
+
+def _capture_needs_localization(capture: dict[str, Any]) -> bool:
+    chunks = [(capture.get("overviewText") or "").strip()]
+    for card in capture.get("cards") or []:
+        chunks.append((card.get("title") or "").strip())
+        chunks.append((card.get("summary") or "").strip())
+        chunks.append((card.get("detailText") or "").strip()[:1200])
+    sample = "\n".join(chunk for chunk in chunks if chunk)
+    return _needs_korean_localization(sample)
+
+
+def _extract_json_object(text: str) -> dict[str, Any]:
+    text = text.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, flags=re.S)
+    candidate = fenced.group(1) if fenced else text
+    start = candidate.find("{")
+    end = candidate.rfind("}")
+    if start < 0 or end < start:
+        raise ValueError("No JSON object found")
+    return json.loads(candidate[start : end + 1])
+
+
+def _run_bucky_localizer(capture: dict[str, Any]) -> dict[str, Any]:
+    try:
+        from bucky_client import run_bucky
+    except Exception as exc:  # pragma: no cover - optional runtime dependency
+        raise RuntimeError(f"Bucky localizer unavailable: {exc}") from exc
+
+    payload = {
+        "overview": (capture.get("overviewText") or "").strip(),
+        "cards": [
+            {
+                "title": (card.get("title") or "").strip(),
+                "summary": (card.get("summary") or "").strip(),
+                "detail": (card.get("detailText") or "").strip(),
+            }
+            for card in (capture.get("cards") or [])
+        ],
+    }
+    prompt = (
+        "Translate and summarize this ChatGPT Pulse capture into concise Korean.\n"
+        "Keep meaning faithful. Do not invent content. Return JSON only.\n"
+        'Schema: {"overviewKo": "...", "cards": [{"summaryKo": "...", "detailKo": "..."}]}\n'
+        "summaryKo should be 1-2 Korean sentences. detailKo should be a concise Korean summary up to 5 sentences.\n"
+        f"Input JSON:\n{json.dumps(payload, ensure_ascii=False)}"
+    )
+    response = run_bucky(prompt, task_type="short_summary")
+    return _extract_json_object(response)
+
+
+def localize_capture(capture: dict[str, Any]) -> dict[str, Any]:
+    if capture.get("collectionStatus") == "fallback":
+        return capture
+    if not _capture_needs_localization(capture):
+        return capture
+
+    localized = _run_bucky_localizer(capture)
+    capture["overviewKo"] = (localized.get("overviewKo") or "").strip()
+    localized_cards = localized.get("cards") or []
+    for card, localized_card in zip(capture.get("cards") or [], localized_cards):
+        card["summaryKo"] = (localized_card.get("summaryKo") or "").strip()
+        card["detailKo"] = (localized_card.get("detailKo") or "").strip()
+    return capture
+
 
 def build_note(capture: dict[str, Any], today: date) -> str:
     date_str = today.strftime("%Y-%m-%d")
@@ -65,9 +140,12 @@ def build_note(capture: dict[str, Any], today: date) -> str:
     collection_status = capture.get("collectionStatus") or "collected"
     source_error = (capture.get("sourceError") or "").strip()
     overview = (capture.get("overviewText") or "").strip()
+    overview_ko = (capture.get("overviewKo") or "").strip()
     cards = capture.get("cards") or []
 
     sections: list[str] = []
+    if overview_ko:
+        sections.append(f"## Overview (KO)\n\n{overview_ko}")
     if overview:
         sections.append(f"## Overview\n\n{overview}")
 
@@ -76,10 +154,16 @@ def build_note(capture: dict[str, Any], today: date) -> str:
         for idx, card in enumerate(cards, start=1):
             title = (card.get("title") or f"Card {idx}").strip()
             summary = (card.get("summary") or "").strip()
+            summary_ko = (card.get("summaryKo") or "").strip()
             detail = (card.get("detailText") or "").strip()
+            detail_ko = (card.get("detailKo") or "").strip()
             body_parts = [f"### {idx}. {title}"]
+            if summary_ko:
+                body_parts.append(f"#### Summary (KO)\n\n{summary_ko}")
             if summary:
-                body_parts.append(summary)
+                body_parts.append(f"#### Summary\n\n{summary}")
+            if detail_ko:
+                body_parts.append(f"#### Detail (KO)\n\n{detail_ko}")
             if detail:
                 body_parts.append(f"#### Detail\n\n{detail}")
             else:
@@ -87,7 +171,8 @@ def build_note(capture: dict[str, Any], today: date) -> str:
             card_sections.append("\n\n".join(body_parts))
         sections.append("\n\n".join(card_sections))
 
-    summary_text = overview[:200].replace("\n", " ").strip() if overview else f"ChatGPT Pulse {date_str}"
+    summary_source = overview_ko or overview
+    summary_text = summary_source[:200].replace("\n", " ").strip() if summary_source else f"ChatGPT Pulse {date_str}"
     joined = "\n\n".join(sections)
     return f"""---
 date: {date_str}
@@ -646,6 +731,10 @@ def collect_mode(force: bool = False, evolve: bool = True, allow_recovery: bool 
     _launch_chrome(CHATGPT_URL)
     try:
         value = _read_chatgpt_content()
+        try:
+            value = localize_capture(value)
+        except Exception as localize_error:
+            print(f"[WARN] Korean localization skipped: {localize_error}")
         _write_note_and_evolve(value, output_path, today, force=force, evolve=evolve)
     except Exception as exc:
         if not allow_recovery:

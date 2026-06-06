@@ -108,6 +108,69 @@ candidate_count: 3
             ["date: 2026-06-04", "status: ready", morning.PUBLIC_URL],
         )
 
+    def test_write_text_or_keep_existing_retries_after_permission_error(self):
+        path = mock.Mock(spec=Path)
+        path.write_text.side_effect = [PermissionError("denied"), None]
+        path.exists.return_value = False
+
+        with mock.patch.object(morning.time, "sleep") as sleep_mock:
+            morning.write_text_or_keep_existing(
+                path,
+                "body",
+                ["date: 2026-06-04", "status: ready", morning.PUBLIC_URL],
+            )
+
+        self.assertEqual(path.write_text.call_count, 2)
+        sleep_mock.assert_called_once()
+
+    def test_build_report_writes_attention_report_when_dashboard_refresh_is_blocked(self):
+        report_path = ROOT / "ObsidianVault" / "00_UPGRADE" / "pulse-evolution" / "2026-06-06.md"
+        capture_path = ROOT / "ObsidianVault" / "04_Wiki" / "daily-plus" / "2026-06-06.md"
+        attention_path = (
+            ROOT
+            / "ObsidianVault"
+            / "10_AgentBus"
+            / "reports"
+            / "20260606_daily_plus_dashboard_report.md"
+        )
+        report_text = """---
+date: 2026-06-06
+card_count: 12
+candidate_count: 12
+---
+
+# Pulse Evolution Report - 2026-06-06
+"""
+        capture_text = """---
+date: 2026-06-06
+card_count: 12
+---
+
+# ChatGPT Pulse - 2026-06-06
+
+## Overview
+
+Pulse
+"""
+
+        with mock.patch.object(morning, "latest_report", return_value=report_path):
+            with mock.patch.object(morning, "read_text", side_effect=[report_text, capture_text]):
+                with mock.patch.object(morning, "generate_dashboard", side_effect=RuntimeError("html locked")):
+                    with mock.patch.object(morning, "dashboard_is_current", return_value=False):
+                        with mock.patch.object(
+                            morning,
+                            "write_attention_report",
+                            return_value=attention_path,
+                        ) as write_attention_report:
+                            output = morning.build_report()
+
+        self.assertEqual(output, attention_path)
+        write_attention_report.assert_called_once_with(
+            report_path,
+            capture_path,
+            "Public dashboard refresh failed: html locked",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

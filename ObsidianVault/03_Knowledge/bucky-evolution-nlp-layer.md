@@ -50,3 +50,11 @@ Typeless 벤치마킹 — 기존 Whisper STT 위의 의도 분류 레이어
 ## 관련 링크
 - [[vibe-coding-pipeline]] — 바이브코딩 참고 영상 전략
 - [[typeless-voice-stt-analysis]] — Typeless STT 분석
+
+## 관련 허브
+
+- [[bucky-evolution-pipeline]] — Bucky 진화 파이프라인 (NLP 포함)
+- [[bucky-evolution-roadmap]] — 자가 진화 로드맵
+- [[typeless-voice-stt-analysis]] — 음성 STT 분석
+- [[vault-galaxy-graph-bridge]] — 전체 지식 허브
+- [[AgentBus]] — NLP 레이어 출력 → AgentBus 태스크 라우팅

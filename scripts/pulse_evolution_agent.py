@@ -155,11 +155,22 @@ def _section_between(text: str, start_heading: str, end_heading: str | None = No
     return text[body_start:].strip()
 
 
+def _subsection(section: str, heading: str) -> str:
+    match = re.search(rf"^####\s+{re.escape(heading)}\s*$", section, flags=re.M)
+    if not match:
+        return ""
+    start = match.end()
+    next_heading = re.search(r"^####\s+.+\s*$", section[start:], flags=re.M)
+    if next_heading:
+        return section[start : start + next_heading.start()].strip()
+    return section[start:].strip()
+
+
 def parse_daily_note(text: str) -> PulseCapture:
     frontmatter = parse_frontmatter(text)
     date_value = frontmatter.get("date") or datetime.now().strftime("%Y-%m-%d")
     source_url = frontmatter.get("source_url", "https://chatgpt.com/pulse")
-    overview = _section_between(text, "Overview", "Pulse Cards")
+    overview = _section_between(text, "Overview (KO)", "Overview") or _section_between(text, "Overview", "Pulse Cards")
 
     heading_re = re.compile(r"^###\s+(\d+)\.\s+(.+?)\s*$", flags=re.M)
     matches = list(heading_re.finditer(text))
@@ -168,13 +179,15 @@ def parse_daily_note(text: str) -> PulseCapture:
         section_start = match.end()
         section_end = matches[pos + 1].start() if pos + 1 < len(matches) else len(text)
         section = text[section_start:section_end].strip()
-        detail_heading = re.search(r"^####\s+Detail\s*$", section, flags=re.M)
-        if detail_heading:
-            summary = section[: detail_heading.start()].strip()
-            detail = section[detail_heading.end() :].strip()
-        else:
-            summary = section
-            detail = ""
+        summary_ko = _subsection(section, "Summary (KO)")
+        summary_en = _subsection(section, "Summary")
+        detail_ko = _subsection(section, "Detail (KO)")
+        detail = _subsection(section, "Detail")
+        summary = summary_en or section
+        if summary_ko:
+            summary = summary_ko
+        if detail_ko:
+            detail = detail_ko
         cards.append(
             PulseCard(
                 index=int(match.group(1)),

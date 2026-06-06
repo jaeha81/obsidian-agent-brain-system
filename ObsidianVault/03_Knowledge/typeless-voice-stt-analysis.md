@@ -89,6 +89,13 @@ WHISPER_MODEL=medium  # 현재: small
 
 [[voice-stt]] · [[whisper-model]] · [[discord-bot]] · [[bucky-voice]] · [[ai-postprocessing]]
 
+## 시스템 연결
+
+- [[bucky-evolution-pipeline]] — STT가 Bucky 진화 파이프라인의 입력 레이어
+- [[bucky-evolution-roadmap]] — P0 단계: 음성 → Knowledge Auto-Capture로 연결
+- [[vault-galaxy-graph-bridge]] — 전체 지식 허브 MOC (음성 캡처 → Vault 기록)
+- [[webhook-vault-write-pattern]] — 음성 STT 결과를 Vault에 기록하는 패턴
+
 ## 다음 할 일
 
 - [ ] `.env`에서 `WHISPER_MODEL=medium` 으로 변경

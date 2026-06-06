@@ -25,7 +25,9 @@ DB_PATH = VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
 CONTEXT_FILE = VAULT / "00_System" / "BUCKY_CONTEXT.md"
 MAX_HISTORY = int(os.getenv("BUCKY_MAX_HISTORY", "30"))
 
-_lock = threading.Lock()
+SESSION_GAP_MINUTES = int(os.getenv("BUCKY_SESSION_GAP", "90"))
+
+_lock = threading.RLock()  # RLock: 같은 스레드의 재진입 허용 (세션 함수 중첩 호출 대비)
 _conn: Optional[sqlite3.Connection] = None
 
 
@@ -38,13 +40,20 @@ def _get_conn() -> sqlite3.Connection:
         _conn.execute("PRAGMA journal_mode=WAL")
         _conn.execute("""
             CREATE TABLE IF NOT EXISTS conv_history (
-                id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel   TEXT NOT NULL,
-                role      TEXT NOT NULL,
-                content   TEXT NOT NULL,
-                ts        TEXT NOT NULL
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel    TEXT NOT NULL,
+                role       TEXT NOT NULL,
+                content    TEXT NOT NULL,
+                ts         TEXT NOT NULL,
+                session_id INTEGER DEFAULT NULL
             )
         """)
+        # 기존 DB 마이그레이션: session_id 컬럼 없으면 추가
+        try:
+            _conn.execute("ALTER TABLE conv_history ADD COLUMN session_id INTEGER DEFAULT NULL")
+            _conn.commit()
+        except Exception:
+            pass  # 이미 존재
         _conn.execute("""
             CREATE TABLE IF NOT EXISTS learned_facts (
                 id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,38 +63,154 @@ def _get_conn() -> sqlite3.Connection:
                 ts       TEXT NOT NULL
             )
         """)
+        _conn.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel TEXT NOT NULL,
+                started TEXT NOT NULL,
+                ended   TEXT DEFAULT ''
+            )
+        """)
         _conn.execute("CREATE INDEX IF NOT EXISTS idx_conv_channel ON conv_history(channel, id)")
+        _conn.execute("CREATE INDEX IF NOT EXISTS idx_conv_session ON conv_history(session_id, id)")
+        _conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_channel ON sessions(channel, id)")
         _conn.commit()
     return _conn
+
+
+# ── 세션 관리 ──────────────────────────────────────────────────────────────────
+
+def get_active_session(channel: str, gap_minutes: int = SESSION_GAP_MINUTES) -> int:
+    """현재 활성 세션 ID 반환. 마지막 메시지가 gap_minutes 초과 시 자동으로 새 세션 생성."""
+    with _lock:
+        conn = _get_conn()
+        row = conn.execute(
+            "SELECT id FROM sessions WHERE channel=? ORDER BY id DESC LIMIT 1",
+            (channel,),
+        ).fetchone()
+
+        if row:
+            session_id = row["id"]
+            last_msg = conn.execute(
+                "SELECT ts FROM conv_history WHERE session_id=? ORDER BY id DESC LIMIT 1",
+                (session_id,),
+            ).fetchone()
+            if not last_msg:
+                return session_id  # 빈 세션 재사용
+            gap = (datetime.now() - datetime.fromisoformat(last_msg["ts"])).total_seconds() / 60
+            if gap < gap_minutes:
+                return session_id
+
+        cur = conn.execute(
+            "INSERT INTO sessions (channel, started) VALUES (?, ?)",
+            (channel, datetime.now().isoformat(timespec="seconds")),
+        )
+        conn.commit()
+        return cur.lastrowid
+
+
+def new_session(channel: str) -> int:
+    """채널에 강제로 새 세션을 생성하고 ID를 반환."""
+    with _lock:
+        conn = _get_conn()
+        cur = conn.execute(
+            "INSERT INTO sessions (channel, started) VALUES (?, ?)",
+            (channel, datetime.now().isoformat(timespec="seconds")),
+        )
+        conn.commit()
+        return cur.lastrowid
+
+
+def list_sessions(channel: str, limit: int = 10) -> list[dict]:
+    """채널의 최근 세션 목록 반환 (최신 순)."""
+    with _lock:
+        conn = _get_conn()
+        rows = conn.execute(
+            "SELECT id, started FROM sessions WHERE channel=? ORDER BY id DESC LIMIT ?",
+            (channel, limit),
+        ).fetchall()
+        result = []
+        for r in rows:
+            first = conn.execute(
+                "SELECT content FROM conv_history WHERE session_id=? AND role='user' ORDER BY id LIMIT 1",
+                (r["id"],),
+            ).fetchone()
+            count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM conv_history WHERE session_id=?",
+                (r["id"],),
+            ).fetchone()
+            preview = ""
+            if first:
+                txt = first["content"]
+                preview = txt[:60] + "..." if len(txt) > 60 else txt
+            result.append({
+                "id": r["id"],
+                "started": r["started"],
+                "first_msg": preview,
+                "count": count["cnt"] if count else 0,
+            })
+        return result
+
+
+def load_session_history(channel: str, session_id: int, limit: int = MAX_HISTORY) -> list[dict]:
+    """특정 세션의 대화 기록 반환 (오래된 것 먼저)."""
+    with _lock:
+        conn = _get_conn()
+        rows = conn.execute(
+            "SELECT role, content FROM conv_history WHERE channel=? AND session_id=? ORDER BY id DESC LIMIT ?",
+            (channel, session_id, limit),
+        ).fetchall()
+    return [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
+
+
+def get_prev_session_context(channel: str, current_session_id: int, n_msgs: int = 4) -> str:
+    """이전 세션의 마지막 N개 메시지를 요약 형태로 반환. 새 세션 시작 시 컨텍스트 연결용."""
+    with _lock:
+        conn = _get_conn()
+        row = conn.execute(
+            "SELECT id, started FROM sessions WHERE channel=? AND id < ? ORDER BY id DESC LIMIT 1",
+            (channel, current_session_id),
+        ).fetchone()
+        if not row:
+            return ""
+        rows = conn.execute(
+            "SELECT role, content FROM conv_history WHERE session_id=? ORDER BY id DESC LIMIT ?",
+            (row["id"], n_msgs),
+        ).fetchall()
+        if not rows:
+            return ""
+        ts = row["started"][:16]
+        lines = [f"[이전 세션 {ts} 요약]"]
+        for r in reversed(rows):
+            snippet = r["content"][:200] + ("..." if len(r["content"]) > 200 else "")
+            lines.append(f"{r['role'].title()}: {snippet}")
+        return "\n".join(lines)
 
 
 # ── 대화 영속화 ────────────────────────────────────────────────────────────────
 
 def save_message(channel: str, role: str, content: str) -> None:
+    session_id = get_active_session(channel)
     with _lock:
         conn = _get_conn()
         conn.execute(
-            "INSERT INTO conv_history (channel, role, content, ts) VALUES (?,?,?,?)",
-            (channel, role, content[:4000], datetime.now().isoformat(timespec="seconds")),
+            "INSERT INTO conv_history (channel, role, content, ts, session_id) VALUES (?,?,?,?,?)",
+            (channel, role, content[:4000], datetime.now().isoformat(timespec="seconds"), session_id),
         )
         conn.commit()
-        # 채널별 MAX_HISTORY*2 초과 시 오래된 것 정리
+        # 채널 전체에서 오래된 것 정리 (세션 여러 개 보존을 위해 4x)
         conn.execute("""
             DELETE FROM conv_history WHERE channel=? AND id NOT IN (
                 SELECT id FROM conv_history WHERE channel=? ORDER BY id DESC LIMIT ?
             )
-        """, (channel, channel, MAX_HISTORY * 2))
+        """, (channel, channel, MAX_HISTORY * 4))
         conn.commit()
 
 
 def load_history(channel: str, limit: int = MAX_HISTORY) -> list[dict]:
-    with _lock:
-        conn = _get_conn()
-        rows = conn.execute(
-            "SELECT role, content FROM conv_history WHERE channel=? ORDER BY id DESC LIMIT ?",
-            (channel, limit),
-        ).fetchall()
-    return [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
+    """현재 활성 세션의 대화 기록 반환."""
+    session_id = get_active_session(channel)
+    return load_session_history(channel, session_id, limit)
 
 
 def clear_history(channel: str) -> None:
