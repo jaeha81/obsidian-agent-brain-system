@@ -3125,6 +3125,8 @@ class BuckyDiscordBot(discord.Client):
             "wishket":     lambda: JH_WISHKET_CHANNEL_ID,
             "daily_plus":  lambda: JH_DAILYPLUS_CHANNEL_ID,
             "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
+            "taskboard":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
+            "checklist":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
         }
 
         print("[IntakeConsumer] 시작", flush=True)
