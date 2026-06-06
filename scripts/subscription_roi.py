@@ -66,6 +66,11 @@ class AgentReport:
     total_cached_tokens: int = 0
     active_days: set = field(default_factory=set)
     by_day: dict = field(default_factory=lambda: defaultdict(DailyStats))
+    # Official quota tracking — populated externally; None means not yet collected
+    official_limit_status: str | None = None
+    last_limit_event: str | None = None
+    reset_at: str | None = None
+    remaining_until_reset: str | None = None
 
     @property
     def total_tokens(self) -> int:
@@ -233,6 +238,10 @@ def summarize_usage(
         "prorated_budget_usd": round(prorated_budget, 2),
         "cost_per_session_usd": round((prorated_budget / sessions), 2) if sessions else None,
         "cost_per_message_usd": round((prorated_budget / messages), 3) if messages else None,
+        "official_limit_status": report.official_limit_status,
+        "last_limit_event": report.last_limit_event,
+        "reset_at": report.reset_at,
+        "remaining_until_reset": report.remaining_until_reset,
     }
 
 
@@ -240,25 +249,51 @@ def usage_recommendation(agent_name: str, summary: dict[str, object]) -> str:
     """Compact operational guidance for underuse, balance, and limit interruptions."""
     utilization = float(summary.get("session_utilization_percent") or 0)
     active_days = float(summary.get("active_day_percent") or 0)
-
-    if agent_name.lower().startswith("codex"):
-        lane = "review, bug reproduction, diff risk checks, and handoff verification"
-    elif "claude" in agent_name.lower():
-        lane = "implementation, refactors, file edits, and long-running coding work"
-    else:
-        lane = "the assigned lane"
+    is_codex = agent_name.lower().startswith("codex")
 
     if utilization < 35 or active_days < 50:
         status = "UNDERUSED"
-        action = f"Schedule more {lane} in each reset window before the quota expires."
+        if is_codex:
+            action = (
+                "Assign unreviewed diffs, failing test analysis, and Daily Plus / documentation "
+                "verification to consume spare quota before the next reset window."
+            )
+            if utilization < 50:
+                action += " Low-risk backlog recommended: doc updates, minor refactors, test coverage."
+        else:
+            action = (
+                "Assign implementation, refactors, and testing in each reset window before quota expires. "
+                "Quota headroom: prioritise low-risk backlog items."
+            )
     elif utilization > 85:
         status = "LIMIT-RISK"
-        action = "Split work into smaller sessions, save handoff notes early, and keep the other agent ready for review or analysis."
+        if is_codex:
+            action = (
+                "Save current review state as a handoff note; pause Codex until the next reset window; "
+                "queue pending diffs for the next cycle."
+            )
+        else:
+            action = (
+                "Save handoff notes now; switch to Codex for review, reproduction, handoff compilation, "
+                "and task decomposition until the next reset window."
+            )
     else:
         status = "BALANCED"
-        action = f"Keep using this agent for {lane}; preserve handoff notes before heavy context growth."
+        if is_codex:
+            action = (
+                "Continue code review, diff analysis, and test verification; "
+                "preserve handoff state before context limits."
+            )
+        else:
+            action = (
+                "Continue implementation and long coding sessions; "
+                "save handoff notes before heavy context growth."
+            )
 
-    return f"{status}: {action} Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window."
+    return (
+        f"{status}: {action} "
+        f"Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window."
+    )
 
 
 def render_report(reports: list[AgentReport], days: int) -> str:

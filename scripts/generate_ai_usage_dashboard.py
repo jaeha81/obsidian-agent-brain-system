@@ -71,6 +71,12 @@ def plan_label(recommendation: str) -> str:
     return "균형: 현재 배분을 유지하면서 작업 단위를 작게 관리합니다."
 
 
+def _quota_val(val: object) -> str:
+    if val is None or str(val).strip() == "":
+        return "공식 잔여량 미수집"
+    return str(val)
+
+
 def render_agent_card(report: AgentReport, days: int, reset_hours: float, target_sessions_per_reset: int) -> str:
     summary = summarize_usage(
         report,
@@ -84,6 +90,18 @@ def render_agent_card(report: AgentReport, days: int, reset_hours: float, target
     cost_per_message = summary["cost_per_message_usd"]
     cost_session_text = "N/A" if cost_per_session is None else f"${cost_per_session:.2f}"
     cost_message_text = "N/A" if cost_per_message is None else f"${cost_per_message:.3f}"
+
+    is_codex = "codex" in report.name.lower()
+    total_tok = int(summary["total_tokens"])
+    cached_tok = int(summary["cached_tokens"])
+    token_text = "미수집" if (is_codex and total_tok == 0) else f"총 {format_int(total_tok)} / 캐시 {format_int(cached_tok)}"
+
+    official_status = _quota_val(summary.get("official_limit_status"))
+    last_event = _quota_val(summary.get("last_limit_event"))
+    reset_at_val = _quota_val(summary.get("reset_at"))
+    remaining_val = _quota_val(summary.get("remaining_until_reset"))
+    quota_cls = "uncollected" if official_status == "공식 잔여량 미수집" else ""
+
     return f"""
       <article class="agent-card {status_class(recommendation)}">
         <div class="agent-head">
@@ -98,11 +116,20 @@ def render_agent_card(report: AgentReport, days: int, reset_hours: float, target
         </div>
         <div class="bar"><span style="width:{esc(summary["session_utilization_percent"])}%"></span></div>
         <dl>
-          <div><dt>토큰</dt><dd>총 {format_int(int(summary["total_tokens"]))} / 캐시 {format_int(int(summary["cached_tokens"]))}</dd></div>
+          <div><dt>토큰</dt><dd>{esc(token_text)}</dd></div>
           <div><dt>예산</dt><dd>{days}일 기준 ${summary["prorated_budget_usd"]:.2f}, 월 ${SUB_COST_MONTHLY}</dd></div>
           <div><dt>단가</dt><dd>세션당 {cost_session_text} / 메시지당 {cost_message_text}</dd></div>
           <div><dt>운영안</dt><dd>{esc(plan_label(recommendation))}</dd></div>
         </dl>
+        <div class="official-quota">
+          <h4 class="quota-title">공식 잔여량 (Official Quota)</h4>
+          <dl class="quota-dl">
+            <div><dt>한도 상태</dt><dd class="{quota_cls}">{esc(official_status)}</dd></div>
+            <div><dt>최근 한도 이벤트</dt><dd class="{quota_cls}">{esc(last_event)}</dd></div>
+            <div><dt>리셋 예정</dt><dd class="{quota_cls}">{esc(reset_at_val)}</dd></div>
+            <div><dt>리셋까지 잔여</dt><dd class="{quota_cls}">{esc(remaining_val)}</dd></div>
+          </dl>
+        </div>
       </article>
 """
 
@@ -136,6 +163,52 @@ def render_reset_plan(reset_hours: float) -> str:
 """
 
 
+def render_bucky_routing() -> str:
+    """Bucky routing rules — when to use each agent and how to handle quota limits."""
+    routes = [
+        {
+            "condition": "Claude 여유 있음",
+            "when": "목표 사용률 < 85%",
+            "action": "구현 · 수정 · 테스트 작업 배정",
+            "detail": "Assign implementation, code edits, and test runs to Claude Code. Use for long coding sessions and repository-level changes.",
+            "cls": "route-ok",
+        },
+        {
+            "condition": "Claude 한도 도달",
+            "when": "목표 사용률 > 85%",
+            "action": "Codex로 전환: 검수 · 재현 · 핸드오프 · 작업분해",
+            "detail": "Save handoff notes immediately, then switch to Codex for code review, test reproduction, handoff compilation, and task decomposition until the next reset window.",
+            "cls": "route-limit",
+        },
+        {
+            "condition": "Codex 여유 있음",
+            "when": "미검수 diff 처리 시기",
+            "action": "미검수 diff · 실패 테스트 분석 · Daily Plus/문서 검증",
+            "detail": "Run Codex on unreviewed diffs, failing test analysis, and Daily Plus / documentation verification to convert spare quota into quality checks.",
+            "cls": "route-ok",
+        },
+        {
+            "condition": "리셋 전 여유 큼",
+            "when": "사용률 < 50% & 리셋 임박",
+            "action": "저위험 backlog 자동 추천",
+            "detail": "When significant quota remains before the next reset window, recommend low-risk backlog items: documentation updates, minor refactors, and test coverage improvements.",
+            "cls": "route-backlog",
+        },
+    ]
+    items = "\n".join(
+        f"""        <div class="route-item {r['cls']}">
+          <strong>{esc(r['condition'])}</strong>
+          <em>{esc(r['when'])}</em>
+          <p>{esc(r['action'])}</p>
+          <small>{esc(r['detail'])}</small>
+        </div>"""
+        for r in routes
+    )
+    return f"""      <div class="bucky-grid">
+{items}
+      </div>"""
+
+
 def render_dashboard(
     reports: list[AgentReport],
     days: int,
@@ -145,12 +218,13 @@ def render_dashboard(
 ) -> str:
     cards = "\n".join(render_agent_card(report, days, reset_hours, target_sessions_per_reset) for report in reports)
     daily_rows = render_daily_rows(reports)
+    bucky_routing = render_bucky_routing()
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 사용량 대시보드</title>
+<title>AI Usage · AI 사용량 대시보드</title>
 <style>
   :root {{ --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }}
   * {{ box-sizing:border-box; }}
@@ -162,6 +236,9 @@ def render_dashboard(
   nav .auth-start {{ margin-left:auto; }}
   h1 {{ margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }}
   header p {{ max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }}
+  .gen-stamp {{ display:flex; align-items:baseline; gap:14px; margin-top:20px; padding:14px 20px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; }}
+  .gen-label {{ font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:.07em; white-space:nowrap; }}
+  .gen-time {{ font-size:clamp(18px,2.5vw,30px); font-weight:700; color:#f8fafc; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }}
   main {{ padding:24px clamp(14px,3vw,42px) 48px; display:grid; gap:22px; }}
   .panel, .agent-card {{ background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 28px rgba(15,23,42,.05); }}
   .panel {{ padding:20px; }}
@@ -183,10 +260,24 @@ def render_dashboard(
   dl div {{ display:grid; grid-template-columns:120px 1fr; gap:12px; }}
   dt {{ font-weight:800; color:var(--ink); }}
   dd {{ margin:0; }}
+  .official-quota {{ border-top:1px solid var(--line); padding-top:12px; }}
+  .quota-title {{ margin:0 0 10px; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }}
+  .quota-dl {{ display:grid; gap:6px; margin:0; }}
+  .quota-dl div {{ display:grid; grid-template-columns:130px 1fr; gap:8px; }}
+  .uncollected {{ color:var(--amber) !important; font-style:italic; }}
   .ops-grid {{ display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:12px; }}
   .ops-grid div {{ border:1px solid var(--line); border-radius:8px; background:#fbfdff; padding:14px; }}
   .ops-grid strong {{ display:block; margin-bottom:8px; }}
   .ops-grid span {{ color:var(--muted); font-size:13px; line-height:1.5; }}
+  .bucky-grid {{ display:grid; grid-template-columns:repeat(2,minmax(240px,1fr)); gap:14px; }}
+  .route-item {{ border-radius:8px; padding:16px; border:1px solid var(--line); background:#fbfdff; display:grid; gap:6px; }}
+  .route-item strong {{ font-size:15px; color:var(--ink); }}
+  .route-item em {{ font-size:12px; color:var(--muted); font-style:normal; }}
+  .route-item p {{ margin:0; font-size:13px; font-weight:600; color:var(--ink); }}
+  .route-item small {{ font-size:12px; color:var(--muted); line-height:1.5; display:block; }}
+  .route-ok {{ border-left:4px solid var(--green); }}
+  .route-limit {{ border-left:4px solid var(--red); }}
+  .route-backlog {{ border-left:4px solid var(--blue); }}
   table {{ width:100%; border-collapse:collapse; font-size:13px; }}
   th, td {{ border:1px solid var(--line); padding:9px 10px; text-align:left; }}
   th {{ background:#eef3f8; color:var(--ink); }}
@@ -194,7 +285,7 @@ def render_dashboard(
   .guardrails div {{ border-left:4px solid var(--blue); background:#fbfdff; padding:14px; border-radius:8px; }}
   .guardrails strong {{ display:block; margin-bottom:6px; }}
   footer {{ padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }}
-  @media (max-width:900px) {{ .agent-grid, .ops-grid, .guardrails {{ grid-template-columns:1fr; }} .metric-grid {{ grid-template-columns:repeat(2,1fr); }} dl div {{ grid-template-columns:1fr; }} }}
+  @media (max-width:900px) {{ .agent-grid, .ops-grid, .guardrails, .bucky-grid {{ grid-template-columns:1fr; }} .metric-grid {{ grid-template-columns:repeat(2,1fr); }} dl div, .quota-dl div {{ grid-template-columns:1fr; }} }}
 </style>
 </head>
 <body>
@@ -208,12 +299,20 @@ def render_dashboard(
     <a href="login.html" class="auth-start">로그인</a>
     <a href="/api/logout">로그아웃</a>
   </nav>
-  <h1>AI 사용량 대시보드</h1>
-  <p>Codex와 Claude Code 구독 사용량, 리셋 창 운영 계획, 한쪽 사용량이 막혔을 때의 전환 기준을 한 화면에서 확인합니다.</p>
+  <h1>AI Usage 대시보드</h1>
+  <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
+  <div class="gen-stamp">
+    <span class="gen-label">페이지 생성 시각</span>
+    <time class="gen-time">{esc(generated_at)}</time>
+  </div>
 </header>
 <main>
   <section class="agent-grid">
     {cards}
+  </section>
+  <section class="panel">
+    <h2>Bucky 운영 규칙</h2>
+    {bucky_routing}
   </section>
   <section class="panel">
     <h2>리셋 창 운영 계획</h2>

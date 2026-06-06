@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 사용량 대시보드</title>
+<title>AI Usage · AI 사용량 대시보드</title>
 <style>
   :root { --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }
   * { box-sizing:border-box; }
@@ -15,6 +15,9 @@
   nav .auth-start { margin-left:auto; }
   h1 { margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }
   header p { max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }
+  .gen-stamp { display:flex; align-items:baseline; gap:14px; margin-top:20px; padding:14px 20px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; }
+  .gen-label { font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:.07em; white-space:nowrap; }
+  .gen-time { font-size:clamp(18px,2.5vw,30px); font-weight:700; color:#f8fafc; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
   main { padding:24px clamp(14px,3vw,42px) 48px; display:grid; gap:22px; }
   .panel, .agent-card { background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 28px rgba(15,23,42,.05); }
   .panel { padding:20px; }
@@ -36,10 +39,24 @@
   dl div { display:grid; grid-template-columns:120px 1fr; gap:12px; }
   dt { font-weight:800; color:var(--ink); }
   dd { margin:0; }
+  .official-quota { border-top:1px solid var(--line); padding-top:12px; }
+  .quota-title { margin:0 0 10px; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .quota-dl { display:grid; gap:6px; margin:0; }
+  .quota-dl div { display:grid; grid-template-columns:130px 1fr; gap:8px; }
+  .uncollected { color:var(--amber) !important; font-style:italic; }
   .ops-grid { display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:12px; }
   .ops-grid div { border:1px solid var(--line); border-radius:8px; background:#fbfdff; padding:14px; }
   .ops-grid strong { display:block; margin-bottom:8px; }
   .ops-grid span { color:var(--muted); font-size:13px; line-height:1.5; }
+  .bucky-grid { display:grid; grid-template-columns:repeat(2,minmax(240px,1fr)); gap:14px; }
+  .route-item { border-radius:8px; padding:16px; border:1px solid var(--line); background:#fbfdff; display:grid; gap:6px; }
+  .route-item strong { font-size:15px; color:var(--ink); }
+  .route-item em { font-size:12px; color:var(--muted); font-style:normal; }
+  .route-item p { margin:0; font-size:13px; font-weight:600; color:var(--ink); }
+  .route-item small { font-size:12px; color:var(--muted); line-height:1.5; display:block; }
+  .route-ok { border-left:4px solid var(--green); }
+  .route-limit { border-left:4px solid var(--red); }
+  .route-backlog { border-left:4px solid var(--blue); }
   table { width:100%; border-collapse:collapse; font-size:13px; }
   th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; }
   th { background:#eef3f8; color:var(--ink); }
@@ -47,7 +64,7 @@
   .guardrails div { border-left:4px solid var(--blue); background:#fbfdff; padding:14px; border-radius:8px; }
   .guardrails strong { display:block; margin-bottom:6px; }
   footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
-  @media (max-width:900px) { .agent-grid, .ops-grid, .guardrails { grid-template-columns:1fr; } .metric-grid { grid-template-columns:repeat(2,1fr); } dl div { grid-template-columns:1fr; } }
+  @media (max-width:900px) { .agent-grid, .ops-grid, .guardrails, .bucky-grid { grid-template-columns:1fr; } .metric-grid { grid-template-columns:repeat(2,1fr); } dl div, .quota-dl div { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -61,8 +78,12 @@
     <a href="login.html" class="auth-start">로그인</a>
     <a href="/api/logout">로그아웃</a>
   </nav>
-  <h1>AI 사용량 대시보드</h1>
-  <p>Codex와 Claude Code 구독 사용량, 리셋 창 운영 계획, 한쪽 사용량이 막혔을 때의 전환 기준을 한 화면에서 확인합니다.</p>
+  <h1>AI Usage 대시보드</h1>
+  <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
+  <div class="gen-stamp">
+    <span class="gen-label">페이지 생성 시각</span>
+    <time class="gen-time">2026-06-06 15:31:14 KST</time>
+  </div>
 </header>
 <main>
   <section class="agent-grid">
@@ -73,18 +94,27 @@
           <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>101</strong><span>세션</span></div>
-          <div><strong>11,649</strong><span>메시지</span></div>
+          <div><strong>100</strong><span>세션</span></div>
+          <div><strong>11,108</strong><span>메시지</span></div>
           <div><strong>100%</strong><span>활성일</span></div>
           <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>토큰</dt><dd>총 4,384,728 / 캐시 496,010,344</dd></div>
+          <div><dt>토큰</dt><dd>총 4,259,427 / 캐시 470,494,972</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
           <div><dt>단가</dt><dd>세션당 $0.23 / 메시지당 $0.002</dd></div>
           <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
         </dl>
+        <div class="official-quota">
+          <h4 class="quota-title">공식 잔여량 (Official Quota)</h4>
+          <dl class="quota-dl">
+            <div><dt>한도 상태</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>최근 한도 이벤트</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>리셋 예정</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>리셋까지 잔여</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+          </dl>
+        </div>
       </article>
 
 
@@ -94,20 +124,58 @@
           <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>134</strong><span>세션</span></div>
-          <div><strong>20,974</strong><span>메시지</span></div>
+          <div><strong>125</strong><span>세션</span></div>
+          <div><strong>15,744</strong><span>메시지</span></div>
           <div><strong>100%</strong><span>활성일</span></div>
           <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>토큰</dt><dd>총 0 / 캐시 0</dd></div>
+          <div><dt>토큰</dt><dd>미수집</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 $0.17 / 메시지당 $0.001</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.19 / 메시지당 $0.001</dd></div>
           <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
         </dl>
+        <div class="official-quota">
+          <h4 class="quota-title">공식 잔여량 (Official Quota)</h4>
+          <dl class="quota-dl">
+            <div><dt>한도 상태</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>최근 한도 이벤트</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>리셋 예정</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>리셋까지 잔여</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+          </dl>
+        </div>
       </article>
 
+  </section>
+  <section class="panel">
+    <h2>Bucky 운영 규칙</h2>
+          <div class="bucky-grid">
+        <div class="route-item route-ok">
+          <strong>Claude 여유 있음</strong>
+          <em>목표 사용률 &lt; 85%</em>
+          <p>구현 · 수정 · 테스트 작업 배정</p>
+          <small>Assign implementation, code edits, and test runs to Claude Code. Use for long coding sessions and repository-level changes.</small>
+        </div>
+        <div class="route-item route-limit">
+          <strong>Claude 한도 도달</strong>
+          <em>목표 사용률 &gt; 85%</em>
+          <p>Codex로 전환: 검수 · 재현 · 핸드오프 · 작업분해</p>
+          <small>Save handoff notes immediately, then switch to Codex for code review, test reproduction, handoff compilation, and task decomposition until the next reset window.</small>
+        </div>
+        <div class="route-item route-ok">
+          <strong>Codex 여유 있음</strong>
+          <em>미검수 diff 처리 시기</em>
+          <p>미검수 diff · 실패 테스트 분석 · Daily Plus/문서 검증</p>
+          <small>Run Codex on unreviewed diffs, failing test analysis, and Daily Plus / documentation verification to convert spare quota into quality checks.</small>
+        </div>
+        <div class="route-item route-backlog">
+          <strong>리셋 전 여유 큼</strong>
+          <em>사용률 &lt; 50% &amp; 리셋 임박</em>
+          <p>저위험 backlog 자동 추천</p>
+          <small>When significant quota remains before the next reset window, recommend low-risk backlog items: documentation updates, minor refactors, and test coverage improvements.</small>
+        </div>
+      </div>
   </section>
   <section class="panel">
     <h2>리셋 창 운영 계획</h2>
@@ -133,19 +201,21 @@
     <h2>일별 사용량</h2>
     <table>
       <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
-      <tbody><tr><td>2026-05-27</td><td>3s / 398m</td><td>11s / 1081m</td></tr>
-<tr><td>2026-05-28</td><td>6s / 337m</td><td>16s / 6653m</td></tr>
-<tr><td>2026-05-29</td><td>11s / 1568m</td><td>9s / 805m</td></tr>
-<tr><td>2026-05-30</td><td>15s / 1954m</td><td>12s / 5468m</td></tr>
+      <tbody><tr><td>2026-05-28</td><td>0s / 0m</td><td>1s / 2022m</td></tr>
+<tr><td>2026-05-29</td><td>0s / 0m</td><td>1s / 458m</td></tr>
+<tr><td>2026-05-30</td><td>9s / 1017m</td><td>8s / 2008m</td></tr>
 <tr><td>2026-05-31</td><td>17s / 2535m</td><td>21s / 2665m</td></tr>
 <tr><td>2026-06-01</td><td>6s / 697m</td><td>10s / 1193m</td></tr>
-<tr><td>2026-06-02</td><td>33s / 3032m</td><td>17s / 1154m</td></tr>
-<tr><td>2026-06-03</td><td>10s / 1128m</td><td>38s / 1955m</td></tr></tbody>
+<tr><td>2026-06-02</td><td>31s / 2470m</td><td>17s / 1154m</td></tr>
+<tr><td>2026-06-03</td><td>9s / 823m</td><td>38s / 2031m</td></tr>
+<tr><td>2026-06-04</td><td>9s / 1319m</td><td>11s / 2474m</td></tr>
+<tr><td>2026-06-05</td><td>10s / 873m</td><td>15s / 1598m</td></tr>
+<tr><td>2026-06-06</td><td>9s / 1374m</td><td>3s / 141m</td></tr></tbody>
     </table>
   </section>
 </main>
 <footer>
-  생성: 2026-06-03 20:40:34 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
+  생성: 2026-06-06 15:31:14 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 </body>
 </html>
