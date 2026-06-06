@@ -141,6 +141,11 @@ JH_CHAT_CHANNEL_ID: str    = os.getenv("JH_CHAT_CHANNEL_ID", "").strip()
 JH_TASKS_CHANNEL_ID: str   = os.getenv("JH_TASKS_CHANNEL_ID", "").strip()
 JH_STATUS_CHANNEL_ID: str  = os.getenv("JH_STATUS_CHANNEL_ID", "").strip()
 JH_RESULTS_CHANNEL_ID: str = os.getenv("JH_RESULTS_CHANNEL_ID", "").strip()
+# 대시보드 intake 전용 채널
+JH_REPO_DASHBOARD_CHANNEL_ID: str = os.getenv("JH_REPO_DASHBOARD_CHANNEL_ID", "").strip()
+JH_WISHKET_CHANNEL_ID: str        = os.getenv("JH_WISHKET_CHANNEL_ID", "").strip()
+JH_DAILYPLUS_CHANNEL_ID: str      = os.getenv("JH_DAILYPLUS_CHANNEL_ID", "").strip()
+JH_TASKBOARD_CHANNEL_ID: str      = os.getenv("JH_TASKBOARD_CHANNEL_ID", "").strip()
 # 작업 채널: 채널 = 독립 Claude Code 인스턴스 (tools 허용, 병렬 실행)
 JH_WORK_CHANNEL_IDS: set[str] = {
     c.strip() for c in os.getenv("JH_WORK_CHANNEL_IDS", "").split(",") if c.strip()
@@ -615,23 +620,41 @@ def _extract_json_objects(text: str) -> list[dict]:
     return objects
 
 
+async def _wishket_dev_request_to_queue(payload_dict: dict) -> dict:
+    """Common handler: normalize → split_actions → queue_for_approval (idempotent).
+
+    Returns {"payload", "plan", "queued_path", "actions"}.
+    Both _on_dev_request and _handle_wishket_development_payload use this.
+    """
+    from wishket_development_request import (
+        build_plan, normalize_payload, queue_for_approval, split_actions,
+    )
+    payload = normalize_payload(payload_dict)
+    actions = split_actions(payload["requested_actions"])
+    payload["immediate_actions"] = actions["immediate"]
+    payload["approval_required_actions"] = actions["approval_required"]
+    plan = build_plan(payload)
+    queued_path = await asyncio.to_thread(queue_for_approval, payload)
+    return {"payload": payload, "plan": plan, "queued_path": queued_path, "actions": actions}
+
+
 async def _handle_wishket_development_payload(message: Message, content: str) -> bool:
     """Queue Wishket development payloads behind the existing approval gate."""
     for obj in _extract_json_objects(content):
         if obj.get("type") != "wishket_development_request":
             continue
         try:
-            from wishket_development_request import build_plan, normalize_payload, queue_for_approval
-
-            payload = normalize_payload(obj)
-            plan = build_plan(payload)
-            queued_path = await asyncio.to_thread(queue_for_approval, payload)
+            result = await _wishket_dev_request_to_queue(obj)
+            payload, plan, queued_path, actions = (
+                result["payload"], result["plan"], result["queued_path"], result["actions"]
+            )
             await message.channel.send(
                 "**Wishket 개발요청 접수**\n"
                 f"- slug: `{payload['project_slug']}`\n"
                 f"- local folder: `{plan['local_project']['target']}`\n"
-                f"- approval: required before folder/GitHub/worker execution\n"
-                f"- queued: `{queued_path.name}`\n\n"
+                f"- queued: `{queued_path.name}`\n"
+                f"- 즉시: {', '.join(actions['immediate']) or '없음'}\n"
+                f"- 승인필요: {', '.join(actions['approval_required']) or '없음'}\n\n"
                 "`!pending`으로 승인 대기 목록 확인, `!approve <번호>`로 승인."
             )
             return True
@@ -1557,9 +1580,16 @@ def _get_rag_context(query: str, top_k: int = 3) -> str:
 
 async def ask_bucky(channel_id: str, user_message: str) -> str:
     """Bucky Agent에 질문하고 답변 반환. NLP 전처리 후 Claude CLI 구독 경로 사용."""
+    prev_session_context = ""
     try:
         import bucky_memory as _mem
-        history = _mem.load_history(channel_id)
+        session_id = await asyncio.to_thread(_mem.get_active_session, channel_id)
+        history = await asyncio.to_thread(_mem.load_session_history, channel_id, session_id)
+        # 새 세션(메시지 없음)이면 이전 세션 컨텍스트 포함
+        if not history:
+            prev_ctx = await asyncio.to_thread(_mem.get_prev_session_context, channel_id, session_id)
+            if prev_ctx:
+                prev_session_context = prev_ctx
         _use_mem = True
     except Exception:
         history = conversation_history[channel_id]
@@ -1601,10 +1631,15 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
         rag_block = f"\n\n{rag_context}" if rag_context else ""
 
     bucky_context = _load_bucky_context()
+    prev_ctx_block = (
+        f"\n\n# 이전 세션 컨텍스트 (참고용)\n\n{prev_session_context}\n\n---\n\n"
+        if prev_session_context else ""
+    )
     prompt = (
         "# Bucky 운영 컨텍스트\n\n"
         f"{bucky_context}\n\n"
         "---\n\n"
+        f"{prev_ctx_block}"
         "# Discord 대화\n\n"
         "위 컨텍스트를 기반으로 아래 대화에 답변한다. "
         "실행 작업이면 '요약→실행안→저장위치→다음행동' 순서로, 단순 질문이면 간결하게."
@@ -2046,9 +2081,7 @@ class WishketDashboardView(discord.ui.View):
         await interaction.response.defer(thinking=True)
         p = self.projects[self.idx]
         try:
-            from wishket_development_request import build_plan, normalize_payload, queue_for_approval
-
-            payload = normalize_payload(
+            result = await _wishket_dev_request_to_queue(
                 {
                     "type": "wishket_development_request",
                     "source": "wishket_discord_dashboard",
@@ -2058,14 +2091,16 @@ class WishketDashboardView(discord.ui.View):
                     "url": p.get("link", ""),
                 }
             )
-            plan = build_plan(payload)
-            queued_path = await asyncio.to_thread(queue_for_approval, payload)
+            payload, plan, queued_path, actions = (
+                result["payload"], result["plan"], result["queued_path"], result["actions"]
+            )
             await interaction.followup.send(
                 "**Wishket 개발요청 접수**\n"
                 f"- slug: `{payload['project_slug']}`\n"
                 f"- local folder: `{plan['local_project']['target']}`\n"
                 f"- queued: `{queued_path.name}`\n"
-                "- approval required before folder/GitHub/worker execution\n\n"
+                f"- 즉시: {', '.join(actions['immediate']) or '없음'}\n"
+                f"- 승인필요: {', '.join(actions['approval_required']) or '없음'}\n\n"
                 "`!pending` / `!approve <번호>`로 처리."
             )
         except Exception as e:
@@ -2456,16 +2491,21 @@ def _persist_env_key(key: str, value: str) -> None:
 
 
 async def _init_jh_channels(client) -> None:
-    """jh-chat / jh-tasks / jh-status / jh-results / jh-work-* 채널 자동 생성."""
+    """jh-chat / jh-tasks / jh-status / jh-results / jh-work-* + intake 채널 자동 생성."""
     global JH_CHAT_CHANNEL_ID, JH_TASKS_CHANNEL_ID, JH_STATUS_CHANNEL_ID, JH_RESULTS_CHANNEL_ID
+    global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
     if not client.guilds:
         return
     guild = client.guilds[0]
     _specs = [
-        ("jh-chat",    "JH_CHAT_CHANNEL_ID",    "💬 JH ↔ Bucky 대화 전용"),
-        ("jh-tasks",   "JH_TASKS_CHANNEL_ID",   "📋 태스크 지시 전용 — Claude 없이 즉시 배정"),
-        ("jh-status",  "JH_STATUS_CHANNEL_ID",  "📊 태스크 현황판 (자동 갱신)"),
-        ("jh-results", "JH_RESULTS_CHANNEL_ID", "✅ 완료 결과 수신 · @멘션 알림"),
+        ("jh-chat",        "JH_CHAT_CHANNEL_ID",            "💬 JH ↔ Bucky 대화 전용"),
+        ("jh-tasks",       "JH_TASKS_CHANNEL_ID",           "📋 태스크 지시 전용 — Claude 없이 즉시 배정"),
+        ("jh-status",      "JH_STATUS_CHANNEL_ID",          "📊 태스크 현황판 (자동 갱신)"),
+        ("jh-results",     "JH_RESULTS_CHANNEL_ID",         "✅ 완료 결과 수신 · @멘션 알림"),
+        ("jh-레포대시보드",  "JH_REPO_DASHBOARD_CHANNEL_ID", "📦 Repo 대시보드 → Bucky 라우팅"),
+        ("jh-위시켓",       "JH_WISHKET_CHANNEL_ID",         "💼 Wishket 개발요청 전용"),
+        ("jh-오늘의플러스",  "JH_DAILYPLUS_CHANNEL_ID",       "📅 Daily Plus → Bucky 브리핑"),
+        ("jh-태스크보드",   "JH_TASKBOARD_CHANNEL_ID",       "📋 태스크보드 → Bucky 라우팅"),
     ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
@@ -2904,14 +2944,16 @@ class BuckyDiscordBot(discord.Client):
             print(f"[Bot] 슬래시 명령어 동기화 실패: {e}", flush=True)
 
         if AUTO_BRIEFING and BRIEFING_CHANNEL_ID:
-            self.loop.create_task(self._daily_briefing_task())
+            asyncio.create_task(self._daily_briefing_task())
 
         # 6시간마다 패턴 분석 자동 실행
-        self.loop.create_task(self._periodic_pattern_task())
+        asyncio.create_task(self._periodic_pattern_task())
         # 매일 1회 자기 반성 (P2)
-        self.loop.create_task(self._periodic_reflection_task())
+        asyncio.create_task(self._periodic_reflection_task())
         # 매일 오전 8:30 Wishket 공고 자동 스캔
-        self.loop.create_task(self._wishket_auto_scan_task())
+        asyncio.create_task(self._wishket_auto_scan_task())
+        # 대시보드 intake 큐 소비자 (bucky_chat_server POST /intake → queue file)
+        asyncio.create_task(self._intake_queue_consumer_task())
 
     async def _daily_briefing_task(self) -> None:
         """매일 BRIEFING_TIME에 자동 브리핑 게시."""
@@ -3056,6 +3098,100 @@ class BuckyDiscordBot(discord.Client):
                 print(f"[WishketAuto] 이메일 응답 스캔 오류: {e}", flush=True)
 
             await asyncio.sleep(interval_sec)
+
+    async def _intake_queue_consumer_task(self) -> None:
+        """Poll data/intake_queue/*.json and route payloads to Discord channels.
+
+        Picks up files written atomically by bucky_chat_server POST /intake.
+        Processed files are moved to data/intake_queue/processed/.
+        Failed files are moved to data/intake_queue/failed/.
+        """
+        await self.wait_until_ready()
+        import json as _json
+        _queue_dir = _ROOT / "data" / "intake_queue"
+        _processed_dir = _queue_dir / "processed"
+        _failed_dir = _queue_dir / "failed"
+
+        _channel_map = {
+            "repo":        lambda: JH_REPO_DASHBOARD_CHANNEL_ID,
+            "wishket":     lambda: JH_WISHKET_CHANNEL_ID,
+            "daily_plus":  lambda: JH_DAILYPLUS_CHANNEL_ID,
+            "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
+        }
+
+        print("[IntakeConsumer] 시작", flush=True)
+        while not self.is_closed():
+            try:
+                _queue_dir.mkdir(parents=True, exist_ok=True)
+                _processed_dir.mkdir(parents=True, exist_ok=True)
+                _failed_dir.mkdir(parents=True, exist_ok=True)
+
+                for queue_file in sorted(_queue_dir.glob("*.json")):
+                    try:
+                        payload = _json.loads(queue_file.read_text(encoding="utf-8"))
+                    except Exception as exc:
+                        print(f"[IntakeConsumer] 파일 읽기 실패 {queue_file.name}: {exc}", flush=True)
+                        queue_file.rename(_failed_dir / queue_file.name)
+                        continue
+
+                    dashboard_type = str(payload.get("dashboard_type") or "").strip()
+                    ch_id_getter = _channel_map.get(dashboard_type)
+                    ch_id = ch_id_getter() if ch_id_getter else JH_CHAT_CHANNEL_ID
+                    channel = self.get_channel(int(ch_id)) if ch_id else None
+
+                    try:
+                        await self._process_intake_payload(payload, channel)
+                        queue_file.rename(_processed_dir / queue_file.name)
+                    except Exception as exc:
+                        print(f"[IntakeConsumer] 처리 실패 {queue_file.name}: {exc}", flush=True)
+                        queue_file.rename(_failed_dir / queue_file.name)
+
+            except Exception as exc:
+                print(f"[IntakeConsumer] 폴링 오류: {exc}", flush=True)
+
+            await asyncio.sleep(2)
+
+    async def _process_intake_payload(self, payload: dict, channel) -> None:
+        """Route a single intake payload to the appropriate Discord channel."""
+        dashboard_type = str(payload.get("dashboard_type") or "unknown")
+        action = str(payload.get("action") or "")
+        title = str(payload.get("title") or payload.get("summary") or "")
+        request_id = str(payload.get("request_id") or "")
+
+        briefing = (
+            f"**[Intake: {dashboard_type}]** `{action}`\n"
+            + (f"> {title[:200]}\n" if title else "")
+            + (f"request_id: `{request_id[:8]}`" if request_id else "")
+        )
+
+        if channel:
+            for chunk in split_message(briefing):
+                await channel.send(chunk)
+        else:
+            print(f"[IntakeConsumer] 채널 없음 — {dashboard_type}/{action}: {title[:60]}", flush=True)
+
+        # Wishket 개발요청은 기존 승인 큐에도 등록 (split_actions 적용)
+        if dashboard_type == "wishket" and action in {"start", "approve_execute"}:
+            try:
+                result = await _wishket_dev_request_to_queue({**payload, "source": "intake_queue"})
+                payload_n, plan, queued_path, actions = (
+                    result["payload"], result["plan"], result["queued_path"], result["actions"]
+                )
+                if channel:
+                    await channel.send(
+                        "**Wishket 개발요청 접수**\n"
+                        f"- slug: `{payload_n['project_slug']}`\n"
+                        f"- local folder: `{plan['local_project']['target']}`\n"
+                        f"- queued: `{queued_path.name}`\n"
+                        f"- 즉시: {', '.join(actions['immediate']) or '없음'}\n"
+                        f"- 승인필요: {', '.join(actions['approval_required']) or '없음'}\n\n"
+                        "`!pending`으로 승인 대기 목록 확인, `!approve <번호>`로 승인."
+                    )
+            except Exception as exc:
+                print(f"[IntakeConsumer] Wishket 큐 등록 실패: {exc}", flush=True)
+                if channel:
+                    await channel.send(f"⚠️ Wishket 승인 큐 등록 실패: `{exc}`")
+                raise
 
     async def _post_auto_briefing(self) -> None:
         channel = self.get_channel(int(BRIEFING_CHANNEL_ID))
@@ -3507,6 +3643,10 @@ class BuckyDiscordBot(discord.Client):
                 "**Bucky 명령어**\n"
                 "`!status` — 봇 상태 및 내 역할 확인\n"
                 "`!reset` — 대화 기록 초기화\n"
+                "`!session list` / `!세션목록` — 세션 목록 (시간대별 대화 분리)\n"
+                "`!session resume <번호>` / `!세션복원 <번호>` — 이전 세션 맥락 복원\n"
+                "`!session new` / `!새세션` — 새 세션 강제 시작\n"
+                "`!session help` / `!세션도움말` — 세션 기능 도움말\n"
                 "`!queue` / `!agentbus` / `!큐상태` — AgentBus 큐 읽기 전용 점검\n"
                 "`!context-pack <내용>` / `!pack <내용>` / `!팩 <내용>` — 최소 컨텍스트 팩 선택\n"
                 "**[AgentBus 승인 게이트]**\n"
@@ -3576,6 +3716,77 @@ class BuckyDiscordBot(discord.Client):
             except Exception:
                 pass
             await message.channel.send("🔄 대화 기록을 초기화했습니다.")
+            return
+
+        # ── 세션 관리 명령어 ───────────────────────────────────────────────────
+        if content in ("!session list", "!세션목록", "!sessions"):
+            try:
+                import bucky_memory as _mem
+                sessions = await asyncio.to_thread(_mem.list_sessions, channel_id)
+                if not sessions:
+                    await message.channel.send("📭 저장된 세션 없음")
+                else:
+                    lines = ["**세션 목록** (최신 순)"]
+                    cur_sid = await asyncio.to_thread(_mem.get_active_session, channel_id)
+                    for i, s in enumerate(sessions):
+                        ts = s["started"][:16]
+                        preview = s["first_msg"] or "(비어있음)"
+                        marker = " ◀ 현재" if s["id"] == cur_sid else ""
+                        lines.append(f"`{i + 1}.` [{ts}] {preview} ({s['count']}개){marker}")
+                    lines.append("\n_복원: `!session resume <번호>` | 새 세션: `!session new`_")
+                    await message.channel.send("\n".join(lines))
+            except Exception as e:
+                await message.channel.send(f"⚠️ 세션 목록 오류: {e}")
+            return
+
+        if content.startswith(("!session resume ", "!세션복원 ")):
+            try:
+                import bucky_memory as _mem
+                num_str = content.split()[-1]
+                idx = int(num_str) - 1
+                sessions = await asyncio.to_thread(_mem.list_sessions, channel_id)
+                if idx < 0 or idx >= len(sessions):
+                    await message.channel.send(f"⚠️ 1~{len(sessions)} 범위의 번호를 입력하세요")
+                    return
+                target = sessions[idx]
+                history = await asyncio.to_thread(
+                    _mem.load_session_history, channel_id, target["id"]
+                )
+                conversation_history[channel_id] = history.copy()
+                ts = target["started"][:16]
+                await message.channel.send(
+                    f"✅ 세션 **{num_str}** ({ts}) 복원 완료 — {len(history)}개 메시지 로드됨\n"
+                    "_이 세션의 맥락으로 계속 대화할 수 있습니다. `!session new`로 새 세션 시작 가능_"
+                )
+            except ValueError:
+                await message.channel.send("⚠️ 사용법: `!session resume <번호>` (예: `!session resume 2`)")
+            except Exception as e:
+                await message.channel.send(f"⚠️ 세션 복원 오류: {e}")
+            return
+
+        if content in ("!session new", "!새세션"):
+            try:
+                import bucky_memory as _mem
+                new_sid = await asyncio.to_thread(_mem.new_session, channel_id)
+                conversation_history[channel_id].clear()
+                await message.channel.send(f"🆕 새 세션 시작 (세션 ID: {new_sid})\n_이전 세션은 `!session list`로 확인 가능_")
+            except Exception as e:
+                await message.channel.send(f"⚠️ 새 세션 오류: {e}")
+            return
+
+        if content in ("!session help", "!세션도움말"):
+            try:
+                import bucky_memory as _mem
+                gap = getattr(_mem, "SESSION_GAP_MINUTES", 90)
+            except Exception:
+                gap = 90
+            await message.channel.send(
+                "**세션 관리 명령어**\n"
+                "`!session list` / `!세션목록` — 저장된 세션 목록 보기\n"
+                "`!session resume <번호>` / `!세션복원 <번호>` — 이전 세션 맥락 복원\n"
+                "`!session new` / `!새세션` — 새 세션 강제 시작\n\n"
+                f"_세션은 {gap}분 이상 대화 공백 시 자동 분리됩니다. (`.env` BUCKY_SESSION_GAP으로 조정)_"
+            )
             return
 
         # ── P0: Knowledge Capture ──────────────────────────────────────
