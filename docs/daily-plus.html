@@ -169,16 +169,16 @@
 <main>
   <section class="hero-grid">
     <div class="panel">
-      <h2>2026-06-05 처리 요약</h2>
+      <h2>2026-06-06 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-06-05T08:00:19+09:00</span>
+        <span class="pill">수집: 2026-06-06T15:21:45+09:00</span>
         <span class="pill">리포트: staged</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
       <div class="summary">
         <div class="stat blue"><strong>12</strong><span>오늘의 플러스 후보</span></div>
         <div class="stat green"><strong>0</strong><span>직접 구현 반영</span></div>
-        <div class="stat amber"><strong>12</strong><span>큐 또는 스테이징</span></div>
+        <div class="stat amber"><strong>0</strong><span>큐 또는 스테이징</span></div>
         <div class="stat red"><strong>0</strong><span>사용자 승인 필요</span></div>
       </div>
       <p class="muted">오늘의 플러스는 원문을 보존하고, 바로 구현하지 않는 항목은 큐/승인대기로 분리합니다. 현재 대시보드 기준 직접 적용된 후보는 0개이며, 운영 파이프라인 자체는 수집, 진화 리포트, Bucky 처리까지 연결되어 있습니다.</p>
@@ -187,13 +187,13 @@
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
         <div class="stat blue"><strong>84</strong><span>평균 효율성</span></div>
-        <div class="stat green"><strong>85</strong><span>평균 호환성</span></div>
+        <div class="stat green"><strong>74</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>검증 자동화</strong><span>9</span></div>
+        <div class="mini"><strong>음성 파이프라인</strong><span>6</span></div>
+<div class="mini"><strong>검증 자동화</strong><span>3</span></div>
+<div class="mini"><strong>Obsidian 큐</strong><span>2</span></div>
 <div class="mini"><strong>에이전트 프롬프트</strong><span>1</span></div>
-<div class="mini"><strong>명령 페이로드</strong><span>1</span></div>
-<div class="mini"><strong>실험 후보</strong><span>1</span></div>
       </div>
     </aside>
   </section>
@@ -252,9 +252,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-06-05</strong><p>12 후보 · 효율 84 · 호환 85</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>+4</strong><p>후보 수 변화 · 효율 +3 · 호환 +10</p></div>
-        <div class="compare-card"><span>누적</span><strong>101</strong><p>10일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-06-06</strong><p>12 후보 · 효율 84 · 호환 74</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>+4</strong><p>후보 수 변화 · 효율 +3 · 호환 -1</p></div>
+        <div class="compare-card"><span>누적</span><strong>113</strong><p>11일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -358,6 +358,16 @@
           </div>
           <div class="trend-num">12 후보 · 0 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-06</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:100%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">12 후보 · 0 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -374,11 +384,9 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 2</strong><span>에이전트용 3단계 스모크 테스트</span><em>스테이징</em></li>
-<li><strong>P1 Card 3</strong><span>모델별 런타임 어댑터 점검표</span><em>스테이징</em></li>
-<li><strong>P1 Card 4</strong><span>휴먼 검수와 롤백 운영 패턴</span><em>스테이징</em></li>
-<li><strong>P1 Card 5</strong><span>HMAC·중복방지 인간 검수 체크리스트</span><em>스테이징</em></li>
-<li><strong>P1 Card 6</strong><span>CAD→견적 MVP 4일 테스트 계획</span><em>스테이징</em></li>
+        <li><strong>P1 Card 1</strong><span>PlanSwift QC pilot test plan</span><em>Codex 검증 요청 생성 필요</em></li>
+<li><strong>P1 Card 3</strong><span>RBAC and secrets handoff playbook</span><em>보안/auth 변경 → 명시 승인 필요</em></li>
+<li><strong>P1 Card 7</strong><span>Video-to-distribution automation pipeline sketch</span><em>P1이지만 distiller 라우팅 — 다음 세션 우선 처리</em></li>
       </ul>
     </div>
   </section>
@@ -466,17 +474,110 @@
   <section>
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P3&#x27;: 3, &#x27;P1&#x27;: 8, &#x27;P2&#x27;: 1} · 상태 {&#x27;staged&#x27;: 12}</span>
+      <span class="muted">우선순위 {&#x27;P1&#x27;: 3, &#x27;P3&#x27;: 9} · 상태 {&#x27;Codex 검증 요청 생성 필요&#x27;: 1, &#x27;다음 distiller 세션 대기&#x27;: 1, &#x27;보안/auth 변경 → 명시 승인 필요&#x27;: 1, &#x27;agent-prompting = 핵심 에이전트 역할 변경 → 직접 덮어쓰기 금지&#x27;: 1, &#x27;distiller 대기열&#x27;: 4, &#x27;P1이지만 distiller 라우팅 — 다음 세션 우선 처리&#x27;: 1, &#x27;Codex 검증 대기&#x27;: 1, &#x27;collector 대기열&#x27;: 2}</span>
     </div>
     <div class="grid">
 
-      <article class="candidate" data-card="1" data-status="staged" data-priority="P3" data-category="agent-prompting">
+      <article class="candidate" data-card="1" data-status="Codex 검증 요청 생성 필요" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status Codex 검증 요청 생성 필요">Codex 검증 요청 생성 필요</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 1. PlanSwift QC pilot test plan</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>PlanSwift 도면→추출→견적 파이프라인을 검증하기 위해 벡터 DWG부터 스캔 PDF까지 12가지 샘플을 2-4일 내 실행합니다. 실패 시 음성 메모를 자동 전사하여 레이블 지정된 학습 신호로 사용합니다. QC 통과 기준: 텍스트 추출 90% 이상, 측정 오차 3% 이하, 검토 필요 라인 15% 미만, 예상 신뢰도 0.82 이상입니다. 음성 리뷰와 자동 전사로 모호한 항목을 해결합니다.</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="2" data-status="다음 distiller 세션 대기" data-priority="P3" data-category="voice-pipeline">
         <div class="candidate-top">
           <span class="badge priority">P3</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status 다음 distiller 세션 대기">다음 distiller 세션 대기</span>
+          <span class="badge risk risk-high">high</span>
+        </div>
+        <h3>Card 2. PlanSwift to invoice mapping spec</h3>
+        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
+        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
+            <div class="bar"><span class="low" style="width:64%"></span></div>
+          </div>
+        </div>
+        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>PlanSwift/DXF/PDF를 일관된 송장 행(SKU × 수량)으로 변환하는 ETL 명세입니다. 벡터 우선, 단위 정규화, 통화 변환, 기하학 QC를 순차 적용합니다. 매핑 신뢰도 0.82 이상이면 자동 통과, 그 외는 검토 큐에 진입합니다. 파이썬 스켈레톤 코드를 포함하며, 3-5개 샘플로 파일럿 실행하여 통과율과 오류 유형을 추적합니다.</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="3" data-status="보안/auth 변경 → 명시 승인 필요" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status 보안/auth 변경 → 명시 승인 필요">보안/auth 변경 → 명시 승인 필요</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 3. RBAC and secrets handoff playbook</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>옵시디언 볼트에 5가지 역할(Observer, Reader, Writer, Deployer, Secret-operator)을 정의하여 에이전트 접근을 제한합니다. 각 역할은 서비스 토큰(TTL 1-15분)으로 매핑되며, KMS 봉투 패턴으로 비밀을 래핑합니다. Idempotency-Key와 X-Signature를 요구하여 중복 쓰기를 방지하고, 모든 매니페스트 적용을 YAML 프론트매터...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="4" data-status="agent-prompting = 핵심 에이전트 역할 변경 → 직접 덮어쓰기 금지" data-priority="P3" data-category="agent-prompting">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status agent-prompting = 핵심 에이전트 역할 변경 → 직접 덮어쓰기 금지">agent-prompting = 핵심 에이전트 역할 변경 → 직접 덮어쓰기 금지</span>
           <span class="badge risk risk-medium">medium</span>
         </div>
-        <h3>Card 1. 오늘의 하이라이트 자동 생성 템플릿</h3>
+        <h3>Card 4. Three I-Bujang Handoff Prompts</h3>
         <p class="meta">에이전트 프롬프트 · owner: bucky · target: 03_Projects/agents / Bucky planner-executor prompts</p>
         <p class="action">Stage prompt changes as role-specific snippets and keep approval notes.</p>
         <div class="bars">
@@ -497,185 +598,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>오늘의 하이라이트 자동 생성 템플릿 오늘의 하이라이트 자동 생성 템플릿 매일 한 장짜리 ‘오늘의 하이라이트’ 노트를 자동으로 찍어내고, 원본 오디오/텍스트 링크를 항상 보존하며, 이부장에 바로 던질 “한 줄 실행 프롬프트”까지 같이 생성하는 작은 생성기(템플릿+프롬프트+JSON)예요. 아래 걸 그대로 복붙해서 오늘부터 쓰면 됩니다. Obsidian용 카드 템플릿 (일일 노트에 그대로 붙...</p>
+          <p>이부장 에이전트를 위해 사용자 온보딩, 오늘의 플러스(daily highlight), 매니페스트 적용의 세 가지 명령을 제공합니다. 각각 음성 URL, STT 전사, 신뢰도, mm:ss 스니펫을 포함한 YAML 프론트매터를 생성하므로 비개발자도 변경 내용을 쉽게 검토할 수 있습니다. 모든 작업은 idempotency_key로 중복 방지됩니다.</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 2. 에이전트용 3단계 스모크 테스트</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>에이전트용 3단계 스모크 테스트 에이전트용 3단계 스모크 테스트 모델이 바뀔 때마다 에이전트(버키·클로드·코덱스·제미나이 등)가 갑자기 삐끗하는 걸 막는 초간단 스모크 테스트 세트를 바로 돌릴 수 있게 정리했어요. 이미 쓰는 워크플로에 “테스트 3종”만 꽂으면 됩니다. 왜 필요한가? 모델/버전 교체 후 “응답형식·비용·위험한 툴 호출”이 미세하게 달라져 운영장애가 납니다. 이 3가지만...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 3. 모델별 런타임 어댑터 점검표</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>모델별 런타임 어댑터 점검표 모델별 런타임 어댑터 점검표 당신이 런타임에서 여러 LLM 공급자를 유연하게 다루고, 모델 교체/비호환성 문제를 미연에 방지하려고 한다는 것을 알고 있기 때문에 아래 짧은 요약을 정리했습니다 — 이 내용이 런타임 어댑터 구현과 마이그레이션 체크리스트를 빠르게 세우는 데 도움이 될 거예요. Claude 모델 마이그레이션 가이드에서는 이전 버전과의 비호환성이 매...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 4. 휴먼 검수와 롤백 운영 패턴</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>휴먼 검수와 롤백 운영 패턴 휴먼 검수와 롤백 운영 패턴 신뢰 가능한 “예측 검증‑운영(Verification &amp; Rollout)”을 대시보드에 바로 넣을 수 있는 실전 설계안을 한 번에 복사해 쓸 수 있게 정리했어요. 0) 한눈 요약 배포: 기능플래그로 카나리→링(1%→5%→25%→100%) 자동 승격·자동 롤백 검증 UI: “작은 카드”로 예측/근거/신뢰도/오류사유/빠른 수락·반려·...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="5" data-status="staged" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 5. HMAC·중복방지 인간 검수 체크리스트</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>HMAC·중복방지 인간 검수 체크리스트 HMAC·중복방지 인간 검수 체크리스트 여기서는 “안전하게 자동 승인/적용”을 위한 HMAC + 타임스탬프 + 멱등성(idempotency) 기본 개념을 한글로 풀고, 바로 PR 설명이나 에이전트(버키/이부장) 메시지에 붙여 넣을 수 있는 리뷰어 체크리스트 + CI 스모크 명령을 한 번에 제공합니다. 배경 한 줄 요약 서버에 바뀜을 적용할 때는 “...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="6" data-status="staged" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 6. CAD→견적 MVP 4일 테스트 계획</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>CAD→견적 MVP 4일 테스트 계획 CAD→견적 MVP 4일 테스트 계획 당신이 지금 보는 내용은 CAD/BIM 도면 파일을 자동으로 처리하고, 텍스트·치수·SKU를 추출해서 데이터베이스 재료 항목과 정량적으로 매핑하는 4일짜리 실전 워크플로우에 관한 핵심 도구·방법론을 한눈에 정리한 것이다. 긴 설명 대신 바로 실전 요소만 보고 싶을 것이다. 5 아래는 이 워크플로우를 현실에서 구현...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="7" data-status="staged" data-priority="P3" data-category="verification">
+      <article class="candidate" data-card="5" data-status="distiller 대기열" data-priority="P3" data-category="voice-pipeline">
         <div class="candidate-top">
           <span class="badge priority">P3</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
+          <span class="badge status distiller 대기열">distiller 대기열</span>
+          <span class="badge risk risk-high">high</span>
         </div>
-        <h3>Card 7. PlanSwift와 오픈 도구 비교표</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <h3>Card 5. YouTube automation package manifest</h3>
+        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
+        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
+            <div class="bar"><span class="low" style="width:64%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -683,17 +629,79 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>PlanSwift와 오픈 도구 비교표 PlanSwift와 오픈 도구 비교표 건축·CAD·개발 도구 간 데이터 흐름을 실제로 만들고 싶다면, 상용 툴과 오픈 소스 툴 사이의 구조와 제약을 빠르게 파악하는 게 핵심입니다. 5 PlanSwift은 건설 수주용 디지털 테이크오프·비용 산출 소프트웨어로, 공급사측에서 제공하는 공식 개발자/스크립팅 문서가 있습니다. 이 문서는 API와 자동화 도구...</p>
+          <p>5개 스크립트 템플릿, 한국어 TTS 음성 3개, 10개 숏폼 샘플, 썸네일 5개, 자막 SRT를 포함합니다. Zapier/n8n 자동화 레시피와 OAuth 웹페이지, 웹훅 엔드포인트로 원클릭 설치가 가능합니다. 정책 체크리스트와 스타일 가이드로 저작권 및 수익화 위험을 줄입니다.</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="8" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="6" data-status="distiller 대기열" data-priority="P3" data-category="voice-pipeline">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status distiller 대기열">distiller 대기열</span>
+          <span class="badge risk risk-high">high</span>
+        </div>
+        <h3>Card 6. Landing and onboarding checklist</h3>
+        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
+        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
+            <div class="bar"><span class="low" style="width:64%"></span></div>
+          </div>
+        </div>
+        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>방문자→시험판→OAuth 연결→첫 영상→결제로 변환하는 단일 세션 온보딩입니다. 각 단계: 구글 연동, 음성 선택, 요금제, 첫 영상 생성, 업로드 확인. 정확한 버튼 텍스트와 자동 이메일 템플릿을 제공하며, STT 전사 검토 후 승인해야 업로드됩니다.</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="7" data-status="P1이지만 distiller 라우팅 — 다음 세션 우선 처리" data-priority="P1" data-category="voice-pipeline">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status P1이지만 distiller 라우팅 — 다음 세션 우선 처리">P1이지만 distiller 라우팅 — 다음 세션 우선 처리</span>
+          <span class="badge risk risk-high">high</span>
+        </div>
+        <h3>Card 7. Video-to-distribution automation pipeline sketch</h3>
+        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
+        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
+            <div class="bar"><span class="low" style="width:64%"></span></div>
+          </div>
+        </div>
+        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>원본 영상을 분석(STT+토픽)→편집(장면 감지+템플릿)→메타데이터(자막/제목)의 3개 라인으로 병렬 처리합니다. project.json 제어 파일로 모든 에이전트가 안전하게 협력하며, TikTok/Reels/YouTube/X용 프리셋 렌더링으로 10분 내 완성됩니다.</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="8" data-status="Codex 검증 대기" data-priority="P3" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status Codex 검증 대기">Codex 검증 대기</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 8. AI 자재 매칭 1일 프로토타입</h3>
+        <h3>Card 8. Prosutech YouTube hook templates</h3>
         <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
         <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
@@ -714,30 +722,61 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>AI 자재 매칭 1일 프로토타입 AI 자재 매칭 1일 프로토타입 여기, 현장 사진 한 장으로 “비슷한 마감재”를 즉시 찾아주는 초간단 프로토타입 제안이에요—휴대폰으로 찍고 1일 만에 데모까지 갈 수 있게 설계했습니다. 목표 사진/샘플보드 → OCR로 라벨 텍스트 추출 → CLIP 임베딩으로 유사 마감재 검색 → 웹 미니 UI에서 결과 확인. 핵심 스택(무료·오픈소스) 임베딩/검색: cl...</p>
+          <p>&quot;AI가 1분에 인테리어 견적&quot;, &quot;시공비 30% 절감&quot;, &quot;이부장 에이전트 실전&quot;, &quot;3단계로 론칭&quot; 네 가지 테마 템플릿을 제공합니다. 각각 30-90초 클립 맵, 정확한 썸네일 텍스트, 설명문과 CTA를 포함하며, 프로슈테크 빌더에 맞춰 AI+인테리어+노코드 키워드를 강조합니다.</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="9" data-status="staged" data-priority="P2" data-category="command-payload">
+      <article class="candidate" data-card="9" data-status="distiller 대기열" data-priority="P3" data-category="voice-pipeline">
         <div class="candidate-top">
-          <span class="badge priority">P2</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-medium">medium</span>
+          <span class="badge priority">P3</span>
+          <span class="badge status distiller 대기열">distiller 대기열</span>
+          <span class="badge risk risk-high">high</span>
         </div>
-        <h3>Card 9. 조도 계산 자동배치 도구 구상</h3>
-        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
-        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
+        <h3>Card 9. Canonical Excel ingest schema</h3>
+        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
+        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>86</strong></div>
+            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
+            <div class="bar"><span class="low" style="width:64%"></span></div>
+          </div>
+        </div>
+        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn approve" data-action="approve">승인</button>
+          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>어떤 지저분한 벤더 목록, 음성 캡처, PDF 테이블도 정규화된 행으로 변환합니다. 설명→SKU 퍼지 매칭(임계값 85%), 단위 정규화(m→mm), 통화 변환(KRW), 기하학 QC를 순차 적용합니다. 구글 시트 Apps Script 샘플과 파이썬 예제 코드로 비개발자도 실행 가능합니다.</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="10" data-status="collector 대기열" data-priority="P3" data-category="obsidian-queue">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status collector 대기열">collector 대기열</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 10. Obsidian backup and restore checklist</h3>
+        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
+        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
+            <div class="bar"><span class="good" style="width:84%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
             <div class="bar"><span class="good" style="width:86%"></span></div>
           </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>70</strong></div>
-            <div class="bar"><span class="mid" style="width:70%"></span></div>
-          </div>
         </div>
-        <p class="next">명령 구조, idempotency, 재시도 규칙을 먼저 문서화한다.</p>
+        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -745,61 +784,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>조도 계산 자동배치 도구 구상 조도 계산 자동배치 도구 구상 지금까지 얘기하신 “평면도 → 자동 조도 계산 → 등기구 배치”를, 업로드 한 번으로 끝나는 초간단 툴로 묶은 제안이에요. 미니 앱 개요 목표: CAD/PDF 평면도에서 방 폴리곤 자동 추출 → 등기구(광배분/광속) 적용 → 격자 샘플 조도 계산 → 권장 수량·간격·배치안 산출. UX 플로우: 파일 업로드 → 2) 방/영역 자...</p>
+          <p>클라이언트 측 AES-256-GCM 암호화로 변화 없으면 업로드하지 않습니다(manifest 기반). KMS 봉투 패턴으로 DEK를 래핑하고, 매일 증분/매주 전체 스냅샷을 유지합니다. 매월 스모크 복구로 검증하며, 최소 권한 역할(reader/snapshot_writer/kms_operator)로 분리합니다.</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="10" data-status="staged" data-priority="P1" data-category="verification">
-        <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 10. Stripe 웹훅 메타데이터 연결</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
-          </div>
-        </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>Stripe 웹훅 메타데이터 연결 Stripe 웹훅 메타데이터 연결 Stripe webhook 처리에서 “원자적 주문 노트와 텔레메트리”를 reliably 받도록 설계하는 패턴이 실제로 존재하며, 여기엔 Checkout Sessions/Payment Links 생성 시 정확한 metadata 설정, webhook 시그니처 검증, idempotency 보장, 이벤트 처리라는 세 가지 핵심...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="11" data-status="staged" data-priority="P3" data-category="experiment">
+      <article class="candidate" data-card="11" data-status="collector 대기열" data-priority="P3" data-category="obsidian-queue">
         <div class="candidate-top">
           <span class="badge priority">P3</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-medium">medium</span>
+          <span class="badge status collector 대기열">collector 대기열</span>
+          <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 11. 구매대행 가격 A/B 실험</h3>
-        <p class="meta">실험 후보 · owner: bucky · target: 00_UPGRADE/next-plan.md</p>
-        <p class="action">Log as an experiment candidate and require explicit approval before build work.</p>
+        <h3>Card 11. Obsidian AI plugin patterns</h3>
+        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
+        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>58</strong></div>
-            <div class="bar"><span class="low" style="width:58%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
+            <div class="bar"><span class="good" style="width:84%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>76</strong></div>
-            <div class="bar"><span class="mid" style="width:76%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
+            <div class="bar"><span class="good" style="width:86%"></span></div>
           </div>
         </div>
-        <p class="next">사업 실험 후보로 보관하고, 구현 전 기대효과와 측정 지표를 정한다.</p>
+        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -807,30 +815,30 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>구매대행 가격 A/B 실험 구매대행 가격 A/B 실험 가격과 요금 모델을 실제로 실험하고 데이터로 결정하는 방법을 짧은 기간에 틀을 잡아주는 가이드라인입니다 — 특히 per‑order 요금 vs. 정액제 구독 같은 구조를 단순하고 빠르게 A/B로 검증하는 케이스에 집중합니다. Stripe 6 왜 이게 빠르게 의사결정에 도움이 되는가? • A/B 가격 실험은 이미 많은 기업에서 표준화된...</p>
+          <p>옵시디언 플러그인이 로컬 임베딩(클라우드 없음), 구조화된 에이전트 작업, 명확한 권한 경계를 통해 제어 영역으로 진화 중입니다. Smart Environment, Agent Client, Ollama 로컬 모델, Copilot 등이 비공개이면서도 강력한 의미론적 검색과 생성을 제공합니다.</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="12" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="12" data-status="distiller 대기열" data-priority="P3" data-category="voice-pipeline">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
+          <span class="badge priority">P3</span>
+          <span class="badge status distiller 대기열">distiller 대기열</span>
+          <span class="badge risk risk-high">high</span>
         </div>
-        <h3>Card 12. 구매대행 대시보드 핵심 점검</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <h3>Card 12. On-site voice privacy rules</h3>
+        <p class="meta">음성 파이프라인 · owner: distiller · target: 05_Frameworks/guides / voice intake and Obsidian logging</p>
+        <p class="action">Stage voice-note metadata and replay rules for the voice capture pipeline.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>64</strong></div>
+            <div class="bar"><span class="low" style="width:64%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">실시간 음성/ASR/비용 경계가 있어 사용자 승인 후 별도 검증 계획이 필요하다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn approve" data-action="approve">승인</button>
           <button type="button" class="command-btn implement" data-action="implement">구현</button>
@@ -838,7 +846,7 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>구매대행 대시보드 핵심 점검 구매대행 대시보드 핵심 점검 아래는 구매대행 자동화시스템(sniper‑buying‑dashboard) 개선을 위한 초경량 감사 결과와 즉시 적용 체크리스트예요. 핵심은 데이터 신선도, 구매 실패 대응, 정산/조정 UI—이 3축만 잡아도 CS가 줄고, 상점(공급처) 신뢰도가 확 올라갑니다. 1) 데이터 신선도(공급처·가격) 필수 지표: 마지막크롤시각, 원가/판...</p>
+          <p>녹음 시 10초 동의 스크립트 재생, 로컬 순환 버퍼에 원본 저장 후 처리 후 삭제, PII 자동 마스킹(이름→[NAME_1] 등), 30-120초 검토 창 유지, 감사 로그 기록으로 동의와 보존을 증명합니다. 원본 음성 0분, 마스킹된 텍스트 30일, 감시 로그 영구 보관합니다.</p>
         </details>
       </article>
     </div>
@@ -853,9 +861,9 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-05.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-05.md</code></div>
-      <div>생성 시각: <code>2026-06-05 14:14:51 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-06.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-06.md</code></div>
+      <div>생성 시각: <code>2026-06-07 00:55:46 KST</code></div>
     </div>
   </section>
 </main>
@@ -932,6 +940,7 @@
   function payloadForBuckyOS(body, action) {
     return {
       type: "daily_plus_user_command",
+      dashboard_type: "daily_plus",
       source: "daily-plus-dashboard",
       target: "Bucky",
       session_id: dailyPlusSessionId(),
@@ -939,19 +948,21 @@
       follow_up_state: "awaiting_user_instruction",
       action: action || "message",
       createdAt: new Date().toISOString(),
+      title: action || "message",
       body: body
     };
   }
 
   async function postToBucky(body, action) {
-    var endpoint = endpointValue();
-    if (!endpoint) throw new Error("Bucky OS 수신 URL이 필요합니다.");
+    var base = endpointValue().replace(/\/$/, "");
+    if (!base) throw new Error("Bucky OS 수신 URL이 필요합니다.");
+    var intakeUrl = base + "/intake";
 
     var payload = payloadForBuckyOS(body, action || "message");
     var json = JSON.stringify(payload);
 
     try {
-      var response = await fetch(endpoint, {
+      var response = await fetch(intakeUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: json
@@ -959,11 +970,11 @@
       var data = {};
       try { data = await response.json(); } catch (_) {}
       if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
-      return { method: "fetch" };
+      return { method: "fetch", request_id: data.request_id };
     } catch (error) {
       if (navigator.sendBeacon) {
         var blob = new Blob([json], { type: "text/plain;charset=UTF-8" });
-        if (navigator.sendBeacon(endpoint, blob)) {
+        if (navigator.sendBeacon(intakeUrl, blob)) {
           return { method: "beacon" };
         }
       }

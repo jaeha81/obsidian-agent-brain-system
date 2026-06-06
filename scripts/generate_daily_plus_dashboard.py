@@ -217,6 +217,7 @@ DASHBOARD_INTERACTION_JS = """
   function payloadForBuckyOS(body, action) {
     return {
       type: "daily_plus_user_command",
+      dashboard_type: "daily_plus",
       source: "daily-plus-dashboard",
       target: "Bucky",
       session_id: dailyPlusSessionId(),
@@ -224,19 +225,21 @@ DASHBOARD_INTERACTION_JS = """
       follow_up_state: "awaiting_user_instruction",
       action: action || "message",
       createdAt: new Date().toISOString(),
+      title: action || "message",
       body: body
     };
   }
 
   async function postToBucky(body, action) {
-    var endpoint = endpointValue();
-    if (!endpoint) throw new Error("Bucky OS 수신 URL이 필요합니다.");
+    var base = endpointValue().replace(/\\/$/, "");
+    if (!base) throw new Error("Bucky OS 수신 URL이 필요합니다.");
+    var intakeUrl = base + "/intake";
 
     var payload = payloadForBuckyOS(body, action || "message");
     var json = JSON.stringify(payload);
 
     try {
-      var response = await fetch(endpoint, {
+      var response = await fetch(intakeUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: json
@@ -244,11 +247,11 @@ DASHBOARD_INTERACTION_JS = """
       var data = {};
       try { data = await response.json(); } catch (_) {}
       if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
-      return { method: "fetch" };
+      return { method: "fetch", request_id: data.request_id };
     } catch (error) {
       if (navigator.sendBeacon) {
         var blob = new Blob([json], { type: "text/plain;charset=UTF-8" });
-        if (navigator.sendBeacon(endpoint, blob)) {
+        if (navigator.sendBeacon(intakeUrl, blob)) {
           return { method: "beacon" };
         }
       }
