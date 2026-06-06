@@ -7,11 +7,16 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from scripts import discord_bot
+
+def _get_discord_bot():
+    """Lazy-import discord_bot to avoid module-level stdout side effects at collection time."""
+    from scripts import discord_bot  # noqa: PLC0415
+    return discord_bot
 
 
 class DailyPlusDiscordIntakeTests(unittest.TestCase):
     def test_detects_daily_plus_knowledge_intake_message(self):
+        discord_bot = _get_discord_bot()
         content = "\n".join(
             [
                 "!capture https://youtu.be/example",
@@ -37,6 +42,7 @@ class DailyPlusDiscordIntakeTests(unittest.TestCase):
         self.assertEqual(payload["follow_up_state"], "awaiting_user_instruction")
 
     def test_builds_session_prompt_with_saved_paths_and_next_wait_state(self):
+        discord_bot = _get_discord_bot()
         payload = {
             "type": "note",
             "title": "User KB memo",
@@ -62,6 +68,7 @@ class DailyPlusDiscordIntakeTests(unittest.TestCase):
         self.assertIn("다음 사용자 작업 지시를 기다리는 상태", prompt)
 
     def test_builds_fallback_reply_that_preserves_utf8_body(self):
+        discord_bot = _get_discord_bot()
         payload = {
             "type": "note",
             "title": "UTF8 smoke",

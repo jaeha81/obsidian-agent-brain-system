@@ -32,7 +32,15 @@ import tempfile
 from collections import defaultdict
 
 # Windows stdout/stderr UTF-8 설정 — reconfigure 사용 (Python 3.7+)
-if sys.platform == "win32":
+# pytest 프로세스 내에서는 pytest의 capture tmpfile을 보호하기 위해 stdout 수정 전체 스킵
+import io as _io
+_UNDER_PYTEST = (
+    "pytest" in sys.modules
+    or "_pytest" in sys.modules
+    or "PYTEST_CURRENT_TEST" in os.environ
+    or "_PYTEST_ACTIVE" in os.environ
+)
+if sys.platform == "win32" and not _UNDER_PYTEST:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
@@ -40,11 +48,11 @@ if sys.platform == "win32":
         pass
 
 # stdout/stderr 닫혀 있을 때(콘솔 없이 실행, 창 닫힘 등) print 크래시 방지
-import io as _io
-if sys.stdout is None or (hasattr(sys.stdout, "closed") and sys.stdout.closed):
-    sys.stdout = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
-if sys.stderr is None or (hasattr(sys.stderr, "closed") and sys.stderr.closed):
-    sys.stderr = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
+if not _UNDER_PYTEST:
+    if sys.stdout is None or (hasattr(sys.stdout, "closed") and sys.stdout.closed):
+        sys.stdout = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
+    if sys.stderr is None or (hasattr(sys.stderr, "closed") and sys.stderr.closed):
+        sys.stderr = _io.TextIOWrapper(_io.open(os.devnull, "wb"), encoding="utf-8", errors="replace")
 import builtins as _builtins
 _unsafe_print = _builtins.print
 
