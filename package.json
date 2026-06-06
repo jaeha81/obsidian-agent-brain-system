@@ -2,7 +2,11 @@
   "name": "obsidian-agent-brain-system",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": "22.x"
+  },
+  "scripts": {
+    "test:js": "node --test tests/test_safe_redirect.js"
   }
 }
