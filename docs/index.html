@@ -1053,7 +1053,7 @@ document.getElementById('whOverlay').addEventListener('click', function(e) {
 })();
 
 // ── Bucky Discord 연동 ─────────────────────────────────────────────
-const BUCKY_OS_KEY = 'repoBuckyOsEndpoint';
+const BUCKY_OS_KEY = 'buckyIntakeEndpoint';
 
 function getBuckyOsEndpoint() {
   return (localStorage.getItem(BUCKY_OS_KEY) || 'http://localhost:8765').replace(/\/$/, '');
@@ -1079,12 +1079,15 @@ async function sendToBucky(id) {
   const now = new Date().toLocaleString('ko-KR');
   const intakePayload = {
     dashboard_type: 'repo',
+    target_channel: 'jh-레포대시보드',
     action: 'start',
+    item_id: repo.id,
     title: repo.name,
     summary: repo.action,
     url: repo.url,
     source: 'repo-dashboard',
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    source_dashboard_url: location.href
   };
   try {
     await postToIntake(intakePayload);
@@ -1129,12 +1132,15 @@ async function sendAllToBucky() {
   const now = new Date().toLocaleString('ko-KR');
   const intakePayload = {
     dashboard_type: 'repo',
+    target_channel: 'jh-레포대시보드',
     action: 'batch_start',
+    item_id: checked.map(r => r.id).join(','),
     title: `일괄 작업 ${checked.length}개`,
     summary: checked.map((r, i) => `${i+1}. ${r.name}: ${r.action}`).join('\n'),
     items: checked.map(r => ({ id: r.id, name: r.name, action: r.action, url: r.url })),
     source: 'repo-dashboard',
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    source_dashboard_url: location.href
   };
   try {
     await postToIntake(intakePayload);

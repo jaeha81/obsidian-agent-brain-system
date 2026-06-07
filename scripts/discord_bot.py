@@ -2532,6 +2532,18 @@ async def _init_jh_channels(client) -> None:
             except discord.Forbidden:
                 print(f"[Setup] #{ch_name} 생성 실패: 권한 없음", flush=True)
 
+    # ── intake 채널: ALLOWED_CHANNELS 등록 + .env 영구 저장 ──────────────────────
+    _intake_env_keys = [
+        ("JH_REPO_DASHBOARD_CHANNEL_ID", JH_REPO_DASHBOARD_CHANNEL_ID),
+        ("JH_WISHKET_CHANNEL_ID",        JH_WISHKET_CHANNEL_ID),
+        ("JH_DAILYPLUS_CHANNEL_ID",      JH_DAILYPLUS_CHANNEL_ID),
+        ("JH_TASKBOARD_CHANNEL_ID",      JH_TASKBOARD_CHANNEL_ID),
+    ]
+    for _env_key, _ch_id in _intake_env_keys:
+        if _ch_id:
+            ALLOWED_CHANNELS.add(_ch_id)
+            _persist_env_key(_env_key, _ch_id)
+
     # ── 작업 채널 자동 생성 (jh-work-1, jh-work-2) ────────────────────────────
     _work_specs = [
         ("jh-work-1", "⚙️ Claude Code 작업 채널 1 — 독립 세션, 병렬 실행"),

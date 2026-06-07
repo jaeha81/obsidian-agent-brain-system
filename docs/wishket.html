@@ -630,6 +630,11 @@ function makeProjectSlug(p) {
   return ['wishket', linkId ? linkId[1] : '', asciiTitle].filter(Boolean).join('-') || `wishket-${p.id}`;
 }
 
+function buildWishketRequestId(p) {
+  const linkId = ((p.link || '').match(/\/project\/(\d+)\/?/) || [])[1] || String(p.id || 'unknown');
+  return `wishket-${linkId}-start`;
+}
+
 function buildDevelopmentRequestPayload(p) {
   return {
     type: 'wishket_development_request',
@@ -639,6 +644,7 @@ function buildDevelopmentRequestPayload(p) {
     project_title: p.title,
     title: p.title,
     project_slug: makeProjectSlug(p),
+    request_id: buildWishketRequestId(p),
     summary: p.description || '',
     budget: p.budget || '',
     deadline: '',

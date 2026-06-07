@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-06"
+    "last_updated": "2026-06-07"
   },
   "tasks": [
     {
@@ -193,6 +193,28 @@
         "ObsidianVault/.obsidian/snippets/galaxy-graph.css",
         "ObsidianVault/.obsidian/graph.json"
       ]
+    },
+    {
+      "id": "CL-016",
+      "title": "ANTHROPIC_API_KEY 설정 시 Haiku 모델로 자동 분석 가능 — `.env`에 키 추가하면 이후 주간 자동 실행됨",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-07",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-017",
+      "title": "패턴 감지 상시형(raw_import_watcher 통합) — 별도 승인 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-07",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }
