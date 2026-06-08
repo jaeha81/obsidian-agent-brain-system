@@ -119,10 +119,8 @@ def build_bucky_command(system_prompt: str | None = None, model: str | None = No
     ]
     if system_prompt:
         cmd += ["--append-system-prompt", system_prompt]
-    if tool_mode == "safe":
-        cmd += ["--tools", ""]                           # no tools → no permission prompts
-    else:
-        cmd += ["--dangerously-skip-permissions"]        # auto-approve all tool calls
+    if tool_mode != "safe":
+        cmd += ["--dangerously-skip-permissions"]
     return cmd
 
 

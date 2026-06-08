@@ -120,6 +120,13 @@
   .reason-box { font-size: 0.76rem; color: var(--muted); margin: 8px 0; line-height: 1.5; }
 
   .card-footer { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .progress-panel { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.03); }
+  .progress-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .progress-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .progress-status { font-size: 12px; font-weight: 700; color: var(--accent); }
+  .progress-copy { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+  .progress-copy strong { color: var(--text); }
+  .progress-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   .action-btn {
     font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
     background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s;
@@ -207,6 +214,31 @@
   .intake-actions button.secondary { border-color: var(--border); color: var(--muted); background: transparent; }
   .intake-actions button:hover { background: rgba(188,140,255,0.22); }
 
+  .result-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .result-summary-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+  }
+  .result-summary-card strong {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--purple);
+  }
+  .result-summary-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.74rem;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
   footer { text-align: center; padding: 28px; color: var(--muted); font-size: 0.77rem; border-top: 1px solid var(--border); margin-top: 8px; }
 
   /* Discord Webhook Modal */
@@ -250,11 +282,39 @@
     <a href="task-board.html">태스크보드</a>
     <a href="checklist.html">체크리스트</a>
     <a href="ai-usage.html">AI사용량</a>
+    <a href="app-session.html">앱세션</a>
     <a href="https://github.com/jaeha81" target="_blank" rel="noreferrer">깃허브</a>
     <a href="login.html">로그인</a>
     <a href="/api/logout">로그아웃</a>
   </div>
 </header>
+
+<section class="intake-panel" aria-label="레포 운영 상태">
+  <div class="intake-grid">
+    <div class="intake-card">
+      <h3>jh-chat 공식 경로</h3>
+      <p>사용자 직접 대화는 <strong>jh-chat</strong>을 기준으로 하고, 레포 착수 요청은 <strong>jh-레포대시보드</strong> 채널로 전달합니다.</p>
+    </div>
+    <div class="intake-card">
+      <h3>진행상황 운영</h3>
+      <p><strong>진행상황</strong>, <strong>다음 플랜</strong>, <strong>이어서 작업</strong>, <strong>세션</strong> 정보를 레포 카드 기준으로 관리합니다.</p>
+    </div>
+  </div>
+  </section>
+
+<section class="intake-panel" aria-label="repo-dashboard-results" data-dashboard-results="repo">
+  <div class="intake-title">대시보드 결과 요약</div>
+  <div class="intake-sub">Discord results를 따로 찾지 않아도, 레포별 착수 결과와 다음 세션 상태를 이 화면에서 바로 확인합니다.</div>
+  <div class="result-summary-grid">
+    <div class="result-summary-card"><strong id="repoResultDispatched">0</strong><span>전송됨</span></div>
+    <div class="result-summary-card"><strong id="repoResultPlanning">0</strong><span>다음 플랜 기록</span></div>
+    <div class="result-summary-card"><strong id="repoResultReady">0</strong><span>이어서 작업 준비</span></div>
+    <div class="result-summary-card"><strong id="repoResultStopped">0</strong><span>중지 / 세션 저장</span></div>
+  </div>
+</section>
+
+<p style="margin:0 32px 10px;color:var(--muted);font-size:0.78rem"><strong>공식 대화 채널:</strong> 사용자 직접 대화는 <code>jh-chat</code>만 사용하고, <code>일반</code> 채널은 운영 경로로 사용하지 않습니다.</p>
+<p style="margin:0 32px 16px;color:var(--muted);font-size:0.78rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart는 사용자 승인 후 Bucky가 실행 가능한 작업으로 취급합니다.</p>
 
 <div class="stats-bar">
   <div class="stat-box">
@@ -783,6 +843,7 @@ const repos = [
 // ── 상태 초기화 ─────────────────────────────────────────────────
 const saved = JSON.parse(localStorage.getItem('jh-repo-checks-v2') || '{}');
 repos.forEach(r => { r.checked = saved[r.id] || false; });
+const repoProgress = JSON.parse(localStorage.getItem('jh-repo-progress-v1') || '{}');
 
 let currentFilter = 'all';
 let currentSearch = '';
@@ -803,6 +864,7 @@ function cardClick(e, url) {
 // ── 카드 렌더 ────────────────────────────────────────────────────
 function renderCard(r) {
   const score = getScore(r);
+  const progress = getRepoProgress(r.id);
   const tierLabel = r.tier === 1 ? '🟢 즉시 출시' : r.tier === 2 ? '🟡 개발 필요' : '⚫ 인프라/보류';
   const tierClass = `tier-${r.tier}`;
   return `
@@ -846,6 +908,91 @@ function renderCard(r) {
 }
 
 // ── 렌더 & 정렬 ─────────────────────────────────────────────────
+function getRepoProgress(id) {
+  return repoProgress[id] || {
+    status: '대기',
+    nextPlan: 'Bucky 착수 요청 전입니다.',
+    sessionNote: '세션 미저장'
+  };
+}
+
+function saveRepoProgress(id, patch) {
+  repoProgress[id] = { ...getRepoProgress(id), ...patch, updatedAt: new Date().toISOString() };
+  localStorage.setItem('jh-repo-progress-v1', JSON.stringify(repoProgress));
+}
+
+function setRepoProgressState(id, status) {
+  const current = getRepoProgress(id);
+  saveRepoProgress(id, {
+    status,
+    nextPlan: status === '중지' ? '중지 사유를 정리한 뒤 다음 세션에서 재개합니다.' : current.nextPlan,
+    sessionNote: status === '중지' ? '세션 저장됨: 중지 후 재개 대기' : current.sessionNote
+  });
+  renderAll();
+}
+
+function captureRepoNextPlan(id) {
+  const current = getRepoProgress(id);
+  const nextPlan = prompt('다음 플랜을 입력하세요.', current.nextPlan);
+  if (nextPlan === null) return;
+  saveRepoProgress(id, {
+    status: current.status === '대기' ? '계획 정리' : current.status,
+    nextPlan,
+    sessionNote: '세션 저장됨: 다음 플랜 기록 완료'
+  });
+  renderAll();
+}
+
+function resumeRepoSession(id) {
+  saveRepoProgress(id, {
+    status: '재개 준비',
+    nextPlan: 'jh-레포대시보드 채널의 직전 메시지와 현재 레포 상태를 확인합니다.',
+    sessionNote: '세션 저장됨: 이어서 작업 준비'
+  });
+  renderAll();
+}
+
+function markRepoDispatched(id, mode) {
+  const nextPlan = mode === 'batch'
+    ? 'jh-레포대시보드 채널에서 배치 순서와 다음 작업을 확인합니다.'
+    : 'jh-레포대시보드 채널에서 착수 브리핑과 다음 플랜을 확인합니다.';
+  saveRepoProgress(id, {
+    status: '전송됨',
+    nextPlan,
+    sessionNote: '세션 저장됨: 다음 세션에서 이어서 작업 가능'
+  });
+}
+
+function buildRepoProgressPanel(id) {
+  const progress = getRepoProgress(id);
+  return `
+    <div class="progress-panel" data-progress-panel="repo">
+      <div class="progress-head">
+        <span class="progress-title">진행상황</span>
+        <span class="progress-status">${progress.status}</span>
+      </div>
+      <div class="progress-copy">
+        <div><strong>다음 플랜</strong>: ${progress.nextPlan}</div>
+        <div><strong>세션</strong>: ${progress.sessionNote}</div>
+      </div>
+      <div class="progress-actions">
+        <button class="action-btn" onclick="event.stopPropagation();setRepoProgressState('${id}','중지')">중지</button>
+        <button class="action-btn" onclick="event.stopPropagation();resumeRepoSession('${id}')">이어서 작업</button>
+        <button class="action-btn" onclick="event.stopPropagation();captureRepoNextPlan('${id}')">다음 플랜</button>
+      </div>
+    </div>`;
+}
+
+function enhanceRepoProgressPanels() {
+  repos.forEach((repo) => {
+    const card = document.getElementById(`card-${repo.id}`);
+    if (!card) return;
+    const existing = card.querySelector('[data-progress-panel="repo"]');
+    if (existing) existing.remove();
+    card.insertAdjacentHTML('beforeend', buildRepoProgressPanel(repo.id));
+  });
+}
+
 function getSorted() {
   const arr = [...repos];
   if (currentSort === 'score') arr.sort((a,b) => getScore(b)-getScore(a));
@@ -858,6 +1005,7 @@ function getSorted() {
 
 function renderAll() {
   document.getElementById('grid').innerHTML = getSorted().map(renderCard).join('');
+  enhanceRepoProgressPanels();
   updateStats();
   applyFilters();
 }
@@ -889,6 +1037,22 @@ function updateStats() {
   document.getElementById('tier3Count').textContent = t3;
   document.getElementById('checkedCount').textContent = checked;
   document.getElementById('topProgress').style.width = (checked / repos.length * 100) + '%';
+  updateRepoResultSummary();
+}
+
+function updateRepoResultSummary() {
+  const summary = { dispatched: 0, planning: 0, ready: 0, stopped: 0 };
+  Object.values(repoProgress).forEach((progress) => {
+    if (!progress || !progress.status) return;
+    if (progress.status === '전송됨') summary.dispatched++;
+    else if (progress.status === '계획 정리') summary.planning++;
+    else if (progress.status === '재개 준비') summary.ready++;
+    else if (progress.status === '중지') summary.stopped++;
+  });
+  document.getElementById('repoResultDispatched').textContent = summary.dispatched;
+  document.getElementById('repoResultPlanning').textContent = summary.planning;
+  document.getElementById('repoResultReady').textContent = summary.ready;
+  document.getElementById('repoResultStopped').textContent = summary.stopped;
 }
 
 // ── 필터 ─────────────────────────────────────────────────────────
@@ -1081,6 +1245,7 @@ async function sendToBucky(id) {
     dashboard_type: 'repo',
     target_channel: 'jh-레포대시보드',
     action: 'start',
+    request_id: `repo-${repo.id}-${Date.now()}`,
     item_id: repo.id,
     title: repo.name,
     summary: repo.action,
@@ -1089,6 +1254,8 @@ async function sendToBucky(id) {
     created_at: new Date().toISOString(),
     source_dashboard_url: location.href
   };
+  markRepoDispatched(id, 'single');
+  renderAll();
   try {
     await postToIntake(intakePayload);
     showToast('✅ Bucky 전송 완료', `${repo.name} → jh-레포대시보드 채널`);
@@ -1134,6 +1301,7 @@ async function sendAllToBucky() {
     dashboard_type: 'repo',
     target_channel: 'jh-레포대시보드',
     action: 'batch_start',
+    request_id: `repo-batch-${Date.now()}`,
     item_id: checked.map(r => r.id).join(','),
     title: `일괄 작업 ${checked.length}개`,
     summary: checked.map((r, i) => `${i+1}. ${r.name}: ${r.action}`).join('\n'),
@@ -1142,6 +1310,8 @@ async function sendAllToBucky() {
     created_at: new Date().toISOString(),
     source_dashboard_url: location.href
   };
+  checked.forEach((repo) => markRepoDispatched(repo.id, 'batch'));
+  renderAll();
   try {
     await postToIntake(intakePayload);
     showToast(`✅ ${checked.length}개 전송 완료`, 'jh-레포대시보드 채널에서 확인하세요');

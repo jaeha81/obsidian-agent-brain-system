@@ -57,31 +57,73 @@
       }
     },
     {
-      "query": "path:03_Knowledge",
+      "query": "path:10_AgentBus",
       "color": {
         "a": 1,
-        "rgb": 65535
-      }
-    },
-    {
-      "query": "path:04_Wiki",
-      "color": {
-        "a": 1,
-        "rgb": 65280
-      }
-    },
-    {
-      "query": "path:05_Frameworks",
-      "color": {
-        "a": 1,
-        "rgb": 16750848
+        "rgb": 13007069
       }
     },
     {
       "query": "path:03_Projects",
       "color": {
         "a": 1,
-        "rgb": 16737792
+        "rgb": 16007006
+      }
+    },
+    {
+      "query": "path:03_Knowledge",
+      "color": {
+        "a": 1,
+        "rgb": 16486972
+      }
+    },
+    {
+      "query": "path:05_Frameworks",
+      "color": {
+        "a": 1,
+        "rgb": 2282478
+      }
+    },
+    {
+      "query": "path:06_Context_Packs",
+      "color": {
+        "a": 1,
+        "rgb": 10011513
+      }
+    },
+    {
+      "query": "path:04_Wiki",
+      "color": {
+        "a": 1,
+        "rgb": 8702998
+      }
+    },
+    {
+      "query": "path:00_System",
+      "color": {
+        "a": 1,
+        "rgb": 16436245
+      }
+    },
+    {
+      "query": "path:05_Logs",
+      "color": {
+        "a": 1,
+        "rgb": 6809849
+      }
+    },
+    {
+      "query": "path:07_Reports",
+      "color": {
+        "a": 1,
+        "rgb": 6333946
+      }
+    },
+    {
+      "query": "path:Inbox",
+      "color": {
+        "a": 1,
+        "rgb": 14707829
       }
     }
   ],

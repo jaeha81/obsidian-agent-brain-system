@@ -504,6 +504,38 @@ class WorkerPool:
         self._active[task["id"]] = t
         return task["id"]
 
+    def cancel_task(self, tid: str) -> dict:
+        """태스크 취소. 반환: {ok, error}"""
+        task = tq.get(tid)
+        if not task:
+            return {"ok": False, "error": f"태스크 없음: {tid}"}
+        current = task.get("status", "")
+        if current in ("done", "cancelled"):
+            return {"ok": False, "error": f"이미 {current} 상태"}
+        if tid in self._active:
+            self._active[tid].cancel()
+        tq.update(tid, "cancelled", "Discord !취소 명령")
+        if tid in self._task_registry:
+            self._task_registry[tid]["status"] = "cancelled"
+        return {"ok": True, "error": ""}
+
+    def retry_task(self, tid: str) -> dict:
+        """실패/취소된 태스크 재시도. 새 task_id 반환. 반환: {ok, new_id, error}"""
+        task = tq.get(tid)
+        if not task:
+            return {"ok": False, "new_id": None, "error": f"태스크 없음: {tid}"}
+        current = task.get("status", "")
+        if current not in ("failed", "cancelled", "error"):
+            return {"ok": False, "new_id": None, "error": f"재시도 불가 상태: {current} (failed/cancelled만 가능)"}
+        new_task = tq.add(
+            task.get("title", "retry")[:60],
+            task.get("body", task.get("title", ""))[:500],
+            task.get("agent"),
+            "discord-retry",
+        )
+        self.submit(new_task)
+        return {"ok": True, "new_id": new_task["id"], "error": ""}
+
     def active_count(self) -> int:
         return len(self._active)
 
@@ -583,6 +615,17 @@ class WorkerPool:
                 break
 
         print(f"[CodexPoller] 전송 완료: {result_file.name}", flush=True)
+
+        # AgentBus 양방향 피드백: 원본 task_id가 있으면 DB 상태 갱신
+        if task_id:
+            try:
+                updated = tq.update(task_id, "codex_reviewed", body[:600])
+                if updated:
+                    print(f"[CodexPoller] AgentBus 피드백 완료: {task_id} → codex_reviewed", flush=True)
+                else:
+                    print(f"[CodexPoller] AgentBus 피드백: task_id {task_id} 없음 (정상 — 별도 Codex 작업)", flush=True)
+            except Exception as _fb_err:
+                print(f"[CodexPoller] AgentBus 피드백 실패: {_fb_err}", flush=True)
 
 
 # ── 싱글턴 ────────────────────────────────────────────────────────────────────

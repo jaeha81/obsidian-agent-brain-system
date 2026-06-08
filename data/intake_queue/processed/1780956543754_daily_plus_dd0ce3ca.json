@@ -1,0 +1,1 @@
+{"action": "health_check", "source": "codex-direct-check", "createdAt": "2026-06-09T07:09:03.6638970+09:00", "target": "Bucky", "type": "daily_plus_user_command", "dashboard_type": "daily_plus", "body": "Codex direct /intake check from dashboard failure triage", "request_id": "dd0ce3ca-2171-4942-be58-4b2847eb0bf2", "enqueued_at": 1780956543.7523377}

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Wishket development request planner.
+"""Wishket development request planner and router.
 
-Default mode is dry-run. Non-dry-run local project creation is explicit and
-still does not create a GitHub repository or run workers by itself.
+Default mode is dry-run. Destructive or external side effects remain approval
+gated, but agent-routing requests can be dispatched immediately.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = ROOT / "ObsidianVault"
 PENDING_DIR = VAULT / "10_AgentBus" / "pending_approval"
+INBOX_DIR = VAULT / "10_AgentBus" / "inbox"
 DEV_ROOT = Path(r"D:\ai프로젝트")
 
 REQUEST_TYPE = "wishket_development_request"
@@ -30,32 +31,33 @@ REQUESTED_ACTIONS = [
     "route_to_codex_for_review",
 ]
 
-IMMEDIATE_ACTIONS: frozenset[str] = frozenset({
-    # 읽기/분석 전용 — 파일시스템·에이전트 실행 없음
-    "analyze_requirements",
-    "create_design_doc",
-    "create_task_queue_entry",
-    "generate_development_plan",
-})
+IMMEDIATE_ACTIONS: frozenset[str] = frozenset(
+    {
+        "analyze_requirements",
+        "create_design_doc",
+        "create_task_queue_entry",
+        "generate_development_plan",
+        "route_to_claude_for_implementation",
+        "route_to_codex_for_review",
+    }
+)
 
-APPROVAL_REQUIRED_ACTIONS: frozenset[str] = frozenset({
-    # 로컬 파일시스템·에이전트 실행 → 모두 승인 필요
-    "create_local_project_folder",
-    "route_to_claude_for_implementation",
-    "route_to_codex_for_review",
-    # 외부/파괴적 작업
-    "create_github_repository",
-    "delete_repository",
-    "git_push",
-    "git_force_push",
-    "deploy_vercel",
-    "deploy_cloudflare",
-    "modify_supabase",
-    "create_supabase_project",
-    "publish_chrome_extension",
-    "payment_or_billing_action",
-    "scrape_external_site",
-})
+APPROVAL_REQUIRED_ACTIONS: frozenset[str] = frozenset(
+    {
+        "create_local_project_folder",
+        "create_github_repository",
+        "delete_repository",
+        "git_push",
+        "git_force_push",
+        "deploy_vercel",
+        "deploy_cloudflare",
+        "modify_supabase",
+        "create_supabase_project",
+        "publish_chrome_extension",
+        "payment_or_billing_action",
+        "scrape_external_site",
+    }
+)
 
 
 def split_actions(requested_actions: list[str]) -> dict[str, list[str]]:
@@ -63,6 +65,7 @@ def split_actions(requested_actions: list[str]) -> dict[str, list[str]]:
 
     Unknown actions default to approval_required for safety.
     """
+
     immediate: list[str] = []
     approval_required: list[str] = []
     for action in requested_actions:
@@ -81,6 +84,7 @@ def _iso() -> str:
 
 def safe_slug(title: str, link: str = "", fallback: str = "wishket-project") -> str:
     """Return ASCII-only slug with [a-z0-9-]."""
+
     link_id = ""
     match = re.search(r"/project/(\d+)/?", link or "")
     if match:
@@ -129,6 +133,7 @@ def normalize_payload(data: dict[str, Any]) -> dict[str, Any]:
         "immediate_actions": actions["immediate"],
         "approval_required_actions": actions["approval_required"],
         "approval_required": bool(actions["approval_required"]),
+        "execution_mode": "immediate" if not actions["approval_required"] else "approval_required",
         "created_at": data.get("created_at") or _iso(),
     }
 
@@ -168,7 +173,7 @@ def build_plan(payload: dict[str, Any]) -> dict[str, Any]:
         "routing": {
             "implementation": "Claude Code",
             "review": "Codex",
-            "worker_execution_requires_approval": True,
+            "worker_execution_requires_approval": bool(payload.get("approval_required")),
         },
     }
 
@@ -179,7 +184,7 @@ def render_plan_markdown(payload: dict[str, Any], plan: dict[str, Any]) -> str:
     approval_text = (
         "The approval-required actions above must be approved before execution."
         if approval_actions
-        else "All actions are analysis-only. Approval is still required to proceed with any execution."
+        else "This request can be dispatched immediately to AgentBus inbox."
     )
     return f"""# Wishket Development Request
 
@@ -194,8 +199,8 @@ def render_plan_markdown(payload: dict[str, Any], plan: dict[str, Any]) -> str:
 - Local folder: `{plan["local_project"]["target"]}`
 - Folder exists: `{plan["local_project"]["exists"]}`
 - GitHub repo candidate: `{plan["github"]["repository_name"]}`
-- Claude Code role: implementation after approval
-- Codex role: independent review after Claude output
+- Claude Code role: implementation when routed
+- Codex role: review request after implementation output
 - Immediate actions: `{", ".join(immediate_actions) or "none"}`
 - Approval-required actions: `{", ".join(approval_actions) or "none"}`
 
@@ -205,26 +210,32 @@ def render_plan_markdown(payload: dict[str, Any], plan: dict[str, Any]) -> str:
 """
 
 
+def _find_existing_by_request_id(directory: Path, request_id: str, needle: str) -> Path | None:
+    if not request_id or not directory.exists():
+        return None
+    for existing in directory.glob("*.md"):
+        try:
+            content = existing.read_text(encoding="utf-8")
+            if needle in content:
+                return existing
+        except OSError:
+            continue
+    return None
+
+
 def queue_for_approval(payload: dict[str, Any]) -> Path:
     plan = build_plan(payload)
     PENDING_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Idempotency: same request_id must not produce duplicate pending files
     request_id = str(payload.get("request_id") or "")
-    if request_id:
-        for existing in PENDING_DIR.glob("*_wishket_development_request.md"):
-            try:
-                content = existing.read_text(encoding="utf-8")
-                if f'"request_id": "{request_id}"' in content:
-                    return existing
-            except OSError:
-                pass
+    existing = _find_existing_by_request_id(PENDING_DIR, request_id, f'"request_id": "{request_id}"')
+    if existing:
+        return existing
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     rid_short = request_id[:8] if request_id else ts
     path = PENDING_DIR / f"{ts}_{payload['project_slug']}_{rid_short}_wishket_development_request.md"
     body = render_plan_markdown(payload, plan)
-    # Wishket 개발요청은 내용과 무관하게 항상 사람 승인 필요
     frontmatter = {
         "type": REQUEST_TYPE,
         "source": payload["source"],
@@ -232,11 +243,103 @@ def queue_for_approval(payload: dict[str, Any]) -> Path:
         "requires_approval": True,
         "queued_at": _iso(),
         "project_slug": payload["project_slug"],
-        "approval_note": "All Wishket development requests require explicit approval before execution.",
+        "approval_note": "Approval-required actions are present and must be approved before execution.",
     }
     fm_lines = ["---"] + [f"{k}: {json.dumps(v, ensure_ascii=False)}" for k, v in frontmatter.items()] + ["---", ""]
     path.write_text("\n".join(fm_lines) + body, encoding="utf-8")
     return path
+
+
+def enqueue_immediate_request(payload: dict[str, Any]) -> Path:
+    """Write an immediate AgentBus inbox request (Claude Code) when approval is not needed."""
+
+    INBOX_DIR.mkdir(parents=True, exist_ok=True)
+    request_id = str(payload.get("request_id") or "")
+    existing = _find_existing_by_request_id(INBOX_DIR, request_id, f"wishket_request_id: {request_id}")
+    if existing:
+        return existing
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    rid_short = request_id[:8] if request_id else ts
+    note_type = "implementation_request"
+    path = INBOX_DIR / f"{ts}_{payload['project_slug']}_{rid_short}.md"
+    frontmatter = {
+        "type": note_type,
+        "source": payload["source"],
+        "status": "pending",
+        "requires_approval": False,
+        "created": _iso(),
+        "project_slug": payload["project_slug"],
+        "wishket_request_id": request_id,
+        "title": payload["project_title"],
+        "router": "ClaudeCode",
+    }
+    body = (
+        f"# Wishket Immediate Execution Request\n\n"
+        f"- Project: {payload['project_title']}\n"
+        f"- URL: {payload['url'] or '(none)'}\n"
+        f"- Budget: {payload['budget'] or '(none)'}\n"
+        f"- Requested actions: {', '.join(payload.get('requested_actions') or []) or 'none'}\n"
+        f"- Immediate actions: {', '.join(payload.get('immediate_actions') or []) or 'none'}\n"
+        f"- Approval-required actions: {', '.join(payload.get('approval_required_actions') or []) or 'none'}\n\n"
+        f"## Summary\n\n{payload['summary'] or 'No summary provided.'}\n\n"
+        f"## Payload\n\n```json\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n```\n"
+    )
+    fm_lines = ["---"] + [f"{k}: {json.dumps(v, ensure_ascii=False)}" for k, v in frontmatter.items()] + ["---", ""]
+    path.write_text("\n".join(fm_lines) + body, encoding="utf-8")
+    return path
+
+
+def enqueue_codex_review_request(payload: dict[str, Any]) -> Path:
+    """Write a Codex review request to AgentBus inbox paired with the immediate implementation request."""
+
+    INBOX_DIR.mkdir(parents=True, exist_ok=True)
+    request_id = str(payload.get("request_id") or "")
+    existing = _find_existing_by_request_id(INBOX_DIR, request_id, f"wishket_review_id: {request_id}")
+    if existing:
+        return existing
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    rid_short = request_id[:8] if request_id else ts
+    path = INBOX_DIR / f"{ts}_{payload['project_slug']}_{rid_short}_codex_review.md"
+    frontmatter = {
+        "type": "review_request",
+        "source": payload["source"],
+        "status": "pending",
+        "requires_approval": False,
+        "created": _iso(),
+        "project_slug": payload["project_slug"],
+        "wishket_review_id": request_id,
+        "title": f"[Codex Review] {payload['project_title']}",
+        "router": "Codex",
+    }
+    body = (
+        f"# Codex Review Request — Wishket Project\n\n"
+        f"- Project: {payload['project_title']}\n"
+        f"- URL: {payload['url'] or '(none)'}\n"
+        f"- Budget: {payload['budget'] or '(none)'}\n"
+        f"- Scope: Review Wishket requirements for clarity, risk, and implementation feasibility.\n\n"
+        f"## Summary\n\n{payload['summary'] or 'No summary provided.'}\n\n"
+        f"## Payload\n\n```json\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n```\n"
+    )
+    fm_lines = ["---"] + [f"{k}: {json.dumps(v, ensure_ascii=False)}" for k, v in frontmatter.items()] + ["---", ""]
+    path.write_text("\n".join(fm_lines) + body, encoding="utf-8")
+    return path
+
+
+def dispatch_request(payload: dict[str, Any]) -> tuple[str, Path, Path | None]:
+    """Route Wishket request either to approval queue or immediate inbox.
+
+    Returns (mode, primary_path, codex_path).
+    When mode is "immediate", both a Claude Code implementation request and a
+    Codex review request are enqueued; codex_path is None for approval routes.
+    """
+
+    if payload.get("approval_required"):
+        return "pending_approval", queue_for_approval(payload), None
+    claude_path = enqueue_immediate_request(payload)
+    codex_path = enqueue_codex_review_request(payload)
+    return "immediate", claude_path, codex_path
 
 
 def execute_local_creation(payload: dict[str, Any]) -> dict[str, Any]:
@@ -285,11 +388,12 @@ def sample_payload() -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Wishket development request dry-run and approval queue")
+    parser = argparse.ArgumentParser(description="Wishket development request dry-run and routing")
     parser.add_argument("--payload-json", help="JSON payload string")
     parser.add_argument("--payload-file", type=Path, help="JSON payload file")
     parser.add_argument("--sample", action="store_true", help="Use built-in sample payload")
     parser.add_argument("--queue", action="store_true", help="Write pending_approval request")
+    parser.add_argument("--dispatch", action="store_true", help="Route to approval queue or immediate inbox")
     parser.add_argument("--execute-local", action="store_true", help="Create local project folder and plan files")
     args = parser.parse_args()
 
@@ -310,6 +414,12 @@ def main() -> int:
     if args.queue:
         queued = queue_for_approval(payload)
         plan["queued_for_approval"] = str(queued)
+    if args.dispatch:
+        mode, routed, codex_path = dispatch_request(payload)
+        plan["dispatch_mode"] = mode
+        plan["dispatch_path"] = str(routed)
+        if codex_path is not None:
+            plan["codex_review_path"] = str(codex_path)
     print(json.dumps(plan, ensure_ascii=False, indent=2))
     return 0
 

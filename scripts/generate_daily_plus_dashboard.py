@@ -111,7 +111,7 @@ STATUS_LABELS = {
 
 
 DASHBOARD_INTERACTION_CSS = """
-  .command-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .command-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .command-btn { border: 1px solid var(--line); border-radius: 8px; min-height: 42px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
   .command-btn:hover, .command-btn:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
   .command-btn.approve { color: var(--amber); background: #fff7ed; border-color: #fed7aa; }
@@ -218,6 +218,7 @@ DASHBOARD_INTERACTION_JS = """
     return {
       type: "daily_plus_user_command",
       dashboard_type: "daily_plus",
+      target_channel: "jh-오늘의플러스",
       source: "daily-plus-dashboard",
       target: "Bucky",
       session_id: dailyPlusSessionId(),
@@ -226,7 +227,8 @@ DASHBOARD_INTERACTION_JS = """
       action: action || "message",
       createdAt: new Date().toISOString(),
       title: action || "message",
-      body: body
+      body: body,
+      source_dashboard_url: location.href
     };
   }
 
@@ -325,8 +327,7 @@ DASHBOARD_INTERACTION_JS = """
     var meta = (card.querySelector(".meta") || {}).textContent || "";
     var next = (card.querySelector(".next") || {}).textContent || "";
     var actionLine = {
-      approve: "이 후보를 사용자 승인 완료로 처리하고 다음 실행 큐에 등록해.",
-      implement: "이 후보를 구현 착수 대상으로 등록하고 필요한 작업을 분해해.",
+      execute: "이 후보를 승인 및 구현 착수 대상으로 등록하고 필요한 작업을 분해해.",
       queue: "이 후보를 보류 후보로 유지하고 다음 검토 큐에 정리해."
     }[action] || "이 후보를 검토해.";
 
@@ -335,6 +336,7 @@ DASHBOARD_INTERACTION_JS = """
       "action: " + action,
       "source: daily-plus-dashboard",
       "target: Bucky",
+      "target_channel: jh-오늘의플러스",
       "card: " + title.trim(),
       "meta: " + meta.trim(),
       "request: " + actionLine,
@@ -411,8 +413,7 @@ DASHBOARD_INTERACTION_JS = """
     var actions = document.createElement("div");
     actions.className = "command-actions";
     actions.innerHTML = [
-      "<button type=\\"button\\" class=\\"command-btn approve\\" data-action=\\"approve\\">승인</button>",
-      "<button type=\\"button\\" class=\\"command-btn implement\\" data-action=\\"implement\\">구현</button>",
+      "<button type=\\"button\\" class=\\"command-btn implement\\" data-action=\\"execute\\">승인/구현</button>",
       "<button type=\\"button\\" class=\\"command-btn queue\\" data-action=\\"queue\\">후보</button>"
     ].join("");
     var details = card.querySelector("details");
@@ -669,8 +670,7 @@ def render_cards(candidates: list[Candidate]) -> str:
         </div>
         <p class="next">{esc(profile["next"])}</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn approve" data-action="approve">승인</button>
-          <button type="button" class="command-btn implement" data-action="implement">구현</button>
+          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
@@ -947,7 +947,14 @@ def render_dashboard(
   <h1>오늘의 플러스 운영 리포트</h1>
   <p>ChatGPT Pulse 수집 결과를 Bucky가 운영 관점으로 분류한 대시보드입니다. 첫 오늘의 플러스({esc(first_date)}) 대비 얼마나 진화했는지, 오늘 무엇이 처리됐고 무엇을 구현해야 하는지, 어떤 항목이 효율성과 호환성 측면에서 우선인지 한 화면에서 확인합니다.</p>
 </header>
+<p style="margin:0 32px 10px;color:var(--muted);font-size:0.78rem"><strong>공식 대화 채널:</strong> 사용자 직접 대화는 <code>jh-chat</code>만 사용하고, <code>일반</code> 채널은 운영 경로로 사용하지 않습니다. 오늘의플러스 intake는 <strong>jh-오늘의플러스</strong> 채널로 전달합니다.</p>
+<p style="margin:0 32px 16px;color:var(--muted);font-size:0.78rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart는 사용자 승인 후 Bucky가 실행 가능한 작업으로 취급합니다.</p>
 <main>
+  <nav class="toc-bar" aria-label="빠른 이동" style="padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)">
+    <strong>빠른 이동</strong>
+    <a href="#daily-plus-results" style="color:var(--teal);text-decoration:none">결과</a>
+    <a href="#daily-plus-candidates" style="color:var(--teal);text-decoration:none">후보</a>
+  </nav>
   <section class="hero-grid">
     <div class="panel">
       <h2>{esc(date)} 처리 요약</h2>
@@ -976,7 +983,7 @@ def render_dashboard(
     </aside>
   </section>
 
-  <section>
+  <section id="daily-plus-results">
     <div class="section-title">
       <h2>Bucky Knowledge Intake</h2>
       <span class="muted">Discord webhook -> Bucky -> Obsidian raw storage</span>
@@ -1002,22 +1009,6 @@ def render_dashboard(
         <button type="button" class="send-discord" id="sendDailyPlusIntake">Discord로 Bucky Intake 전송</button>
       </div>
       <p class="muted">Discord webhook URL은 Repo Dashboard와 같은 브라우저 저장값(<code>bucky-webhook</code>)을 사용합니다. 파일은 Discord 첨부로 전송되고 Bucky bot이 RAW_IMPORT/Discord 및 Obsidian 01_RAW에 기록합니다.</p>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-title">
-      <h2>Bucky 메시지</h2>
-      <span class="muted">사용자 메시지로 전달</span>
-    </div>
-    <div class="panel message-box">
-      <textarea id="buckyMessage" placeholder="Bucky에게 보낼 메시지"></textarea>
-      <input id="buckyEndpoint" type="url" placeholder="Bucky OS HTTPS intake URL" aria-label="Bucky OS intake endpoint">
-      <div class="message-actions">
-        <button type="button" class="send" id="sendBuckyMessage">Bucky 전송</button>
-        <button type="button" class="copy" id="copyBuckyMessage">복사</button>
-      </div>
-      <p class="muted" id="messageStatus">Bucky OS 수신 URL 설정 후 전송합니다.</p>
     </div>
   </section>
 
@@ -1061,7 +1052,15 @@ def render_dashboard(
     </div>
   </section>''' if session_html else ""}
 
-  <section>
+  <div id="dailyPlusCardStatus" style="padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;border-bottom:1px solid var(--line)">
+    <strong>진행현황</strong>
+    <button type="button" data-status="ok" style="padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:#f0fdf4;color:var(--green);cursor:pointer">가능</button>
+    <button type="button" data-status="conflict" style="padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:#fff7ed;color:var(--amber);cursor:pointer">충돌</button>
+    <button type="button" data-status="error" style="padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:#fef2f2;color:var(--red);cursor:pointer">오류</button>
+    <button type="button" data-status="clear" style="padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--muted);cursor:pointer">클리어</button>
+  </div>
+
+  <section id="daily-plus-candidates">
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
       <span class="muted">우선순위 {esc(dict(priority_counts))} · 상태 {esc(dict(status_counts))}</span>

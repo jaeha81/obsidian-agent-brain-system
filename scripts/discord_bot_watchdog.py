@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime as _dt
+import os
 import subprocess
 import sys
 import time
@@ -13,6 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BOT_SCRIPT = ROOT / "scripts" / "discord_bot.py"
 LOG_DIR = ROOT / ".logs"
+PID_FILE = ROOT / "logs" / "discord_bot.pid"
 RESTART_DELAY_SECONDS = 10
 CHECK_INTERVAL_SECONDS = 30
 
@@ -20,6 +22,24 @@ CHECK_INTERVAL_SECONDS = 30
 def log(message: str) -> None:
     ts = _dt.datetime.now().strftime("%H:%M:%S")
     print(f"[{ts}] {message}", flush=True)
+
+
+def _pid_alive(pid: int) -> bool:
+    # os.kill(pid, 0) raises WinError 87 on Windows Python 3.14+ — use tasklist instead
+    if sys.platform == "win32":
+        try:
+            result = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}", "/NH", "/FO", "CSV"],
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
+            )
+            return f'"{pid}"' in result.stdout or f",{pid}," in result.stdout
+        except Exception:
+            return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
 
 
 def start_bot() -> subprocess.Popen:
@@ -75,8 +95,29 @@ def main() -> int:
 
     log(f"Watchdog starting check={CHECK_INTERVAL_SECONDS}s restart_delay={RESTART_DELAY_SECONDS}s")
     cleanup_old_logs()
-    bot = start_bot()
 
+    # 기존 봇이 실행 중이면 새로 시작하지 않고 PID를 감시
+    existing_pid: int | None = None
+    try:
+        existing_pid = int(PID_FILE.read_text().strip())
+        if not _pid_alive(existing_pid):
+            existing_pid = None
+    except (OSError, ValueError, FileNotFoundError):
+        existing_pid = None
+
+    if existing_pid is not None:
+        log(f"Existing bot detected pid={existing_pid}, monitoring without restart")
+        try:
+            while _pid_alive(existing_pid):
+                time.sleep(CHECK_INTERVAL_SECONDS)
+            log(f"Adopted bot pid={existing_pid} exited; restarting in {RESTART_DELAY_SECONDS}s")
+            time.sleep(RESTART_DELAY_SECONDS)
+            cleanup_old_logs()
+        except KeyboardInterrupt:
+            log("Watchdog interrupted")
+            return 0
+
+    bot = start_bot()
     try:
         while True:
             time.sleep(CHECK_INTERVAL_SECONDS)

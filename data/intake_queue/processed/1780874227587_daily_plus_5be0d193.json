@@ -1,0 +1,1 @@
+{"dashboard_type": "daily_plus", "action": "message", "title": "테스트: 파이프라인 E2E 검증", "body": "E2E 테스트 메시지입니다. Bucky가 이 채널에서 응답해야 합니다.", "session_id": "e2e-test-001", "request_id": "5be0d193-afb0-42fb-9e85-a260a76cb7fc", "enqueued_at": 1780874227.5854528}

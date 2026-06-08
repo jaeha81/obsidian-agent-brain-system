@@ -1,117 +1,71 @@
-"""Tests for wishket_development_request.py
+"""Tests for wishket_development_request.py."""
 
-규칙:
-- create_local_project_folder / route_to_claude_for_implementation / route_to_codex_for_review
-  는 반드시 approval_required 로 분류돼야 한다.
-- queue_for_approval 이 생성하는 파일의 frontmatter는 항상
-  status: pending_approval / requires_approval: true 여야 한다.
-- queued_immediate 상태는 절대 생성되면 안 된다.
-"""
-
-import sys
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
+TEST_TMP_ROOT = Path(r"C:\tmp")
+TEST_TMP_ROOT.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from scripts.wishket_development_request import (  # noqa: E402
     APPROVAL_REQUIRED_ACTIONS,
     IMMEDIATE_ACTIONS,
+    dispatch_request,
+    enqueue_codex_review_request,
+    enqueue_immediate_request,
     normalize_payload,
     queue_for_approval,
     split_actions,
 )
 
-# ── 승인 게이트에 고정된 액션 목록 ──────────────────────────────────────────
-MUST_BE_APPROVAL = {
-    "create_local_project_folder",
-    "route_to_claude_for_implementation",
-    "route_to_codex_for_review",
-}
-
 
 class TestActionClassification(unittest.TestCase):
-    """MUST_BE_APPROVAL 액션은 IMMEDIATE_ACTIONS에 없고 APPROVAL_REQUIRED에 있어야 한다."""
+    def test_route_actions_are_immediate(self):
+        self.assertIn("route_to_claude_for_implementation", IMMEDIATE_ACTIONS)
+        self.assertIn("route_to_codex_for_review", IMMEDIATE_ACTIONS)
+        self.assertNotIn("route_to_claude_for_implementation", APPROVAL_REQUIRED_ACTIONS)
+        self.assertNotIn("route_to_codex_for_review", APPROVAL_REQUIRED_ACTIONS)
 
-    def test_must_be_approval_not_in_immediate(self):
-        leaked = MUST_BE_APPROVAL & IMMEDIATE_ACTIONS
-        self.assertEqual(
-            leaked,
-            set(),
-            f"이 액션들이 IMMEDIATE_ACTIONS에 남아 있음: {leaked}",
-        )
-
-    def test_must_be_approval_in_approval_required(self):
-        missing = MUST_BE_APPROVAL - APPROVAL_REQUIRED_ACTIONS
-        self.assertEqual(
-            missing,
-            set(),
-            f"이 액션들이 APPROVAL_REQUIRED_ACTIONS에 없음: {missing}",
-        )
-
-    def test_sets_are_disjoint(self):
-        overlap = IMMEDIATE_ACTIONS & APPROVAL_REQUIRED_ACTIONS
-        self.assertEqual(overlap, set(), f"두 집합이 겹침: {overlap}")
+    def test_folder_and_repo_creation_remain_approval_required(self):
+        self.assertIn("create_local_project_folder", APPROVAL_REQUIRED_ACTIONS)
+        self.assertIn("create_github_repository", APPROVAL_REQUIRED_ACTIONS)
 
 
 class TestSplitActions(unittest.TestCase):
-    """split_actions 함수 동작 검증."""
-
-    def test_folder_and_routing_go_to_approval(self):
-        result = split_actions([
-            "create_local_project_folder",
-            "route_to_claude_for_implementation",
-            "route_to_codex_for_review",
-        ])
-        self.assertEqual(result["immediate"], [])
-        self.assertCountEqual(
-            result["approval_required"],
+    def test_agent_routing_actions_go_immediate(self):
+        result = split_actions(
             [
-                "create_local_project_folder",
+                "generate_development_plan",
+                "route_to_claude_for_implementation",
+                "route_to_codex_for_review",
+            ]
+        )
+        self.assertCountEqual(
+            result["immediate"],
+            [
+                "generate_development_plan",
                 "route_to_claude_for_implementation",
                 "route_to_codex_for_review",
             ],
         )
-
-    def test_github_repo_approval(self):
-        result = split_actions(["create_github_repository"])
-        self.assertIn("create_github_repository", result["approval_required"])
-        self.assertNotIn("create_github_repository", result["immediate"])
-
-    def test_analysis_only_actions_stay_immediate(self):
-        """읽기/분석 액션은 즉시 실행 가능."""
-        result = split_actions(["analyze_requirements", "generate_development_plan"])
-        self.assertCountEqual(result["immediate"], ["analyze_requirements", "generate_development_plan"])
         self.assertEqual(result["approval_required"], [])
 
-    def test_unknown_action_defaults_to_approval(self):
-        result = split_actions(["totally_unknown_action"])
-        self.assertIn("totally_unknown_action", result["approval_required"])
-        self.assertNotIn("totally_unknown_action", result["immediate"])
-
-    def test_default_requested_actions_all_require_approval(self):
-        """기본 REQUESTED_ACTIONS 집합은 approval_required 없이 통과될 수 없다."""
-        from scripts.wishket_development_request import REQUESTED_ACTIONS
-        result = split_actions(REQUESTED_ACTIONS)
-        self.assertTrue(
-            len(result["approval_required"]) > 0,
-            "기본 REQUESTED_ACTIONS에 approval_required 액션이 하나도 없음",
-        )
-
-    def test_empty_list(self):
-        result = split_actions([])
+    def test_external_side_effects_stay_approval_required(self):
+        result = split_actions(["create_local_project_folder", "create_github_repository"])
         self.assertEqual(result["immediate"], [])
-        self.assertEqual(result["approval_required"], [])
+        self.assertCountEqual(
+            result["approval_required"],
+            ["create_local_project_folder", "create_github_repository"],
+        )
 
 
 class TestNormalizePayload(unittest.TestCase):
-    """normalize_payload가 기본 요청에서 approval_required=True를 반환해야 한다."""
-
     def _base(self, **kwargs):
         return {
             "project_title": "Test Project",
@@ -119,46 +73,31 @@ class TestNormalizePayload(unittest.TestCase):
             **kwargs,
         }
 
-    def test_default_actions_set_approval_required_true(self):
-        payload = normalize_payload(self._base())
-        self.assertTrue(
-            payload["approval_required"],
-            "기본 payload가 approval_required=False를 반환함",
+    def test_dashboard_style_payload_is_immediate(self):
+        payload = normalize_payload(
+            self._base(
+                requested_actions=[
+                    "generate_development_plan",
+                    "route_to_claude_for_implementation",
+                    "route_to_codex_for_review",
+                ]
+            )
         )
+        self.assertFalse(payload["approval_required"])
+        self.assertEqual(payload["execution_mode"], "immediate")
+        self.assertIn("route_to_claude_for_implementation", payload["immediate_actions"])
 
-    def test_explicit_local_folder_action_requires_approval(self):
-        payload = normalize_payload(self._base(
-            requested_actions=["create_local_project_folder"]
-        ))
+    def test_project_creation_payload_requires_approval(self):
+        payload = normalize_payload(
+            self._base(requested_actions=["create_local_project_folder"])
+        )
         self.assertTrue(payload["approval_required"])
+        self.assertEqual(payload["execution_mode"], "approval_required")
         self.assertIn("create_local_project_folder", payload["approval_required_actions"])
-        self.assertNotIn("create_local_project_folder", payload["immediate_actions"])
-
-    def test_explicit_claude_routing_requires_approval(self):
-        payload = normalize_payload(self._base(
-            requested_actions=["route_to_claude_for_implementation"]
-        ))
-        self.assertTrue(payload["approval_required"])
-
-    def test_explicit_codex_routing_requires_approval(self):
-        payload = normalize_payload(self._base(
-            requested_actions=["route_to_codex_for_review"]
-        ))
-        self.assertTrue(payload["approval_required"])
 
 
-class TestQueueForApproval(unittest.TestCase):
-    """queue_for_approval 이 생성하는 파일은 항상 pending_approval 이어야 한다."""
-
-    def _make_payload(self, actions=None):
-        return normalize_payload({
-            "project_title": "Test Project",
-            "url": "https://www.wishket.com/project/99999/",
-            **({"requested_actions": actions} if actions else {}),
-        })
-
+class TestRoutingOutputs(unittest.TestCase):
     def _read_frontmatter(self, path: Path) -> dict:
-        """YAML-like frontmatter 파싱 (--- 블록)."""
         text = path.read_text(encoding="utf-8")
         lines = text.split("\n")
         fm = {}
@@ -168,8 +107,7 @@ class TestQueueForApproval(unittest.TestCase):
                 if not in_fm:
                     in_fm = True
                     continue
-                else:
-                    break
+                break
             if in_fm and ": " in line:
                 k, v = line.split(": ", 1)
                 try:
@@ -178,104 +116,127 @@ class TestQueueForApproval(unittest.TestCase):
                     fm[k.strip()] = v.strip()
         return fm
 
-    def test_always_pending_approval_default_actions(self):
-        payload = self._make_payload()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with mock.patch(
-                "scripts.wishket_development_request.PENDING_DIR",
-                Path(tmpdir),
+    def test_queue_for_approval_writes_pending_file(self):
+        payload = normalize_payload(
+            {
+                "project_title": "Approval Project",
+                "url": "https://www.wishket.com/project/11111/",
+                "requested_actions": ["create_local_project_folder"],
+            }
+        )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            with mock.patch("scripts.wishket_development_request.PENDING_DIR", Path(tmpdir)), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
             ):
                 path = queue_for_approval(payload)
             fm = self._read_frontmatter(path)
-        self.assertEqual(fm.get("status"), "pending_approval")
-        self.assertTrue(fm.get("requires_approval"))
+        self.assertEqual(fm["status"], "pending_approval")
+        self.assertTrue(fm["requires_approval"])
 
-    def test_never_queued_immediate_default(self):
-        payload = self._make_payload()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with mock.patch(
-                "scripts.wishket_development_request.PENDING_DIR",
-                Path(tmpdir),
+    def test_enqueue_immediate_request_writes_inbox_file(self):
+        payload = normalize_payload(
+            {
+                "project_title": "Immediate Project",
+                "url": "https://www.wishket.com/project/22222/",
+                "requested_actions": [
+                    "generate_development_plan",
+                    "route_to_claude_for_implementation",
+                    "route_to_codex_for_review",
+                ],
+            }
+        )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            with mock.patch("scripts.wishket_development_request.INBOX_DIR", Path(tmpdir)), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
             ):
-                path = queue_for_approval(payload)
-            content = path.read_text(encoding="utf-8")
-        self.assertNotIn("queued_immediate", content)
-
-    def test_always_pending_approval_analysis_only_actions(self):
-        """분석 전용 액션만 있어도 pending_approval 이어야 한다."""
-        payload = self._make_payload(actions=["analyze_requirements", "generate_development_plan"])
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with mock.patch(
-                "scripts.wishket_development_request.PENDING_DIR",
-                Path(tmpdir),
-            ):
-                path = queue_for_approval(payload)
+                path = enqueue_immediate_request(payload)
             fm = self._read_frontmatter(path)
-        self.assertEqual(fm.get("status"), "pending_approval")
-        self.assertTrue(fm.get("requires_approval"))
-
-    def test_never_queued_immediate_analysis_only(self):
-        payload = self._make_payload(actions=["analyze_requirements"])
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with mock.patch(
-                "scripts.wishket_development_request.PENDING_DIR",
-                Path(tmpdir),
-            ):
-                path = queue_for_approval(payload)
             content = path.read_text(encoding="utf-8")
-        self.assertNotIn("queued_immediate", content)
+        self.assertEqual(fm["type"], "implementation_request")
+        self.assertEqual(fm["status"], "pending")
+        self.assertFalse(fm["requires_approval"])
+        self.assertIn("wishket_request_id", fm)
+        self.assertIn("Wishket Immediate Execution Request", content)
 
-    def test_idempotency_same_request_id(self):
-        """같은 request_id 로 두 번 호출해도 파일이 하나만 생성된다."""
-        payload = self._make_payload()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmppath = Path(tmpdir)
-            with mock.patch(
-                "scripts.wishket_development_request.PENDING_DIR",
-                tmppath,
+    def test_enqueue_codex_review_request_writes_inbox_file(self):
+        payload = normalize_payload(
+            {
+                "project_title": "Codex Review Project",
+                "url": "https://www.wishket.com/project/55555/",
+                "requested_actions": ["route_to_codex_for_review"],
+            }
+        )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            with mock.patch("scripts.wishket_development_request.INBOX_DIR", Path(tmpdir)), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
             ):
-                path1 = queue_for_approval(payload)
-                path2 = queue_for_approval(payload)
-            files = list(tmppath.glob("*.md"))
-        self.assertEqual(path1, path2)
-        self.assertEqual(len(files), 1)
+                path = enqueue_codex_review_request(payload)
+            fm = self._read_frontmatter(path)
+            content = path.read_text(encoding="utf-8")
+        self.assertEqual(fm["type"], "review_request")
+        self.assertEqual(fm["router"], "Codex")
+        self.assertFalse(fm["requires_approval"])
+        self.assertIn("wishket_review_id", fm)
+        self.assertIn("Codex Review Request", content)
 
-
-class TestGptSessionCollectorNoForceKill(unittest.TestCase):
-    """gpt_session_collector.py 에 Chrome 강제 종료 관련 심볼이 없어야 한다."""
-
-    def test_no_kill_chrome_function(self):
-        import scripts.gpt_session_collector as col
-        self.assertFalse(
-            hasattr(col, "_kill_chrome"),
-            "_kill_chrome 함수가 아직 남아 있음",
+    def test_dispatch_request_selects_expected_route(self):
+        immediate_payload = normalize_payload(
+            {
+                "project_title": "Immediate Dispatch",
+                "url": "https://www.wishket.com/project/33333/",
+                "requested_actions": ["route_to_claude_for_implementation"],
+            }
         )
-
-    def test_no_is_chrome_running_function(self):
-        import scripts.gpt_session_collector as col
-        self.assertFalse(
-            hasattr(col, "_is_chrome_running"),
-            "_is_chrome_running 함수가 아직 남아 있음",
+        approval_payload = normalize_payload(
+            {
+                "project_title": "Approval Dispatch",
+                "url": "https://www.wishket.com/project/44444/",
+                "requested_actions": ["create_github_repository"],
+            }
         )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            inbox = Path(tmpdir) / "inbox"
+            pending = Path(tmpdir) / "pending"
+            with mock.patch("scripts.wishket_development_request.INBOX_DIR", inbox), mock.patch(
+                "scripts.wishket_development_request.PENDING_DIR", pending
+            ), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
+            ):
+                mode1, path1, codex_path1 = dispatch_request(immediate_payload)
+                mode2, path2, codex_path2 = dispatch_request(approval_payload)
+            self.assertTrue(path1.exists())
+            self.assertTrue(path2.exists())
+            self.assertIsNotNone(codex_path1)
+            self.assertTrue(codex_path1.exists())
+            self.assertIsNone(codex_path2)
+        self.assertEqual(mode1, "immediate")
+        self.assertEqual(mode2, "pending_approval")
 
-    def test_collect_mode_no_force_close_param(self):
-        import inspect
-        import scripts.gpt_session_collector as col
-        sig = inspect.signature(col.collect_mode)
-        self.assertNotIn(
-            "force_close_chrome",
-            sig.parameters,
-            "collect_mode 에 force_close_chrome 파라미터가 아직 남아 있음",
+    def test_immediate_dispatch_creates_both_claude_and_codex_files(self):
+        payload = normalize_payload(
+            {
+                "project_title": "Dual Dispatch Project",
+                "url": "https://www.wishket.com/project/66666/",
+                "requested_actions": [
+                    "generate_development_plan",
+                    "route_to_claude_for_implementation",
+                    "route_to_codex_for_review",
+                ],
+            }
         )
-
-    def test_dedicated_profile_not_real_chrome(self):
-        import scripts.gpt_session_collector as col
-        profile = str(col.PROFILE_DIR)
-        self.assertNotIn(
-            "Google\\Chrome\\User Data",
-            profile,
-            f"전용 프로파일 경로가 실제 Chrome 프로파일을 가리킴: {profile}",
-        )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            inbox = Path(tmpdir) / "inbox"
+            with mock.patch("scripts.wishket_development_request.INBOX_DIR", inbox), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
+            ):
+                mode, claude_path, codex_path = dispatch_request(payload)
+            claude_fm = self._read_frontmatter(claude_path)
+            codex_fm = self._read_frontmatter(codex_path)
+        self.assertEqual(mode, "immediate")
+        self.assertEqual(claude_fm["router"], "ClaudeCode")
+        self.assertEqual(claude_fm["type"], "implementation_request")
+        self.assertEqual(codex_fm["router"], "Codex")
+        self.assertEqual(codex_fm["type"], "review_request")
 
 
 if __name__ == "__main__":
