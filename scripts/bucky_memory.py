@@ -21,7 +21,8 @@ _ROOT = Path(__file__).parent.parent
 load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
-DB_PATH = VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
+_DB_PATH_OVERRIDE = os.getenv("BUCKY_MEMORY_DB_PATH", "").strip()
+DB_PATH = Path(_DB_PATH_OVERRIDE) if _DB_PATH_OVERRIDE else VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
 CONTEXT_FILE = VAULT / "00_System" / "BUCKY_CONTEXT.md"
 MAX_HISTORY = int(os.getenv("BUCKY_MAX_HISTORY", "30"))
 
@@ -68,22 +69,76 @@ def _get_conn() -> sqlite3.Connection:
                 id      INTEGER PRIMARY KEY AUTOINCREMENT,
                 channel TEXT NOT NULL,
                 started TEXT NOT NULL,
-                ended   TEXT DEFAULT ''
+                ended   TEXT DEFAULT '',
+                external_key TEXT DEFAULT '',
+                label   TEXT DEFAULT ''
+            )
+        """)
+        for ddl in (
+            "ALTER TABLE sessions ADD COLUMN external_key TEXT DEFAULT ''",
+            "ALTER TABLE sessions ADD COLUMN label TEXT DEFAULT ''",
+        ):
+            try:
+                _conn.execute(ddl)
+                _conn.commit()
+            except Exception:
+                pass
+        _conn.execute("""
+            CREATE TABLE IF NOT EXISTS active_sessions (
+                channel    TEXT PRIMARY KEY,
+                session_id INTEGER NOT NULL,
+                updated    TEXT NOT NULL
             )
         """)
         _conn.execute("CREATE INDEX IF NOT EXISTS idx_conv_channel ON conv_history(channel, id)")
         _conn.execute("CREATE INDEX IF NOT EXISTS idx_conv_session ON conv_history(session_id, id)")
         _conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_channel ON sessions(channel, id)")
+        _conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_external ON sessions(channel, external_key)")
         _conn.commit()
     return _conn
 
 
 # ── 세션 관리 ──────────────────────────────────────────────────────────────────
 
+def _set_active_session(conn: sqlite3.Connection, channel: str, session_id: int) -> None:
+    conn.execute(
+        """
+        INSERT INTO active_sessions (channel, session_id, updated)
+        VALUES (?, ?, ?)
+        ON CONFLICT(channel) DO UPDATE SET
+            session_id=excluded.session_id,
+            updated=excluded.updated
+        """,
+        (channel, session_id, datetime.now().isoformat(timespec="seconds")),
+    )
+    conn.commit()
+
+
 def get_active_session(channel: str, gap_minutes: int = SESSION_GAP_MINUTES) -> int:
     """현재 활성 세션 ID 반환. 마지막 메시지가 gap_minutes 초과 시 자동으로 새 세션 생성."""
     with _lock:
         conn = _get_conn()
+        active = conn.execute(
+            "SELECT session_id FROM active_sessions WHERE channel=?",
+            (channel,),
+        ).fetchone()
+        if active:
+            session_id = int(active["session_id"])
+            exists = conn.execute(
+                "SELECT id FROM sessions WHERE channel=? AND id=?",
+                (channel, session_id),
+            ).fetchone()
+            if exists:
+                last_msg = conn.execute(
+                    "SELECT ts FROM conv_history WHERE session_id=? ORDER BY id DESC LIMIT 1",
+                    (session_id,),
+                ).fetchone()
+                if not last_msg:
+                    return session_id
+                gap = (datetime.now() - datetime.fromisoformat(last_msg["ts"])).total_seconds() / 60
+                if gap < gap_minutes:
+                    return session_id
+
         row = conn.execute(
             "SELECT id FROM sessions WHERE channel=? ORDER BY id DESC LIMIT 1",
             (channel,),
@@ -99,6 +154,7 @@ def get_active_session(channel: str, gap_minutes: int = SESSION_GAP_MINUTES) -> 
                 return session_id  # 빈 세션 재사용
             gap = (datetime.now() - datetime.fromisoformat(last_msg["ts"])).total_seconds() / 60
             if gap < gap_minutes:
+                _set_active_session(conn, channel, session_id)
                 return session_id
 
         cur = conn.execute(
@@ -106,6 +162,7 @@ def get_active_session(channel: str, gap_minutes: int = SESSION_GAP_MINUTES) -> 
             (channel, datetime.now().isoformat(timespec="seconds")),
         )
         conn.commit()
+        _set_active_session(conn, channel, cur.lastrowid)
         return cur.lastrowid
 
 
@@ -118,6 +175,57 @@ def new_session(channel: str) -> int:
             (channel, datetime.now().isoformat(timespec="seconds")),
         )
         conn.commit()
+        _set_active_session(conn, channel, cur.lastrowid)
+        return cur.lastrowid
+
+
+def resume_session(channel: str, session_id: int) -> bool:
+    """Set an existing channel session as the active continuation target."""
+    with _lock:
+        conn = _get_conn()
+        row = conn.execute(
+            "SELECT id FROM sessions WHERE channel=? AND id=?",
+            (channel, session_id),
+        ).fetchone()
+        if not row:
+            return False
+        _set_active_session(conn, channel, session_id)
+        return True
+
+
+def get_or_create_session_for_key(channel: str, external_key: str, label: str = "") -> int:
+    """Return and activate a stable per-dashboard-item session."""
+    clean_key = (external_key or "").strip()
+    clean_label = (label or "").strip()
+    if not clean_key:
+        return get_active_session(channel)
+    with _lock:
+        conn = _get_conn()
+        row = conn.execute(
+            "SELECT id FROM sessions WHERE channel=? AND external_key=? ORDER BY id DESC LIMIT 1",
+            (channel, clean_key),
+        ).fetchone()
+        if row:
+            session_id = int(row["id"])
+            if clean_label:
+                conn.execute(
+                    "UPDATE sessions SET label=? WHERE id=?",
+                    (clean_label[:200], session_id),
+                )
+                conn.commit()
+            _set_active_session(conn, channel, session_id)
+            return session_id
+        cur = conn.execute(
+            "INSERT INTO sessions (channel, started, external_key, label) VALUES (?, ?, ?, ?)",
+            (
+                channel,
+                datetime.now().isoformat(timespec="seconds"),
+                clean_key[:240],
+                clean_label[:200],
+            ),
+        )
+        conn.commit()
+        _set_active_session(conn, channel, cur.lastrowid)
         return cur.lastrowid
 
 
@@ -126,7 +234,7 @@ def list_sessions(channel: str, limit: int = 10) -> list[dict]:
     with _lock:
         conn = _get_conn()
         rows = conn.execute(
-            "SELECT id, started FROM sessions WHERE channel=? ORDER BY id DESC LIMIT ?",
+            "SELECT id, started, external_key, label FROM sessions WHERE channel=? ORDER BY id DESC LIMIT ?",
             (channel, limit),
         ).fetchall()
         result = []
@@ -148,6 +256,8 @@ def list_sessions(channel: str, limit: int = 10) -> list[dict]:
                 "started": r["started"],
                 "first_msg": preview,
                 "count": count["cnt"] if count else 0,
+                "external_key": r["external_key"] or "",
+                "label": r["label"] or "",
             })
         return result
 
