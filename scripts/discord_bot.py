@@ -870,6 +870,37 @@ def build_daily_plus_intake_fallback_reply(
     )
 
 
+def _dashboard_session_key(payload: dict) -> str:
+    dashboard_type = str(payload.get("dashboard_type") or payload.get("source") or "dashboard").strip()
+    for key in ("session_id", "item_id", "project_slug", "repo", "title", "request_id"):
+        value = str(payload.get(key) or "").strip()
+        if value:
+            return f"{dashboard_type}:{value}"
+    return dashboard_type
+
+
+def _dashboard_session_label(payload: dict) -> str:
+    dashboard_type = str(payload.get("dashboard_type") or payload.get("source") or "dashboard").strip()
+    action = str(payload.get("action") or "").strip()
+    title = str(payload.get("title") or payload.get("summary") or payload.get("body") or "").strip()
+    parts = [part for part in (dashboard_type, action, title[:80]) if part]
+    return " | ".join(parts)
+
+
+async def _activate_dashboard_session(channel_id: str, payload: dict) -> int | None:
+    try:
+        import bucky_memory as _mem
+        return await asyncio.to_thread(
+            _mem.get_or_create_session_for_key,
+            channel_id,
+            _dashboard_session_key(payload),
+            _dashboard_session_label(payload),
+        )
+    except Exception as exc:
+        print(f"[Session] dashboard session activation failed: {exc}", flush=True)
+        return None
+
+
 async def _handle_daily_plus_intake_payload(message: Message, content: str, channel_id: str) -> bool:
     payload = parse_daily_plus_intake_content(content)
     if not payload:
@@ -933,7 +964,15 @@ async def _handle_daily_plus_intake_payload(message: Message, content: str, chan
             )
             timeout_s = int(os.getenv("DAILY_PLUS_INTAKE_BUCKY_TIMEOUT", "90"))
             try:
-                reply = await asyncio.wait_for(ask_bucky(channel_id, prompt), timeout=timeout_s)
+                reply = await asyncio.wait_for(
+                    ask_bucky(
+                        channel_id,
+                        prompt,
+                        session_key=_dashboard_session_key({"dashboard_type": "daily_plus", **payload}),
+                        session_label=_dashboard_session_label({"dashboard_type": "daily_plus", **payload}),
+                    ),
+                    timeout=timeout_s,
+                )
             except Exception as exc:
                 reply = build_daily_plus_intake_fallback_reply(
                     payload,
@@ -1480,7 +1519,10 @@ def _make_voice_sink_class():
                     _stop.set()
                     _anim.cancel()
                 voice_chunks = split_message(reply)
-                await thinking_msg.edit(content=voice_chunks[0])
+                try:
+                    await thinking_msg.edit(content=voice_chunks[0])
+                except discord.errors.NotFound:
+                    await ch.send(voice_chunks[0])
                 for chunk in voice_chunks[1:]:
                     await ch.send(chunk)
 
@@ -1629,12 +1671,25 @@ def _get_rag_context(query: str, top_k: int = 3) -> str:
         return ""
 
 
-async def ask_bucky(channel_id: str, user_message: str) -> str:
+async def ask_bucky(
+    channel_id: str,
+    user_message: str,
+    session_key: str | None = None,
+    session_label: str | None = None,
+) -> str:
     """Bucky Agent에 질문하고 답변 반환. NLP 전처리 후 Claude CLI 구독 경로 사용."""
     prev_session_context = ""
     try:
         import bucky_memory as _mem
-        session_id = await asyncio.to_thread(_mem.get_active_session, channel_id)
+        if session_key:
+            session_id = await asyncio.to_thread(
+                _mem.get_or_create_session_for_key,
+                channel_id,
+                session_key,
+                session_label or "",
+            )
+        else:
+            session_id = await asyncio.to_thread(_mem.get_active_session, channel_id)
         history = await asyncio.to_thread(_mem.load_session_history, channel_id, session_id)
         # 새 세션(메시지 없음)이면 이전 세션 컨텍스트 포함
         if not history:
@@ -1682,6 +1737,13 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
         rag_block = f"\n\n{rag_context}" if rag_context else ""
 
     bucky_context = _load_bucky_context()
+    session_anchor = (
+        "# Active dashboard session\n\n"
+        f"- key: {session_key}\n"
+        f"- label: {session_label or ''}\n\n"
+        "---\n\n"
+        if session_key else ""
+    )
     prev_ctx_block = (
         f"\n\n# 이전 세션 컨텍스트 (참고용)\n\n{prev_session_context}\n\n---\n\n"
         if prev_session_context else ""
@@ -1691,6 +1753,7 @@ async def ask_bucky(channel_id: str, user_message: str) -> str:
         f"{bucky_context}\n\n"
         "---\n\n"
         f"{prev_ctx_block}"
+        f"{session_anchor}"
         "# Discord 대화\n\n"
         "위 컨텍스트를 기반으로 아래 대화에 답변한다. "
         "실행 작업이면 '요약→실행안→저장위치→다음행동' 순서로, 단순 질문이면 간결하게."
@@ -2899,12 +2962,20 @@ async def _handle_jh_tasks(message: Message) -> None:
                     note_path.write_text, note_content, "utf-8"
                 )
                 preview = plan_text[:700] + ("..." if len(plan_text) > 700 else "")
-                await thinking_msg.edit(content=(
+                _msg = (
                     f"✅ **프로젝트 계획 생성 완료** — `{project_name}`\n"
                     f"저장: `03_Projects/{note_fname}`\n\n{preview}"
-                ))
+                )
+                try:
+                    await thinking_msg.edit(content=_msg)
+                except discord.errors.NotFound:
+                    await message.channel.send(_msg)
             except Exception as e:
-                await thinking_msg.edit(content=f"⚠️ startproject 오류: {e}")
+                _err_msg = f"⚠️ startproject 오류: {e}"
+                try:
+                    await thinking_msg.edit(content=_err_msg)
+                except discord.errors.NotFound:
+                    await message.channel.send(_err_msg)
             return
 
         # !buki checkpoint [note]
@@ -2961,13 +3032,21 @@ async def _handle_jh_tasks(message: Message) -> None:
                 await asyncio.to_thread(
                     note_path_cp.write_text, "\n".join(lines_cp), "utf-8"
                 )
-                await thinking_msg.edit(content=(
+                _cp_msg = (
                     f"💾 **체크포인트 저장 완료**\n"
                     f"파일: `05_Logs/{fname_cp}`\n"
                     f"미완료 {len(pending_cl)}개 · 승인대기 {len(pending_approvals)}개"
-                ))
+                )
+                try:
+                    await thinking_msg.edit(content=_cp_msg)
+                except discord.errors.NotFound:
+                    await message.channel.send(_cp_msg)
             except Exception as e:
-                await thinking_msg.edit(content=f"⚠️ checkpoint 오류: {e}")
+                _cp_err = f"⚠️ checkpoint 오류: {e}"
+                try:
+                    await thinking_msg.edit(content=_cp_err)
+                except discord.errors.NotFound:
+                    await message.channel.send(_cp_err)
             return
 
         # !buki (도움말)
@@ -3226,7 +3305,10 @@ async def _handle_work_channel(message: Message) -> None:
         _ctt.update_task(task_id, status, result_summary)
 
     chunks = split_message(reply)
-    await thinking_msg.edit(content=chunks[0])
+    try:
+        await thinking_msg.edit(content=chunks[0])
+    except discord.errors.NotFound:
+        await message.channel.send(chunks[0])
     for chunk in chunks[1:]:
         await message.channel.send(chunk)
 
@@ -3489,6 +3571,7 @@ class BuckyDiscordBot(discord.Client):
         )
 
         if channel:
+            await _activate_dashboard_session(str(channel.id), payload)
             for chunk in split_message(briefing):
                 await channel.send(chunk)
         else:
@@ -3512,7 +3595,15 @@ class BuckyDiscordBot(discord.Client):
             try:
                 ch_id_for_bucky = str(channel.id)
                 timeout_s = int(os.getenv("DAILY_PLUS_INTAKE_BUCKY_TIMEOUT", "90"))
-                reply = await asyncio.wait_for(ask_bucky(ch_id_for_bucky, bucky_prompt), timeout=timeout_s)
+                reply = await asyncio.wait_for(
+                    ask_bucky(
+                        ch_id_for_bucky,
+                        bucky_prompt,
+                        session_key=_dashboard_session_key(payload),
+                        session_label=_dashboard_session_label(payload),
+                    ),
+                    timeout=timeout_s,
+                )
                 for chunk in split_message(reply):
                     await channel.send(chunk)
             except asyncio.TimeoutError:
@@ -3532,7 +3623,15 @@ class BuckyDiscordBot(discord.Client):
             try:
                 ch_id_for_bucky = str(channel.id)
                 timeout_s = int(os.getenv("REPO_INTAKE_BUCKY_TIMEOUT", "60"))
-                reply = await asyncio.wait_for(ask_bucky(ch_id_for_bucky, bucky_prompt), timeout=timeout_s)
+                reply = await asyncio.wait_for(
+                    ask_bucky(
+                        ch_id_for_bucky,
+                        bucky_prompt,
+                        session_key=_dashboard_session_key(payload),
+                        session_label=_dashboard_session_label(payload),
+                    ),
+                    timeout=timeout_s,
+                )
                 for chunk in split_message(reply):
                     await channel.send(chunk)
             except asyncio.TimeoutError:
@@ -3672,7 +3771,15 @@ class BuckyDiscordBot(discord.Client):
             try:
                 ch_id_for_bucky = str(channel.id)
                 timeout_s = int(os.getenv("INTAKE_BUCKY_TIMEOUT", "60"))
-                reply = await asyncio.wait_for(ask_bucky(ch_id_for_bucky, bucky_prompt), timeout=timeout_s)
+                reply = await asyncio.wait_for(
+                    ask_bucky(
+                        ch_id_for_bucky,
+                        bucky_prompt,
+                        session_key=_dashboard_session_key(payload),
+                        session_label=_dashboard_session_label(payload),
+                    ),
+                    timeout=timeout_s,
+                )
                 for chunk in split_message(reply):
                     await channel.send(chunk)
             except asyncio.TimeoutError:
@@ -4239,6 +4346,7 @@ class BuckyDiscordBot(discord.Client):
                 history = await asyncio.to_thread(
                     _mem.load_session_history, channel_id, target["id"]
                 )
+                await asyncio.to_thread(_mem.resume_session, channel_id, target["id"])
                 conversation_history[channel_id] = history.copy()
                 ts = target["started"][:16]
                 await message.channel.send(
@@ -4670,7 +4778,7 @@ class BuckyDiscordBot(discord.Client):
                     result = await asyncio.to_thread(
                         lambda: _sp.run(
                             [sys.executable, migrator],
-                            capture_output=True, text=True, encoding="utf-8", timeout=300
+                            capture_output=True, text=True, encoding="utf-8", timeout=int(os.getenv("BUCKY_TIMEOUT", "900"))
                         )
                     )
                     out = (result.stdout + result.stderr).strip()[-800:]
@@ -4953,7 +5061,7 @@ class BuckyDiscordBot(discord.Client):
                         base_channel_id=channel_id,
                         tasks=multi_tasks,
                         notify_done=_notify_done,
-                        timeout=300.0,
+                        timeout=float(os.getenv("BUCKY_TIMEOUT", "900")),
                     )
                     reply = format_multi_result(results)
                 except Exception as e:
@@ -4994,7 +5102,10 @@ class BuckyDiscordBot(discord.Client):
                     _active_thinking_msgs.pop(channel_id, None)
 
                 chunks = split_message(reply)
-                await thinking_msg.edit(content=chunks[0])
+                try:
+                    await thinking_msg.edit(content=chunks[0])
+                except discord.errors.NotFound:
+                    await message.channel.send(chunks[0])
                 for chunk in chunks[1:]:
                     await message.channel.send(chunk)
 
