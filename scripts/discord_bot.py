@@ -2572,6 +2572,10 @@ async def _init_jh_channels(client) -> None:
         ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
         ("jh-코덱스앱",     "JH_CODEX_CHANNEL_ID",          "🔍 Codex 앱 세션 요청/상태 보고"),
     ]
+    _specs = [
+        spec for spec in _specs
+        if spec[1] not in {"JH_TASKS_CHANNEL_ID", "JH_STATUS_CHANNEL_ID"}
+    ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
         if _globals[env_key]:
@@ -3761,7 +3765,7 @@ class BuckyDiscordBot(discord.Client):
 
         # ── #bucky-status 채널 자동 생성 ──────────────────────────────────────────
         global BUCKY_STATUS_CHANNEL_ID
-        if not BUCKY_STATUS_CHANNEL_ID and self.guilds:
+        if False and not BUCKY_STATUS_CHANNEL_ID and self.guilds:
             guild = self.guilds[0]
             existing = discord.utils.get(guild.text_channels, name="bucky-status")
             if existing:
@@ -3834,7 +3838,7 @@ class BuckyDiscordBot(discord.Client):
             # 미완료 있을 때만 포스팅
             if "미완료 **0**" in report or "작업 없음" in report:
                 return
-            notify_ch_id = BUCKY_STATUS_CHANNEL_ID or JH_CHAT_CHANNEL_ID
+            notify_ch_id = BUCKY_STATUS_CHANNEL_ID
             if not notify_ch_id:
                 return
             ch = self.get_channel(int(notify_ch_id))
