@@ -35,7 +35,7 @@ HANDOFF_LOG = SYSTEM_DIR / "HANDOFF_LOG.md"
 BUCKY_STATUS = SYSTEM_DIR / "BUCKY_STATUS.md"
 WISHKET_LOOP = ROOT / "data" / "wishket_loop_history.json"
 DISCORD_BOT = ROOT / "scripts" / "discord_bot.py"
-MEMORY_DB = VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
+MEMORY_DB = ROOT / "data" / "bucky_memory.db"
 ACTIVE_GOAL = SYSTEM_DIR / "active_goal.json"
 CLI_TOOLS_LOG = VAULT / "05_Logs" / "cli-tools.jsonl"
 
@@ -280,44 +280,108 @@ def dream():
 
 @agent_os_bp.get("/memory")
 def memory():
-    """Memory stack - learned facts, sessions, and recent user messages."""
+    """Memory stack — 4-layer structured view: short-term, episodic, semantic, procedural."""
     summary = {"fact_count": 0, "session_count": 0, "message_count": 0}
-    recent_facts: list[dict] = []
-    recent_messages: list[dict] = []
+    short_term: list[dict] = []
+    episodic: list[dict] = []
+    semantic: dict[str, list] = {}
+    procedural: list[dict] = []
 
     try:
         conn = sqlite3.connect(str(MEMORY_DB), check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
+
         summary["fact_count"] = _sqlite_count(conn, "SELECT COUNT(*) FROM learned_facts")
         summary["session_count"] = _sqlite_count(conn, "SELECT COUNT(*) FROM sessions")
         summary["message_count"] = _sqlite_count(conn, "SELECT COUNT(*) FROM conv_history")
-        recent_facts = _sqlite_rows(
-            conn,
-            """
-            SELECT category, fact, source, ts
-            FROM learned_facts
-            ORDER BY id DESC
-            LIMIT ?
-            """,
-        )
-        recent_messages = _sqlite_rows(
-            conn,
+
+        # Short-term: most recent messages across all channels (latest 8)
+        rows = conn.execute(
             """
             SELECT channel, role, content, ts, session_id
             FROM conv_history
             ORDER BY id DESC
-            LIMIT ?
-            """,
-        )
+            LIMIT 8
+            """
+        ).fetchall()
+        short_term = [
+            {
+                "channel": r["channel"],
+                "role": r["role"],
+                "content": r["content"][:120],
+                "ts": r["ts"],
+                "session_id": r["session_id"],
+            }
+            for r in rows
+        ]
+
+        # Episodic: recent sessions with message count and label
+        sess_rows = conn.execute(
+            """
+            SELECT s.id, s.channel, s.started, s.label, s.external_key,
+                   COUNT(c.id) as msg_count
+            FROM sessions s
+            LEFT JOIN conv_history c ON c.session_id = s.id
+            GROUP BY s.id
+            ORDER BY s.id DESC
+            LIMIT 10
+            """
+        ).fetchall()
+        for s in sess_rows:
+            first = conn.execute(
+                "SELECT content FROM conv_history WHERE session_id=? AND role='user' ORDER BY id LIMIT 1",
+                (s["id"],),
+            ).fetchone()
+            preview = ""
+            if first:
+                txt = first["content"]
+                preview = txt[:70] + ("…" if len(txt) > 70 else "")
+            episodic.append({
+                "id": s["id"],
+                "channel": s["channel"],
+                "started": s["started"],
+                "label": s["label"] or s["external_key"] or "",
+                "msg_count": s["msg_count"],
+                "preview": preview,
+            })
+
+        # Semantic: facts grouped by category
+        cat_rows = conn.execute(
+            "SELECT DISTINCT category FROM learned_facts ORDER BY category"
+        ).fetchall()
+        for cat_row in cat_rows:
+            cat = cat_row["category"]
+            facts = conn.execute(
+                "SELECT fact, ts FROM learned_facts WHERE category=? ORDER BY id DESC LIMIT 5",
+                (cat,),
+            ).fetchall()
+            semantic[cat] = [{"fact": f["fact"], "ts": f["ts"]} for f in facts]
+
+        # Procedural: instruction-type facts (explicit recurring rules)
+        proc_rows = conn.execute(
+            """
+            SELECT category, fact, ts
+            FROM learned_facts
+            WHERE category IN ('instruction', 'tech')
+            ORDER BY id DESC
+            LIMIT 8
+            """
+        ).fetchall()
+        procedural = [{"category": r["category"], "fact": r["fact"], "ts": r["ts"]} for r in proc_rows]
+
         conn.close()
     except Exception:
         pass
 
     return jsonify({
         "summary": summary,
-        "recent_facts": recent_facts,
-        "recent_messages": recent_messages,
+        "layers": {
+            "short_term": short_term,
+            "episodic": episodic,
+            "semantic": semantic,
+            "procedural": procedural,
+        },
         "db_path": str(MEMORY_DB.relative_to(ROOT)) if MEMORY_DB.is_relative_to(ROOT) else str(MEMORY_DB),
         "checked_at": _ts_now(),
     })

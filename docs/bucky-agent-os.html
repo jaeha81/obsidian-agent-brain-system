@@ -13,7 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1.73.5/dist/3d-force-graph.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 /* ─────────────────────────────────────────
    DESIGN TOKENS
@@ -138,6 +139,28 @@ body::after {
 .sys-val {
   font-family: var(--mono); font-size: 10px;
   color: var(--text-d); margin-left: 4px;
+}
+
+.topbar-nav {
+  display: flex; align-items: center; gap: 2px;
+}
+.nav-link {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); padding: 4px 10px;
+  border-radius: 4px; text-decoration: none;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  transition: color .15s, background .15s;
+  border: 1px solid transparent;
+}
+.nav-link:hover {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  border-color: rgba(0,212,255,0.2);
+}
+.nav-link.active {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.08);
+  border-color: rgba(0,212,255,0.25);
 }
 
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
@@ -661,6 +684,13 @@ body::after {
   <span class="sys-label">SYS</span>
   <span class="sys-val" id="sys-status">Initializing…</span>
   <div class="topbar-divider"></div>
+  <nav class="topbar-nav">
+    <a class="nav-link active" href="bucky-agent-os.html">OS</a>
+    <a class="nav-link" href="ai-usage.html">AI SPEND</a>
+    <a class="nav-link" href="wishket.html">WISHKET</a>
+    <a class="nav-link" href="project-graph.html" target="_blank">GRAPH</a>
+  </nav>
+  <div class="topbar-divider"></div>
   <span class="sys-label">TASKS</span>
   <span class="sys-val" id="sys-tasks">—</span>
   <div class="topbar-divider"></div>
@@ -803,7 +833,9 @@ body::after {
 /* ═══════════════════════════════════════════════════════════════
    CONSTANTS
 ═══════════════════════════════════════════════════════════════ */
-const API = 'http://localhost:8765';
+// Use same-origin (relative) when served by local Flask; fall back to explicit localhost otherwise
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? '' : 'http://localhost:8765';
 let _demoMode = false;
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1031,8 +1063,8 @@ function rTasks(d, demo) {
   el.innerHTML = statsHtml + pendingHtml + doneHtml;
 }
 
-/* ── rSkills (Cytoscape Pantheon) ── */
-let _cyInstance = null;
+/* ── rSkills (3D Force Graph Pantheon) ── */
+let _fg3d = null;
 
 function rSkills(d, demo) {
   const el = document.getElementById('skills-body');
@@ -1044,121 +1076,85 @@ function rSkills(d, demo) {
   document.getElementById('sys-skills').textContent = `${total} skills`;
 
   el.innerHTML = `
-    <div class="skill-graph-wrap"><div id="cy-skill"></div></div>
-    <div class="skill-legend">
-      <span><i class="legend-dot legend-dot-hub"></i>Bucky</span>
-      <span><i class="legend-dot legend-dot-skill"></i>Skill</span>
-      <span><i class="legend-dot legend-dot-pack"></i>Context Pack</span>
+    <div class="skill-graph-wrap" id="skill-graph-3d-wrap">
+      <div id="fg3d-skill" style="width:100%;height:100%"></div>
     </div>
-    <div class="skill-focus" id="skill-focus">클릭하면 상세 정보가 표시됩니다</div>
+    <div class="skill-legend">
+      <span><i class="legend-dot legend-dot-hub"></i>Bucky Hub</span>
+      <span><i class="legend-dot legend-dot-skill"></i>Skill (${skills.length})</span>
+      <span><i class="legend-dot legend-dot-pack"></i>Context Pack (${context_pack_names.length})</span>
+    </div>
+    <div class="skill-focus" id="skill-focus">노드를 클릭하면 상세 정보가 표시됩니다</div>
     <div class="task-section-label" style="margin-top:12px">▸ CONTEXT PACKS (${context_pack_names.length})</div>
     <div class="cp-list">
-      ${context_pack_names.map(n => `<div class="cp-item">${esc(n)}</div>`).join('')}
+      ${context_pack_names.slice(0, 12).map(n => `<div class="cp-item">${esc(n)}</div>`).join('')}
+      ${context_pack_names.length > 12 ? `<div class="cp-item" style="color:var(--cyan)">+${context_pack_names.length - 12} more</div>` : ''}
     </div>`;
 
-  requestAnimationFrame(() => buildCytoscape(skills, context_pack_names));
+  requestAnimationFrame(() => buildSkillGraph3D(skills, context_pack_names));
 }
 
-function buildCytoscape(skills, packs) {
-  const container = document.getElementById('cy-skill');
-  if (!container || typeof cytoscape === 'undefined') return;
+function buildSkillGraph3D(skills, packs) {
+  const container = document.getElementById('fg3d-skill');
+  if (!container) return;
 
-  if (_cyInstance) { _cyInstance.destroy(); _cyInstance = null; }
+  // Cleanup previous
+  if (_fg3d) { try { _fg3d._destructor && _fg3d._destructor(); } catch(_) {} _fg3d = null; }
+  container.innerHTML = '';
 
-  const elements = [];
-  elements.push({ data: { id:'hub', label:'Bucky', type:'hub' } });
+  // If 3d-force-graph not loaded, fall back to styled list
+  if (typeof ForceGraph3D === 'undefined') {
+    container.innerHTML = `<div style="padding:20px;color:var(--muted);font-size:11px;text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">🌐</div>
+      <div style="color:var(--cyan);font-weight:600;margin-bottom:4px">${skills.length} Skills · ${packs.length} Context Packs</div>
+      <div>3D graph loading…</div>
+    </div>`;
+    return;
+  }
 
-  const shown = skills.slice(0, 16);
-  shown.forEach((s, i) => {
+  const nodes = [];
+  const links = [];
+
+  nodes.push({ id: 'hub', name: 'BUCKY', type: 'hub', color: '#00ff88', val: 20 });
+
+  skills.slice(0, 20).forEach((s, i) => {
     const id = `skill-${i}`;
-    elements.push({ data: { id, label: s.name.replace(/^(auto-|jh-)/,'').replace(/-(general|agent|workflow)$/,''), type:'skill', full: s.name } });
-    elements.push({ data: { source:'hub', target:id, type:'skill-edge' } });
+    const label = s.name.replace(/^(auto-|jh-)/, '').replace(/-(general|agent|workflow)$/, '');
+    nodes.push({ id, name: label, full: s.name, type: 'skill', color: '#00d4ff', val: 4, cat: s.category || '' });
+    links.push({ source: 'hub', target: id, type: 'skill' });
   });
 
-  const shownPacks = packs.slice(0, 6);
-  shownPacks.forEach((p, i) => {
+  packs.slice(0, 8).forEach((p, i) => {
     const id = `pack-${i}`;
-    elements.push({ data: { id, label: String(p).replace('bucky-',''), type:'pack', full: p } });
-    elements.push({ data: { source:'hub', target:id, type:'pack-edge' } });
+    const label = String(p).replace('bucky-', '');
+    nodes.push({ id, name: label, full: p, type: 'pack', color: '#f5a623', val: 3 });
+    links.push({ source: 'hub', target: id, type: 'pack' });
   });
 
-  _cyInstance = cytoscape({
-    container,
-    elements,
-    style: [
-      { selector: 'node[type="hub"]', style: {
-          'background-color': '#00ff88',
-          'border-color': 'rgba(0,255,136,0.5)',
-          'border-width': 2,
-          'width': 36, 'height': 36,
-          'label': 'data(label)',
-          'font-family': 'Space Mono, monospace',
-          'font-size': 8,
-          'color': '#00ff88',
-          'text-valign': 'bottom', 'text-halign': 'center',
-          'text-margin-y': 4,
-          'text-shadow-blur': 6,
-          'text-shadow-color': 'rgba(0,255,136,0.6)',
-          'shadow-blur': 16, 'shadow-color': 'rgba(0,255,136,0.5)',
-        }
-      },
-      { selector: 'node[type="skill"]', style: {
-          'background-color': '#00d4ff',
-          'border-color': 'rgba(0,212,255,0.4)',
-          'border-width': 1,
-          'width': 20, 'height': 20,
-          'label': 'data(label)',
-          'font-family': 'Space Mono, monospace',
-          'font-size': 7,
-          'color': '#9898b8',
-          'text-valign': 'bottom', 'text-halign': 'center',
-          'text-margin-y': 3,
-          'shadow-blur': 8, 'shadow-color': 'rgba(0,212,255,0.35)',
-        }
-      },
-      { selector: 'node[type="pack"]', style: {
-          'background-color': '#f5a623',
-          'border-color': 'rgba(245,166,35,0.4)',
-          'border-width': 1,
-          'width': 16, 'height': 16,
-          'label': 'data(label)',
-          'font-family': 'Space Mono, monospace',
-          'font-size': 7,
-          'color': '#9898b8',
-          'text-valign': 'bottom', 'text-halign': 'center',
-          'text-margin-y': 3,
-          'shadow-blur': 6, 'shadow-color': 'rgba(245,166,35,0.3)',
-        }
-      },
-      { selector: 'edge[type="skill-edge"]', style: {
-          'line-color': 'rgba(0,212,255,0.22)',
-          'width': 1, 'curve-style': 'bezier',
-        }
-      },
-      { selector: 'edge[type="pack-edge"]', style: {
-          'line-color': 'rgba(245,166,35,0.22)',
-          'width': 1, 'curve-style': 'bezier', 'line-style': 'dashed',
-          'line-dash-pattern': [4,3],
-        }
-      },
-      { selector: 'node:selected', style: {
-          'border-color': '#ffffff', 'border-width': 2,
-          'shadow-blur': 14, 'shadow-color': 'rgba(255,255,255,0.4)',
-        }
-      }
-    ],
-    layout: { name: 'cose', animate: true, animationDuration: 800, idealEdgeLength: 60, nodeRepulsion: 4000, fit: true, padding: 18 },
-    userPanningEnabled: true, userZoomingEnabled: true, boxSelectionEnabled: false,
-  });
+  const wrap = document.getElementById('skill-graph-3d-wrap');
+  const W = wrap ? wrap.clientWidth  : 260;
+  const H = wrap ? wrap.clientHeight : 260;
 
-  _cyInstance.on('tap', 'node', function(evt) {
-    const n = evt.target;
-    const focusEl = document.getElementById('skill-focus');
-    if (focusEl) {
-      const typeLabel = n.data('type') === 'hub' ? 'Orchestrator Hub' : n.data('type') === 'pack' ? 'Context Pack' : 'Skill';
-      focusEl.innerHTML = `<span style="color:var(--cyan)">${esc(n.data('full') || n.data('label'))}</span> <span style="color:var(--muted)">— ${typeLabel}</span>`;
-    }
-  });
+  _fg3d = ForceGraph3D({ controlType: 'orbit' })(container)
+    .width(W).height(H)
+    .backgroundColor('rgba(0,0,0,0)')
+    .graphData({ nodes, links })
+    .nodeLabel(n => `${n.name}${n.cat ? ' · ' + n.cat : ''}`)
+    .nodeColor(n => n.color)
+    .nodeVal(n => n.val)
+    .nodeResolution(12)
+    .nodeOpacity(0.9)
+    .linkColor(l => l.type === 'pack' ? 'rgba(245,166,35,0.25)' : 'rgba(0,212,255,0.2)')
+    .linkWidth(0.6)
+    .linkOpacity(0.7)
+    .onNodeClick(node => {
+      const el = document.getElementById('skill-focus');
+      if (!el) return;
+      const t = node.type === 'hub' ? 'Orchestrator Hub' : node.type === 'pack' ? 'Context Pack' : 'Skill';
+      el.innerHTML = `<span style="color:var(--cyan)">${esc(node.full || node.name)}</span> <span style="color:var(--muted)">— ${t}</span>`;
+      _fg3d.centerAt(node.x, node.y, node.z, 600);
+      _fg3d.zoom(3, 600);
+    });
 }
 
 /* ── rDream ── */
@@ -1343,11 +1339,14 @@ function rGoals(d, demo) {
 }
 
 /* ── rSpend ── */
+let _spendChart = null;
+
 function rSpend(d, demo) {
   const el = document.getElementById('spend-body');
   const badge = document.getElementById('spend-badge');
   const s = d.summary || {};
   const models = d.models || {};
+  const modelEntries = Object.entries(models);
 
   badge.textContent = `${s.total_calls || 0} CALLS`;
   badge.className = 'card-badge ' + ((s.limit_events || 0) > 0 ? 'badge-amber' : 'badge-green');
@@ -1367,8 +1366,31 @@ function rSpend(d, demo) {
     </div>
   </div>`;
 
+  const chartHtml = modelEntries.length ? `
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">
+      <div style="width:140px;height:140px;flex-shrink:0;position:relative">
+        <canvas id="spend-donut" width="140" height="140"></canvas>
+      </div>
+      <div style="flex:1">
+        ${modelEntries.map(([name, m], i) => {
+          const colours = ['#00d4ff','#a855f7','#f5a623','#00ff88','#ff4757'];
+          const pct = s.total_calls ? Math.round((m.calls||0)/s.total_calls*100) : 0;
+          return `<div style="margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <div style="width:8px;height:8px;border-radius:2px;background:${colours[i%colours.length]};flex-shrink:0"></div>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--text-d)">${esc(name.replace('claude-','').replace('-20251001',''))}</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto">${m.calls||0} calls</span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${colours[i%colours.length]};border-radius:2px"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
   const modelHtml = `<div class="spend-grid">` +
-    Object.entries(models).map(([name, m]) => `
+    modelEntries.map(([name, m]) => `
       <div class="spend-model-card">
         <div class="spend-model-name">${esc(name)}</div>
         <div class="spend-model-calls">${m.calls || 0}<span style="font-size:12px;color:var(--muted);font-weight:400"> calls</span></div>
@@ -1376,7 +1398,39 @@ function rSpend(d, demo) {
       </div>`).join('') +
     `</div>`;
 
-  el.innerHTML = statsHtml + modelHtml;
+  el.innerHTML = statsHtml + chartHtml + modelHtml;
+
+  // Draw donut chart
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('spend-donut');
+    if (!canvas || typeof Chart === 'undefined' || !modelEntries.length) return;
+    if (_spendChart) { _spendChart.destroy(); _spendChart = null; }
+    const palette = ['#00d4ff','#a855f7','#f5a623','#00ff88','#ff4757'];
+    _spendChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: modelEntries.map(([k]) => k.replace('claude-','').replace('-20251001','')),
+        datasets: [{
+          data: modelEntries.map(([,m]) => m.calls || 0),
+          backgroundColor: palette.slice(0, modelEntries.length).map(c => c + '55'),
+          borderColor: palette.slice(0, modelEntries.length),
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: false,
+        cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} calls` },
+            backgroundColor: 'rgba(4,4,14,0.9)',
+            titleColor: '#00d4ff', bodyColor: '#9898b8', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1,
+          }
+        },
+      }
+    });
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
