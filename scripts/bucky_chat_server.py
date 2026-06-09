@@ -278,6 +278,17 @@ def serve_bucky_os():
     return send_from_directory(str(DOCS_DIR), "bucky-os.html")
 
 
+@app.get("/launch")
+def auto_launch():
+    """localhost 전용 자동 로그인 → Bucky OS 리다이렉트 (바탕화면 바로가기용)."""
+    if request.remote_addr not in ("127.0.0.1", "::1"):
+        return jsonify({"error": "localhost only"}), 403
+    from flask import make_response, redirect
+    resp = make_response(redirect("/bucky-os.html"))
+    resp.set_cookie("bucky_auth", "local", path="/", httponly=False)
+    return resp
+
+
 @app.get("/<path:filename>")
 def serve_docs(filename):
     return send_from_directory(str(DOCS_DIR), filename)

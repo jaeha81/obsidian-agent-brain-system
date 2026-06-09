@@ -306,6 +306,70 @@
       "completion_note": "git push origin master 완료: 841a1de",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-023",
+      "title": "│ 40 files skipped       │",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-09",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-024",
+      "title": "│ [시간별 그래프]            │",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-09",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-025",
+      "title": "태블릿 음성 인테이크 스크립트 구현 (Phase 1 — 로컬 Whisper)",
+      "description": "scripts/tablet_voice_intake.py 구현: 태블릿 마이크 30초 청크 캡처 → 로컬 Whisper STT → bucky_stt_enhancer 처리 → tablet-batch-upload-manifest 형식으로 패키징 → bucky_chat_server.py:8765 전송. 과금 없는 Phase 1 범위.",
+      "priority": "P1",
+      "category": "개발",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "daily-plus Card 3 — afa1942d",
+      "refs": [
+        "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md",
+        "scripts/bucky_stt_enhancer.py",
+        "ObsidianVault/05_Frameworks/guides/tablet-batch-upload-manifest.md"
+      ]
+    },
+    {
+      "id": "CL-026",
+      "title": "tablet_setup.sh 원클릭 설치 스크립트 + Bucky /tablet-intake 엔드포인트",
+      "description": "scripts/tablet_setup.sh: Termux + Python + Whisper base 자동 설치. bucky_chat_server.py에 /tablet-intake POST 라우트 추가. Obsidian 04_SiteLog/voice_log_{DATE}.md 자동 저장.",
+      "priority": "P1",
+      "category": "개발",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "daily-plus Card 3 — afa1942d",
+      "refs": [
+        "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md",
+        "scripts/bucky_chat_server.py"
+      ]
+    },
+    {
+      "id": "CL-027",
+      "title": "⚠️ [승인 필요] 실시간 ASR 클라우드 제공자 선택 및 비용 경계 결정",
+      "description": "Phase 2 착수 전 승인 게이트. 선택지: 로컬 Whisper medium(무료/느림) vs OpenAI Whisper API($0.006/분) vs Deepgram Nova-2($0.0059/분) vs Google STT($0.016/분). 사용자가 선택지 확인 후 승인 시 별도 검증 계획 수립.",
+      "priority": "대기",
+      "category": "설정",
+      "status": "pending_approval",
+      "added": "2026-06-10",
+      "source": "daily-plus Card 3 next — 실시간 음성/ASR/비용 경계",
+      "refs": [
+        "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md"
+      ]
     }
   ]
 }
