@@ -3,37 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bucky Mission Control</title>
-<meta name="theme-color" content="#0a0a0f">
+<title>Bucky Mission Control — Agent OS</title>
+<meta name="theme-color" content="#04040e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bucky OS">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
 <style>
-/* ── DESIGN SYSTEM ── */
+/* ─────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────── */
 :root {
-  --bg:      #0a0a0f;
-  --surface: #111118;
-  --card:    #18181f;
-  --border:  #2a2a38;
-  --amber:   #f5a623;
-  --amber-d: #c8841a;
-  --amber-g: rgba(245,166,35,0.08);
-  --blue:    #4fa8ff;
-  --green:   #2ecc71;
-  --red:     #e74c3c;
-  --yellow:  #f1c40f;
-  --muted:   #6b6b80;
-  --text:    #e8e8f0;
-  --text-d:  #b0b0c4;
-  --mono:    "Fira Code", "Cascadia Code", "Consolas", monospace;
-  --sans:    -apple-system, "Segoe UI", system-ui, sans-serif;
-  --r: 8px;
-  --gap: 14px;
+  --bg:       #04040e;
+  --surface:  #080812;
+  --card:     rgba(10,10,22,0.72);
+  --border:   rgba(0,212,255,0.12);
+  --border-h: rgba(0,212,255,0.45);
+  --cyan:     #00d4ff;
+  --amber:    #f5a623;
+  --green:    #00ff88;
+  --purple:   #a855f7;
+  --red:      #ff4757;
+  --muted:    #4a4a6a;
+  --text:     #e8e8f8;
+  --text-d:   #9898b8;
+  --sans:     "Space Grotesk", system-ui, sans-serif;
+  --mono:     "Space Mono", "Fira Code", monospace;
+  --r:        10px;
+  --gap:      14px;
+  --topbar-h: 52px;
 }
 
+/* ─────────────────────────────────────────
+   RESET + BASE
+───────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 html, body {
   height: 100%;
   background: var(--bg);
@@ -43,250 +53,609 @@ html, body {
   overflow-x: hidden;
 }
 
-/* ── TOPBAR ── */
+/* ─────────────────────────────────────────
+   BACKGROUND: deep dark + radial gradients + grid
+───────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,212,255,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 80% 80%, rgba(168,85,247,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─────────────────────────────────────────
+   TOPBAR
+───────────────────────────────────────── */
 #topbar {
-  position: fixed; top: 0; left: 0; right: 0; height: 48px;
-  background: var(--surface);
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: rgba(4,4,14,0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center;
   padding: 0 20px; gap: 16px;
-  z-index: 100;
+  z-index: 200;
 }
-.logo {
-  display: flex; align-items: center; gap: 8px;
-  font-weight: 700; font-size: 15px; letter-spacing: 0.04em;
-  color: var(--amber); font-family: var(--mono);
-}
-.logo-dot { width: 8px; height: 8px; background: var(--amber); border-radius: 50%; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
-.topbar-divider { width: 1px; height: 24px; background: var(--border); }
-.sys-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
-.sys-val { font-family: var(--mono); font-size: 11px; color: var(--text-d); margin-left: 4px; }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.refresh-btn {
-  background: var(--amber-g); border: 1px solid var(--amber-d);
-  color: var(--amber); padding: 4px 12px; border-radius: 4px;
-  cursor: pointer; font-size: 11px; font-family: var(--mono);
-  transition: background .15s;
-}
-.refresh-btn:hover { background: rgba(245,166,35,.16); }
-#clock { font-family: var(--mono); font-size: 12px; color: var(--amber); }
 
-/* ── MAIN GRID ── */
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-weight: 700;
+  font-size: 13px; letter-spacing: 0.12em;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+}
+
+.logo-ring {
+  position: relative; width: 22px; height: 22px;
+  border: 2px solid rgba(0,212,255,0.4);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin-ring 3s linear infinite;
+  flex-shrink: 0;
+}
+
+.logo-ring::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px; height: 7px;
+  background: var(--cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--cyan);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes spin-ring { to { transform: rotate(360deg); } }
+@keyframes pulse-dot {
+  0%,100% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  50%      { opacity:.4; transform:translate(-50%,-50%) scale(0.6); }
+}
+
+.topbar-divider { width: 1px; height: 26px; background: var(--border); flex-shrink: 0; }
+
+.sys-label {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted); letter-spacing: 0.1em;
+}
+.sys-val {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-d); margin-left: 4px;
+}
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+#demo-badge {
+  display: none;
+  font-family: var(--mono); font-size: 9px;
+  padding: 3px 8px; border-radius: 3px;
+  background: rgba(245,166,35,0.18);
+  color: var(--amber);
+  border: 1px solid rgba(245,166,35,0.4);
+  letter-spacing: 0.08em;
+}
+#demo-badge.visible { display: inline-block; }
+
+.refresh-btn {
+  background: rgba(0,212,255,0.06);
+  border: 1px solid rgba(0,212,255,0.25);
+  color: var(--cyan); padding: 5px 14px;
+  border-radius: 5px; cursor: pointer;
+  font-size: 10px; font-family: var(--mono);
+  letter-spacing: 0.08em;
+  transition: all .18s;
+}
+.refresh-btn:hover {
+  background: rgba(0,212,255,0.14);
+  border-color: rgba(0,212,255,0.5);
+  box-shadow: 0 0 12px rgba(0,212,255,0.2);
+}
+
+#clock {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0,212,255,0.4);
+  min-width: 64px; text-align: right;
+}
+
+/* ─────────────────────────────────────────
+   MAIN GRID
+   Cols: 300px 1fr 280px
+   Rows: auto auto auto 380px auto
+───────────────────────────────────────── */
 #main {
-  margin-top: 48px;
+  position: relative; z-index: 1;
+  margin-top: var(--topbar-h);
   padding: var(--gap);
   display: grid;
-  grid-template-columns: 320px 1fr 280px;
-  grid-template-rows: auto auto auto 360px auto;
+  grid-template-columns: 300px 1fr 280px;
+  grid-template-rows: auto auto auto 380px auto;
   gap: var(--gap);
-  min-height: calc(100vh - 48px);
+  min-height: calc(100vh - var(--topbar-h));
 }
 
-/* ── CARD BASE ── */
+/* ─────────────────────────────────────────
+   CARD: GLASS MORPHISM BASE
+───────────────────────────────────────── */
 .card {
   background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--r);
   overflow: hidden;
   display: flex; flex-direction: column;
+  transition: border-color .22s, box-shadow .22s;
 }
+
+.card:hover {
+  border-color: rgba(0,212,255,0.35);
+  box-shadow: 0 0 28px rgba(0,212,255,0.07), inset 0 0 28px rgba(0,212,255,0.03);
+}
+
 .card-header {
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 8px;
+  background: rgba(0,212,255,0.02);
 }
-.card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-d); font-family: var(--mono); }
-.card-badge { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-left: auto; }
-.badge-amber { background: rgba(245,166,35,.15); color: var(--amber); border: 1px solid rgba(245,166,35,.3); }
-.badge-green { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.3); }
-.badge-red   { background: rgba(231,76,60,.12);  color: var(--red);   border: 1px solid rgba(231,76,60,.3); }
-.badge-blue  { background: rgba(79,168,255,.12);  color: var(--blue);  border: 1px solid rgba(79,168,255,.3); }
+
+.card-title {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-d); font-family: var(--mono);
+}
+
+.card-badge {
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 7px; border-radius: 3px;
+  margin-left: auto; letter-spacing: 0.06em;
+}
+
+.badge-cyan   { background: rgba(0,212,255,0.12); color:var(--cyan);   border:1px solid rgba(0,212,255,0.28); }
+.badge-amber  { background: rgba(245,166,35,0.12); color:var(--amber);  border:1px solid rgba(245,166,35,0.28); }
+.badge-green  { background: rgba(0,255,136,0.10);  color:var(--green);  border:1px solid rgba(0,255,136,0.28); }
+.badge-purple { background: rgba(168,85,247,0.12); color:var(--purple); border:1px solid rgba(168,85,247,0.28); }
+.badge-red    { background: rgba(255,71,87,0.12);  color:var(--red);    border:1px solid rgba(255,71,87,0.28); }
+
 .card-body { padding: 14px; flex: 1; overflow-y: auto; }
 
-/* ── AGENT HEALTH (top-left) ── */
-#card-health { grid-column: 1; grid-row: 1; }
+/* ─────────────────────────────────────────
+   GRID PLACEMENTS
+───────────────────────────────────────── */
+#card-health   { grid-column: 1;   grid-row: 1; }
+#card-tasks    { grid-column: 2;   grid-row: 1 / 3; }
+#card-skills   { grid-column: 3;   grid-row: 1 / 3; }
+#card-dream    { grid-column: 1;   grid-row: 2; }
+#card-memory   { grid-column: 1;   grid-row: 3; }
+#card-activity { grid-column: 2;   grid-row: 3; }
+#card-overview { grid-column: 3;   grid-row: 3; }
+#card-graph    { grid-column: 1/3; grid-row: 4; }
+#card-goals    { grid-column: 3;   grid-row: 4; }
+#card-spend    { grid-column: 1/4; grid-row: 5; }
+
+/* ─────────────────────────────────────────
+   AGENT HEALTH
+───────────────────────────────────────── */
 .agent-row {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(0,212,255,0.07);
 }
 .agent-row:last-child { border-bottom: none; }
-.agent-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
-.dot-online, .dot-fresh, .dot-active { background: var(--green); box-shadow: 0 0 6px rgba(46,204,113,.5); }
-.dot-offline, .dot-stale { background: var(--red); }
-.dot-idle { background: var(--yellow); }
-.agent-name { font-size: 12px; font-weight: 500; }
-.agent-detail { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
-.agent-status-tag { font-family: var(--mono); font-size: 9px; padding: 1px 5px; border-radius: 3px; }
 
-/* ── TASK BOARD (top-center) ── */
-#card-tasks { grid-column: 2; grid-row: 1 / 3; }
+.agent-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+
+.dot-active, .dot-online, .dot-fresh {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%,100% { box-shadow: 0 0 5px var(--green); }
+  50%      { box-shadow: 0 0 14px var(--green), 0 0 22px rgba(0,255,136,0.3); }
+}
+
+.dot-idle {
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+  animation: dot-pulse-amber 2.5s ease-in-out infinite;
+}
+@keyframes dot-pulse-amber {
+  0%,100% { box-shadow: 0 0 4px var(--amber); }
+  50%      { box-shadow: 0 0 12px var(--amber); }
+}
+
+.dot-offline, .dot-stale { background: var(--red); box-shadow: 0 0 5px var(--red); }
+
+.agent-info { flex: 1; }
+.agent-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.agent-detail { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 2px; }
+.agent-tag {
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 3px; letter-spacing: 0.06em;
+}
+
+/* ─────────────────────────────────────────
+   TASK BOARD
+───────────────────────────────────────── */
 .task-summary {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-  margin-bottom: 12px;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  margin-bottom: 14px;
 }
 .task-stat {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; padding: 8px; text-align: center;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 7px; padding: 9px; text-align: center;
 }
-.task-stat-val { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--amber); }
+.task-stat-val {
+  font-family: var(--mono); font-size: 22px; font-weight: 700;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+}
 .task-stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.task-section-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; margin: 10px 0 6px; }
+
+.task-section-label {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); letter-spacing: 0.1em;
+  margin: 12px 0 6px;
+}
+
 .task-item {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 8px 10px; margin-bottom: 4px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; cursor: default;
-  transition: border-color .15s;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 7px; cursor: default;
+  transition: border-color .18s, background .18s;
 }
-.task-item:hover { border-color: var(--amber-d); }
+.task-item:hover {
+  border-color: rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.04);
+}
+
 .task-id { font-family: var(--mono); font-size: 10px; color: var(--muted); flex-shrink: 0; min-width: 52px; }
-.task-title { font-size: 12px; flex: 1; line-height: 1.4; }
+.task-title { font-size: 12px; flex: 1; line-height: 1.45; }
 .task-pri {
-  font-family: var(--mono); font-size: 9px; padding: 2px 5px;
-  border-radius: 3px; flex-shrink: 0; align-self: flex-start;
-  margin-top: 1px;
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 3px;
+  flex-shrink: 0; align-self: flex-start; margin-top: 1px;
 }
-.pri-P0 { background: rgba(231,76,60,.2); color: var(--red); border: 1px solid rgba(231,76,60,.4); }
-.pri-P1 { background: rgba(245,166,35,.15); color: var(--amber); border: 1px solid rgba(245,166,35,.3); }
-.pri-P2 { background: rgba(79,168,255,.12); color: var(--blue); border: 1px solid rgba(79,168,255,.25); }
-.pri-wait { background: rgba(107,107,128,.15); color: var(--muted); border: 1px solid rgba(107,107,128,.3); }
-.task-done { opacity: .45; }
+
+.pri-P0 { background:rgba(255,71,87,0.2);   color:var(--red);   border:1px solid rgba(255,71,87,0.4); }
+.pri-P1 { background:rgba(245,166,35,0.15); color:var(--amber); border:1px solid rgba(245,166,35,0.3); }
+.pri-P2 { background:rgba(0,212,255,0.1);   color:var(--cyan);  border:1px solid rgba(0,212,255,0.25); }
+.pri-wait{ background:rgba(74,74,106,0.2);  color:var(--muted); border:1px solid rgba(74,74,106,0.3); }
+
+.task-done { opacity: .42; }
 .task-done .task-title { text-decoration: line-through; }
 
-/* ── SKILL PANTHEON (top-right) ── */
-#card-skills { grid-column: 3; grid-row: 1 / 3; }
+/* ─────────────────────────────────────────
+   SKILL PANTHEON
+───────────────────────────────────────── */
 .skill-graph-wrap {
-  position: relative; height: 260px; min-height: 260px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; overflow: hidden;
+  position: relative; height: 260px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
 }
-.skill-cy-container { width: 100%; height: 100%; }
+.skill-graph-wrap canvas { display: block; }
+
+#cy-skill { width: 100%; height: 100%; }
+
 .skill-legend {
-  display: flex; gap: 8px; flex-wrap: wrap;
+  display: flex; gap: 10px; flex-wrap: wrap;
   margin-top: 8px; font-family: var(--mono); font-size: 9px; color: var(--muted);
 }
 .skill-legend span { display: inline-flex; align-items: center; gap: 4px; }
 .legend-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-.dot-skill { background: var(--blue); }
-.dot-pack { background: var(--amber); }
-.dot-hub { background: var(--green); }
+.legend-dot-hub   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.legend-dot-skill { background: var(--cyan); }
+.legend-dot-pack  { background: var(--amber); }
+
 .skill-focus {
-  margin-top: 8px; padding: 8px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 5px;
+  margin-top: 8px; padding: 8px 10px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.12); border-radius: 6px;
   font-size: 10px; color: var(--text-d); line-height: 1.4;
+  min-height: 32px;
 }
+
 .cp-list { margin-top: 10px; }
 .cp-item {
   font-family: var(--mono); font-size: 10px; color: var(--muted);
-  padding: 3px 0; border-bottom: 1px solid var(--border);
+  padding: 4px 0; border-bottom: 1px solid rgba(0,212,255,0.07);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .cp-item:last-child { border-bottom: none; }
+.cp-item::before { content: '◈ '; color: var(--amber); }
 
-/* ── DREAM REPORT (bottom-left) ── */
-#card-dream { grid-column: 1; grid-row: 2; }
+/* ─────────────────────────────────────────
+   DREAM REPORT
+───────────────────────────────────────── */
 .dream-session { margin-bottom: 12px; }
-.dream-title { font-family: var(--mono); font-size: 10px; color: var(--amber); margin-bottom: 6px; font-weight: 600; }
-.dream-body { font-size: 11px; color: var(--text-d); line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
-.dream-separator { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+.dream-title {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--cyan); margin-bottom: 6px; font-weight: 700;
+  text-shadow: 0 0 10px rgba(0,212,255,0.3);
+}
+.dream-body {
+  font-size: 11px; color: var(--text-d);
+  line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+}
+.dream-sep { border: none; border-top: 1px solid rgba(0,212,255,0.08); margin: 10px 0; }
 
-/* ── ACTIVITY FEED (bottom-center) ── */
-#card-activity { grid-column: 2; grid-row: 3; }
-.activity-list { display: flex; flex-direction: column; gap: 4px; }
+/* ─────────────────────────────────────────
+   MEMORY STACK
+───────────────────────────────────────── */
+.mem-stats {
+  display: flex; gap: 14px; margin-bottom: 12px;
+  font-family: var(--mono); font-size: 11px;
+}
+.mem-stat-item { color: var(--muted); }
+.mem-stat-item strong { color: var(--text-d); text-shadow: 0 0 10px rgba(0,212,255,0.2); }
+
+.mem-layers { display: flex; flex-direction: column; gap: 8px; }
+
+.mem-layer-card {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; overflow: hidden;
+}
+
+.mem-layer-card[data-layer="short"]     { border-bottom: 2px solid var(--cyan); }
+.mem-layer-card[data-layer="episodic"]  { border-bottom: 2px solid var(--purple); }
+.mem-layer-card[data-layer="semantic"]  { border-bottom: 2px solid var(--amber); }
+.mem-layer-card[data-layer="procedural"]{ border-bottom: 2px solid var(--green); }
+
+.mem-layer-header {
+  padding: 7px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.mem-layer-name {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.mem-layer-card[data-layer="short"]     .mem-layer-name { color: var(--cyan); }
+.mem-layer-card[data-layer="episodic"]  .mem-layer-name { color: var(--purple); }
+.mem-layer-card[data-layer="semantic"]  .mem-layer-name { color: var(--amber); }
+.mem-layer-card[data-layer="procedural"].mem-layer-name { color: var(--green); }
+
+.mem-layer-count {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+}
+.mem-layer-body { padding: 6px 10px 8px; }
+.mem-fact-item {
+  font-size: 11px; color: var(--text-d);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.45;
+}
+.mem-fact-item:last-child { border-bottom: none; }
+.mem-fact-ts {
+  font-family: var(--mono); font-size: 9px; color: var(--muted); margin-left: 6px;
+}
+
+/* ─────────────────────────────────────────
+   ACTIVITY FEED
+───────────────────────────────────────── */
+.activity-list { display: flex; flex-direction: column; gap: 5px; }
 .activity-item {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 8px 10px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 5px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,212,255,0.07);
+  border-radius: 6px;
+  transition: border-color .15s;
 }
-.activity-type-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-.type-task    { background: var(--amber); }
-.type-report  { background: var(--blue); }
-.type-chat    { background: var(--green); }
-.type-system  { background: var(--muted); }
-.activity-content { flex: 1; }
-.activity-title { font-size: 11px; font-weight: 500; }
-.activity-detail { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
-.activity-ts { font-family: var(--mono); font-size: 9px; color: var(--muted); flex-shrink: 0; }
+.activity-item:hover { border-color: rgba(0,212,255,0.2); }
 
-/* ── SYSTEM OVERVIEW (bottom-right) ── */
-#card-overview { grid-column: 3; grid-row: 3; }
+.activity-type-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 4px;
+}
+.type-task   { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.type-report { background: var(--cyan);  box-shadow: 0 0 6px var(--cyan); }
+.type-chat   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.type-system { background: var(--muted); }
+.type-error  { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+.activity-content { flex: 1; }
+.activity-title   { font-size: 11px; font-weight: 500; }
+.activity-detail  { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.activity-ts      { font-family: var(--mono); font-size: 9px; color: var(--muted); flex-shrink: 0; }
+
+/* ─────────────────────────────────────────
+   SYSTEM OVERVIEW
+───────────────────────────────────────── */
 .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ov-block {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; padding: 10px; text-align: center;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 8px; padding: 10px; text-align: center;
 }
-.ov-val { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+.ov-val {
+  font-family: var(--mono); font-size: 24px; font-weight: 700;
+}
 .ov-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
-.ov-green { color: var(--green); }
-.ov-amber { color: var(--amber); }
-.ov-blue  { color: var(--blue); }
-.ov-red   { color: var(--red); }
+.ov-cyan   { color: var(--cyan);   text-shadow: 0 0 20px rgba(0,212,255,0.5); }
+.ov-amber  { color: var(--amber);  text-shadow: 0 0 20px rgba(245,166,35,0.5); }
+.ov-green  { color: var(--green);  text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+.ov-purple { color: var(--purple); text-shadow: 0 0 20px rgba(168,85,247,0.5); }
+.ov-red    { color: var(--red);    text-shadow: 0 0 20px rgba(255,71,87,0.4); }
 
-/* AGENT OS EXTENSIONS */
-#card-memory { grid-column: 1; grid-row: 3; }
-#card-goals { grid-column: 3; grid-row: 4; }
-#card-graph { grid-column: 1 / 3; grid-row: 4; }
-#card-spend { grid-column: 1 / 4; grid-row: 5; }
-.mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.mini-stat {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; padding: 8px; text-align: center;
+/* ─────────────────────────────────────────
+   MISSION GOALS
+───────────────────────────────────────── */
+.goal-card-inner {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 8px; padding: 10px; margin-bottom: 10px;
 }
-.mini-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--amber); }
-.mini-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.list-row {
-  padding: 7px 8px; margin-bottom: 5px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 5px;
+.goal-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.goal-meta  { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.goal-pct   {
+  font-family: var(--mono); font-size: 26px; font-weight: 700;
+  color: var(--cyan); text-shadow: 0 0 20px rgba(0,212,255,0.6);
+  text-align: right; margin-bottom: 4px;
 }
-.list-title { font-size: 11px; color: var(--text-d); line-height: 1.35; }
-.list-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 3px; }
-.progress-bar { height: 6px; background: var(--surface); border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
-.progress-bar span { display: block; height: 100%; background: var(--green); }
-.graph-frame {
-  width: 100%; height: 100%; min-height: 300px;
-  border: 0; background: var(--bg);
-}
-.spend-model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
 
-/* ── LOADING STATE ── */
-.loading-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; color: var(--muted); font-size: 12px; }
-.spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--amber); border-radius: 50%; animation: spin .6s linear infinite; }
+.progress-wrap { margin: 8px 0 14px; }
+.progress-bar-bg {
+  height: 6px; background: rgba(0,212,255,0.08);
+  border-radius: 6px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0,212,255,0.5);
+  transition: width .6s ease;
+}
+
+.subtask-list { display: flex; flex-direction: column; gap: 5px; }
+.subtask-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 8px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 5px; font-size: 11px; line-height: 1.4;
+}
+.subtask-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.subtask-done    .subtask-dot { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.subtask-pending .subtask-dot { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+.subtask-done    { color: var(--green); opacity: 0.7; }
+.subtask-pending { color: var(--text-d); }
+
+/* ─────────────────────────────────────────
+   AI SPEND
+───────────────────────────────────────── */
+.spend-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+  margin-bottom: 14px;
+}
+.spend-stat {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 8px; padding: 12px; text-align: center;
+}
+.spend-stat-val {
+  font-family: var(--mono); font-size: 28px; font-weight: 700;
+}
+.spend-stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+.spend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+.spend-model-card {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 8px; padding: 10px;
+  transition: border-color .18s;
+}
+.spend-model-card:hover { border-color: rgba(0,212,255,0.25); }
+.spend-model-name { font-family: var(--mono); font-size: 10px; color: var(--cyan); margin-bottom: 5px; }
+.spend-model-calls {
+  font-family: var(--mono); font-size: 20px; font-weight: 700;
+  color: var(--text); text-shadow: 0 0 14px rgba(0,212,255,0.3);
+}
+.spend-model-meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* ─────────────────────────────────────────
+   PROJECT GRAPH iframe
+───────────────────────────────────────── */
+.graph-frame { width:100%; height:100%; border:0; background:var(--bg); display:block; }
+
+/* ─────────────────────────────────────────
+   LOADING / SPINNER
+───────────────────────────────────────── */
+.loading-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; color: var(--muted); font-size: 12px;
+}
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,212,255,0.15);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin .7s linear infinite; flex-shrink: 0;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── SCROLLBAR ── */
+/* ─────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,0.4); }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 1100px) {
-  #main { grid-template-columns: 1fr 1fr; }
-  #card-tasks { grid-column: 1 / 3; grid-row: 2; }
-  #card-skills { grid-column: 1 / 3; grid-row: 3; }
-  #card-dream { grid-column: 1; grid-row: 4; }
-  #card-memory { grid-column: 2; grid-row: 4; }
-  #card-overview { grid-column: 1 / 3; grid-row: 5; }
-  #card-activity { grid-column: 1 / 3; grid-row: 6; }
-  #card-graph { grid-column: 1 / 3; grid-row: 7; }
-  #card-goals { grid-column: 1 / 3; grid-row: 8; }
-  #card-spend { grid-column: 1 / 3; grid-row: 9; }
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 1200px) {
+  #main {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+  #card-health   { grid-column:1;   grid-row:1; }
+  #card-dream    { grid-column:2;   grid-row:1; }
+  #card-tasks    { grid-column:1/3; grid-row:2; }
+  #card-skills   { grid-column:1/3; grid-row:3; }
+  #card-memory   { grid-column:1;   grid-row:4; }
+  #card-overview { grid-column:2;   grid-row:4; }
+  #card-activity { grid-column:1/3; grid-row:5; }
+  #card-graph    { grid-column:1/3; grid-row:6; height:360px; }
+  #card-goals    { grid-column:1/3; grid-row:7; }
+  #card-spend    { grid-column:1/3; grid-row:8; }
+}
+
+@media (max-width: 700px) {
+  #main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  #card-health, #card-dream, #card-tasks, #card-skills,
+  #card-memory, #card-overview, #card-activity,
+  #card-graph, #card-goals, #card-spend {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+  .spend-stats { grid-template-columns: 1fr 1fr; }
+  .task-summary { grid-template-columns: repeat(2,1fr); }
 }
 </style>
-<script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
 </head>
 <body>
 
-<!-- TOPBAR -->
+<!-- ═══════════════════════════════════════
+     TOPBAR
+═══════════════════════════════════════ -->
 <div id="topbar">
   <div class="logo">
-    <div class="logo-dot"></div>
-    BUCKY MISSION CONTROL
+    <div class="logo-ring"></div>
+    BUCKY&nbsp;MISSION&nbsp;CONTROL
   </div>
   <div class="topbar-divider"></div>
   <span class="sys-label">SYS</span>
@@ -298,15 +667,18 @@ html, body {
   <span class="sys-label">SKILLS</span>
   <span class="sys-val" id="sys-skills">—</span>
   <div class="topbar-right">
+    <span id="demo-badge">⚠ DEMO MODE</span>
     <button class="refresh-btn" onclick="loadAll()">⟳ REFRESH</button>
     <span id="clock">00:00:00</span>
   </div>
 </div>
 
-<!-- MAIN GRID -->
+<!-- ═══════════════════════════════════════
+     MAIN GRID
+═══════════════════════════════════════ -->
 <div id="main">
 
-  <!-- AGENT HEALTH -->
+  <!-- ── AGENT HEALTH (col 1, row 1) ── -->
   <div class="card" id="card-health">
     <div class="card-header">
       <span class="card-title">Agent Health</span>
@@ -317,7 +689,7 @@ html, body {
     </div>
   </div>
 
-  <!-- TASK BOARD -->
+  <!-- ── TASK BOARD (col 2, row 1-2) ── -->
   <div class="card" id="card-tasks">
     <div class="card-header">
       <span class="card-title">Mission Control — Tasks</span>
@@ -328,40 +700,40 @@ html, body {
     </div>
   </div>
 
-  <!-- SKILL PANTHEON -->
+  <!-- ── SKILL PANTHEON (col 3, row 1-2) ── -->
   <div class="card" id="card-skills">
     <div class="card-header">
       <span class="card-title">Skill Pantheon</span>
-      <span class="card-badge badge-blue" id="skills-badge">—</span>
+      <span class="card-badge badge-cyan" id="skills-badge">—</span>
     </div>
     <div class="card-body" id="skills-body">
       <div class="loading-row"><div class="spinner"></div>Loading skills…</div>
     </div>
   </div>
 
-  <!-- DREAM REPORT -->
+  <!-- ── DREAM REPORT (col 1, row 2) ── -->
   <div class="card" id="card-dream">
     <div class="card-header">
       <span class="card-title">Dream Report</span>
-      <span class="card-badge badge-amber" id="dream-badge">HANDOFF LOG</span>
+      <span class="card-badge badge-amber" id="dream-badge">HANDOFF</span>
     </div>
     <div class="card-body" id="dream-body">
       <div class="loading-row"><div class="spinner"></div>Loading sessions…</div>
     </div>
   </div>
 
-  <!-- MEMORY STACK -->
+  <!-- ── MEMORY STACK (col 1, row 3) ── -->
   <div class="card" id="card-memory">
     <div class="card-header">
       <span class="card-title">Memory Stack</span>
-      <span class="card-badge badge-blue" id="memory-badge">LOCAL</span>
+      <span class="card-badge badge-purple" id="memory-badge">LOCAL</span>
     </div>
     <div class="card-body" id="memory-body">
-      <div class="loading-row"><div class="spinner"></div>Loading memory...</div>
+      <div class="loading-row"><div class="spinner"></div>Loading memory…</div>
     </div>
   </div>
 
-  <!-- ACTIVITY FEED -->
+  <!-- ── ACTIVITY FEED (col 2, row 3) ── -->
   <div class="card" id="card-activity">
     <div class="card-header">
       <span class="card-title">Activity Feed</span>
@@ -372,604 +744,663 @@ html, body {
     </div>
   </div>
 
-  <!-- SYSTEM OVERVIEW -->
+  <!-- ── SYSTEM OVERVIEW (col 3, row 3) ── -->
   <div class="card" id="card-overview">
     <div class="card-header">
       <span class="card-title">System Overview</span>
-      <span class="card-badge badge-amber">v1.0</span>
+      <span class="card-badge badge-amber" id="overview-badge">v2.0</span>
     </div>
     <div class="card-body" id="overview-body">
       <div class="loading-row"><div class="spinner"></div>Loading…</div>
     </div>
   </div>
 
-  <!-- PROJECT GRAPH -->
+  <!-- ── PROJECT GRAPH (col 1-2, row 4) ── -->
   <div class="card" id="card-graph">
     <div class="card-header">
       <span class="card-title">Obsidian Project Graph</span>
-      <span class="card-badge badge-blue">IFRAME</span>
+      <span class="card-badge badge-cyan">LIVE</span>
     </div>
     <div class="card-body" style="padding:0;overflow:hidden">
       <iframe class="graph-frame" src="project-graph.html" title="Obsidian project graph"></iframe>
     </div>
   </div>
 
-  <!-- MISSION GOALS -->
+  <!-- ── MISSION GOALS (col 3, row 4) ── -->
   <div class="card" id="card-goals">
     <div class="card-header">
       <span class="card-title">Mission Goals</span>
       <span class="card-badge badge-amber" id="goals-badge">GOAL MODE</span>
     </div>
     <div class="card-body" id="goals-body">
-      <div class="loading-row"><div class="spinner"></div>Loading goals...</div>
+      <div class="loading-row"><div class="spinner"></div>Loading goals…</div>
     </div>
   </div>
 
-  <!-- AI SPEND -->
+  <!-- ── AI SPEND (col 1-3, row 5) ── -->
   <div class="card" id="card-spend">
     <div class="card-header">
-      <span class="card-title">AI Spend</span>
+      <span class="card-title">AI Spend — Usage Analytics</span>
       <span class="card-badge badge-green" id="spend-badge">USAGE</span>
     </div>
     <div class="card-body" id="spend-body">
-      <div class="loading-row"><div class="spinner"></div>Loading usage...</div>
+      <div class="loading-row"><div class="spinner"></div>Loading usage…</div>
     </div>
   </div>
 
-</div>
+</div><!-- /#main -->
 
 <script>
-/* ── CLOCK ── */
+/* ═══════════════════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════════════════ */
 (function tickClock() {
   const el = document.getElementById('clock');
-  function upd() {
-    const now = new Date();
-    el.textContent = now.toTimeString().slice(0, 8);
-  }
-  upd();
-  setInterval(upd, 1000);
+  function upd() { el.textContent = new Date().toTimeString().slice(0,8); }
+  upd(); setInterval(upd, 1000);
 })();
 
-/* ── HELPERS ── */
-const BASE = '';  // same-origin
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════════ */
+const API = 'http://localhost:8765';
+let _demoMode = false;
 
-async function apiFetch(path) {
-  const r = await fetch(BASE + path);
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
+/* ═══════════════════════════════════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════════════════════════════════ */
+const DEMO = {
+  health: {
+    agents: [
+      { name: 'Bucky',       status: 'active',  detail: 'Orchestrator · port 8765' },
+      { name: 'Codex',       status: 'idle',    detail: 'Reviewer · waiting' },
+      { name: 'Discord Bot', status: 'online',  detail: '봇 #jh-태스크보드 연결됨' },
+      { name: 'Wishket',     status: 'idle',    detail: 'Sniper loop 대기 중' },
+    ]
+  },
+  tasks: {
+    summary: { total: 7, pending: 4, p0_count: 1, p1_count: 2, done: 3 },
+    pending: [
+      { id: 'T021', title: 'Hermes Agentic OS — Pantheon 3D 통합', priority: 'P0' },
+      { id: 'T022', title: 'Memory Stack API 연결 + SQLite 최적화', priority: 'P1' },
+      { id: 'T023', title: 'Mission Control Graph iframe 임베드', priority: 'P1' },
+      { id: 'T024', title: 'AI Spend 공식 잔여량 수집 파이프라인', priority: 'P2' },
+    ],
+    done: [
+      { id: 'T016', title: 'BuckyOS GAP 1~5 분석 완료', completion_note: '2026-06-10' },
+      { id: 'T017', title: 'Memory fit-bounds + Reset 버튼 추가', completion_note: '2026-06-10' },
+      { id: 'T018', title: 'bucky_memory.db 경로 수정', completion_note: '2026-06-10' },
+    ]
+  },
+  skills: {
+    summary: { total: 17 },
+    skills: [
+      { name: 'jh-brain',      category: 'knowledge' },
+      { name: 'jh-ultra',      category: 'execution' },
+      { name: 'jh-deploy',     category: 'devops' },
+      { name: 'jh-debug',      category: 'debug' },
+      { name: 'taste-skill',   category: 'design' },
+      { name: 'jh-github',     category: 'git' },
+      { name: 'jh-research',   category: 'research' },
+      { name: 'jh-plan',       category: 'planning' },
+      { name: 'claude-api',    category: 'api' },
+      { name: 'brainstorming', category: 'creative' },
+      { name: 'watch',         category: 'media' },
+      { name: 'goalmode',      category: 'agent' },
+    ],
+    context_pack_names: [
+      'bucky-agent-os', 'bucky-wishket', 'bucky-infranodus',
+      'bucky-discord', 'bucky-design',
+    ]
+  },
+  dream: {
+    total_sessions: 3,
+    sessions: [
+      { title: '2026-06-10b — Hermes GAP 분석', body: 'Pantheon 3D, Graph 임베드, Memory Stack,\nMission Control, AI Spend 5개 GAP 파악.\nCodex handoff 완료.' },
+      { title: '2026-06-10 — BuckyOS 재설계', body: 'bucky_memory.db 경로 수정.\nMemory fit-bounds + Reset 버튼 추가.\n$9.30/62세션 확인.' },
+    ]
+  },
+  memory: {
+    summary: { fact_count: 42, session_count: 8, message_count: 156 },
+    layers: {
+      short_term: [
+        { role: 'user', content: 'Hermes GAP 5개 분석 완료', ts: '2026-06-10T22:00:00' },
+        { role: 'assistant', content: 'BuckyOS 재설계 커밋 fec17e5 확인', ts: '2026-06-10T21:50:00' },
+      ],
+      episodic: [
+        { id: 8, preview: 'Hermes GAP 분석 세션', started: '2026-06-10T21:00:00', msg_count: 24 },
+        { id: 7, preview: 'BuckyOS 재설계 + Memory 수정', started: '2026-06-10T19:00:00', msg_count: 18 },
+      ],
+      semantic: {
+        goal: [
+          { fact: 'BuckyOS Hermes Agentic OS 수준으로 업그레이드', ts: '2026-06-10' },
+          { fact: 'Wishket 수익화 우선, 비수익 에이전트 폐기', ts: '2026-06-09' },
+        ],
+        tech: [
+          { fact: 'cytoscape@3.28.1 CDN — Skill Pantheon 그래프', ts: '2026-06-10' },
+          { fact: 'bucky_memory.db 경로: data/bucky_memory.db', ts: '2026-06-10' },
+        ],
+      },
+      procedural: [
+        { fact: '완료 보고 증거 강제: 파일 경로 + 출력 첨부 필수', category: 'protocol', ts: '2026-06-01' },
+        { fact: '저장 경계: G:/내 드라이브/obsidian-agent-brain-system/ 또는 D:/AI프로젝트/ 만 허용', category: 'safety', ts: '2026-06-01' },
+      ]
+    }
+  },
+  goals: {
+    active: true,
+    goal: 'BuckyOS Hermes Agentic OS 수준 업그레이드',
+    summary: { progress_percent: 60 },
+    focus: true,
+    created: '2026-06-09',
+    subtasks: [
+      { id: 1, body: 'Skill Pantheon cytoscape 그래프 구현', status: 'done' },
+      { id: 2, body: 'Memory Stack 4-layer 카드 UI', status: 'done' },
+      { id: 3, body: 'Mission Goals progress bar', status: 'done' },
+      { id: 4, body: 'AI Spend 공식 잔여량 파이프라인', status: 'pending' },
+      { id: 5, body: 'Project Graph iframe 임베드', status: 'pending' },
+    ]
+  },
+  spend: {
+    summary: { total_calls: 62, successes: 58, limit_events: 4 },
+    models: {
+      'claude-sonnet-4-6': { calls: 45, failures: 2, limit_events: 2 },
+      'claude-opus-4-7':   { calls: 12, failures: 1, limit_events: 1 },
+      'claude-haiku-4-5':  { calls:  5, failures: 1, limit_events: 1 },
+    }
+  },
+  activity: {
+    events: [
+      { type:'task',   title:'T021 착수: Pantheon 3D 통합', ts:'2026-06-10T22:10:00' },
+      { type:'system', title:'bucky_memory.db 경로 수정 완료', ts:'2026-06-10T21:55:00' },
+      { type:'report', title:'Hermes GAP 5개 분석 → Codex handoff', ts:'2026-06-10T21:30:00' },
+      { type:'chat',   title:'Discord #jh-태스크보드 메시지 수신', ts:'2026-06-10T20:00:00' },
+      { type:'task',   title:'T017 완료: Memory fit-bounds', ts:'2026-06-10T19:45:00' },
+    ]
+  },
+  overview: {
+    agents: { bucky:'active', codex:'idle', discord:'online', wishket:'idle' },
+    tasks:  { pending:4, done:3 },
+    knowledge: { skills:12, context_packs:5 },
+    checked_at: '2026-06-10T22:00:00'
+  }
+};
 
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════════ */
 function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function priClass(p) {
-  if (!p) return 'pri-wait';
-  if (p === 'P0') return 'pri-P0';
-  if (p === 'P1') return 'pri-P1';
-  if (p === 'P2') return 'pri-P2';
-  return 'pri-wait';
+  const m = { P0:'pri-P0', P1:'pri-P1', P2:'pri-P2' };
+  return m[p] || 'pri-wait';
 }
 
-function priLabel(p) {
-  return p || '대기';
+function priLabel(p) { return p || '대기'; }
+
+function setDemoMode(on) {
+  _demoMode = on;
+  const badge = document.getElementById('demo-badge');
+  if (on) badge.classList.add('visible');
+  else badge.classList.remove('visible');
 }
 
-function shortSkillName(name) {
-  return String(name || '').replace(/^auto-/, '').replace(/-(general|agent|workflow|dashboard)$/g, '');
+/* ═══════════════════════════════════════════════════════════════
+   FETCH WITH FALLBACK
+   withFallback(path, demoData, renderFn)
+═══════════════════════════════════════════════════════════════ */
+async function withFallback(path, demoData, renderFn) {
+  try {
+    const res = await fetch(API + path, { signal: AbortSignal.timeout(3500) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    setDemoMode(false);
+    return renderFn(data, false);
+  } catch (_) {
+    setDemoMode(true);
+    return renderFn(demoData, true);
+  }
 }
 
-function buildSkillGraph(skills, contextPacks) {
-  const shownSkills = skills.slice(0, 16);
-  const shownPacks = contextPacks.slice(0, 8);
-  const nodes = [
-    { id: 'hub', label: 'Bucky', type: 'hub', r: 18 },
-    ...shownSkills.map((s, i) => ({
-      id: `skill-${i}`,
-      label: shortSkillName(s.name),
-      type: 'skill',
-      category: s.category || s.source || 'skill',
-      r: 9,
-    })),
-    ...shownPacks.map((name, i) => ({
-      id: `pack-${i}`,
-      label: String(name).replace(/^bucky-/, ''),
-      type: 'pack',
-      r: 7,
-    })),
-  ];
+/* ═══════════════════════════════════════════════════════════════
+   RENDERERS
+═══════════════════════════════════════════════════════════════ */
 
-  const links = [
-    ...shownSkills.map((_, i) => ({ source: 'hub', target: `skill-${i}`, type: 'skill' })),
-    ...shownPacks.map((_, i) => ({ source: 'hub', target: `pack-${i}`, type: 'cp' })),
-  ];
+/* ── rHealth ── */
+function rHealth(d, demo) {
+  const el = document.getElementById('health-body');
+  const badge = document.getElementById('health-badge');
+  const agents = (d.agents || []);
+  const onCnt = agents.filter(a => ['active','online','fresh'].includes(a.status)).length;
 
-  shownSkills.forEach((skill, i) => {
-    const packIndex = shownPacks.findIndex(name => {
-      const hay = `${name} ${skill.name} ${skill.category || ''}`.toLowerCase();
-      return hay.includes('api') || hay.includes('agent') || hay.includes('goal') || hay.includes('context');
-    });
-    if (packIndex >= 0) links.push({ source: `skill-${i}`, target: `pack-${packIndex}`, type: 'cp' });
-  });
+  badge.textContent = `${onCnt}/${agents.length} ONLINE`;
+  badge.className = 'card-badge ' + (onCnt === agents.length ? 'badge-green' : onCnt > 0 ? 'badge-amber' : 'badge-red');
+  document.getElementById('sys-status').textContent = `${onCnt}/${agents.length} agents${demo ? ' (demo)' : ''}`;
 
-  return { nodes, links, moreSkills: Math.max(0, skills.length - shownSkills.length), morePacks: Math.max(0, contextPacks.length - shownPacks.length) };
+  el.innerHTML = agents.map(a => {
+    const isOn = ['active','online','fresh'].includes(a.status);
+    const tagClass = isOn ? 'badge-green' : a.status === 'idle' ? 'badge-amber' : 'badge-red';
+    return `<div class="agent-row">
+      <div class="agent-dot dot-${esc(a.status)}"></div>
+      <div class="agent-info">
+        <div class="agent-name">${esc(a.name)}</div>
+        <div class="agent-detail">${esc(a.detail || '')}</div>
+      </div>
+      <span class="agent-tag ${tagClass}">${esc(a.status.toUpperCase())}</span>
+    </div>`;
+  }).join('');
 }
 
-function renderSkillGraphHtml(graphData) {
-  const moreText = [graphData.moreSkills ? `+${graphData.moreSkills} skills` : '', graphData.morePacks ? `+${graphData.morePacks} packs` : ''].filter(Boolean).join(' / ');
-  return `<div class="skill-graph-wrap" id="skill-cy-graph"></div>
-  <div class="skill-legend">
-    <span><i class="legend-dot dot-hub"></i>Bucky</span>
-    <span><i class="legend-dot dot-skill"></i>Skill</span>
-    <span><i class="legend-dot dot-pack"></i>Context Pack</span>
-    ${moreText ? `<span>${esc(moreText)}</span>` : ''}
+/* ── rTasks ── */
+function rTasks(d, demo) {
+  const el = document.getElementById('tasks-body');
+  const badge = document.getElementById('tasks-badge');
+  const { pending = [], done = [], summary = {} } = d;
+
+  badge.textContent = `${summary.pending ?? pending.length} PENDING`;
+  badge.className = 'card-badge ' + ((summary.pending ?? pending.length) > 0 ? 'badge-amber' : 'badge-green');
+  document.getElementById('sys-tasks').textContent = `${summary.pending ?? pending.length} pending`;
+
+  const statsHtml = `<div class="task-summary">
+    <div class="task-stat"><div class="task-stat-val">${summary.total || 0}</div><div class="task-stat-lbl">Total</div></div>
+    <div class="task-stat"><div class="task-stat-val" style="color:var(--red);text-shadow:0 0 20px rgba(255,71,87,0.5)">${summary.p0_count || 0}</div><div class="task-stat-lbl">P0</div></div>
+    <div class="task-stat"><div class="task-stat-val" style="color:var(--amber);text-shadow:0 0 20px rgba(245,166,35,0.5)">${summary.p1_count || 0}</div><div class="task-stat-lbl">P1</div></div>
+    <div class="task-stat"><div class="task-stat-val" style="color:var(--green);text-shadow:0 0 20px rgba(0,255,136,0.5)">${summary.done || done.length}</div><div class="task-stat-lbl">Done</div></div>
   </div>`;
+
+  const pendingHtml = pending.length
+    ? `<div class="task-section-label">▸ PENDING (${pending.length})</div>` +
+      pending.map(t => `<div class="task-item">
+        <span class="task-id">${esc(t.id)}</span>
+        <span class="task-title">${esc(t.title)}</span>
+        <span class="task-pri ${priClass(t.priority)}">${priLabel(t.priority)}</span>
+      </div>`).join('')
+    : `<div style="color:var(--green);font-size:12px;padding:8px 0">All tasks complete</div>`;
+
+  const doneHtml = done.length
+    ? `<div class="task-section-label" style="margin-top:14px">▸ RECENTLY DONE</div>` +
+      done.map(t => `<div class="task-item task-done">
+        <span class="task-id">${esc(t.id)}</span>
+        <span class="task-title">${esc(t.title)}</span>
+        ${t.completion_note ? `<span class="task-pri pri-wait">${esc(t.completion_note.slice(0,10))}</span>` : ''}
+      </div>`).join('')
+    : '';
+
+  el.innerHTML = statsHtml + pendingHtml + doneHtml;
 }
 
-function initSkillCytoscape(graphData) {
-  const container = document.getElementById('skill-cy-graph');
+/* ── rSkills (Cytoscape Pantheon) ── */
+let _cyInstance = null;
+
+function rSkills(d, demo) {
+  const el = document.getElementById('skills-body');
+  const badge = document.getElementById('skills-badge');
+  const { skills = [], summary = {}, context_pack_names = [] } = d;
+
+  const total = summary.total || skills.length;
+  badge.textContent = `${total} SKILLS`;
+  document.getElementById('sys-skills').textContent = `${total} skills`;
+
+  el.innerHTML = `
+    <div class="skill-graph-wrap"><div id="cy-skill"></div></div>
+    <div class="skill-legend">
+      <span><i class="legend-dot legend-dot-hub"></i>Bucky</span>
+      <span><i class="legend-dot legend-dot-skill"></i>Skill</span>
+      <span><i class="legend-dot legend-dot-pack"></i>Context Pack</span>
+    </div>
+    <div class="skill-focus" id="skill-focus">클릭하면 상세 정보가 표시됩니다</div>
+    <div class="task-section-label" style="margin-top:12px">▸ CONTEXT PACKS (${context_pack_names.length})</div>
+    <div class="cp-list">
+      ${context_pack_names.map(n => `<div class="cp-item">${esc(n)}</div>`).join('')}
+    </div>`;
+
+  requestAnimationFrame(() => buildCytoscape(skills, context_pack_names));
+}
+
+function buildCytoscape(skills, packs) {
+  const container = document.getElementById('cy-skill');
   if (!container || typeof cytoscape === 'undefined') return;
 
-  const elements = [
-    ...graphData.nodes.map(node => ({
-      data: {
-        id: node.id,
-        label: node.label.length > 14 ? node.label.slice(0, 13) + '…' : node.label,
-        type: node.type,
-        size: node.r * 2,
-      }
-    })),
-    ...graphData.links.map((link, i) => ({
-      data: { id: 'e' + i, source: link.source, target: link.target, edgeType: link.type }
-    }))
-  ];
+  if (_cyInstance) { _cyInstance.destroy(); _cyInstance = null; }
 
-  const cy = cytoscape({
+  const elements = [];
+  elements.push({ data: { id:'hub', label:'Bucky', type:'hub' } });
+
+  const shown = skills.slice(0, 16);
+  shown.forEach((s, i) => {
+    const id = `skill-${i}`;
+    elements.push({ data: { id, label: s.name.replace(/^(auto-|jh-)/,'').replace(/-(general|agent|workflow)$/,''), type:'skill', full: s.name } });
+    elements.push({ data: { source:'hub', target:id, type:'skill-edge' } });
+  });
+
+  const shownPacks = packs.slice(0, 6);
+  shownPacks.forEach((p, i) => {
+    const id = `pack-${i}`;
+    elements.push({ data: { id, label: String(p).replace('bucky-',''), type:'pack', full: p } });
+    elements.push({ data: { source:'hub', target:id, type:'pack-edge' } });
+  });
+
+  _cyInstance = cytoscape({
     container,
     elements,
     style: [
-      {
-        selector: 'node',
-        style: {
-          'background-color': '#4fa8ff',
-          'border-color': 'rgba(255,255,255,.2)',
-          'border-width': 1,
-          'label': 'data(label)',
-          'font-family': '"Fira Code", Consolas, monospace',
-          'font-size': '8px',
-          'color': '#b0b0c4',
-          'text-valign': 'bottom',
-          'text-halign': 'center',
-          'text-margin-y': 3,
-          'min-zoomed-font-size': 5,
-          'width': 'data(size)',
-          'height': 'data(size)',
-          'text-outline-color': '#0a0a0f',
-          'text-outline-width': 2,
-        }
-      },
-      {
-        selector: 'node[type = "hub"]',
-        style: {
-          'background-color': '#2ecc71',
-          'border-color': 'rgba(46,204,113,.6)',
+      { selector: 'node[type="hub"]', style: {
+          'background-color': '#00ff88',
+          'border-color': 'rgba(0,255,136,0.5)',
           'border-width': 2,
-          'font-size': '9px',
-          'color': '#e8e8f0',
-          'font-weight': 700,
+          'width': 36, 'height': 36,
+          'label': 'data(label)',
+          'font-family': 'Space Mono, monospace',
+          'font-size': 8,
+          'color': '#00ff88',
+          'text-valign': 'bottom', 'text-halign': 'center',
+          'text-margin-y': 4,
+          'text-shadow-blur': 6,
+          'text-shadow-color': 'rgba(0,255,136,0.6)',
+          'shadow-blur': 16, 'shadow-color': 'rgba(0,255,136,0.5)',
         }
       },
-      {
-        selector: 'node[type = "pack"]',
-        style: {
+      { selector: 'node[type="skill"]', style: {
+          'background-color': '#00d4ff',
+          'border-color': 'rgba(0,212,255,0.4)',
+          'border-width': 1,
+          'width': 20, 'height': 20,
+          'label': 'data(label)',
+          'font-family': 'Space Mono, monospace',
+          'font-size': 7,
+          'color': '#9898b8',
+          'text-valign': 'bottom', 'text-halign': 'center',
+          'text-margin-y': 3,
+          'shadow-blur': 8, 'shadow-color': 'rgba(0,212,255,0.35)',
+        }
+      },
+      { selector: 'node[type="pack"]', style: {
           'background-color': '#f5a623',
-          'border-color': 'rgba(245,166,35,.4)',
+          'border-color': 'rgba(245,166,35,0.4)',
+          'border-width': 1,
+          'width': 16, 'height': 16,
+          'label': 'data(label)',
+          'font-family': 'Space Mono, monospace',
+          'font-size': 7,
+          'color': '#9898b8',
+          'text-valign': 'bottom', 'text-halign': 'center',
+          'text-margin-y': 3,
+          'shadow-blur': 6, 'shadow-color': 'rgba(245,166,35,0.3)',
         }
       },
-      {
-        selector: 'node:hover',
-        style: { 'border-width': 2, 'border-color': 'rgba(255,255,255,.7)', 'z-index': 10 }
-      },
-      {
-        selector: 'edge',
-        style: {
-          'line-color': 'rgba(79,168,255,.28)',
-          'width': 1,
-          'curve-style': 'bezier',
-          'opacity': 0.8,
+      { selector: 'edge[type="skill-edge"]', style: {
+          'line-color': 'rgba(0,212,255,0.22)',
+          'width': 1, 'curve-style': 'bezier',
         }
       },
-      {
-        selector: 'edge[edgeType = "cp"]',
-        style: { 'line-color': 'rgba(245,166,35,.3)' }
+      { selector: 'edge[type="pack-edge"]', style: {
+          'line-color': 'rgba(245,166,35,0.22)',
+          'width': 1, 'curve-style': 'bezier', 'line-style': 'dashed',
+          'line-dash-pattern': [4,3],
+        }
+      },
+      { selector: 'node:selected', style: {
+          'border-color': '#ffffff', 'border-width': 2,
+          'shadow-blur': 14, 'shadow-color': 'rgba(255,255,255,0.4)',
+        }
       }
     ],
-    layout: {
-      name: 'cose',
-      animate: true,
-      animationDuration: 500,
-      randomize: false,
-      nodeRepulsion: 5000,
-      idealEdgeLength: 55,
-      edgeElasticity: 100,
-      gravity: 0.3,
-      numIter: 100,
-      padding: 14,
-    },
-    userZoomingEnabled: true,
-    userPanningEnabled: true,
-    boxSelectionEnabled: false,
-    autoungrabify: false,
+    layout: { name: 'cose', animate: true, animationDuration: 800, idealEdgeLength: 60, nodeRepulsion: 4000, fit: true, padding: 18 },
+    userPanningEnabled: true, userZoomingEnabled: true, boxSelectionEnabled: false,
   });
 
-  cy.on('tap', 'node', function(e) {
-    const node = e.target;
-    const focusEl = container.closest('.card-body')?.querySelector('.skill-focus');
+  _cyInstance.on('tap', 'node', function(evt) {
+    const n = evt.target;
+    const focusEl = document.getElementById('skill-focus');
     if (focusEl) {
-      const typeLabel = node.data('type') === 'hub' ? 'hub' : node.data('type') === 'pack' ? 'context pack' : 'skill';
-      focusEl.textContent = node.data('label') + ' / ' + typeLabel;
+      const typeLabel = n.data('type') === 'hub' ? 'Orchestrator Hub' : n.data('type') === 'pack' ? 'Context Pack' : 'Skill';
+      focusEl.innerHTML = `<span style="color:var(--cyan)">${esc(n.data('full') || n.data('label'))}</span> <span style="color:var(--muted)">— ${typeLabel}</span>`;
     }
   });
 }
 
-/* ── HEALTH ── */
-async function loadHealth() {
-  const el = document.getElementById('health-body');
-  const badge = document.getElementById('health-badge');
-  try {
-    const d = await apiFetch('/agent-os/health');
-    const agents = d.agents || [];
-    const onlineCount = agents.filter(a => a.status === 'online' || a.status === 'fresh' || a.status === 'active').length;
-    badge.textContent = `${onlineCount}/${agents.length} ONLINE`;
-    badge.className = 'card-badge ' + (onlineCount === agents.length ? 'badge-green' : onlineCount > 0 ? 'badge-amber' : 'badge-red');
-
-    el.innerHTML = agents.map(a => {
-      const dotClass = `dot-${a.status}`;
-      return `<div class="agent-row">
-        <div class="agent-dot ${dotClass}"></div>
-        <div>
-          <div class="agent-name">${esc(a.name)}</div>
-          <div class="agent-detail">${esc(a.detail || '')}</div>
-        </div>
-        <span class="agent-status-tag badge-${a.status === 'online' || a.status === 'active' || a.status === 'fresh' ? 'green' : a.status === 'idle' ? 'amber' : 'red'}">${esc(a.status.toUpperCase())}</span>
-      </div>`;
-    }).join('');
-
-    // Topbar
-    document.getElementById('sys-status').textContent = `${onlineCount}/${agents.length} agents`;
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No data (server offline?)</div>`;
-    document.getElementById('sys-status').textContent = 'offline';
-  }
-}
-
-/* ── TASKS ── */
-async function loadTasks() {
-  const el = document.getElementById('tasks-body');
-  const badge = document.getElementById('tasks-badge');
-  try {
-    const d = await apiFetch('/agent-os/tasks');
-    const { pending = [], done = [], summary = {} } = d;
-
-    badge.textContent = `${summary.pending} PENDING`;
-    badge.className = 'card-badge ' + (summary.pending > 0 ? 'badge-amber' : 'badge-green');
-
-    document.getElementById('sys-tasks').textContent = `${summary.pending} pending`;
-
-    const statsHtml = `<div class="task-summary">
-      <div class="task-stat"><div class="task-stat-val">${summary.total || 0}</div><div class="task-stat-lbl">Total</div></div>
-      <div class="task-stat"><div class="task-stat-val" style="color:var(--red)">${summary.p0_count || 0}</div><div class="task-stat-lbl">P0</div></div>
-      <div class="task-stat"><div class="task-stat-val">${summary.p1_count || 0}</div><div class="task-stat-lbl">P1</div></div>
-      <div class="task-stat"><div class="task-stat-val" style="color:var(--green)">${summary.done || 0}</div><div class="task-stat-lbl">Done</div></div>
-    </div>`;
-
-    const pendingHtml = pending.length
-      ? `<div class="task-section-label">▸ PENDING (${pending.length})</div>` +
-        pending.map(t => `
-          <div class="task-item">
-            <span class="task-id">${esc(t.id)}</span>
-            <span class="task-title">${esc(t.title)}</span>
-            <span class="task-pri ${priClass(t.priority)}">${priLabel(t.priority)}</span>
-          </div>`).join('')
-      : '<div style="color:var(--green);font-size:12px;padding:8px 0">All tasks complete</div>';
-
-    const doneHtml = done.length
-      ? `<div class="task-section-label" style="margin-top:14px">▸ RECENTLY DONE</div>` +
-        done.map(t => `
-          <div class="task-item task-done">
-            <span class="task-id">${esc(t.id)}</span>
-            <span class="task-title">${esc(t.title)}</span>
-          </div>`).join('')
-      : '';
-
-    el.innerHTML = statsHtml + pendingHtml + doneHtml;
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No data</div>`;
-  }
-}
-
-/* ── SKILLS ── */
-async function loadSkills() {
-  const el = document.getElementById('skills-body');
-  const badge = document.getElementById('skills-badge');
-  try {
-    const d = await apiFetch('/agent-os/skills');
-    const { skills = [], summary = {}, context_pack_names = [] } = d;
-
-    badge.textContent = `${summary.total} SKILLS`;
-    document.getElementById('sys-skills').textContent = `${summary.total} skills`;
-
-    const graphData = buildSkillGraph(skills, context_pack_names);
-    const graphHtml = renderSkillGraphHtml(graphData) +
-      `<div class="skill-focus">
-        ${esc(skills[0]?.name || 'No skill loaded')}
-        <span style="color:var(--muted)"> / ${esc(skills[0]?.category || skills[0]?.source || 'skill')}</span>
-      </div>`;
-
-    const cpHtml = context_pack_names.length
-      ? `<div class="task-section-label" style="margin-top:12px">▸ CONTEXT PACKS (${context_pack_names.length})</div>
-         <div class="cp-list">` +
-        context_pack_names.map(n => `<div class="cp-item">${esc(n)}</div>`).join('') +
-        `</div>`
-      : '';
-
-    el.innerHTML = graphHtml + cpHtml;
-    requestAnimationFrame(() => initSkillCytoscape(graphData));
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No data</div>`;
-  }
-}
-
-/* ── DREAM ── */
-async function loadDream() {
+/* ── rDream ── */
+function rDream(d, demo) {
   const el = document.getElementById('dream-body');
   const badge = document.getElementById('dream-badge');
-  try {
-    const d = await apiFetch('/agent-os/dream');
-    const { sessions = [], total_sessions = 0, last_updated = '' } = d;
+  const { sessions = [], total_sessions = 0 } = d;
 
-    badge.textContent = `${total_sessions} SESSIONS`;
-    const updated = last_updated ? last_updated.slice(0,10) : '';
-    if (updated) badge.title = `Updated ${updated}`;
+  badge.textContent = `${total_sessions} SESSIONS`;
 
-    if (sessions.length === 0) {
-      el.innerHTML = '<div style="color:var(--muted);font-size:11px">No handoff sessions found</div>';
-      return;
-    }
-
-    el.innerHTML = sessions.map((s, i) => `
-      <div class="dream-session">
-        <div class="dream-title">◆ ${esc(s.title)}</div>
-        <div class="dream-body">${esc(s.body)}</div>
-        ${i < sessions.length - 1 ? '<hr class="dream-separator">' : ''}
-      </div>`).join('');
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No data</div>`;
+  if (!sessions.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:11px">No handoff sessions found</div>';
+    return;
   }
+
+  el.innerHTML = sessions.map((s, i) => `
+    <div class="dream-session">
+      <div class="dream-title">◆ ${esc(s.title)}</div>
+      <div class="dream-body">${esc(s.body)}</div>
+      ${i < sessions.length - 1 ? '<hr class="dream-sep">' : ''}
+    </div>`).join('');
 }
 
-/* ── ACTIVITY ── */
-async function loadMemory() {
+/* ── rMemory ── */
+function rMemory(d, demo) {
   const el = document.getElementById('memory-body');
   const badge = document.getElementById('memory-badge');
-  try {
-    const d = await apiFetch('/agent-os/memory');
-    const summary = d.summary || {};
-    const facts = d.recent_facts || [];
-    const messages = d.recent_messages || [];
+  const s = d.summary || {};
+  const L = d.layers || {};
 
-    badge.textContent = `${summary.fact_count || 0} FACTS`;
-    const statsHtml = `<div class="mini-grid">
-      <div class="mini-stat"><div class="mini-val">${summary.fact_count || 0}</div><div class="mini-lbl">Facts</div></div>
-      <div class="mini-stat"><div class="mini-val">${summary.session_count || 0}</div><div class="mini-lbl">Sessions</div></div>
-      <div class="mini-stat"><div class="mini-val">${summary.message_count || 0}</div><div class="mini-lbl">Messages</div></div>
-    </div>`;
+  badge.textContent = `${s.fact_count || 0}F · ${s.session_count || 0}S`;
 
-    const factHtml = facts.length
-      ? `<div class="task-section-label">RECENT FACTS</div>` +
-        facts.slice(0, 4).map(f => `
-          <div class="list-row">
-            <div class="list-title">${esc(f.fact || '')}</div>
-            <div class="list-meta">${esc(f.category || 'memory')} / ${esc(f.source || 'local')}</div>
-          </div>`).join('')
-      : '<div style="color:var(--muted);font-size:11px">No learned facts found</div>';
+  const statsHtml = `<div class="mem-stats">
+    <span class="mem-stat-item"><strong>${s.fact_count || 0}</strong> facts</span>
+    <span class="mem-stat-item"><strong>${s.session_count || 0}</strong> sessions</span>
+    <span class="mem-stat-item"><strong>${s.message_count || 0}</strong> msgs</span>
+  </div>`;
 
-    const messageHtml = messages.length
-      ? `<div class="task-section-label" style="margin-top:10px">RECENT MESSAGES</div>` +
-        messages.slice(0, 3).map(m => `
-          <div class="list-row">
-            <div class="list-title">${esc(String(m.content || '').slice(0, 90))}</div>
-            <div class="list-meta">${esc(m.channel || '')} / session ${esc(m.session_id || '')}</div>
-          </div>`).join('')
-      : '';
-
-    el.innerHTML = statsHtml + factHtml + messageHtml;
-  } catch(e) {
-    badge.textContent = 'OFFLINE';
-    badge.className = 'card-badge badge-red';
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No memory data</div>`;
+  function layerFacts(items, cls) {
+    if (!items || !items.length) return '<div style="color:var(--muted);font-size:10px">No entries</div>';
+    return items.slice(0,3).map(f => {
+      const content = f.content || f.fact || f.preview || JSON.stringify(f).slice(0,60);
+      const ts = (f.ts || f.started || '').slice(0,10);
+      return `<div class="mem-fact-item">${esc(content)}${ts ? `<span class="mem-fact-ts">${esc(ts)}</span>` : ''}</div>`;
+    }).join('');
   }
-}
 
-async function loadGoals() {
-  const el = document.getElementById('goals-body');
-  const badge = document.getElementById('goals-badge');
-  try {
-    const d = await apiFetch('/agent-os/goals');
-    const summary = d.summary || {};
-    const subtasks = d.subtasks || [];
-    const pct = summary.progress_percent || 0;
-
-    badge.textContent = d.active ? `${pct}%` : 'NO GOAL';
-    badge.className = 'card-badge ' + (d.active ? 'badge-amber' : 'badge-blue');
-
-    if (!d.active) {
-      el.innerHTML = `<div style="color:var(--muted);font-size:11px">No active mission goal</div>`;
-      return;
+  function semanticFacts(sem) {
+    if (!sem || typeof sem !== 'object') return '<div style="color:var(--muted);font-size:10px">No facts</div>';
+    const all = [];
+    for (const [, facts] of Object.entries(sem)) {
+      if (Array.isArray(facts)) facts.forEach(f => all.push(f));
     }
+    return layerFacts(all.slice(0,3));
+  }
 
-    el.innerHTML = `
-      <div class="list-row">
-        <div class="list-title">${esc(d.goal || '')}</div>
-        <div class="list-meta">${d.focus ? 'focus on' : 'focus off'} / ${esc(d.created || '')}</div>
+  const layersHtml = `<div class="mem-layers">
+    <div class="mem-layer-card" data-layer="short">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Short-Term</span>
+        <span class="mem-layer-count">${(L.short_term || []).length} msgs</span>
       </div>
-      <div class="progress-bar"><span style="width:${Math.max(0, Math.min(100, pct))}%"></span></div>
-      ${subtasks.map(t => `
-        <div class="list-row">
-          <div class="list-title">${esc(t.body || '')}</div>
-          <div class="list-meta">#${esc(t.id || '')} / ${esc(t.status || 'pending')}</div>
-        </div>`).join('')}`;
-  } catch(e) {
-    badge.textContent = 'OFFLINE';
-    badge.className = 'card-badge badge-red';
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No goal data</div>`;
-  }
+      <div class="mem-layer-body">${layerFacts(L.short_term, 'short')}</div>
+    </div>
+    <div class="mem-layer-card" data-layer="episodic">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Episodic</span>
+        <span class="mem-layer-count">${(L.episodic || []).length} sessions</span>
+      </div>
+      <div class="mem-layer-body">${layerFacts(L.episodic, 'episodic')}</div>
+    </div>
+    <div class="mem-layer-card" data-layer="semantic">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Semantic</span>
+        <span class="mem-layer-count">${s.fact_count || 0} facts</span>
+      </div>
+      <div class="mem-layer-body">${semanticFacts(L.semantic)}</div>
+    </div>
+    <div class="mem-layer-card" data-layer="procedural">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Procedural</span>
+        <span class="mem-layer-count">${(L.procedural || []).length} rules</span>
+      </div>
+      <div class="mem-layer-body">${layerFacts(L.procedural, 'procedural')}</div>
+    </div>
+  </div>`;
+
+  el.innerHTML = statsHtml + layersHtml;
 }
 
-async function loadSpend() {
-  const el = document.getElementById('spend-body');
-  const badge = document.getElementById('spend-badge');
-  try {
-    const d = await apiFetch('/agent-os/spend');
-    const summary = d.summary || {};
-    const models = d.models || {};
-    const latest = d.latest_limit_event;
-
-    badge.textContent = `${summary.total_calls || 0} CALLS`;
-    badge.className = 'card-badge ' + ((summary.limit_events || 0) > 0 ? 'badge-amber' : 'badge-green');
-
-    const statsHtml = `<div class="mini-grid">
-      <div class="mini-stat"><div class="mini-val">${summary.total_calls || 0}</div><div class="mini-lbl">Calls</div></div>
-      <div class="mini-stat"><div class="mini-val" style="color:var(--green)">${summary.successes || 0}</div><div class="mini-lbl">Success</div></div>
-      <div class="mini-stat"><div class="mini-val" style="color:var(--red)">${summary.limit_events || 0}</div><div class="mini-lbl">Limits</div></div>
-    </div>`;
-
-    const modelHtml = `<div class="spend-model-grid">` +
-      Object.entries(models).map(([name, m]) => `
-        <div class="list-row">
-          <div class="list-title">${esc(name)}</div>
-          <div class="list-meta">${m.calls || 0} calls / ${m.failures || 0} failures / ${m.limit_events || 0} limits</div>
-        </div>`).join('') +
-      `</div>`;
-
-    const limitHtml = latest
-      ? `<div class="list-row" style="margin-top:10px">
-          <div class="list-title">${esc(latest.detail || '')}</div>
-          <div class="list-meta">${esc(latest.timestamp || '')} / ${esc(latest.model || '')}</div>
-        </div>`
-      : '';
-
-    el.innerHTML = statsHtml + modelHtml + limitHtml;
-  } catch(e) {
-    badge.textContent = 'OFFLINE';
-    badge.className = 'card-badge badge-red';
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No usage data</div>`;
-  }
-}
-
-async function loadActivity() {
+/* ── rActivity ── */
+function rActivity(d, demo) {
   const el = document.getElementById('activity-body');
   const badge = document.getElementById('activity-badge');
-  try {
-    const d = await apiFetch('/os/activity');
-    const events = d.events || [];
+  const events = d.events || [];
+  badge.textContent = `${events.length} EVENTS`;
 
-    badge.textContent = `${events.length} EVENTS`;
-
-    if (!events.length) {
-      el.innerHTML = '<div style="color:var(--muted);font-size:11px">No activity yet</div>';
-      return;
-    }
-
-    el.innerHTML = `<div class="activity-list">` +
-      events.slice(0, 10).map(e => `
-        <div class="activity-item">
-          <div class="activity-type-dot type-${esc(e.type || 'system')}"></div>
-          <div class="activity-content">
-            <div class="activity-title">${esc(e.title || '')}</div>
-            ${e.detail ? `<div class="activity-detail">${esc(e.detail.slice(0, 80))}</div>` : ''}
-          </div>
-          <div class="activity-ts">${esc((e.ts || '').slice(11, 16))}</div>
-        </div>`).join('') +
-      `</div>`;
-  } catch(e) {
-    // Fallback: show recent completed tasks as activity
-    try {
-      const d2 = await apiFetch('/agent-os/tasks');
-      const done = (d2.done || []).slice(0, 5);
-      el.innerHTML = `<div style="color:var(--muted);font-size:10px;margin-bottom:8px">Showing recent completions (no activity server)</div>
-        <div class="activity-list">` +
-        done.map(t => `
-          <div class="activity-item">
-            <div class="activity-type-dot type-task"></div>
-            <div class="activity-content">
-              <div class="activity-title">${esc(t.id)} — ${esc(t.title)}</div>
-              ${t.completion_note ? `<div class="activity-detail">${esc(t.completion_note.slice(0, 80))}</div>` : ''}
-            </div>
-            <div class="activity-ts">done</div>
-          </div>`).join('') +
-        `</div>`;
-    } catch(e2) {
-      el.innerHTML = `<div style="color:var(--muted);font-size:11px">No activity data</div>`;
-    }
+  if (!events.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:11px">No recent activity</div>';
+    return;
   }
+
+  el.innerHTML = `<div class="activity-list">` +
+    events.slice(0,10).map(e => `<div class="activity-item">
+      <div class="activity-type-dot type-${esc(e.type || 'system')}"></div>
+      <div class="activity-content">
+        <div class="activity-title">${esc(e.title || '')}</div>
+        ${e.detail ? `<div class="activity-detail">${esc(e.detail.slice(0,80))}</div>` : ''}
+      </div>
+      <div class="activity-ts">${esc((e.ts || '').slice(11,16))}</div>
+    </div>`).join('') +
+    `</div>`;
 }
 
-/* ── OVERVIEW ── */
-async function loadOverview() {
+/* ── rOverview ── */
+function rOverview(d, demo) {
   const el = document.getElementById('overview-body');
-  try {
-    const d = await apiFetch('/agent-os/overview');
-    const { agents = {}, tasks = {}, knowledge = {} } = d;
-    const agentOnline = Object.values(agents).filter(s => s === 'online').length;
-    const agentTotal = Object.keys(agents).length;
+  const agents = d.agents || {};
+  const tasks  = d.tasks  || {};
+  const know   = d.knowledge || {};
+  const onlineAgents = Object.values(agents).filter(s => ['active','online','fresh'].includes(s)).length;
+  const totalAgents  = Object.keys(agents).length || 4;
+  const checkedTs = (d.checked_at || '').slice(11,19);
 
-    el.innerHTML = `<div class="overview-grid">
-      <div class="ov-block">
-        <div class="ov-val ov-${agentOnline === agentTotal ? 'green' : 'amber'}">${agentOnline}/${agentTotal}</div>
-        <div class="ov-lbl">Agents</div>
-      </div>
-      <div class="ov-block">
-        <div class="ov-val ov-amber">${tasks.pending || 0}</div>
-        <div class="ov-lbl">Tasks</div>
-      </div>
-      <div class="ov-block">
-        <div class="ov-val ov-blue">${knowledge.skills || 0}</div>
-        <div class="ov-lbl">Skills</div>
-      </div>
-      <div class="ov-block">
-        <div class="ov-val ov-amber">${knowledge.context_packs || 0}</div>
-        <div class="ov-lbl">Ctx Packs</div>
+  el.innerHTML = `<div class="overview-grid">
+    <div class="ov-block">
+      <div class="ov-val ${onlineAgents === totalAgents ? 'ov-green' : 'ov-amber'}">${onlineAgents}/${totalAgents}</div>
+      <div class="ov-lbl">Agents</div>
+    </div>
+    <div class="ov-block">
+      <div class="ov-val ov-amber">${tasks.pending ?? 0}</div>
+      <div class="ov-lbl">Pending</div>
+    </div>
+    <div class="ov-block">
+      <div class="ov-val ov-cyan">${know.skills ?? 0}</div>
+      <div class="ov-lbl">Skills</div>
+    </div>
+    <div class="ov-block">
+      <div class="ov-val ov-purple">${know.context_packs ?? 0}</div>
+      <div class="ov-lbl">Ctx Packs</div>
+    </div>
+  </div>
+  ${checkedTs ? `<div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--muted)">Last checked: ${esc(checkedTs)}${demo ? ' (DEMO)' : ''}</div>` : ''}`;
+}
+
+/* ── rGoals ── */
+function rGoals(d, demo) {
+  const el = document.getElementById('goals-body');
+  const badge = document.getElementById('goals-badge');
+  const summary  = d.summary  || {};
+  const subtasks = d.subtasks || [];
+  const pct = Math.max(0, Math.min(100, summary.progress_percent || 0));
+
+  badge.textContent = d.active ? `${pct}%` : 'NO GOAL';
+  badge.className = 'card-badge ' + (d.active ? 'badge-amber' : 'badge-cyan');
+
+  if (!d.active) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No active mission goal</div>`;
+    return;
+  }
+
+  const doneCnt = subtasks.filter(t => t.status === 'done').length;
+
+  el.innerHTML = `
+    <div class="goal-card-inner">
+      <div class="goal-title">${esc(d.goal || '')}</div>
+      <div class="goal-meta">${d.focus ? 'Focus ON' : 'Focus OFF'} · ${esc(d.created || '')}</div>
+    </div>
+    <div class="goal-pct">${pct}%</div>
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width:${pct}%"></div>
       </div>
     </div>
-    <div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--muted)">
-      Checked: ${esc((d.checked_at || '').slice(11, 19))}
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px">SUBTASKS (${doneCnt}/${subtasks.length})</div>
+    <div class="subtask-list">
+      ${subtasks.map(t => `<div class="subtask-item subtask-${t.status || 'pending'}">
+        <div class="subtask-dot"></div>
+        <span>${esc(t.body || '')}</span>
+      </div>`).join('')}
     </div>`;
-  } catch(e) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:11px">Server offline</div>`;
-  }
 }
 
-/* ── LOAD ALL ── */
+/* ── rSpend ── */
+function rSpend(d, demo) {
+  const el = document.getElementById('spend-body');
+  const badge = document.getElementById('spend-badge');
+  const s = d.summary || {};
+  const models = d.models || {};
+
+  badge.textContent = `${s.total_calls || 0} CALLS`;
+  badge.className = 'card-badge ' + ((s.limit_events || 0) > 0 ? 'badge-amber' : 'badge-green');
+
+  const statsHtml = `<div class="spend-stats">
+    <div class="spend-stat">
+      <div class="spend-stat-val ov-cyan">${s.total_calls || 0}</div>
+      <div class="spend-stat-lbl">Total Calls</div>
+    </div>
+    <div class="spend-stat">
+      <div class="spend-stat-val ov-green">${s.successes || 0}</div>
+      <div class="spend-stat-lbl">Success</div>
+    </div>
+    <div class="spend-stat">
+      <div class="spend-stat-val ${(s.limit_events||0) > 0 ? 'ov-red' : 'ov-green'}">${s.limit_events || 0}</div>
+      <div class="spend-stat-lbl">Limits Hit</div>
+    </div>
+  </div>`;
+
+  const modelHtml = `<div class="spend-grid">` +
+    Object.entries(models).map(([name, m]) => `
+      <div class="spend-model-card">
+        <div class="spend-model-name">${esc(name)}</div>
+        <div class="spend-model-calls">${m.calls || 0}<span style="font-size:12px;color:var(--muted);font-weight:400"> calls</span></div>
+        <div class="spend-model-meta">${m.failures || 0} failures · ${m.limit_events || 0} limits</div>
+      </div>`).join('') +
+    `</div>`;
+
+  el.innerHTML = statsHtml + modelHtml;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOAD ALL
+═══════════════════════════════════════════════════════════════ */
 async function loadAll() {
   await Promise.allSettled([
-    loadHealth(),
-    loadTasks(),
-    loadSkills(),
-    loadDream(),
-    loadMemory(),
-    loadActivity(),
-    loadOverview(),
-    loadGoals(),
-    loadSpend(),
+    withFallback('/agent-os/health',   DEMO.health,   rHealth),
+    withFallback('/agent-os/tasks',    DEMO.tasks,    rTasks),
+    withFallback('/agent-os/skills',   DEMO.skills,   rSkills),
+    withFallback('/agent-os/dream',    DEMO.dream,    rDream),
+    withFallback('/agent-os/memory',   DEMO.memory,   rMemory),
+    withFallback('/os/activity',       DEMO.activity, rActivity),
+    withFallback('/agent-os/overview', DEMO.overview, rOverview),
+    withFallback('/agent-os/goals',    DEMO.goals,    rGoals),
+    withFallback('/agent-os/spend',    DEMO.spend,    rSpend),
   ]);
 }
 
-/* ── INIT ── */
+/* ── Init ── */
 loadAll();
-setInterval(loadAll, 60000);  // Auto-refresh every 60s
+setInterval(loadAll, 60000);
 
-/* ── PWA SERVICE WORKER ── */
+/* ── PWA Service Worker ── */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
