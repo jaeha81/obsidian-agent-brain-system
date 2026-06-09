@@ -11,7 +11,6 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <title>Bucky Agent OS — 로그인</title>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -131,34 +130,35 @@
   </div>
  
  <script>
-    // Enter 키로 로그인
+    if (new URLSearchParams(location.search).get('error') === '1') {
+        document.getElementById('err').style.display = 'block';
+    }
+
     document.getElementById('pw').addEventListener('keydown', function(e) {
-         if (e.key === 'Enter') doLogin();
+        if (e.key === 'Enter') doLogin();
     });
 
     function doLogin() {
-         var pw = document.getElementById('pw').value;
-         var err = document.getElementById('err');
+        var pw = document.getElementById('pw').value;
+        var redirect = new URLSearchParams(location.search).get('redirect') || '/';
 
-         fetch('/.netlify/functions/auth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: pw })
-         })
-         .then(function(res) { return res.json(); })
-         .then(function(data) {
-                if (data.ok) {
-                         var r = new URLSearchParams(location.search).get('r') || '/';
-                         location.replace(r);
-                } else {
-                         err.style.display = 'block';
-                         document.getElementById('pw').value = '';
-                         document.getElementById('pw').focus();
-                }
-         })
-         .catch(function() {
-                err.style.display = 'block';
-         });
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/api/login';
+        form.style.display = 'none';
+
+        var pwInput = document.createElement('input');
+        pwInput.name = 'password';
+        pwInput.value = pw;
+
+        var redirInput = document.createElement('input');
+        redirInput.name = 'redirect';
+        redirInput.value = redirect;
+
+        form.appendChild(pwInput);
+        form.appendChild(redirInput);
+        document.body.appendChild(form);
+        form.submit();
     }
  </script>
  </body>
