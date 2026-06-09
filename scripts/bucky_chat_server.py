@@ -40,6 +40,12 @@ from bucky_client import BuckyError, run_bucky
 
 app = Flask(__name__)
 
+try:
+    from bucky_os_api import os_bp
+    app.register_blueprint(os_bp)
+except Exception as _e:
+    print(f"[bucky-chat-server] OS API blueprint skipped: {_e}")
+
 
 @app.after_request
 def _cors(response):

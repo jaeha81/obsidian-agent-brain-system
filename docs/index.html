@@ -271,6 +271,24 @@
   .wh-btn-save { background:var(--accent); color:#0d1117; border-color:var(--accent); font-weight:600; }
   .wh-btn-save:hover { opacity:.85; }
 
+  /* Add Project Modal */
+  .ap-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:400; align-items:center; justify-content:center; }
+  .ap-overlay.show { display:flex; }
+  .ap-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; width:520px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+  .ap-modal h2 { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .ap-modal p { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+  .ap-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  .ap-row.full { grid-template-columns:1fr; }
+  .ap-modal label { font-size:11px; color:var(--muted); display:block; margin-bottom:4px; }
+  .ap-modal input, .ap-modal select, .ap-modal textarea { width:100%; box-sizing:border-box; background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:7px 10px; color:var(--text); font-size:12px; font-family:inherit; }
+  .ap-modal input:focus, .ap-modal select:focus, .ap-modal textarea:focus { outline:none; border-color:var(--accent); }
+  .ap-modal textarea { min-height:60px; resize:vertical; }
+  .ap-fetch-row { display:flex; gap:8px; margin-bottom:10px; }
+  .ap-fetch-row input { flex:1; font-family:monospace; }
+  .ap-fetch-btn { flex-shrink:0; padding:7px 14px; border-radius:6px; border:1px solid #30363d; background:#21262d; color:var(--text); font-size:12px; cursor:pointer; white-space:nowrap; }
+  .ap-fetch-btn:hover { background:#30363d; }
+  .ap-status-msg { font-size:11px; color:var(--muted); margin-bottom:8px; min-height:16px; }
+
   @media (max-width: 640px) {
     .grid { grid-template-columns: 1fr; padding: 12px; }
     header, .controls, .stats-bar { padding: 12px 16px; }
@@ -292,11 +310,13 @@
   </div>
   <div class="jh-nav">
     <a href="index.html" class="active">레포대시보드</a>
+    <a href="bucky-os.html" style="color:var(--accent);border-color:var(--accent)">🧠 Bucky OS</a>
     <a href="wishket.html">위시켓</a>
     <a href="daily-plus.html">오늘의플러스</a>
     <a href="task-board.html">태스크보드</a>
     <a href="checklist.html">체크리스트</a>
     <a href="ai-usage.html">AI사용량</a>
+    <a href="project-graph.html">프로젝트그래프</a>
     <a href="app-session.html">앱세션</a>
     <a href="https://github.com/jaeha81" target="_blank" rel="noreferrer">깃허브</a>
     <a href="login.html">로그인</a>
@@ -375,6 +395,7 @@
     <option value="tier">티어순</option>
   </select>
   <input class="search-box" type="text" placeholder="레포 검색..." oninput="search(this.value)">
+  <button class="filter-btn" style="background:rgba(63,185,80,0.1);color:#3fb950;border-color:rgba(63,185,80,0.3);margin-left:4px" onclick="openAddProject()">+ 추가</button>
 </div>
 
 <section class="intake-panel" aria-label="Bucky knowledge intake">
@@ -426,6 +447,83 @@
     <div class="wh-btns">
       <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
       <button class="wh-btn wh-btn-save" onclick="saveWebhook()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="ap-overlay" id="apOverlay" onclick="if(event.target===this)closeAddProject()">
+  <div class="ap-modal">
+    <h2>+ 프로젝트 추가</h2>
+    <p>GitHub URL을 입력하면 레포 정보를 자동으로 가져옵니다. 수동 입력도 가능합니다.</p>
+    <div class="ap-fetch-row">
+      <input type="url" id="apGithubUrl" placeholder="https://github.com/username/repo-name" onkeydown="if(event.key==='Enter')fetchApRepo()">
+      <button class="ap-fetch-btn" onclick="fetchApRepo()">🔍 가져오기</button>
+    </div>
+    <div class="ap-status-msg" id="apStatusMsg"></div>
+    <div class="ap-row full"><div>
+      <label>레포 이름 *</label>
+      <input type="text" id="apName" placeholder="repo-name">
+    </div></div>
+    <div class="ap-row full"><div>
+      <label>설명</label>
+      <textarea id="apDesc" placeholder="레포 설명"></textarea>
+    </div></div>
+    <div class="ap-row">
+      <div>
+        <label>언어</label>
+        <input type="text" id="apLang" placeholder="Python, TypeScript ...">
+      </div>
+      <div>
+        <label>카테고리</label>
+        <select id="apCat">
+          <option value="ai">🤖 AI/에이전트</option>
+          <option value="interior">🏗️ 인테리어</option>
+          <option value="commerce">🛍️ 커머스</option>
+          <option value="saas">💼 SaaS</option>
+          <option value="finance">💹 파이낸스</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-row">
+      <div>
+        <label>티어</label>
+        <select id="apTier">
+          <option value="1">🟢 Tier 1 — 즉시 출시</option>
+          <option value="2">🟡 Tier 2 — 개발 필요</option>
+          <option value="3" selected>⚫ Tier 3 — 인프라/보류</option>
+        </select>
+      </div>
+      <div>
+        <label>상태</label>
+        <select id="apStatus">
+          <option value="active">active</option>
+          <option value="dev">dev</option>
+          <option value="hold">hold</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-row">
+      <div>
+        <label>완성도 %</label>
+        <input type="number" id="apCompletion" min="0" max="100" value="0">
+      </div>
+      <div>
+        <label>시장성 %</label>
+        <input type="number" id="apMarket" min="0" max="100" value="0">
+      </div>
+    </div>
+    <div class="ap-row full"><div>
+      <label>이유 (추가 이유)</label>
+      <input type="text" id="apReason" placeholder="이 레포를 추가하는 이유">
+    </div></div>
+    <div class="ap-row full"><div>
+      <label>액션 (다음 할 일)</label>
+      <input type="text" id="apAction" placeholder="다음 착수 액션">
+    </div></div>
+    <div class="wh-btns">
+      <button class="wh-btn" onclick="closeAddProject()">취소</button>
+      <button class="wh-btn wh-btn-save" onclick="submitAddProject()">추가</button>
     </div>
   </div>
 </div>
@@ -1350,6 +1448,82 @@ function closeBuckyPanel() {
   document.getElementById('buckyPanel').classList.remove('show');
 }
 
+// ── Add Project ──────────────────────────────────────────────────
+let userRepos = [];
+
+function loadUserRepos() {
+  try { userRepos = JSON.parse(localStorage.getItem('jh-user-repos-v1') || '[]'); }
+  catch(e) { userRepos = []; }
+  const existing = new Set(repos.map(r => r.id));
+  userRepos.forEach(r => { if (!existing.has(r.id)) repos.push(r); });
+}
+
+function openAddProject() {
+  ['apGithubUrl','apName','apDesc','apLang','apReason','apAction'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('apCompletion').value = '0';
+  document.getElementById('apMarket').value = '0';
+  document.getElementById('apTier').value = '3';
+  document.getElementById('apCat').value = 'ai';
+  document.getElementById('apStatus').value = 'active';
+  document.getElementById('apStatusMsg').textContent = '';
+  document.getElementById('apOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('apGithubUrl').focus(), 50);
+}
+
+function closeAddProject() {
+  document.getElementById('apOverlay').classList.remove('show');
+}
+
+async function fetchApRepo() {
+  const url = document.getElementById('apGithubUrl').value.trim();
+  const statusEl = document.getElementById('apStatusMsg');
+  if (!url) return;
+  const match = url.match(/github\.com\/([^\/]+)\/([^\/\s?#]+)/);
+  if (!match) { statusEl.textContent = '❌ GitHub URL 형식이 아닙니다 (github.com/owner/repo)'; return; }
+  const [, owner, repo] = match;
+  statusEl.textContent = '🔍 가져오는 중...';
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    document.getElementById('apName').value = data.name || '';
+    document.getElementById('apDesc').value = data.description || '';
+    document.getElementById('apLang').value = data.language || '';
+    statusEl.textContent = '✅ 정보를 가져왔습니다.';
+    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+  } catch(e) {
+    statusEl.textContent = `❌ 가져오기 실패: ${e.message}`;
+  }
+}
+
+function submitAddProject() {
+  const name = document.getElementById('apName').value.trim();
+  if (!name) { showToast('이름 필수', '레포 이름을 입력해주세요.', 2500); return; }
+  const url = document.getElementById('apGithubUrl').value.trim() || `https://github.com/jaeha81/${name}`;
+  const id = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  if (repos.find(r => r.id === id || r.name === name)) { showToast('중복', '이미 존재하는 레포입니다.', 2500); return; }
+  const newRepo = {
+    id, name, url,
+    desc: document.getElementById('apDesc').value.trim() || '설명 없음',
+    lang: document.getElementById('apLang').value.trim() || '—',
+    status: document.getElementById('apStatus').value,
+    tier: parseInt(document.getElementById('apTier').value),
+    cat: document.getElementById('apCat').value,
+    completion: Math.min(100, Math.max(0, parseInt(document.getElementById('apCompletion').value) || 0)),
+    market: Math.min(100, Math.max(0, parseInt(document.getElementById('apMarket').value) || 0)),
+    reason: document.getElementById('apReason').value.trim() || '수동 추가',
+    action: document.getElementById('apAction').value.trim() || 'Bucky 분석 요청',
+    _user_added: true,
+    _added_at: new Date().toISOString()
+  };
+  repos.push(newRepo);
+  userRepos.push(newRepo);
+  localStorage.setItem('jh-user-repos-v1', JSON.stringify(userRepos));
+  closeAddProject();
+  renderAll();
+  showToast('✅ 추가 완료', `${name} 레포가 대시보드에 추가됐습니다.`, 3000);
+}
+
 // ── GitHub API 전체 레포 동적 로드 ───────────────────────────────
 async function fetchAllGithubRepos() {
   let all = [];
@@ -1369,6 +1543,7 @@ async function fetchAllGithubRepos() {
 }
 
 async function init() {
+  loadUserRepos();
   renderAll();
   updateBuckyPanel();
 
