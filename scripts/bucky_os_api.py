@@ -22,7 +22,7 @@ GRAPHIFY_OUT = VAULT / "graphify-out"
 GRAPH_JSON = GRAPHIFY_OUT / "graph.json"
 GRAPH_REPORT = GRAPHIFY_OUT / "GRAPH_REPORT.md"
 AGENTBUS_DIR = VAULT / "10_AgentBus"
-MEMORY_DB = ROOT / "data" / "bucky_memory.db"
+MEMORY_DB = VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
 SKILLS_DIR = ROOT / ".claude" / "skills"
 
 os_bp = Blueprint("os", __name__, url_prefix="/os")

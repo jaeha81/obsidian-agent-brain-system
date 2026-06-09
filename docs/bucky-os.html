@@ -667,6 +667,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <button class="mode-btn active" onclick="setGraphMode('flow',this)">Flow</button>
             <button class="mode-btn" onclick="setGraphMode('lite',this)">Lite</button>
             <button class="mode-btn" onclick="setGraphMode('full',this)">Full</button>
+            <button class="mode-btn" onclick="setGraphMode('reset',this)">Reset</button>
           </div>
         </div>
         <svg id="memory-svg"></svg>
@@ -730,8 +731,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 const API = 'http://localhost:8765';
 let graphData = null;
 let mainSim = null, memSim = null;
+let mainZoom = null, memZoom = null;
 let allNodes = [], allEdges = [];
 let currentFilter = 'all';
+
+function fitBounds(svg, g, zoom, W, H) {
+  try {
+    const b = g.node().getBBox();
+    if (!b.width || !b.height) return;
+    const scale = Math.min(0.9 * W / b.width, 0.9 * H / b.height, 1.5);
+    const tx = W/2 - scale * (b.x + b.width/2);
+    const ty = H/2 - scale * (b.y + b.height/2);
+    svg.transition().duration(650)
+       .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+  } catch(e) {}
+}
 
 // ── CLOCK ──
 (function tickClock() {
@@ -779,7 +793,8 @@ function renderMainGraph(nodes, edges) {
   const g = svg.append('g');
 
   // Zoom
-  svg.call(d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform)));
+  mainZoom = d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform));
+  svg.call(mainZoom);
 
   const link = g.append('g').selectAll('line')
     .data(edges).enter().append('line')
@@ -811,7 +826,8 @@ function renderMainGraph(nodes, edges) {
       link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
           .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
       node.attr('cx', d => d.x).attr('cy', d => d.y);
-    });
+    })
+    .on('end', () => fitBounds(svg, g, mainZoom, W, H));
 
   document.getElementById('graph-subtitle').textContent =
     `${nodes.length} nodes · ${edges.length} edges · ${new Set(nodes.map(n => n.community)).size} clusters`;
@@ -839,7 +855,8 @@ function renderMemoryGraph() {
   merge.append('feMergeNode').attr('in', 'SourceGraphic');
 
   const g = svg.append('g');
-  svg.call(d3.zoom().scaleExtent([0.15, 5]).on('zoom', e => g.attr('transform', e.transform)));
+  memZoom = d3.zoom().scaleExtent([0.15, 5]).on('zoom', e => g.attr('transform', e.transform));
+  svg.call(memZoom);
 
   const link = g.append('g').selectAll('line')
     .data(edges).enter().append('line')
@@ -876,7 +893,8 @@ function renderMemoryGraph() {
       link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
           .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
       node.attr('cx', d => d.x).attr('cy', d => d.y);
-    });
+    })
+    .on('end', () => fitBounds(svg, g, memZoom, W, H));
 
   document.getElementById('mem-graph-stats').textContent =
     `${nodes.length} nodes · ${edges.length} edges`;
@@ -886,7 +904,9 @@ function renderMemoryGraph() {
 function setGraphMode(mode, el) {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  if (mode === 'lite') {
+  if (mode === 'reset') {
+    renderMemoryGraph();
+  } else if (mode === 'lite') {
     if (memSim) memSim.force('charge', d3.forceManyBody().strength(-15));
     if (memSim) memSim.alpha(.3).restart();
   } else if (mode === 'full') {
