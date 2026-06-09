@@ -221,6 +221,39 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 .footer-left{font-size:11px;color:rgba(0,0,0,.28);letter-spacing:.04em}
 .footer-right{font-family:'Inter',sans-serif;font-size:10px;color:rgba(0,0,0,.18);letter-spacing:.12em;text-transform:uppercase}
 
+/* ── Client Inbox ── */
+.inbox-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.inbox-stat-card{background:var(--white);border:1px solid var(--stone-mid);border-radius:4px;padding:18px 20px}
+.inbox-stat-num{font-family:'Inter',sans-serif;font-size:30px;font-weight:700;color:var(--ink);letter-spacing:-.04em;line-height:1;display:block}
+.inbox-stat-label{font-size:10px;color:var(--ink-light);margin-top:4px;display:block}
+.inbox-panel{background:var(--white);border:1px solid var(--stone-mid);border-radius:4px;overflow:hidden}
+.inbox-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--stone-mid);background:var(--stone)}
+.inbox-toolbar-title{font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.inbox-gmail-note{font-size:10px;color:var(--ink-light);display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif}
+.gmail-dot{width:5px;height:5px;border-radius:50%;background:#ea4335;display:inline-block;flex-shrink:0}
+.inbox-item{display:grid;grid-template-columns:10px 120px 1fr 120px 82px;gap:14px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--stone-mid);transition:background .15s;cursor:default}
+.inbox-item:last-child{border-bottom:none}
+.inbox-item:hover{background:var(--stone)}
+.inbox-item.unread{background:#fffef9}
+.inbox-unread-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;justify-self:center}
+.inbox-item.read .inbox-unread-dot{background:transparent;border:1px solid var(--stone-dark)}
+.inbox-sender-col{display:flex;flex-direction:column;gap:2px;min-width:0}
+.inbox-sender-name{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-item.read .inbox-sender-name{font-weight:500;color:var(--ink-light)}
+.inbox-sender-src{font-size:9.5px;color:var(--ink-light)}
+.inbox-subject-col{display:flex;flex-direction:column;gap:2px;min-width:0}
+.inbox-subject-line{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-item.read .inbox-subject-line{font-weight:400;color:var(--ink-light)}
+.inbox-preview-text{font-size:10.5px;color:var(--ink-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-type-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:2px;white-space:nowrap;text-align:center;letter-spacing:.04em;align-self:center;justify-self:start}
+.inbox-type-badge.collab{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.inbox-type-badge.estimate{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.inbox-type-badge.ai{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff}
+.inbox-type-badge.interior{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.inbox-item-date{font-family:'Inter',sans-serif;font-size:10px;color:var(--ink-light);text-align:right;white-space:nowrap;align-self:center}
+.inbox-demo-notice{margin-top:10px;padding:10px 14px;background:var(--gold-pale);border:1px solid rgba(184,134,11,.2);border-radius:3px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-light);line-height:1.55}
+.inbox-demo-notice svg{stroke:var(--gold);fill:none;stroke-width:1.7;stroke-linecap:round;flex-shrink:0}
+
 /* ── Reveal ── */
 .reveal{opacity:0;transform:translateY(14px)}
 .reveal.visible{animation:fadeInUp .6s cubic-bezier(0.4,0,0.2,1) forwards}
@@ -245,6 +278,9 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   .cf-row-2{grid-template-columns:1fr}
   .footer{padding:18px 24px 40px}
   .nav-drawer{width:210px}
+  .inbox-stats-row{grid-template-columns:repeat(2,1fr)}
+  .inbox-item{grid-template-columns:10px 1fr 86px;gap:10px}
+  .inbox-sender-col,.inbox-item-date{display:none}
 }
 @media(max-width:480px){.usecase-grid{grid-template-columns:1fr}.portfolio-grid{grid-template-columns:1fr}}
 @media print{
@@ -280,6 +316,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   <a href="#role" onclick="closeNav()">현재 역할</a>
   <a href="#portfolio" onclick="closeNav()">포트폴리오</a>
   <a href="#business" onclick="closeNav()">사업 현황</a>
+  <a href="#inbox" onclick="closeNav()">의뢰 인박스</a>
   <div class="nav-drawer-sep"></div>
   <div class="nav-drawer-contact">
     <a href="#contact" onclick="closeNav()">문의하기</a>
@@ -484,6 +521,84 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
     <div class="biz-card"><div><span class="biz-status active">운영중</span></div><div><div class="biz-title">AI 자동화 에이전트 시스템 구축 서비스</div><p class="biz-desc">중소기업·프리랜서를 위한 맞춤형 AI 에이전트 구축. 반복 업무를 자동화해 사람이 창의적 일에 집중할 수 있도록 설계. Wishket 플랫폼을 통해 프리랜서 수주 진행 중.</p><div class="biz-tags"><span class="biz-tag">Claude API</span><span class="biz-tag">Python</span><span class="biz-tag">Automation</span><span class="biz-tag">Wishket</span></div></div><div class="biz-kpi"><div class="biz-kpi-num">23</div><div class="biz-kpi-label">제안 통과</div></div></div>
     <div class="biz-card"><div><span class="biz-status building">개발중</span></div><div><div class="biz-title">AI 지속 자가발전 루프 — Bucky 브레인 시스템</div><p class="biz-desc">단순 챗봇이 아닌 사용할수록 학습·진화하는 멀티 에이전트 OS. 4개 AI 에이전트(Claude·GPT·코드 실행·리서치)가 실시간 협력하며 작업 자동 처리. 개인부터 엔터프라이즈까지 확장 가능.</p><div class="biz-tags"><span class="biz-tag">Multi-Agent</span><span class="biz-tag">Vector DB</span><span class="biz-tag">Discord</span><span class="biz-tag">Obsidian</span></div></div><div class="biz-kpi"><div class="biz-kpi-num">6.2K</div><div class="biz-kpi-label">노드 누적</div></div></div>
     <div class="biz-card"><div><span class="biz-status planning">구상중</span></div><div><div class="biz-title">인테리어 × AI 융합 — 현장 AI 컨설팅</div><p class="biz-desc">건설·인테리어 업계의 디지털 전환 컨설팅. 현장 경험과 AI 기술을 동시에 보유한 전문가로서 동종 업계의 AI 도입 장벽을 낮추는 포지션. "현장을 아는 AI 전문가"의 유니크한 가치 제안.</p><div class="biz-tags"><span class="biz-tag">컨설팅</span><span class="biz-tag">DX</span><span class="biz-tag">건설IT</span></div></div><div class="biz-kpi"><div class="biz-kpi-num">B2B</div><div class="biz-kpi-label">타겟</div></div></div>
+  </div>
+</section>
+
+<!-- ── Client Inquiry Inbox ── -->
+<section id="inbox" class="section reveal">
+  <p class="section-eyebrow">Client Inbox</p>
+  <h2 class="section-title">의뢰 인박스</h2>
+  <p class="section-sub">이 소개 페이지를 통해 들어온 고객 의뢰를 한눈에 확인합니다. 현재 샘플 데이터로 구성되어 있으며, Gmail 연동 시 실제 수신 의뢰가 자동으로 이 화면에 표시됩니다.</p>
+  <div class="inbox-stats-row">
+    <div class="inbox-stat-card"><span class="inbox-stat-num">5</span><span class="inbox-stat-label">총 의뢰 건수</span></div>
+    <div class="inbox-stat-card"><span class="inbox-stat-num">3</span><span class="inbox-stat-label">이번 달 수신</span></div>
+    <div class="inbox-stat-card"><span class="inbox-stat-num">3</span><span class="inbox-stat-label">검토 완료</span></div>
+    <div class="inbox-stat-card"><span class="inbox-stat-num" style="color:var(--gold)">2</span><span class="inbox-stat-label">답변 대기</span></div>
+  </div>
+  <div class="inbox-panel">
+    <div class="inbox-toolbar">
+      <span class="inbox-toolbar-title">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        받은 의뢰함
+      </span>
+      <span class="inbox-gmail-note"><span class="gmail-dot"></span>Gmail 연동 준비 중</span>
+    </div>
+    <div class="inbox-list">
+      <div class="inbox-item unread">
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-sender-col"><div class="inbox-sender-name">김민준 대표</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
+        <div class="inbox-subject-col">
+          <div class="inbox-subject-line">AI 자동화 컨설팅 협업 제안 드립니다</div>
+          <div class="inbox-preview-text">저희 회사에서 반복되는 견적·스케줄 업무를 자동화하고 싶습니다. AI 에이전트 도입 가능성에 대해 미팅 요청드립니다.</div>
+        </div>
+        <span class="inbox-type-badge collab">협업 제안</span>
+        <span class="inbox-item-date">2026-06-10</span>
+      </div>
+      <div class="inbox-item unread">
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-sender-col"><div class="inbox-sender-name">박서연</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
+        <div class="inbox-subject-col">
+          <div class="inbox-subject-line">사무실 인테리어 리모델링 견적 문의</div>
+          <div class="inbox-preview-text">서울 강남구 사무실 150평 리모델링을 계획 중입니다. 현장 방문 견적 일정을 협의하고 싶습니다.</div>
+        </div>
+        <span class="inbox-type-badge estimate">견적·의뢰</span>
+        <span class="inbox-item-date">2026-06-09</span>
+      </div>
+      <div class="inbox-item read">
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-sender-col"><div class="inbox-sender-name">이현우 팀장</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
+        <div class="inbox-subject-col">
+          <div class="inbox-subject-line">부동산 중개업무 AI 자동화 시스템 구축 문의</div>
+          <div class="inbox-preview-text">매물 관리와 고객 응대를 자동화할 수 있는지 확인하고 싶습니다. Wishket 프로필을 통해 소개 받았습니다.</div>
+        </div>
+        <span class="inbox-type-badge ai">AI 자동화</span>
+        <span class="inbox-item-date">2026-06-07</span>
+      </div>
+      <div class="inbox-item read">
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-sender-col"><div class="inbox-sender-name">최지영</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
+        <div class="inbox-subject-col">
+          <div class="inbox-subject-line">32평 아파트 주거 공간 전체 설계 의뢰</div>
+          <div class="inbox-preview-text">내년 초 입주 예정 아파트 인테리어 전체 설계를 맡기고 싶습니다. 모던 미니멀 스타일을 선호합니다.</div>
+        </div>
+        <span class="inbox-type-badge interior">인테리어·건축</span>
+        <span class="inbox-item-date">2026-06-05</span>
+      </div>
+      <div class="inbox-item read">
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-sender-col"><div class="inbox-sender-name">정유나 PD</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
+        <div class="inbox-subject-col">
+          <div class="inbox-subject-line">AI 콘텐츠 파이프라인 공동 제작 제안</div>
+          <div class="inbox-preview-text">유튜브 채널 콘텐츠 기획·제작을 AI로 자동화하는 프로젝트에 함께하고 싶습니다. 비개발자 AI 채널 협업 제안입니다.</div>
+        </div>
+        <span class="inbox-type-badge collab">협업 제안</span>
+        <span class="inbox-item-date">2026-06-02</span>
+      </div>
+    </div>
+  </div>
+  <div class="inbox-demo-notice">
+    <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    현재 샘플 데이터로 구성된 화면입니다. Gmail 연동 요청 시 이 소개 페이지로 들어온 실제 의뢰 내용이 자동으로 여기에 반영됩니다.
   </div>
 </section>
 
