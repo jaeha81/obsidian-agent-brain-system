@@ -1648,7 +1648,7 @@ def _get_rag_context(query: str, top_k: int = 3) -> str:
     try:
         result = _subprocess_mod.run(
             ["python", str(_RAG_SCRIPT), "search", query, "--top", str(top_k), "--json"],
-            capture_output=True, text=True, encoding="utf-8", timeout=15,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
             cwd=str(_ROOT),
         )
         if result.returncode != 0 or not result.stdout.strip():
@@ -2406,7 +2406,7 @@ def _register_codex_commands(tree: app_commands.CommandTree) -> None:
                 r = await asyncio.to_thread(
                     _sp.run,
                     ["git", "diff", "--name-only", "HEAD~1", "HEAD", "--diff-filter=ACM"],
-                    capture_output=True, text=True, cwd=str(ROOT),
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=str(ROOT),
                 )
                 exts = {".py", ".js", ".ts", ".jsx", ".tsx"}
                 target_files = [f for f in r.stdout.strip().splitlines() if Path(f).suffix in exts]
@@ -2424,7 +2424,7 @@ def _register_codex_commands(tree: app_commands.CommandTree) -> None:
             proc = await asyncio.to_thread(
                 _sp.run,
                 [sys.executable, str(ROOT / "scripts" / "codex_precommit.py")],
-                capture_output=True, text=True,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
                 env={**os.environ, "CODEX_PRECOMMIT_FILES": ",".join(target_files)},
                 cwd=str(ROOT),
             )
@@ -3755,6 +3755,18 @@ class BuckyDiscordBot(discord.Client):
                 parts.append(f"- 노트: {note[:200]}")
             parts.append("\n이 항목을 어떻게 처리할지 안내해 주세요.")
             bucky_prompt = "\n".join(parts)
+            ack_lines = [
+                f"📥 **[Intake: {dashboard_type}] `{action}` 수신 — Bucky 처리 시작**",
+            ]
+            if title:
+                ack_lines.append(f"- 제목: {title[:120]}")
+            if item_id:
+                ack_lines.append(f"- ID: `{item_id}`")
+            if status_val:
+                ack_lines.append(f"- 상태: `{status_val}`")
+            if request_id:
+                ack_lines.append(f"- request_id: `{request_id[:12]}`")
+            await channel.send("\n".join(ack_lines))
             try:
                 ch_id_for_bucky = str(channel.id)
                 timeout_s = int(os.getenv("INTAKE_BUCKY_TIMEOUT", "60"))
@@ -4701,7 +4713,7 @@ class BuckyDiscordBot(discord.Client):
                     result = await asyncio.to_thread(
                         lambda: _sp.run(
                             [sys.executable, pipeline_script],
-                            capture_output=True, text=True, encoding="utf-8", timeout=600
+                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
                         )
                     )
                     out = (result.stdout + result.stderr).strip()
@@ -4765,7 +4777,7 @@ class BuckyDiscordBot(discord.Client):
                     result = await asyncio.to_thread(
                         lambda: _sp.run(
                             [sys.executable, migrator],
-                            capture_output=True, text=True, encoding="utf-8", timeout=int(os.getenv("BUCKY_TIMEOUT", "900"))
+                            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=int(os.getenv("BUCKY_TIMEOUT", "900"))
                         )
                     )
                     out = (result.stdout + result.stderr).strip()[-800:]

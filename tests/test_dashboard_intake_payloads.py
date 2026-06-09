@@ -1,4 +1,5 @@
 import unittest
+import re
 from pathlib import Path
 
 
@@ -161,6 +162,22 @@ class RouterFieldConsistencyTests(unittest.TestCase):
         bot = read_text("scripts/discord_bot.py")
         for dtype in ("repo", "wishket", "daily_plus", "task_board", "taskboard", "checklist"):
             self.assertIn(f'"{dtype}"', bot)
+
+    def test_task_board_intake_sends_immediate_discord_ack_before_bucky(self):
+        bot = read_text("scripts/discord_bot.py")
+        branch = bot[bot.index('if dashboard_type in {"daily_plus", "task_board", "taskboard", "checklist"}'):]
+        self.assertIn("[Intake: {dashboard_type}] `{action}` 수신 — Bucky 처리 시작", branch)
+        self.assertIn("ack_lines.append(f\"- request_id: `{request_id[:12]}`\")", branch)
+        self.assertLess(
+            branch.index("await channel.send(\"\\n\".join(ack_lines))"),
+            branch.index("reply = await asyncio.wait_for("),
+        )
+
+    def test_discord_bot_subprocess_text_decoding_is_error_tolerant(self):
+        bot = read_text("scripts/discord_bot.py")
+        for match in re.finditer(r"text=True", bot):
+            window = bot[match.start():match.start() + 120]
+            self.assertIn('errors="replace"', window)
 
 
 class AppSessionDashboardTests(unittest.TestCase):
