@@ -483,6 +483,134 @@ def spend():
     })
 
 
+@agent_os_bp.get("/spend/remaining")
+def spend_remaining():
+    """T025: Anthropic 구독 잔여량 추정 — limit 이벤트 빈도 기반 압력 레벨.
+
+    Anthropic 구독(Claude Code)은 공식 API 잔여량 조회 불가.
+    로컬 cli-tools.jsonl의 limit 이벤트 빈도로 압력(pressure)을 추정함.
+
+    pressure levels:
+      ok       — limit 이벤트 없음, 정상 사용 중
+      moderate — 최근 24h 내 limit 이벤트 1~2회
+      high     — 최근 3h 내 limit 이벤트 1회 이상 / 24h 3회 이상
+      critical — 최근 1h 내 limit 이벤트 발생
+    """
+    import time as _time
+    now_ts = _time.time()
+    ONE_HOUR   = 3600
+    THREE_HOUR = 10800
+    ONE_DAY    = 86400
+
+    # ── 수동 설정 파일 (사용자가 직접 입력한 메모) ──
+    REMAINING_OVERRIDE = ROOT / "data" / "spend_remaining_override.json"
+    manual: dict = {}
+    if REMAINING_OVERRIDE.exists():
+        try:
+            manual = json.loads(REMAINING_OVERRIDE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    # ── cli-tools.jsonl 분석 ──────────────────────────────
+    try:
+        lines = CLI_TOOLS_LOG.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except Exception:
+        lines = []
+
+    limit_1h = limit_3h = limit_24h = 0
+    latest_limit_ts: str = ""
+    latest_limit_model: str = ""
+
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        detail = " ".join(
+            str(rec.get(k) or "") for k in ("response_summary", "stderr", "error", "detail")
+        )
+        if not LIMIT_EVENT_RE.search(detail):
+            continue
+
+        # 타임스탬프 파싱
+        raw_ts = str(rec.get("timestamp") or "")
+        try:
+            from datetime import datetime as _dt, timezone as _tz
+            if raw_ts:
+                if "T" in raw_ts:
+                    ev_dt = _dt.fromisoformat(raw_ts.replace("Z", "+00:00"))
+                else:
+                    ev_dt = _dt.fromtimestamp(float(raw_ts), tz=_tz.utc)
+                age_sec = now_ts - ev_dt.timestamp()
+            else:
+                age_sec = ONE_DAY + 1  # 타임스탬프 없으면 24h 초과로 처리
+        except Exception:
+            age_sec = ONE_DAY + 1
+
+        if age_sec <= ONE_HOUR:
+            limit_1h += 1
+        if age_sec <= THREE_HOUR:
+            limit_3h += 1
+        if age_sec <= ONE_DAY:
+            limit_24h += 1
+            if not latest_limit_ts:
+                latest_limit_ts = raw_ts
+                latest_limit_model = str(rec.get("model") or "")
+
+    # ── 압력 레벨 결정 ──────────────────────────────────────
+    if limit_1h >= 1:
+        pressure = "critical"
+        pressure_note = f"최근 1h 내 {limit_1h}회 limit — 호출 일시 중단 권고"
+    elif limit_3h >= 1 or limit_24h >= 3:
+        pressure = "high"
+        pressure_note = f"최근 3h {limit_3h}회 / 24h {limit_24h}회 limit — 속도 조절 필요"
+    elif limit_24h >= 1:
+        pressure = "moderate"
+        pressure_note = f"최근 24h {limit_24h}회 limit — 사용 주의"
+    else:
+        pressure = "ok"
+        pressure_note = "limit 이벤트 없음 — 정상 사용 중"
+
+    # ── 수동 override 병합 ───────────────────────────────────
+    result = {
+        "pressure": pressure,
+        "pressure_note": pressure_note,
+        "limit_1h": limit_1h,
+        "limit_3h": limit_3h,
+        "limit_24h": limit_24h,
+        "latest_limit_event": {
+            "timestamp": latest_limit_ts,
+            "model": latest_limit_model,
+        } if latest_limit_ts else None,
+        "note": "Claude Code 구독 방식 — 공식 API 잔여량 조회 불가. limit 이벤트 빈도로 추정.",
+        "checked_at": _ts_now(),
+    }
+
+    # 수동 입력 메모가 있으면 추가
+    if manual:
+        result["manual_override"] = manual
+
+    return jsonify(result)
+
+
+@agent_os_bp.post("/spend/remaining")
+def set_spend_remaining():
+    """사용자가 현재 잔여량/메모를 수동으로 기록하는 엔드포인트.
+
+    POST body: {"note": "오늘 100회 남음", "remaining_estimate": 100}
+    data/spend_remaining_override.json 에 저장됨.
+    """
+    REMAINING_OVERRIDE = ROOT / "data" / "spend_remaining_override.json"
+    data = request.get_json(silent=True) or {}
+    from datetime import datetime as _dt, timezone as _tz
+    payload = {**data, "updated_at": _dt.now(_tz.utc).isoformat()}
+    REMAINING_OVERRIDE.parent.mkdir(parents=True, exist_ok=True)
+    REMAINING_OVERRIDE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return jsonify({"status": "saved", "data": payload}), 200
+
+
 @agent_os_bp.get("/overview")
 def overview():
     """Single-call overview combining health + task summary."""
