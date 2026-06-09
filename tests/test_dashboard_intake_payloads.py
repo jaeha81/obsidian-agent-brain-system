@@ -112,6 +112,7 @@ class GlobalOperatingPolicyTests(unittest.TestCase):
         html = read_text("docs/daily-plus.html")
         self.assertIn("jh-chat", html)
         self.assertIn("jh-오늘의플러스", html)
+        self.assertIn("jh-chris", html)
         self.assertIn("일반", html)
         self.assertIn("Chrome extension, Vercel, Supabase, local PC control, bot restart", html)
 
@@ -167,10 +168,15 @@ class RouterFieldConsistencyTests(unittest.TestCase):
         html = read_text("docs/index.html")
         self.assertIn("function extractYoutubeWatchUrl", html)
         self.assertIn("dashboard_type: 'knowledge_intake'", html)
+        self.assertIn("target_channel: 'jh-chris'", html)
         self.assertIn("action: youtubeUrl ? 'watch' : 'capture'", html)
         self.assertIn("capture_target: youtubeUrl", html)
         self.assertIn("watch_command: youtubeUrl ? `/watch ${youtubeUrl}` : ''", html)
         self.assertIn("await postToIntake(intakePayload)", html)
+
+    def test_knowledge_intake_routes_to_chris_channel(self):
+        bot = read_text("scripts/discord_bot.py")
+        self.assertIn('"knowledge_intake": lambda: JH_CHRIS_CHANNEL_ID or JH_CHAT_CHANNEL_ID', bot)
 
     def test_knowledge_intake_watch_routes_to_youtube_capture_before_bucky_wait(self):
         bot = read_text("scripts/discord_bot.py")

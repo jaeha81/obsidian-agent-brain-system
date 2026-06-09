@@ -6,6 +6,7 @@ Bucky Sub-Agent Manager — 복잡한 작업을 서브에이전트에게 분리 
   Bucky        → 조율(오케스트레이터), 지식 정제, 갭 분석
   ClaudeCode   → 구현(코드 작성, 스크립트, 파일 생성)
   Codex        → 검토, 검수, 리뷰, 테스트 검증
+  Chris        → Graphify 기반 지식 구조 분석, 브레인 성능 개선 제안
   Collector    → 데이터 수집 파이프라인 실행
   Distiller    → 원시 대화 → 구조화 지식 변환
 
@@ -33,7 +34,7 @@ VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"
 TASKS_DIR = VAULT / "10_AgentBus" / "tasks"
 
-AgentRole = Literal["bucky", "claude_code", "codex", "collector", "distiller"]
+AgentRole = Literal["bucky", "claude_code", "codex", "chris", "collector", "distiller"]
 
 AGENT_CAPABILITIES = {
     "claude_code": [
@@ -43,6 +44,12 @@ AGENT_CAPABILITIES = {
     "codex": [
         "검토", "검수", "리뷰", "테스트", "검증", "확인",
         "review", "verify", "check", "validate", "test",
+    ],
+    "chris": [
+        "chris", "크리스", "graphify", "그래피파이", "그래프파이",
+        "지식 그래프", "knowledge graph", "지식 구조", "지식 정리",
+        "브레인 성능", "연결성", "고립 노드", "isolated node",
+        "context pack 후보", "컨텍스트팩 후보", "지식 갭", "knowledge gap",
     ],
     "collector": [
         "수집", "가져와", "임포트", "동기화",
@@ -171,6 +178,7 @@ def summary_report(delegation_result: dict) -> str:
     agent_emojis = {
         "claude_code": "🛠️",
         "codex": "🔍",
+        "chris": "🧭",
         "collector": "📥",
         "distiller": "🧠",
         "bucky": "🤖",

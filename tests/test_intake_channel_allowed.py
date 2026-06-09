@@ -11,6 +11,7 @@ _INTAKE_KEYS = (
     "JH_WISHKET_CHANNEL_ID",
     "JH_DAILYPLUS_CHANNEL_ID",
     "JH_TASKBOARD_CHANNEL_ID",
+    "JH_CHRIS_CHANNEL_ID",
 )
 
 
@@ -40,6 +41,7 @@ class IntakeChannelRegistrationTests(unittest.TestCase):
             "JH_WISHKET_CHANNEL_ID":        "2222222222222222222",
             "JH_DAILYPLUS_CHANNEL_ID":      "3333333333333333333",
             "JH_TASKBOARD_CHANNEL_ID":      "4444444444444444444",
+            "JH_CHRIS_CHANNEL_ID":          "5555555555555555555",
         }
         allowed = set()
         persist = MagicMock()

@@ -154,6 +154,7 @@ JH_REPO_DASHBOARD_CHANNEL_ID: str = os.getenv("JH_REPO_DASHBOARD_CHANNEL_ID", ""
 JH_WISHKET_CHANNEL_ID: str        = os.getenv("JH_WISHKET_CHANNEL_ID", "").strip()
 JH_DAILYPLUS_CHANNEL_ID: str      = os.getenv("JH_DAILYPLUS_CHANNEL_ID", "").strip()
 JH_TASKBOARD_CHANNEL_ID: str      = os.getenv("JH_TASKBOARD_CHANNEL_ID", "").strip()
+JH_CHRIS_CHANNEL_ID: str          = os.getenv("JH_CHRIS_CHANNEL_ID", "").strip()
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
@@ -2839,6 +2840,7 @@ async def _init_jh_channels(client) -> None:
     """jh-chat + intake 채널 자동 생성. (deprecated: jh-tasks/jh-status/jh-results/jh-briefing 삭제 2026-06-09)"""
     global JH_CHAT_CHANNEL_ID
     global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
+    global JH_CHRIS_CHANNEL_ID
     global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID
     if not client.guilds:
         return
@@ -2849,6 +2851,7 @@ async def _init_jh_channels(client) -> None:
         ("jh-위시켓",       "JH_WISHKET_CHANNEL_ID",         "💼 Wishket 개발요청 전용"),
         ("jh-오늘의플러스",  "JH_DAILYPLUS_CHANNEL_ID",       "📅 Daily Plus → Bucky 브리핑"),
         ("jh-태스크보드",   "JH_TASKBOARD_CHANNEL_ID",       "📋 태스크보드 → Bucky 라우팅"),
+        ("jh-chris",       "JH_CHRIS_CHANNEL_ID",           "🧭 Chris Graphify 지식 지도/브레인 성능 관리"),
         ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
         ("jh-코덱스앱",     "JH_CODEX_CHANNEL_ID",          "🔍 Codex 앱 세션 요청/상태 보고"),
     ]
@@ -2880,6 +2883,7 @@ async def _init_jh_channels(client) -> None:
         ("JH_WISHKET_CHANNEL_ID",        JH_WISHKET_CHANNEL_ID),
         ("JH_DAILYPLUS_CHANNEL_ID",      JH_DAILYPLUS_CHANNEL_ID),
         ("JH_TASKBOARD_CHANNEL_ID",      JH_TASKBOARD_CHANNEL_ID),
+        ("JH_CHRIS_CHANNEL_ID",          JH_CHRIS_CHANNEL_ID),
         ("JH_CLAUDE_CODE_CHANNEL_ID",    JH_CLAUDE_CODE_CHANNEL_ID),
         ("JH_CODEX_CHANNEL_ID",          JH_CODEX_CHANNEL_ID),
     ]
@@ -3762,7 +3766,7 @@ class BuckyDiscordBot(discord.Client):
             "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
             "taskboard":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
             "checklist":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
-            "knowledge_intake": lambda: JH_CHAT_CHANNEL_ID,
+            "knowledge_intake": lambda: JH_CHRIS_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
         }
 
         print("[IntakeConsumer] 시작", flush=True)
@@ -4878,7 +4882,7 @@ class BuckyDiscordBot(discord.Client):
             if body:
                 if _WORKER_POOL_ENABLED and tq:
                     task = await asyncio.to_thread(tq.add, body[:60], body, None, "discord")
-                    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖", "gemini": "🔭"}.get(task["agent"], "")
+                    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖", "gemini": "🔭", "chris": "🧭"}.get(task["agent"], "")
                     tid = task["id"]
                     title_short = task["title"][:40]
 

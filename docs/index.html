@@ -399,8 +399,8 @@
 </div>
 
 <section class="intake-panel" aria-label="Bucky knowledge intake">
-  <div class="intake-title">Bucky Knowledge Intake</div>
-  <div class="intake-sub">Paste a link, YouTube URL, note, article text, or attach files. The dashboard sends it to Bucky OS intake first; YouTube links are routed through /watch automatically.</div>
+  <div class="intake-title">Chris Knowledge Intake</div>
+  <div class="intake-sub">Paste a link, YouTube URL, note, article text, or attach files. The dashboard sends it to Chris for Graphify-aware knowledge mapping first; YouTube links are routed through /watch automatically.</div>
   <div class="intake-grid">
     <select id="intakeType" aria-label="Intake type">
       <option value="auto">Auto detect</option>
@@ -412,7 +412,7 @@
     <input id="intakeTitle" type="text" placeholder="Title or short label">
   </div>
   <div style="margin-top:10px">
-    <textarea id="intakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Bucky"></textarea>
+    <textarea id="intakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Chris"></textarea>
   </div>
   <div class="intake-grid" style="margin-top:10px">
     <input id="intakeTags" type="text" placeholder="Tags, comma separated">
@@ -1307,7 +1307,7 @@ function buildKnowledgeIntakePayload() {
   const youtubeUrl = extractYoutubeWatchUrl(`${title}\n${body}`);
   return {
     dashboard_type: 'knowledge_intake',
-    target_channel: 'jh-chat',
+    target_channel: 'jh-chris',
     action: youtubeUrl ? 'watch' : 'capture',
     request_id: `knowledge-${Date.now()}`,
     type,
@@ -1343,8 +1343,8 @@ async function sendKnowledgeIntake() {
       await postWebhookWithFiles(url, name, payload, files);
     }
     showToast(
-      intakePayload.action === 'watch' ? 'Watch intake queued' : 'Bucky intake queued',
-      intakePayload.action === 'watch' ? 'YouTube link will be captured through /watch.' : 'Queued through local Bucky OS intake.'
+      intakePayload.action === 'watch' ? 'Watch intake queued' : 'Chris intake queued',
+      intakePayload.action === 'watch' ? 'YouTube link will be captured through /watch.' : 'Queued through local Bucky OS intake for Chris review.'
     );
     document.getElementById('intakeTitle').value = '';
     document.getElementById('intakeBody').value = '';

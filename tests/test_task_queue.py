@@ -50,6 +50,17 @@ class TaskQueueIdTests(unittest.TestCase):
 
         self.assertEqual("T002", task["id"])
 
+    def test_graphify_knowledge_request_routes_to_chris(self):
+        self.assertEqual(
+            "chris",
+            self.tq.route("Graphify로 지식 구조를 정리하고 브레인 성능 개선 후보를 찾아줘"),
+        )
+
+    def test_force_agent_accepts_chris(self):
+        task = self.tq.add("chris", "일반 요청이지만 Chris에게 맡김", "chris", source="test")
+
+        self.assertEqual("chris", task["agent"])
+
 
 if __name__ == "__main__":
     unittest.main()

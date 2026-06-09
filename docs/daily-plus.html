@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -181,7 +181,7 @@
   <h1>오늘의 플러스 운영 리포트</h1>
   <p>ChatGPT Pulse 수집 결과를 Bucky가 운영 관점으로 분류한 대시보드입니다. 첫 오늘의 플러스(2026-05-27) 대비 얼마나 진화했는지, 오늘 무엇이 처리됐고 무엇을 구현해야 하는지, 어떤 항목이 효율성과 호환성 측면에서 우선인지 한 화면에서 확인합니다.</p>
 </header>
-<p style="margin:0 32px 10px;color:var(--muted);font-size:0.78rem"><strong>공식 대화 채널:</strong> 사용자 직접 대화는 <code>jh-chat</code>만 사용하고, <code>일반</code> 채널은 운영 경로로 사용하지 않습니다. 오늘의플러스 intake는 <strong>jh-오늘의플러스</strong> 채널로 전달합니다.</p>
+<p style="margin:0 32px 10px;color:var(--muted);font-size:0.78rem"><strong>공식 대화 채널:</strong> 사용자 직접 대화는 <code>jh-chat</code>만 사용하고, <code>일반</code> 채널은 운영 경로로 사용하지 않습니다. 오늘의플러스 실행/운영 intake는 <strong>jh-오늘의플러스</strong>, 지식 intake는 <strong>jh-chris</strong> 채널로 전달합니다.</p>
 <p style="margin:0 32px 16px;color:var(--muted);font-size:0.78rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart는 사용자 승인 후 Bucky가 실행 가능한 작업으로 취급합니다.</p>
 <main>
   <nav class="toc-bar" aria-label="빠른 이동" style="position:sticky;top:0;z-index:20;background:var(--bg);padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)">
@@ -225,8 +225,8 @@
 
   <section id="daily-plus-results">
     <div class="section-title">
-      <h2>Bucky Knowledge Intake</h2>
-      <span class="muted">Discord webhook -> Bucky -> Obsidian raw storage</span>
+      <h2>Chris Knowledge Intake</h2>
+      <span class="muted">Dashboard -> Chris -> Graphify-aware knowledge mapping</span>
     </div>
     <div class="panel knowledge-intake">
       <div class="intake-grid">
@@ -239,16 +239,16 @@
         </select>
         <input id="dailyPlusIntakeTitle" type="text" placeholder="Title or short label">
       </div>
-      <textarea id="dailyPlusIntakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Bucky"></textarea>
+      <textarea id="dailyPlusIntakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Chris"></textarea>
       <div class="file-row">
         <input id="dailyPlusIntakeTags" type="text" placeholder="Tags, comma separated">
         <input id="dailyPlusIntakeFiles" type="file" multiple>
       </div>
       <div class="intake-actions">
         <button type="button" class="copy" id="copyDailyPlusIntake">Copy payload</button>
-        <button type="button" class="send-discord" id="sendDailyPlusIntake">Discord로 Bucky Intake 전송</button>
+        <button type="button" class="send-discord" id="sendDailyPlusIntake">Discord로 Chris Intake 전송</button>
       </div>
-      <p class="muted">Discord webhook URL은 Repo Dashboard와 같은 브라우저 저장값(<code>bucky-webhook</code>)을 사용합니다. 파일은 Discord 첨부로 전송되고 Bucky bot이 RAW_IMPORT/Discord 및 Obsidian 01_RAW에 기록합니다.</p>
+      <p class="muted">Discord webhook URL은 Repo Dashboard와 같은 브라우저 저장값(<code>bucky-webhook</code>)을 사용합니다. 파일은 Discord 첨부로 전송되고 Chris가 지식 구조화/Graphify 후보화를 우선 검토합니다.</p>
     </div>
   </section>
 
@@ -972,6 +972,8 @@
       "title: " + (title || "(untitled)"),
       "tags: " + (tags || "(none)"),
       "source: daily-plus-dashboard",
+      "target_channel: jh-chris",
+      "target: Chris",
       "session_id: " + dailyPlusSessionId(),
       "channel_role: daily-plus-intake",
       "follow_up_state: awaiting_user_instruction",
@@ -1137,8 +1139,8 @@
       intakeSendButton.textContent = "Discord 전송 중...";
       try {
         var result = await postDiscordWebhookWithFiles(payload, filesEl ? filesEl.files : []);
-        setMessageStatus("Discord를 통해 Bucky Intake 전송 완료" + (result.files ? " (" + result.files + " files)" : ""));
-        showToast("Bucky Intake 전송 완료");
+        setMessageStatus("Discord를 통해 Chris Intake 전송 완료" + (result.files ? " (" + result.files + " files)" : ""));
+        showToast("Chris Intake 전송 완료");
         ["dailyPlusIntakeTitle", "dailyPlusIntakeBody", "dailyPlusIntakeTags", "dailyPlusIntakeFiles"].forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.value = "";
@@ -1148,7 +1150,7 @@
         showToast("Discord Intake 전송 실패");
       } finally {
         intakeSendButton.disabled = false;
-        intakeSendButton.textContent = "Discord로 Bucky Intake 전송";
+        intakeSendButton.textContent = "Discord로 Chris Intake 전송";
       }
     });
   }

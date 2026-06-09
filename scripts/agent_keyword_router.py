@@ -8,6 +8,7 @@ Discord 봇 + Agent Dispatcher 양쪽에서 import하여 사용.
 
 에이전트 역할:
   gemini     — 리서치, 최신 정보, 멀티모달 (GEMINI_API_KEY 필요)
+  chris      — Graphify 기반 지식 구조 분석, 브레인 성능 개선 제안
   codex      — 설계 검토, 버그 분석, 리뷰, 리팩토링
   claude     — 구현, 코드 작성, 수정 (Claude Code CLI)
   bucky      — 일반 대화, 분류 불가 폴백
@@ -41,12 +42,22 @@ _CLAUDE_CODE_KEYWORDS: tuple[str, ...] = (
     "추가해", "개발해",
 )
 
+# Chris: Graphify 전담 지식 지도 에이전트
+_CHRIS_KEYWORDS: tuple[str, ...] = (
+    "chris", "크리스", "graphify", "그래피파이", "그래프파이", "그래프",
+    "지식 그래프", "knowledge graph", "지식 구조", "지식 정리",
+    "브레인 성능", "brain performance", "연결성", "고립 노드",
+    "isolated node", "context pack 후보", "컨텍스트팩 후보",
+    "지식 갭", "knowledge gap",
+)
+
 # ── 상수 ───────────────────────────────────────────────────────────────────────
 
 _GEMINI_AVAILABLE: bool = bool(os.getenv("GEMINI_API_KEY", "").strip())
 
 AGENT_ICONS: dict[str, str] = {
     "gemini": "🔭",
+    "chris": "🧭",
     "codex": "⚡",
     "claude": "🧠",
     "bucky": "🤖",
@@ -59,21 +70,23 @@ def classify(text: str) -> tuple[str | None, list[str]]:
     """텍스트 키워드 감지 → (agent, matched_keywords).
 
     Returns:
-        agent: "gemini" | "codex" | "claude" | None  (키워드 미감지 시 None)
+        agent: "gemini" | "chris" | "codex" | "claude" | None  (키워드 미감지 시 None)
         matched_keywords: 감지된 키워드 목록 (표시용)
     """
     b = text.lower()
 
     gemini_hits = [k for k in _GEMINI_KEYWORDS if k in b]
+    chris_hits = [k for k in _CHRIS_KEYWORDS if k in b]
     codex_hits = [k for k in _CODEX_KEYWORDS if k in b]
     claude_hits = [k for k in _CLAUDE_CODE_KEYWORDS if k in b]
 
-    # 점수 기반 정렬 (동점 시 우선순위: claude > codex > gemini)
+    # 점수 기반 정렬 (동점 시 우선순위: chris > claude > codex > gemini)
     ranked = sorted(
         [
             (len(gemini_hits), 0, "gemini", gemini_hits),
             (len(codex_hits),  1, "codex",  codex_hits),
             (len(claude_hits), 2, "claude", claude_hits),
+            (len(chris_hits),  3, "chris",  chris_hits),
         ],
         key=lambda x: (x[0], x[1]),
         reverse=True,

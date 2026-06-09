@@ -33,6 +33,12 @@ _CLAUDE_KEYWORDS = (
     "why", "analyze", "design", "security", "architecture", "strategy", "review",
     "explain", "research", "조사", "설명해",
 )
+_CHRIS_KEYWORDS = (
+    "chris", "크리스", "graphify", "그래피파이", "그래프파이", "지식 그래프",
+    "knowledge graph", "지식 구조", "지식 정리", "브레인 성능", "연결성",
+    "고립 노드", "isolated node", "context pack 후보", "컨텍스트팩 후보",
+    "지식 갭", "knowledge gap",
+)
 
 
 def _get_conn() -> sqlite3.Connection:
@@ -77,11 +83,14 @@ def _next_id() -> str:
 
 def route(body: str, force_agent: Optional[str] = None) -> str:
     """키워드 기반 자동 라우팅 → codex / claude / bucky"""
-    if force_agent and force_agent in ("codex", "claude", "bucky"):
+    if force_agent and force_agent in ("codex", "claude", "bucky", "chris"):
         return force_agent
     b = body.lower()
+    chris_score = sum(1 for k in _CHRIS_KEYWORDS if k in b)
     codex_score = sum(1 for k in _CODEX_KEYWORDS if k in b)
     claude_score = sum(1 for k in _CLAUDE_KEYWORDS if k in b)
+    if chris_score > max(codex_score, claude_score):
+        return "chris"
     if codex_score > claude_score:
         return "codex"
     if claude_score > 0:
@@ -170,7 +179,7 @@ def format_dashboard(tasks: Optional[list] = None) -> str:
         "pending": "⏳", "in_progress": "🔄", "submitted": "📤",
         "done": "✅", "failed": "❌",
     }
-    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖"}
+    agent_icon = {"claude": "🧠", "codex": "⚡", "bucky": "🤖", "chris": "🧭"}
 
     lines = ["**📋 Bucky 태스크 현황**\n"]
     for t in tasks:

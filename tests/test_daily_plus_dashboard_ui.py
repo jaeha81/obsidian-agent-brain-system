@@ -38,6 +38,11 @@ class DailyPlusDashboardUiTests(unittest.TestCase):
         self.assertIn('target_channel: "jh-오늘의플러스"', html)
         self.assertIn("target_channel: jh-오늘의플러스", html)
 
+    def test_daily_plus_knowledge_intake_targets_chris(self):
+        html = DAILY_PLUS_PATH.read_text(encoding="utf-8")
+        self.assertIn("target_channel: jh-chris", html)
+        self.assertIn("Chris Knowledge Intake", html)
+
 
 if __name__ == "__main__":
     unittest.main()
