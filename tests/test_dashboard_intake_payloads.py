@@ -143,6 +143,11 @@ class RouterFieldConsistencyTests(unittest.TestCase):
         html = read_text("docs/task-board.html")
         self.assertIn("request_id: `task-${task.id}-${Date.now()}`", html)
         self.assertIn("request_id: `task-${id}-${Date.now()}`", html)
+        self.assertIn("DEFAULT_INTAKE_URL = 'http://127.0.0.1:8765/intake'", html)
+        self.assertIn("dashboard_type: 'task_board'", html)
+        self.assertIn("showToast(`⏳ ${id} 재개 전송 중...`)", html)
+        self.assertIn("Bucky 전송 실패", html)
+        self.assertIn("if (navigator.clipboard?.writeText)", html)
 
     def test_checklist_payload_has_request_id(self):
         html = read_text("docs/checklist.html")

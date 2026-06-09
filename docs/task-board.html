@@ -380,11 +380,24 @@ const STORAGE_KEY = 'bucky_taskboard_v2';
 const WH_KEY = 'bucky_wh_url';
 const INTAKE_KEY = 'buckyIntakeEndpoint';
 const LOCAL_TASKS_KEY = 'bucky_local_tasks';
+const DEFAULT_INTAKE_URL = 'http://127.0.0.1:8765/intake';
 
 let allTasks = [];
 let statusMap = {};
 let localTasks = [];
 let currentFilter = 'all';
+
+function getIntakeUrl() {
+  return localStorage.getItem(INTAKE_KEY) || DEFAULT_INTAKE_URL;
+}
+
+function isWebhookUrl(url) {
+  return !!url && url.includes('discord.com/api/webhooks');
+}
+
+function errText(err) {
+  return (err && (err.message || String(err))) || 'unknown error';
+}
 
 // ── Load ──────────────────────────────────────────────────────────────────
 async function loadTasks() {
@@ -551,17 +564,20 @@ async function resumeTask(id) {
   const task = allTasks.find(t => t.id === id);
   if (!task) return;
 
-  const intakeUrl = localStorage.getItem(INTAKE_KEY);
+  const intakeUrl = getIntakeUrl();
   const whUrl = localStorage.getItem(WH_KEY);
-  const isIntake = intakeUrl && !intakeUrl.includes('discord.com/api/webhooks');
+  const isIntake = intakeUrl && !isWebhookUrl(intakeUrl);
+  let lastError = '';
+
+  showToast(`⏳ ${id} 재개 전송 중...`);
 
   if (isIntake) {
     try {
       const r = await fetch(intakeUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ /* INTAKE_PAYLOAD: dashboard_type=taskboard */
-          dashboard_type: 'taskboard',
+        body: JSON.stringify({ /* INTAKE_PAYLOAD: dashboard_type=task_board */
+          dashboard_type: 'task_board',
           target_channel: 'jh-태스크보드',
           action: 'resume',
           request_id: `task-${task.id}-${Date.now()}`,
@@ -573,21 +589,34 @@ async function resumeTask(id) {
         })
       });
       if (r.ok) { showToast(`✅ ${id} 재개 전송 완료`); return; }
-    } catch (_) {}
+      lastError = `HTTP ${r.status}`;
+    } catch (e) {
+      lastError = errText(e);
+    }
   }
 
-  const wh = whUrl || (intakeUrl && intakeUrl.includes('discord.com/api/webhooks') ? intakeUrl : null);
+  const wh = whUrl || (isWebhookUrl(intakeUrl) ? intakeUrl : null);
   if (wh) {
     const msg = `!task [재개요청] [${id}] ${task.title}\n\n${task.description || ''}`.trim();
     try {
       await fetch(wh, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: `📋 **재개 요청**\n${msg}` }) });
       showToast(`✅ ${id} 재개 전송 완료`); return;
-    } catch (_) {}
+    } catch (e) {
+      lastError = errText(e);
+    }
   }
 
   const msg = `!task [재개요청] [${id}] ${task.title}\n\n${task.description || ''}`.trim();
-  navigator.clipboard?.writeText(msg).then(() => showToast('📋 클립보드에 복사됨'));
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(msg)
+      .then(() => showToast(lastError
+        ? `⚠️ Bucky 전송 실패(${lastError}) — 복사용 메시지를 클립보드에 저장했습니다`
+        : '📋 전송 주소 없음 — 복사용 메시지를 클립보드에 저장했습니다'))
+      .catch(() => showToast(lastError ? `❌ Bucky 전송 실패: ${lastError}` : '❌ 전송 주소 없음'));
+  } else {
+    showToast(lastError ? `❌ Bucky 전송 실패: ${lastError}` : '❌ 전송 주소 없음');
+  }
 }
 
 // ── Notify (/intake 우선 → webhook fallback) ──────────────────────────────
@@ -595,18 +624,18 @@ async function sendWebhook(id, status) {
   const task = allTasks.find(t => t.id === id);
   if (!task) return;
 
-  const intakeUrl = localStorage.getItem(INTAKE_KEY);
+  const intakeUrl = getIntakeUrl();
   const whUrl = localStorage.getItem(WH_KEY);
   const icons = { done: '✅', in_progress: '🔄', rejected: '❌', pending: '⏳' };
   const labels = { done: '완료', in_progress: '진행중', rejected: '거절', pending: '미처리' };
 
-  if (intakeUrl && !intakeUrl.includes('discord.com/api/webhooks')) {
+  if (intakeUrl && !isWebhookUrl(intakeUrl)) {
     try {
       const r = await fetch(intakeUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ /* INTAKE_PAYLOAD: dashboard_type=taskboard */
-          dashboard_type: 'taskboard',
+        body: JSON.stringify({ /* INTAKE_PAYLOAD: dashboard_type=task_board */
+          dashboard_type: 'task_board',
           target_channel: 'jh-태스크보드',
           action: 'status_change',
           request_id: `task-${id}-${Date.now()}`,
@@ -620,7 +649,7 @@ async function sendWebhook(id, status) {
     } catch (_) {}
   }
 
-  const wh = whUrl || (intakeUrl && intakeUrl.includes('discord.com/api/webhooks') ? intakeUrl : null);
+  const wh = whUrl || (isWebhookUrl(intakeUrl) ? intakeUrl : null);
   if (!wh) return;
   try {
     await fetch(wh, {
@@ -637,7 +666,7 @@ function toggleWebhook() {
   p.classList.toggle('open');
   if (p.classList.contains('open')) {
     document.getElementById('whInput').value =
-      localStorage.getItem(INTAKE_KEY) || localStorage.getItem(WH_KEY) || '';
+      localStorage.getItem(INTAKE_KEY) || localStorage.getItem(WH_KEY) || DEFAULT_INTAKE_URL;
   }
 }
 
@@ -664,7 +693,7 @@ function saveWebhook() {
   } else {
     localStorage.removeItem(INTAKE_KEY);
     localStorage.removeItem(WH_KEY);
-    showToast('전송 주소 삭제됨');
+    showToast('기본 Bucky intake 주소를 사용합니다');
   }
   document.getElementById('whPanel').classList.remove('open');
 }
