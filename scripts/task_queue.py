@@ -61,16 +61,15 @@ def _get_conn() -> sqlite3.Connection:
 
 
 def _next_id() -> str:
-    """오늘 날짜 기준으로 충돌 없는 다음 태스크 ID 반환.
+    """Return the next numeric task id without reusing existing T### ids.
 
-    COUNT(*) 대신 MAX(n)을 사용해 삭제·갭 발생 시에도 중복 ID 방지.
-    ex) T001·T003 존재(T002 삭제) → COUNT=2 → T003 충돌 발생했던 문제 수정.
+    Older repaired/imported rows can have dates outside today's window while
+    still occupying ids such as T001, so the allocator must not filter by date.
     """
     conn = _get_conn()
     row = conn.execute(
         "SELECT MAX(CAST(SUBSTR(id,2) AS INTEGER)) FROM tasks "
-        "WHERE id GLOB 'T[0-9]*' "
-        "AND date(created,'localtime')=date('now','localtime')"
+        "WHERE id GLOB 'T[0-9]*'"
     ).fetchone()
     n = (row[0] if row and row[0] is not None else 0) + 1
     return f"T{n:03d}"

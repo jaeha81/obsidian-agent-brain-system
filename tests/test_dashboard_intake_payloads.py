@@ -179,6 +179,23 @@ class RouterFieldConsistencyTests(unittest.TestCase):
             window = bot[match.start():match.start() + 120]
             self.assertIn('errors="replace"', window)
 
+    def test_daily_plus_execute_dispatches_task_instead_of_waiting_for_chat_reply(self):
+        bot = read_text("scripts/discord_bot.py")
+        branch = bot[bot.index('if dashboard_type == "daily_plus" and channel:'):]
+        self.assertIn('if action in {"execute", "approve_execute"}:', branch)
+        self.assertIn("_dispatch_dashboard_execution_task(payload, channel)", branch)
+        self.assertLess(
+            branch.index("_dispatch_dashboard_execution_task(payload, channel)"),
+            branch.index("reply = await asyncio.wait_for("),
+        )
+
+    def test_dashboard_execution_task_uses_worker_pool(self):
+        bot = read_text("scripts/discord_bot.py")
+        self.assertIn("async def _dispatch_dashboard_execution_task", bot)
+        self.assertIn('source="dashboard-intake"', bot)
+        self.assertIn("pool.register_task(task", bot)
+        self.assertIn("pool.submit(task)", bot)
+
 
 class AppSessionDashboardTests(unittest.TestCase):
     def test_app_session_payload_has_required_fields(self):

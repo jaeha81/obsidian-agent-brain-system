@@ -2740,6 +2740,48 @@ async def _dispatch_task(message: Message, task_body: str) -> None:
     return task
 
 
+def _build_dashboard_execution_body(payload: dict) -> str:
+    dashboard_type = str(payload.get("dashboard_type") or "dashboard")
+    action = str(payload.get("action") or "execute")
+    title = str(payload.get("title") or payload.get("summary") or action)
+    request_id = str(payload.get("request_id") or "")
+    source_url = str(payload.get("source_dashboard_url") or "")
+    body = str(payload.get("body") or payload.get("summary") or "")
+    return (
+        f"[Dashboard Execution]\n"
+        f"dashboard_type: {dashboard_type}\n"
+        f"action: {action}\n"
+        f"request_id: {request_id}\n"
+        f"title: {title}\n"
+        + (f"source_dashboard_url: {source_url}\n" if source_url else "")
+        + "\n"
+        + body
+    ).strip()
+
+
+async def _dispatch_dashboard_execution_task(payload: dict, channel) -> dict | None:
+    """Dashboard execute action: enqueue real worker task instead of waiting for chat reply."""
+    if not _WORKER_POOL_ENABLED or tq is None or _get_worker_pool is None:
+        if channel:
+            await channel.send("⚠️ 작업 큐가 비활성화되어 실행 태스크를 시작할 수 없습니다.")
+        return None
+
+    task_body = _build_dashboard_execution_body(payload)
+    title = str(payload.get("title") or payload.get("action") or "dashboard execute")
+    task = tq.add(title[:80], task_body, "claude", source="dashboard-intake")
+    pool = _get_worker_pool()
+    origin_ch_id = int(channel.id) if channel else None
+    pool.register_task(task, origin_channel_id=origin_ch_id)
+    pool.submit(task)
+    if channel:
+        await channel.send(
+            f"🚀 **실행 태스크 등록 완료** `{task['id']}` → Claude worker\n"
+            f"- request_id: `{str(payload.get('request_id') or '')[:12]}`\n"
+            "작업 시작/완료 상태는 이 채널에 이어서 표시됩니다."
+        )
+    return task
+
+
 async def _handle_jh_tasks(message: Message) -> None:
     """#jh-tasks 전용 핸들러 — Claude 거치지 않고 즉시 태스크 배정."""
     content = message.content.strip()
@@ -3572,6 +3614,10 @@ class BuckyDiscordBot(discord.Client):
 
         # Daily Plus 대시보드 intake — Bucky에게 라우팅해서 응답 전송 (대화 가능 상태)
         if dashboard_type == "daily_plus" and channel:
+            if action in {"execute", "approve_execute"}:
+                await _dispatch_dashboard_execution_task(payload, channel)
+                return
+
             body = str(payload.get("body") or "")
             bucky_prompt = (
                 f"[Daily Plus 대시보드 intake]\n"
