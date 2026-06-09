@@ -284,11 +284,42 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   .reveal{opacity:1;transform:none}
   @page{size:A4;margin:10mm}
 }
+
+/* Hamburger navigation */
+.nav-toggle{position:fixed;top:18px;right:22px;z-index:9999;width:38px;height:38px;background:rgba(10,10,11,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:3px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:background .2s}
+.nav-toggle:hover{background:rgba(10,10,11,.98)}
+.nav-toggle span{display:block;width:18px;height:1.5px;background:rgba(255,255,255,.75);transition:transform .25s,opacity .2s}
+.nav-toggle.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.nav-toggle.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-toggle.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.nav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9997;opacity:0;pointer-events:none;transition:opacity .25s}
+.nav-overlay.open{opacity:1;pointer-events:all}
+.nav-drawer{position:fixed;top:0;right:0;width:248px;height:100vh;background:var(--ink-mid);z-index:9998;border-left:1px solid rgba(255,255,255,.07);padding:64px 0 32px;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
+.nav-drawer.open{transform:translateX(0)}
+.nav-drawer-label{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:0 26px;margin-bottom:12px}
+.nav-item{display:flex;align-items:center;padding:10px 26px;font-size:13px;color:rgba(255,255,255,.55);text-decoration:none;border-left:2px solid transparent;transition:color .15s,background .15s,border-color .15s}
+.nav-item:hover{color:var(--gold-lt);background:rgba(255,255,255,.03);border-left-color:var(--gold)}
+.nav-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 26px}
 </style>
 </head>
 <body>
+<button class="nav-toggle" id="navToggle" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+<div class="nav-overlay" id="navOverlay"></div>
+<nav class="nav-drawer" id="navDrawer" aria-label="페이지 내비게이션">
+  <div class="nav-drawer-label">Navigation</div>
+  <a class="nav-item" href="#hero">소개</a>
+  <a class="nav-item" href="#story">나의 여정</a>
+  <div class="nav-divider"></div>
+  <a class="nav-item" href="#impact">AI 도입 성과</a>
+  <a class="nav-item" href="#competencies">핵심 역량</a>
+  <a class="nav-item" href="#role">현재 역할</a>
+  <a class="nav-item" href="#portfolio">포트폴리오</a>
+  <a class="nav-item" href="#business">사업 소개</a>
+  <div class="nav-divider"></div>
+  <a class="nav-item" href="#contact">문의하기</a>
+</nav>
 
-<header class="hero">
+<header id="hero" class="hero">
   <div class="hero-glow"></div>
   <div class="hero-accent"></div>
   <div class="hero-inner">
@@ -323,7 +354,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 
 <main class="page">
 
-<section class="journey-section reveal">
+<section id="story" class="journey-section reveal">
   <div class="journey-inner">
     <div class="journey-label-col">
       <p class="section-eyebrow">My Journey</p>
@@ -357,7 +388,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   </div>
 </section>
 
-<section class="section reveal">
+<section id="impact" class="section reveal">
   <p class="section-eyebrow">AI Adoption Impact</p>
   <h2 class="section-title">AI 도입으로 실제 바뀐 것</h2>
   <p class="section-sub">인테리어·건축 현장에 AI를 직접 도입하고 운영하며 얻은 실제 수치입니다.</p>
@@ -415,7 +446,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   </div>
 </div>
 
-<section class="section reveal">
+<section id="competencies" class="section reveal">
   <p class="section-eyebrow">Core Competencies</p>
   <h2 class="section-title">세 가지 핵심 역량</h2>
   <div class="pillars">
@@ -425,7 +456,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   </div>
 </section>
 
-<section class="section reveal">
+<section id="role" class="section reveal">
   <p class="section-eyebrow">Current Role</p>
   <h2 class="section-title">이언아이디에서 하고 있는 일</h2>
   <div class="role-card">
@@ -450,7 +481,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   </div>
 </section>
 
-<section class="section reveal">
+<section id="portfolio" class="section reveal">
   <p class="section-eyebrow">Portfolio</p>
   <h2 class="section-title">대표 프로젝트</h2>
   <p class="section-sub">인테리어·건축 현장 프로젝트와 AI 시스템 구축 사례.</p>
@@ -461,7 +492,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   </div>
 </section>
 
-<section class="section reveal">
+<section id="business" class="section reveal">
   <p class="section-eyebrow">New Business</p>
   <h2 class="section-title">지금 준비 중인 세 가지 사업</h2>
   <div class="biz-cards">
@@ -472,7 +503,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 </section>
 
 
-<div class="contact-section">
+<div id="contact" class="contact-section">
   <div class="contact-bg">JH</div>
   <div class="contact-layout cf-layout">
     <div class="contact-left">
@@ -553,6 +584,9 @@ const ua=document.getElementById('uploadArea');
 if(ua){ua.addEventListener('dragover',e=>{e.preventDefault();ua.style.borderColor='rgba(184,134,11,.6)'});ua.addEventListener('dragleave',()=>{ua.style.borderColor=''});ua.addEventListener('drop',e=>{e.preventDefault();ua.style.borderColor='';if(fi&&e.dataTransfer.files.length){const dt=new DataTransfer();Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));fi.files=dt.files;fi.dispatchEvent(new Event('change'))}})}
 const sp=new URLSearchParams(location.search);
 if(sp.get('sent')==='1'){const b=document.querySelector('.cf-submit');if(b){b.textContent='문의가 전송되었습니다 ✓';b.style.background='#2d6a4f';b.style.pointerEvents='none'}}
+const nt=document.getElementById('navToggle'),nd=document.getElementById('navDrawer'),nv=document.getElementById('navOverlay');
+function closeNav(){nd.classList.remove('open');nv.classList.remove('open');nt.classList.remove('open')}
+if(nt&&nd&&nv){nt.addEventListener('click',()=>{const op=nd.classList.contains('open');if(op)closeNav();else{nd.classList.add('open');nv.classList.add('open');nt.classList.add('open')}});nv.addEventListener('click',closeNav);document.querySelectorAll('.nav-item').forEach(a=>a.addEventListener('click',closeNav))}
 </script>
 </body>
 </html>
