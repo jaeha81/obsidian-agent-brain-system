@@ -183,6 +183,99 @@ def intake_dashboard():
     return jsonify({"status": "accepted", "request_id": request_id, "queue_file": filename}), 202
 
 
+@app.route("/tablet-intake", methods=["OPTIONS"])
+def _tablet_intake_preflight():
+    return "", 204
+
+
+@app.post("/tablet-intake")
+def tablet_intake():
+    """태블릿 음성 인테이크 수신 엔드포인트.
+
+    tablet_voice_intake.py 가 전송하는 tablet-batch-upload-manifest 형식을 수신.
+    트랜스크립트를 ObsidianVault/04_SiteLog/voice_log_{DATE}.md 에 누적 저장.
+    """
+    VAULT = ROOT / "ObsidianVault"
+    SITE_LOG_DIR = VAULT / "04_SiteLog"
+
+    data = request.get_json(silent=True)
+    if not data or not isinstance(data, dict):
+        return jsonify({"error": "JSON object payload is required"}), 400
+
+    batch_id = str(data.get("batch_id") or "unknown")
+    device = str(data.get("source_device") or "tablet")
+    chunks: list[dict] = data.get("chunks") or []
+    upload_time = str(data.get("upload_time") or "")
+    vault_path = str(data.get("vault_path") or "04_SiteLog")
+    tags: list[str] = data.get("tags") or []
+
+    if not chunks:
+        return jsonify({"error": "chunks array is empty"}), 400
+
+    # ── 날짜 파싱 ────────────────────────────────────────────────────────────
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        date_str = _dt.now(_tz.utc).strftime("%Y-%m-%d")
+    except Exception:
+        import time as _t
+        date_str = _t.strftime("%Y-%m-%d")
+
+    # ── Vault 경로 결정 ───────────────────────────────────────────────────────
+    # vault_path 이 상대경로면 ObsidianVault 기준, 아니면 고정
+    log_dir = VAULT / vault_path.lstrip("/\\")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"voice_log_{date_str}.md"
+
+    # ── 트랜스크립트 추출 ──────────────────────────────────────────────────
+    lines: list[str] = []
+    for chunk in chunks:
+        ts = str(chunk.get("ts") or "").replace("T", " ")[:19]
+        transcript = str(chunk.get("transcript") or "").strip()
+        intent = str(chunk.get("intent") or "")
+        entities = chunk.get("entities") or []
+        if not transcript:
+            continue
+        entry = f"- **{ts}** [{intent}] {transcript}"
+        if entities:
+            ent_str = ", ".join(
+                str(e.get("value") or e) if isinstance(e, dict) else str(e)
+                for e in entities[:5]
+            )
+            entry += f" `[{ent_str}]`"
+        lines.append(entry)
+
+    if not lines:
+        return jsonify({"error": "no transcripts in chunks"}), 400
+
+    # ── Markdown 파일 append ──────────────────────────────────────────────
+    tag_str = " ".join(f"#{t}" for t in tags) if tags else "#voice #tablet"
+    header_needed = not log_file.exists()
+
+    with open(log_file, "a", encoding="utf-8") as f:
+        if header_needed:
+            f.write(f"---\n")
+            f.write(f"type: voice-log\n")
+            f.write(f"date: {date_str}\n")
+            f.write(f"device: {device}\n")
+            f.write(f"tags: [{', '.join(tags)}]\n")
+            f.write(f"---\n\n")
+            f.write(f"# 음성 로그 — {date_str}\n\n")
+
+        f.write(f"\n## 배치: {batch_id} ({device})\n\n")
+        f.write("\n".join(lines))
+        f.write("\n")
+
+    log_file_rel = str(log_file.relative_to(ROOT)) if log_file.is_relative_to(ROOT) else str(log_file)
+
+    return jsonify({
+        "status": "accepted",
+        "batch_id": batch_id,
+        "chunks_saved": len(lines),
+        "log_file": log_file_rel,
+        "checked_at": upload_time or date_str,
+    }), 202
+
+
 @app.post("/update-wishket")
 def update_wishket():
     """Trigger wishket scraper → dashboard generator → git push.
