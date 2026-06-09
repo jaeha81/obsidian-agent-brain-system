@@ -1,5 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function parseCookies(cookieHeader) {
   const cookies = {};
@@ -11,7 +14,7 @@ function parseCookies(cookieHeader) {
   return cookies;
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   const page = req.query.page;
   const validPages = ['bucky-daily', 'wishket', 'investment-report'];
 
@@ -30,7 +33,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const filePath = path.join(process.cwd(), 'docs', page + '.html');
+  const filePath = path.join(__dirname, '..', 'docs', page + '.html');
   try {
     const html = fs.readFileSync(filePath, 'utf8');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -39,4 +42,4 @@ module.exports = async (req, res) => {
   } catch (err) {
     res.status(500).send('페이지를 불러올 수 없습니다.');
   }
-};
+}

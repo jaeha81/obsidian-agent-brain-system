@@ -30,7 +30,7 @@ async function parseBody(req) {
   });
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
@@ -62,4 +62,4 @@ module.exports = async (req, res) => {
     res.writeHead(302, { Location: errorUrl });
     res.end();
   }
-};
+}
