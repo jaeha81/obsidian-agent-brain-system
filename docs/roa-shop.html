@@ -1,437 +1,666 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>로아샵 — 아산 헤어샵</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로아샵 — 헤어 디자인 살롱 · 아산</title>
+<meta name="description" content="충남 아산시 용화로12번길 16-10 1층 | 로아샵 헤어 살롱 — 정성을 담은 헤어 디자인">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blk:#0c0b09;--blk-mid:#1a1814;--blk-soft:#2a2824;
+  --warm:#f7f3ee;--warm-mid:#ede7de;--warm-dark:#d4cabc;
+  --rose:#c97b6a;--rose-lt:#e8a898;--rose-pale:#fdf4f2;
+  --gold:#b8900a;--gold-lt:#d4a827;
+  --white:#fffdfb;--text:#2c2820;--text-mid:#5c554c;--text-lt:#9c9088;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--warm);color:var(--text);line-height:1.75;-webkit-font-smoothing:antialiased}
 
-    :root {
-      --bg: #faf9f7;
-      --surface: #ffffff;
-      --border: #e8e4de;
-      --text: #1a1a1a;
-      --text-soft: #6b6560;
-      --accent: #c8a882;
-      --accent-dark: #a0805a;
-      --radius: 12px;
-    }
+/* ─── HEADER ─── */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(12,11,9,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.07)}
+.header-inner{max-width:1060px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:58px}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.15em;color:var(--white);text-decoration:none}
+.logo span{color:var(--rose-lt)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{font-size:12px;color:rgba(255,255,255,.5);text-decoration:none;letter-spacing:.08em;transition:color .2s}
+.nav-links a:hover{color:var(--rose-lt)}
+.nav-reserve{font-size:11px;font-weight:500;letter-spacing:.1em;color:var(--blk);background:var(--rose-lt);padding:7px 18px;border-radius:2px;text-decoration:none;transition:background .2s}
+.nav-reserve:hover{background:var(--rose)}
 
-    body {
-      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
+/* ─── HERO ─── */
+.hero{min-height:100vh;background:var(--blk-mid);color:var(--white);display:flex;align-items:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 70% 60% at 80% 50%, rgba(201,123,106,.08) 0%, transparent 60%),
+  radial-gradient(ellipse 50% 80% at 10% 80%, rgba(184,144,10,.05) 0%, transparent 60%),
+  linear-gradient(160deg, #0c0b09 0%, #1a1814 100%);
+}
+.hero-lines{position:absolute;inset:0;opacity:.04}
+.hero-lines::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.6),transparent)}
+.hero-lines::after{content:'';position:absolute;left:0;right:0;top:38%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent)}
+.hero-deco{position:absolute;right:-60px;top:50%;transform:translateY(-50%);width:500px;height:500px;border-radius:50%;border:1px solid rgba(201,123,106,.08);opacity:.6}
+.hero-deco::before{content:'';position:absolute;inset:40px;border-radius:50%;border:1px solid rgba(201,123,106,.06)}
+.hero-deco::after{content:'';position:absolute;inset:90px;border-radius:50%;border:1px solid rgba(201,123,106,.04)}
+.hero-inner{max-width:1060px;margin:0 auto;padding:120px 32px 80px;position:relative;z-index:1;width:100%}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:28px}
+.hero-eyebrow-line{width:28px;height:1px;background:var(--rose)}
+.hero-eyebrow-text{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--rose-lt);font-weight:400}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,8vw,96px);font-weight:300;letter-spacing:-.01em;line-height:1.05;margin-bottom:6px}
+.hero-title em{font-style:italic;color:var(--rose-lt)}
+.hero-subtitle{font-size:13px;color:rgba(255,255,255,.38);letter-spacing:.04em;margin-bottom:40px;font-weight:300}
+.hero-meta{display:flex;gap:32px;margin-bottom:48px;flex-wrap:wrap}
+.hero-meta-item{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.45)}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
+.cta-primary{display:inline-flex;align-items:center;gap:8px;background:var(--rose);color:var(--white);padding:14px 28px;font-size:13px;font-weight:500;letter-spacing:.06em;text-decoration:none;border-radius:2px;transition:background .2s}
+.cta-primary:hover{background:var(--rose-lt)}
+.cta-secondary{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);padding:14px 28px;font-size:13px;letter-spacing:.06em;text-decoration:none;border-radius:2px;transition:all .2s}
+.cta-secondary:hover{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.9)}
+.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,.2);font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.scroll-line{width:1px;height:32px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.3));animation:scrollpulse 2s ease-in-out infinite}
+@keyframes scrollpulse{0%,100%{opacity:.3}50%{opacity:.8}}
 
-    /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-    .logo span { color: var(--accent-dark); }
-    .header-nav { display: flex; gap: 24px; font-size: 14px; color: var(--text-soft); }
-    .header-nav a { text-decoration: none; color: inherit; transition: color .2s; }
-    .header-nav a:hover { color: var(--accent-dark); }
+/* ─── HAIR VISUAL STRIP ─── */
+.visual-strip{background:var(--blk);display:grid;grid-template-columns:repeat(4,1fr);height:200px;overflow:hidden}
+.visual-cell{position:relative;overflow:hidden;background:var(--blk-soft);display:flex;align-items:flex-end;padding:18px 20px}
+.visual-cell::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,123,106,.12) 0%,transparent 60%)}
+.visual-cell-content{position:relative;z-index:1}
+.visual-cell-icon{font-size:32px;display:block;margin-bottom:6px;opacity:.7}
+.visual-cell-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.4);display:block}
 
-    /* ── Hero ── */
-    .hero {
-      background: linear-gradient(135deg, #f5efe8 0%, #ede4d9 100%);
-      padding: 80px 24px;
-      text-align: center;
-    }
-    .hero-badge {
-      display: inline-block;
-      background: var(--accent);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      letter-spacing: 0.5px;
-    }
-    .hero h1 { font-size: clamp(32px, 6vw, 52px); font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
-    .hero p { font-size: 16px; color: var(--text-soft); margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
-    .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
-      text-decoration: none; transition: all .2s; cursor: pointer; border: none;
-    }
-    .btn-primary { background: var(--accent-dark); color: #fff; }
-    .btn-primary:hover { background: #8a6a44; }
-    .btn-outline { background: transparent; color: var(--accent-dark); border: 2px solid var(--accent); }
-    .btn-outline:hover { background: var(--accent); color: #fff; }
+/* ─── SECTION COMMON ─── */
+.section{max-width:1060px;margin:0 auto;padding:80px 32px}
+.section-eyebrow{font-size:9.5px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--rose);margin-bottom:8px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,3.5vw,42px);font-weight:300;letter-spacing:-.02em;color:var(--text);margin-bottom:12px;line-height:1.2}
+.section-sub{font-size:13px;color:var(--text-mid);max-width:500px;line-height:1.9;margin-bottom:48px;font-weight:300}
+.divider{border:none;border-top:1px solid var(--warm-dark);margin:0}
 
-    /* ── Sections ── */
-    .section { padding: 64px 24px; max-width: 760px; margin: 0 auto; }
-    .section-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--accent-dark); margin-bottom: 8px;
-    }
-    .section-title { font-size: clamp(22px, 4vw, 32px); font-weight: 700; margin-bottom: 32px; }
+/* ─── SERVICES ─── */
+.services-bg{background:var(--blk-mid)}
+.services-inner{max-width:1060px;margin:0 auto;padding:80px 32px}
+.services-inner .section-title{color:var(--white)}
+.services-inner .section-sub{color:rgba(255,255,255,.38)}
+.service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;background:rgba(255,255,255,.06)}
+.service-card{background:var(--blk-mid);padding:32px 28px;position:relative;overflow:hidden;transition:background .25s}
+.service-card:hover{background:rgba(255,255,255,.03)}
+.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--rose),transparent);opacity:0;transition:opacity .25s}
+.service-card:hover::before{opacity:1}
+.service-num{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:rgba(255,255,255,.06);line-height:1;margin-bottom:16px}
+.service-icon{font-size:22px;margin-bottom:14px;display:block}
+.service-name{font-size:15px;font-weight:500;color:rgba(255,255,255,.88);margin-bottom:8px;letter-spacing:-.01em}
+.service-desc{font-size:12px;color:rgba(255,255,255,.35);line-height:1.8;font-weight:300}
+.service-price{display:inline-block;margin-top:16px;font-size:11px;color:var(--rose-lt);border-top:1px solid rgba(201,123,106,.2);padding-top:10px;width:100%}
 
-    /* ── Info Block ── */
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 540px) { .info-grid { grid-template-columns: 1fr; } }
-    .info-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-    }
-    .info-card .label { font-size: 11px; color: var(--text-soft); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-    .info-card .value { font-size: 15px; font-weight: 500; }
-    .info-card a { color: var(--accent-dark); text-decoration: none; }
-    .info-card a:hover { text-decoration: underline; }
+/* ─── ABOUT ─── */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.about-text p{font-size:14px;color:var(--text-mid);line-height:2;margin-bottom:18px;font-weight:300}
+.about-text p strong{color:var(--text);font-weight:500}
+.about-values{display:flex;flex-direction:column;gap:20px;margin-top:32px}
+.about-value{display:flex;gap:16px;align-items:flex-start;padding:18px 22px;background:var(--white);border-left:2px solid var(--rose)}
+.about-value-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.about-value-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.about-value-desc{font-size:12px;color:var(--text-lt);line-height:1.7;font-weight:300}
+.about-visual{background:var(--blk-mid);border-radius:4px;min-height:400px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.about-visual-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,123,106,.15) 0%,rgba(12,11,9,.9) 60%)}
+.about-visual-content{position:relative;z-index:1;text-align:center;color:var(--white);padding:32px}
+.about-visual-num{font-family:'Cormorant Garamond',serif;font-size:80px;font-weight:300;color:var(--rose-lt);line-height:1;display:block}
+.about-visual-label{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.2em;text-transform:uppercase;display:block;margin-top:8px}
+.about-visual-rule{width:40px;height:1px;background:rgba(255,255,255,.15);margin:20px auto}
+.about-visual-quote{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.6);font-weight:300;line-height:1.6}
 
-    /* ── Divider ── */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+/* ─── REVIEWS ─── */
+.reviews-bg{background:var(--rose-pale)}
+.reviews-inner{max-width:1060px;margin:0 auto;padding:80px 32px}
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:48px}
+.review-card{background:var(--white);padding:28px;border-radius:3px;box-shadow:0 2px 20px rgba(0,0,0,.06)}
+.review-stars{display:flex;gap:3px;margin-bottom:14px}
+.review-text{font-size:13.5px;color:var(--text-mid);line-height:1.9;font-weight:300;margin-bottom:16px}
+.review-author{display:flex;align-items:center;gap:10px}
+.review-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--rose-lt));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--white)}
+.review-name{font-size:12px;font-weight:600;color:var(--text)}
+.review-date{font-size:11px;color:var(--text-lt)}
+.review-tag{display:inline-block;font-size:10px;background:var(--rose-pale);color:var(--rose);padding:2px 8px;border-radius:2px;margin-top:6px;font-weight:500}
 
-    /* ── Reviews ── */
-    #reviews-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
-    .review-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-    }
-    .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .review-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0;
-    }
-    .review-name { font-weight: 600; font-size: 14px; }
-    .review-date { font-size: 12px; color: var(--text-soft); margin-left: auto; }
-    .review-stars { color: #f59e0b; font-size: 14px; margin-bottom: 8px; }
-    .review-text { font-size: 14px; color: var(--text); line-height: 1.7; }
-    .no-reviews { text-align: center; color: var(--text-soft); padding: 40px; font-size: 14px; }
+/* ─── REVIEW WRITE FORM ─── */
+.review-write{background:var(--white);border-radius:4px;padding:36px;box-shadow:0 4px 32px rgba(0,0,0,.08);max-width:640px;margin:0 auto}
+.review-write-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:var(--text);margin-bottom:6px}
+.review-write-sub{font-size:12px;color:var(--text-lt);margin-bottom:28px;font-weight:300}
+.star-row{display:flex;gap:6px;margin-bottom:22px;flex-direction:row-reverse;justify-content:flex-end}
+.star-row input{display:none}
+.star-row label{font-size:28px;cursor:pointer;color:var(--warm-dark);transition:color .15s}
+.star-row:has(input:checked) label{color:var(--warm-dark)}
+.star-row input:checked ~ label,.star-row label:hover,.star-row label:hover ~ label{color:var(--gold)}
+.form-row{margin-bottom:18px}
+.form-row label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mid);margin-bottom:7px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:11px 14px;border:1px solid var(--warm-dark);border-radius:3px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;color:var(--text);background:var(--warm);outline:none;transition:border-color .2s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--rose);background:var(--white)}
+.form-row textarea{resize:vertical;min-height:100px;line-height:1.7}
+.form-row-inline{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.submit-btn{width:100%;padding:14px;background:var(--rose);color:var(--white);border:none;border-radius:3px;font-size:14px;font-weight:600;letter-spacing:.06em;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .2s}
+.submit-btn:hover{background:var(--blk)}
+.success-msg{display:none;text-align:center;padding:20px;background:rgba(201,123,106,.08);border-radius:3px;color:var(--rose);font-size:13px;font-weight:500;margin-top:16px}
+.success-msg.show{display:block}
 
-    /* ── Write Review Form ── */
-    .form-block {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-    }
-    .form-block h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
-    .form-row { margin-bottom: 16px; }
-    .form-row label { display: block; font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 6px; }
-    .form-row input,
-    .form-row textarea,
-    .form-row select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      background: var(--bg);
-      color: var(--text);
-      transition: border-color .2s;
-    }
-    .form-row input:focus,
-    .form-row textarea:focus,
-    .form-row select:focus { outline: none; border-color: var(--accent); }
-    .form-row textarea { resize: vertical; min-height: 90px; }
-    .star-picker { display: flex; gap: 4px; font-size: 24px; cursor: pointer; }
-    .star-picker span { color: #d1ccc4; transition: color .15s; }
-    .star-picker span.active { color: #f59e0b; }
-    .form-submit { width: 100%; }
+/* ─── LOCATION ─── */
+.location-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--warm-dark);border-radius:4px;overflow:hidden}
+.location-map{background:var(--blk-soft);min-height:340px;overflow:hidden}
+.location-map iframe{width:100%;height:100%;min-height:340px;border:none;display:block}
+.location-info{background:var(--white);padding:40px 36px;display:flex;flex-direction:column;justify-content:center}
+.location-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--rose);margin-bottom:20px}
+.location-badge::before{content:'';width:18px;height:1px;background:var(--rose)}
+.location-name{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--text);margin-bottom:8px}
+.location-addr{font-size:14px;color:var(--text-mid);margin-bottom:28px;line-height:1.7;font-weight:300}
+.location-items{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.location-item{display:flex;align-items:flex-start;gap:12px}
+.location-item-icon{width:32px;height:32px;border-radius:50%;background:var(--rose-pale);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.location-item-label{font-size:11px;color:var(--text-lt);font-weight:400;display:block}
+.location-item-val{font-size:13.5px;color:var(--text);font-weight:500}
+.location-naver-btn{display:inline-flex;align-items:center;gap:8px;background:var(--blk);color:var(--white);padding:12px 22px;border-radius:2px;font-size:13px;font-weight:500;text-decoration:none;letter-spacing:.03em;transition:background .2s}
+.location-naver-btn:hover{background:var(--rose)}
 
-    /* ── Inquiry ── */
-    .inquiry-note {
-      background: #f0ece6;
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 0 8px 8px 0;
-      font-size: 13px;
-      color: var(--text-soft);
-      margin-bottom: 24px;
-    }
+/* ─── CONTACT FORM ─── */
+.contact-bg{background:var(--blk-mid)}
+.contact-inner{max-width:1060px;margin:0 auto;padding:80px 32px}
+.contact-inner .section-title{color:var(--white)}
+.contact-inner .section-sub{color:rgba(255,255,255,.38)}
+.contact-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:56px;align-items:start}
+.contact-info-list{display:flex;flex-direction:column;gap:24px}
+.contact-info-item{padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.contact-info-item:last-child{border-bottom:none;padding-bottom:0}
+.contact-info-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--rose);margin-bottom:6px}
+.contact-info-val{font-size:14px;color:rgba(255,255,255,.72);font-weight:300}
+.contact-form-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:32px}
+.contact-form-card .form-row label{color:rgba(255,255,255,.4)}
+.contact-form-card .form-row input,
+.contact-form-card .form-row select,
+.contact-form-card .form-row textarea{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
+.contact-form-card .form-row input:focus,
+.contact-form-card .form-row select:focus,
+.contact-form-card .form-row textarea:focus{border-color:var(--rose);background:rgba(255,255,255,.07)}
+.contact-form-card .form-row select option{background:#1a1814;color:#fff}
+.contact-form-card .submit-btn{background:var(--rose)}
 
-    /* ── Map ── */
-    .map-embed {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .map-placeholder {
-      height: 200px;
-      background: linear-gradient(135deg, #f0ebe3, #e8e0d6);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      color: var(--text-soft);
-    }
-    .map-placeholder .map-icon { font-size: 36px; }
-    .map-placeholder a {
-      background: var(--accent-dark); color: #fff;
-      padding: 10px 20px; border-radius: 8px; text-decoration: none;
-      font-size: 14px; font-weight: 600;
-    }
-    .map-info {
-      padding: 16px 20px;
-      border-top: 1px solid var(--border);
-      font-size: 14px;
-    }
-    .map-info strong { display: block; margin-bottom: 2px; }
-    .map-info span { color: var(--text-soft); }
+/* ─── FOOTER ─── */
+footer{background:var(--blk);color:rgba(255,255,255,.35);text-align:center;padding:32px;font-size:12px;letter-spacing:.04em;border-top:1px solid rgba(255,255,255,.06)}
+footer a{color:rgba(255,255,255,.35);text-decoration:none}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;letter-spacing:.15em;color:rgba(255,255,255,.6);display:block;margin-bottom:8px}
 
-    /* ── Footer ── */
-    footer {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 32px 24px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-soft);
-    }
-    footer strong { color: var(--text); }
-  </style>
+/* ─── MOBILE ─── */
+@media(max-width:768px){
+  .nav-links{display:none}
+  .hero-title{font-size:clamp(40px,12vw,64px)}
+  .hero-meta{gap:16px}
+  .visual-strip{grid-template-columns:repeat(2,1fr)}
+  .about-grid{grid-template-columns:1fr}
+  .about-visual{min-height:220px}
+  .location-grid{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr}
+  .section{padding:56px 20px}
+  .services-inner,.reviews-inner,.contact-inner{padding:56px 20px}
+  .header-inner{padding:0 20px}
+}
+</style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
-  <div class="logo"><span>로아</span>샵</div>
-  <nav class="header-nav">
-    <a href="#info">정보</a>
-    <a href="#reviews">후기</a>
-    <a href="#inquiry">문의</a>
-    <a href="#location">오시는 길</a>
-  </nav>
+<!-- ─── HEADER ─── -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="logo">R<span>OA</span> SHOP</a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#services">서비스</a></li>
+        <li><a href="#about">소개</a></li>
+        <li><a href="#reviews">후기</a></li>
+        <li><a href="#location">오시는 길</a></li>
+        <li><a href="#contact">문의</a></li>
+      </ul>
+    </nav>
+    <a href="#contact" class="nav-reserve">예약 문의</a>
+  </div>
 </header>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-badge">ROAS HAIR SHOP</div>
-  <h1>로아샵</h1>
-  <p>충남 아산에 위치한 헤어샵입니다.<br>여러분의 아름다운 스타일을 함께 만들어갑니다.</p>
-  <div class="btn-group">
-    <a href="#reviews" class="btn btn-primary">방문 후기 보기</a>
-    <a href="#inquiry" class="btn btn-outline">문의하기</a>
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lines"></div>
+  <div class="hero-deco"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span class="hero-eyebrow-text">Hair Design Salon · Asan</span>
+    </div>
+    <h1 class="hero-title">로아<em>샵</em></h1>
+    <p class="hero-subtitle">당신의 스타일을 완성하는 공간</p>
+    <div class="hero-meta">
+      <span class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        충남 아산시 용화로12번길 16-10 1층
+      </span>
+      <span class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        화–일 10:00 – 20:00 (월 정기휴무)
+      </span>
+    </div>
+    <div class="hero-ctas">
+      <a href="#contact" class="cta-primary">
+        예약 &amp; 문의하기
+      </a>
+      <a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener" class="cta-secondary">
+        네이버 지도 보기
+      </a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>scroll</span>
+  </div>
+</section>
+
+<!-- ─── VISUAL STRIP ─── -->
+<div class="visual-strip">
+  <div class="visual-cell" style="background:linear-gradient(135deg,#1a1510 0%,#2c1a16 100%)">
+    <div class="visual-cell-content">
+      <span class="visual-cell-icon">✂️</span>
+      <span class="visual-cell-label">커트</span>
+    </div>
+  </div>
+  <div class="visual-cell" style="background:linear-gradient(135deg,#181410 0%,#241c10 100%)">
+    <div class="visual-cell-content">
+      <span class="visual-cell-icon">🎨</span>
+      <span class="visual-cell-label">염색</span>
+    </div>
+  </div>
+  <div class="visual-cell" style="background:linear-gradient(135deg,#150e12 0%,#221524 100%)">
+    <div class="visual-cell-content">
+      <span class="visual-cell-icon">〰️</span>
+      <span class="visual-cell-label">펌</span>
+    </div>
+  </div>
+  <div class="visual-cell" style="background:linear-gradient(135deg,#0e1410 0%,#162414 100%)">
+    <div class="visual-cell-content">
+      <span class="visual-cell-icon">💆</span>
+      <span class="visual-cell-label">케어</span>
+    </div>
   </div>
 </div>
 
-<!-- Info -->
-<section class="section" id="info">
-  <div class="section-label">SHOP INFO</div>
-  <div class="section-title">샵 안내</div>
-  <div class="info-grid">
-    <div class="info-card">
-      <div class="label">상호명</div>
-      <div class="value">로아샵</div>
+<!-- ─── SERVICES ─── -->
+<section class="services-bg" id="services">
+  <div class="services-inner">
+    <p class="section-eyebrow">Services</p>
+    <h2 class="section-title" style="color:var(--white)">헤어 서비스</h2>
+    <p class="section-sub" style="color:rgba(255,255,255,.38)">로아샵의 전문 헤어 디자이너가 당신에게 어울리는 스타일을 제안합니다.</p>
+    <div class="service-grid">
+      <div class="service-card">
+        <div class="service-num">01</div>
+        <span class="service-icon">✂️</span>
+        <h3 class="service-name">커트</h3>
+        <p class="service-desc">얼굴형과 라이프스타일을 고려한 맞춤형 커트. 남녀노소 모두 가능.</p>
+        <span class="service-price">여성 커트 · 남성 커트 · 어린이 커트</span>
+      </div>
+      <div class="service-card">
+        <div class="service-num">02</div>
+        <span class="service-icon">🎨</span>
+        <h3 class="service-name">염색</h3>
+        <p class="service-desc">트렌드 컬러부터 자연스러운 새치 커버까지. 두피 안전 성분 사용.</p>
+        <span class="service-price">전체 염색 · 부분 염색 · 탈색</span>
+      </div>
+      <div class="service-card">
+        <div class="service-num">03</div>
+        <span class="service-icon">〰️</span>
+        <h3 class="service-name">펌</h3>
+        <p class="service-desc">볼륨 펌, 매직, 스트레이트 — 모발 상태에 맞는 약제 선택.</p>
+        <span class="service-price">볼륨 펌 · 매직 · 셋팅 펌</span>
+      </div>
+      <div class="service-card">
+        <div class="service-num">04</div>
+        <span class="service-icon">💆</span>
+        <h3 class="service-name">두피·모발 케어</h3>
+        <p class="service-desc">손상 모발 트리트먼트, 두피 스케일링, 영양 앰플 케어.</p>
+        <span class="service-price">트리트먼트 · 두피 스케일링</span>
+      </div>
+      <div class="service-card">
+        <div class="service-num">05</div>
+        <span class="service-icon">👰</span>
+        <h3 class="service-name">업스타일</h3>
+        <p class="service-desc">결혼식, 행사, 특별한 날을 위한 세련된 업스타일 연출.</p>
+        <span class="service-price">웨딩 · 행사 · 데일리</span>
+      </div>
+      <div class="service-card">
+        <div class="service-num">06</div>
+        <span class="service-icon">✨</span>
+        <h3 class="service-name">모발 컨설팅</h3>
+        <p class="service-desc">모발 진단 후 개인 맞춤 관리 루틴 제안. 내 머리에 맞는 홈케어 안내.</p>
+        <span class="service-price">모발 진단 · 홈케어 안내</span>
+      </div>
     </div>
-    <div class="info-card">
-      <div class="label">업종</div>
-      <div class="value">헤어샵 / 미용실</div>
-    </div>
-    <div class="info-card">
-      <div class="label">주소</div>
-      <div class="value">충남 아산시 용화로12번길 16-10 1층</div>
-    </div>
-    <div class="info-card">
-      <div class="label">네이버 지도</div>
-      <div class="value"><a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
+  </div>
+</section>
+
+<!-- ─── ABOUT ─── -->
+<section id="about">
+  <div class="section">
+    <div class="about-grid">
+      <div class="about-text">
+        <p class="section-eyebrow">About</p>
+        <h2 class="section-title">로아샵 이야기</h2>
+        <p>로아샵은 <strong>아산 지역에서 고객 한 분 한 분의 스타일에 집중하는 헤어 살롱</strong>입니다. 유행을 따르기보다 당신에게 어울리는 것을 먼저 생각합니다.</p>
+        <p>처음 방문하는 고객도 편하게 이야기 나눌 수 있는 분위기, 꼼꼼한 시술 후 관리 안내, 그리고 재방문 때마다 나아지는 스타일을 약속합니다.</p>
+        <div class="about-values">
+          <div class="about-value">
+            <span class="about-value-icon">💬</span>
+            <div>
+              <div class="about-value-title">충분한 상담</div>
+              <div class="about-value-desc">시술 전 원하는 스타일과 모발 상태를 꼼꼼히 파악합니다.</div>
+            </div>
+          </div>
+          <div class="about-value">
+            <span class="about-value-icon">🌿</span>
+            <div>
+              <div class="about-value-title">건강한 성분</div>
+              <div class="about-value-desc">두피와 모발에 부담을 줄이는 제품을 우선 선택합니다.</div>
+            </div>
+          </div>
+          <div class="about-value">
+            <span class="about-value-icon">🔄</span>
+            <div>
+              <div class="about-value-title">지속 가능한 스타일</div>
+              <div class="about-value-desc">집에서도 유지하기 쉽도록 홈케어 방법을 안내합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="about-visual">
+        <div class="about-visual-bg"></div>
+        <div class="about-visual-content">
+          <span class="about-visual-num">∞</span>
+          <span class="about-visual-label">당신의 스타일</span>
+          <div class="about-visual-rule"></div>
+          <p class="about-visual-quote">"머리카락 하나도<br>소홀히 하지 않습니다"</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <hr class="divider">
 
-<!-- Reviews -->
-<section class="section" id="reviews">
-  <div class="section-label">REVIEWS</div>
-  <div class="section-title">방문 후기</div>
+<!-- ─── REVIEWS ─── -->
+<section class="reviews-bg" id="reviews">
+  <div class="reviews-inner">
+    <p class="section-eyebrow">Reviews</p>
+    <h2 class="section-title">고객 후기</h2>
+    <p class="section-sub">직접 방문하신 고객분들의 솔직한 이야기를 전해드립니다.</p>
 
-  <div id="reviews-list"></div>
-
-  <div class="form-block">
-    <h3>후기 남기기</h3>
-    <div class="form-row">
-      <label>닉네임</label>
-      <input type="text" id="review-name" placeholder="예: 방문고객A" maxlength="20">
-    </div>
-    <div class="form-row">
-      <label>별점</label>
-      <div class="star-picker" id="star-picker">
-        <span data-v="1">★</span>
-        <span data-v="2">★</span>
-        <span data-v="3">★</span>
-        <span data-v="4">★</span>
-        <span data-v="5">★</span>
+    <div class="reviews-grid" id="reviews-list">
+      <div class="review-card">
+        <div class="review-stars">
+          <span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span>
+        </div>
+        <p class="review-text">처음 방문인데도 원하는 스타일을 정확하게 잘 파악해 주셔서 너무 만족스러웠어요. 염색 후 두피 트러블 없이 색도 예쁘게 나왔습니다!</p>
+        <div class="review-author">
+          <div class="review-avatar">김</div>
+          <div>
+            <div class="review-name">김*연 고객님</div>
+            <div class="review-date">2024.11</div>
+          </div>
+        </div>
+        <span class="review-tag">염색</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">
+          <span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span>
+        </div>
+        <p class="review-text">볼륨 펌 처음 해봤는데 원장님이 친절하게 설명해 주시고 홈케어 방법도 꼼꼼하게 알려주셨어요. 한 달이 지나도 볼륨이 유지됩니다.</p>
+        <div class="review-author">
+          <div class="review-avatar">박</div>
+          <div>
+            <div class="review-name">박*진 고객님</div>
+            <div class="review-date">2024.10</div>
+          </div>
+        </div>
+        <span class="review-tag">펌</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">
+          <span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span><span style="color:var(--gold)">★</span>
+        </div>
+        <p class="review-text">아이 커트 때문에 왔는데 아이가 무서워하지 않도록 배려해 주셔서 감사했어요. 자연스럽고 예쁘게 잘라주셨습니다. 단골 될 것 같아요!</p>
+        <div class="review-author">
+          <div class="review-avatar">이</div>
+          <div>
+            <div class="review-name">이*현 고객님</div>
+            <div class="review-date">2024.09</div>
+          </div>
+        </div>
+        <span class="review-tag">커트</span>
       </div>
     </div>
-    <div class="form-row">
-      <label>후기 내용</label>
-      <textarea id="review-text" placeholder="방문 소감을 자유롭게 작성해 주세요."></textarea>
+
+    <!-- 후기 작성 폼 -->
+    <div class="review-write">
+      <h3 class="review-write-title">후기 남기기</h3>
+      <p class="review-write-sub">방문 경험을 공유해 주세요. 다음 고객에게 큰 도움이 됩니다.</p>
+      <div style="margin-bottom:8px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mid)">별점</div>
+      <div class="star-row" id="star-row">
+        <input type="radio" name="rating" id="s5" value="5"><label for="s5">★</label>
+        <input type="radio" name="rating" id="s4" value="4"><label for="s4">★</label>
+        <input type="radio" name="rating" id="s3" value="3"><label for="s3">★</label>
+        <input type="radio" name="rating" id="s2" value="2"><label for="s2">★</label>
+        <input type="radio" name="rating" id="s1" value="1"><label for="s1">★</label>
+      </div>
+      <form id="review-form" onsubmit="submitReview(event)" style="margin-top:16px">
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label>이름 (이니셜 가능)</label>
+            <input type="text" name="name" placeholder="예: 김*연" required>
+          </div>
+          <div class="form-row">
+            <label>시술 항목</label>
+            <select name="service">
+              <option value="">선택해주세요</option>
+              <option>커트</option><option>염색</option><option>펌</option>
+              <option>두피·모발 케어</option><option>업스타일</option><option>기타</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>후기 내용</label>
+          <textarea name="message" placeholder="방문 경험을 자유롭게 작성해주세요." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn">후기 등록하기</button>
+      </form>
+      <div class="success-msg" id="review-success">✓ 후기가 등록되었습니다. 감사합니다!</div>
     </div>
-    <button class="btn btn-primary form-submit" onclick="submitReview()">후기 등록</button>
   </div>
 </section>
 
-<hr class="divider">
-
-<!-- Inquiry -->
-<section class="section" id="inquiry">
-  <div class="section-label">CONTACT</div>
-  <div class="section-title">문의하기</div>
-  <div class="inquiry-note">
-    예약 문의, 서비스 안내, 기타 궁금한 사항을 남겨주시면 확인 후 연락드립니다.
-  </div>
-  <div class="form-block">
-    <form action="https://formsubmit.co/dltkddlf231@gmail.com" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="_subject" value="[로아샵] 고객 문의">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_next" value="https://jaeha81.github.io/obsidian-agent-brain-system/roa-shop.html?sent=1">
-
-      <div class="form-row">
-        <label>이름 / 연락처</label>
-        <input type="text" name="name" placeholder="이름 또는 닉네임" required>
+<!-- ─── LOCATION ─── -->
+<section id="location">
+  <div class="section">
+    <p class="section-eyebrow">Location</p>
+    <h2 class="section-title">오시는 길</h2>
+    <p class="section-sub">아산 시내에 위치해 있어 방문하기 편리합니다.</p>
+    <div class="location-grid">
+      <div class="location-map">
+        <iframe
+          src="https://map.naver.com/p/search/%EB%A1%9C%EC%95%84%EC%83%B5%20%EC%95%84%EC%82%B0?c=15,0,0,0,dh"
+          title="로아샵 위치"
+          allowfullscreen
+          loading="lazy"
+        ></iframe>
       </div>
-      <div class="form-row">
-        <label>연락 방법 (전화번호 또는 이메일)</label>
-        <input type="text" name="contact" placeholder="010-0000-0000 또는 이메일" required>
+      <div class="location-info">
+        <span class="location-badge">로아샵</span>
+        <h3 class="location-name">ROA SHOP</h3>
+        <p class="location-addr">충남 아산시 용화로12번길 16-10<br>1층 로아샵</p>
+        <div class="location-items">
+          <div class="location-item">
+            <div class="location-item-icon">🕐</div>
+            <div>
+              <span class="location-item-label">영업 시간</span>
+              <span class="location-item-val">화–일 10:00 – 20:00</span>
+              <span class="location-item-label" style="margin-top:2px">월요일 정기 휴무</span>
+            </div>
+          </div>
+          <div class="location-item">
+            <div class="location-item-icon">🚗</div>
+            <div>
+              <span class="location-item-label">주차</span>
+              <span class="location-item-val">건물 앞 주차 가능</span>
+            </div>
+          </div>
+        </div>
+        <a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener" class="location-naver-btn">
+          네이버 지도에서 길찾기
+        </a>
       </div>
-      <div class="form-row">
-        <label>문의 유형</label>
-        <select name="type">
-          <option>예약 문의</option>
-          <option>서비스 안내</option>
-          <option>가격 안내</option>
-          <option>기타</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>내용</label>
-        <textarea name="message" placeholder="문의 내용을 입력해 주세요." required></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary form-submit">문의 전송</button>
-    </form>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- Location -->
-<section class="section" id="location">
-  <div class="section-label">LOCATION</div>
-  <div class="section-title">오시는 길</div>
-  <div class="map-embed">
-    <div class="map-placeholder">
-      <div class="map-icon">📍</div>
-      <div style="font-size:14px; font-weight:600;">충남 아산시 용화로12번길 16-10 1층</div>
-      <a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener">네이버 지도에서 길찾기</a>
-    </div>
-    <div class="map-info">
-      <strong>로아샵</strong>
-      <span>충청남도 아산시 용화로12번길 16-10 1층</span>
     </div>
   </div>
 </section>
 
-<!-- Footer -->
+<!-- ─── CONTACT ─── -->
+<section class="contact-bg" id="contact">
+  <div class="contact-inner">
+    <p class="section-eyebrow">Contact</p>
+    <h2 class="section-title">예약 &amp; 문의</h2>
+    <p class="section-sub">방문 예약, 서비스 문의, 가격 안내 등 궁금한 것이 있으시면 편하게 보내주세요.</p>
+    <div class="contact-grid">
+      <div class="contact-info-list">
+        <div class="contact-info-item">
+          <div class="contact-info-label">위치</div>
+          <div class="contact-info-val">충남 아산시 용화로12번길 16-10<br>1층 로아샵</div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-label">영업 시간</div>
+          <div class="contact-info-val">화–일 10:00 – 20:00<br><span style="font-size:12px;opacity:.5">월요일 정기 휴무</span></div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-label">찾아오는 길</div>
+          <div class="contact-info-val">
+            <a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener" style="color:var(--rose-lt);text-decoration:none">→ 네이버 지도 바로가기</a>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form-card">
+        <form action="https://formsubmit.co/dltkddlf231@gmail.com" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="_subject" value="[로아샵] 예약 및 문의">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
+          <div class="form-row-inline">
+            <div class="form-row">
+              <label>이름</label>
+              <input type="text" name="이름" placeholder="홍길동" required>
+            </div>
+            <div class="form-row">
+              <label>연락처</label>
+              <input type="tel" name="연락처" placeholder="010-0000-0000" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>문의 유형</label>
+            <select name="문의유형">
+              <option>예약 문의</option>
+              <option>시술 가격 안내</option>
+              <option>모발 상태 상담</option>
+              <option>업스타일·행사 문의</option>
+              <option>기타 문의</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>희망 날짜 (선택)</label>
+            <input type="date" name="희망날짜">
+          </div>
+          <div class="form-row">
+            <label>문의 내용</label>
+            <textarea name="내용" placeholder="원하시는 시술이나 궁금한 점을 자유롭게 작성해주세요." required></textarea>
+          </div>
+          <div class="form-row">
+            <label>사진·파일 첨부 (선택)</label>
+            <input type="file" name="첨부파일" accept="image/*,.pdf" multiple style="padding:8px 14px;font-size:12px">
+          </div>
+          <button type="submit" class="submit-btn">문의 보내기</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
 <footer>
-  <strong>로아샵</strong><br>
-  충남 아산시 용화로12번길 16-10 1층 &nbsp;|&nbsp;
-  <a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener" style="color: var(--accent-dark);">네이버 지도</a>
+  <span class="footer-logo">ROA SHOP</span>
+  <p>충남 아산시 용화로12번길 16-10 1층 &nbsp;·&nbsp; 화–일 10:00–20:00 (월 휴무)</p>
+  <p style="margin-top:8px">
+    <a href="https://naver.me/GLzt54nB" target="_blank" rel="noopener">네이버 지도</a>
+  </p>
 </footer>
 
 <script>
-  // ── Star picker ──
-  let selectedStars = 5;
-  const stars = document.querySelectorAll('#star-picker span');
-  function renderStars(v) {
-    stars.forEach(s => s.classList.toggle('active', +s.dataset.v <= v));
-  }
-  renderStars(5);
-  stars.forEach(s => {
-    s.addEventListener('mouseover', () => renderStars(+s.dataset.v));
-    s.addEventListener('mouseleave', () => renderStars(selectedStars));
-    s.addEventListener('click', () => { selectedStars = +s.dataset.v; renderStars(selectedStars); });
-  });
+(function(){
+  // 별점 JS 처리 (flex-direction:row-reverse 없이 선택 상태 색 동기화)
+  const labels = [...document.querySelectorAll('#star-row label')].reverse();
+  const inputs = [...document.querySelectorAll('#star-row input')];
 
-  // ── LocalStorage reviews ──
-  const STORAGE_KEY = 'roa_reviews_v1';
-
-  function loadReviews() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-  }
-  function saveReviews(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  function paintStars(n){
+    labels.forEach((l,i) => l.style.color = i < n ? '#d4a827' : '#d4cabc');
   }
 
-  function renderReviews() {
-    const list = loadReviews();
-    const el = document.getElementById('reviews-list');
-    if (!list.length) {
-      el.innerHTML = '<div class="no-reviews">아직 등록된 후기가 없습니다.<br>첫 후기를 남겨주세요!</div>';
-      return;
-    }
-    el.innerHTML = list.slice().reverse().map(r => `
-      <div class="review-card">
-        <div class="review-header">
-          <div class="review-avatar">${(r.name || '?')[0]}</div>
-          <div class="review-name">${escHtml(r.name)}</div>
-          <div class="review-date">${r.date}</div>
+  inputs.forEach((inp,i) => inp.addEventListener('change', () => paintStars(parseInt(inp.value))));
+
+  // 후기 등록
+  function addReviewCard(data){
+    const n = parseInt(data.rating)||5;
+    const stars = '★'.repeat(n)+'☆'.repeat(5-n);
+    const card = document.createElement('div');
+    card.className = 'review-card';
+    const safe = s => String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    card.innerHTML = `
+      <div class="review-stars">${[...stars].map(s=>`<span style="color:${s==='★'?'var(--gold)':'var(--warm-dark)'}">${s}</span>`).join('')}</div>
+      <p class="review-text">${safe(data.message)}</p>
+      <div class="review-author">
+        <div class="review-avatar">${safe(data.name[0]||'?')}</div>
+        <div>
+          <div class="review-name">${safe(data.name)} 고객님</div>
+          <div class="review-date">${safe(data.date)}</div>
         </div>
-        <div class="review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
-        <div class="review-text">${escHtml(r.text)}</div>
       </div>
-    `).join('');
+      ${data.service ? `<span class="review-tag">${safe(data.service)}</span>` : ''}
+    `;
+    document.getElementById('reviews-list').prepend(card);
   }
 
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  // 저장된 후기 로드
+  try {
+    JSON.parse(localStorage.getItem('roa_reviews')||'[]').forEach(addReviewCard);
+  } catch(e){}
 
-  function submitReview() {
-    const name = document.getElementById('review-name').value.trim();
-    const text = document.getElementById('review-text').value.trim();
-    if (!name) { alert('닉네임을 입력해 주세요.'); return; }
-    if (!text) { alert('후기 내용을 입력해 주세요.'); return; }
-    const list = loadReviews();
-    list.push({
-      name,
-      stars: selectedStars,
-      text,
-      date: new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit' })
-    });
-    saveReviews(list);
-    document.getElementById('review-name').value = '';
-    document.getElementById('review-text').value = '';
-    selectedStars = 5;
-    renderStars(5);
-    renderReviews();
-  }
-
-  // sent confirmation
-  if (location.search.includes('sent=1')) {
-    const banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#2d6a4f;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;';
-    banner.textContent = '문의가 전송되었습니다. 확인 후 연락드리겠습니다.';
-    document.body.appendChild(banner);
-    setTimeout(() => banner.remove(), 4000);
-    history.replaceState({}, '', location.pathname);
-  }
-
-  renderReviews();
+  // 폼 제출
+  window.submitReview = function(e){
+    e.preventDefault();
+    const form = e.target;
+    const checked = document.querySelector('#star-row input:checked');
+    const data = {
+      name: form.name.value.trim(),
+      service: form.service.value,
+      message: form.message.value.trim(),
+      rating: checked ? checked.value : '5',
+      date: new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit'}).replace('. ','.')
+    };
+    if(!data.name||!data.message) return;
+    const stored = JSON.parse(localStorage.getItem('roa_reviews')||'[]');
+    stored.unshift(data);
+    localStorage.setItem('roa_reviews', JSON.stringify(stored));
+    addReviewCard(data);
+    form.reset();
+    paintStars(0);
+    const msg = document.getElementById('review-success');
+    msg.classList.add('show');
+    setTimeout(()=>msg.classList.remove('show'),4000);
+  };
+})();
 </script>
 </body>
 </html>
