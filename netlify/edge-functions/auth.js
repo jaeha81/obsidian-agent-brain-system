@@ -1,10 +1,15 @@
 const COOKIE_NAME = "bucky_auth";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
-const PUBLIC_PATHS = ["/portfolio.html", "/portfolio", "/login.html", "/login", "/favicon.ico"];
+const PUBLIC_PATHS = [
+  "/portfolio.html", "/portfolio",
+  "/login.html", "/login",
+  "/favicon.ico", "/manifest.json", "/sw.js", "/offline.html",
+];
 
 function isPublicPath(pathname) {
-  return PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + "?"));
+  return PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + "?"))
+    || pathname.startsWith("/icons/");
 }
 
 function safeRedirect(value, fallback) {
@@ -30,7 +35,7 @@ async function authToken(password) {
 export default async (request, context) => {
   const url = new URL(request.url);
   const { pathname } = url;
-  const password = Deno.env.get("BUCKY_AUTH_PASSWORD") || "";
+  const password = process.env.BUCKY_AUTH_PASSWORD || process.env.DASHBOARD_PASSWORD || "";
 
   if (pathname === "/login") {
     return Response.redirect(new URL("/login.html", url), 302);

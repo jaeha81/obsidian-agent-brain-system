@@ -2,11 +2,6 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": "docs",
-  "rewrites": [
-    { "source": "/bucky-daily.html", "destination": "/api/protected?page=bucky-daily" },
-    { "source": "/wishket.html", "destination": "/api/protected?page=wishket" },
-    { "source": "/investment-report.html", "destination": "/api/protected?page=investment-report" }
-  ],
   "headers": [
     {
       "source": "/bucky-os.html",
