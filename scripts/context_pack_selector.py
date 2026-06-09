@@ -128,6 +128,42 @@ RULES: tuple[PackRule, ...] = (
         triggers=("project", "product", "estimate", "interior", "construction", "jh", "프로젝트", "상품", "견적", "인테리어", "건축", "브랜드"),
     ),
     PackRule(
+        key="one_person_business",
+        primary_worker="Bucky Business Model Strategist",
+        role="one-person business / revenue model strategy",
+        packs=CORE_PACKS
+        + (
+            "ObsidianVault/06_Context_Packs/bucky-one-person-entrepreneur-mindset-video-2026-06-10.md",
+            "ObsidianVault/06_Context_Packs/bucky-user-project-terrain.md",
+        ),
+        notes=(
+            "Use for one-person business, entrepreneur mindset, side income, AI businessization, and revenue model ideation.",
+            "Apply pain-market-channel-benchmark-MVP checks before listing ideas.",
+        ),
+        triggers=(
+            "business model",
+            "revenue model",
+            "entrepreneur",
+            "solopreneur",
+            "side hustle",
+            "one-person business",
+            "one person business",
+            "monetization",
+            "사업",
+            "수익모델",
+            "수익형",
+            "부업",
+            "1인사업",
+            "1인 사업",
+            "1인기업",
+            "1인 기업",
+            "기업가",
+            "사업가",
+            "창업",
+            "돈벌이",
+        ),
+    ),
+    PackRule(
         key="graph_legal",
         primary_worker="Bucky Framework Router",
         role="graph/legal framework work",
@@ -171,6 +207,25 @@ RULES: tuple[PackRule, ...] = (
             "design", "redesign", "ui", "ux", "디자인", "개선", "퀄리티", "quality",
             "예쁘게", "스타일", "레이아웃", "layout", "figma", "pencil", "variant",
             "리디자인", "비주얼", "visual", "테마", "theme",
+        ),
+    ),
+    PackRule(
+        key="video_production",
+        primary_worker="Bucky Video Producer",
+        role="AI video production / Higgsfield MCP routing",
+        packs=CORE_PACKS
+        + (
+            "ObsidianVault/06_Context_Packs/bucky-higgsfield-video-production-mcp-2026-06-10.md",
+            "ObsidianVault/06_Context_Packs/bucky-atoms-multi-agent-builder-video-2026-06-10.md",
+        ),
+        notes=(
+            "Use for video generation, shorts/reels/TikTok/ad video creation, reference-video benchmarking, and Higgsfield MCP execution planning.",
+            "Normalize goal, platform, duration, aspect_ratio, source_assets, style, script, approval_state, and evidence before running MCP tools.",
+        ),
+        triggers=(
+            "higgsfield", "video generation", "text to video", "image to video", "ai video",
+            "shorts", "reels", "tiktok", "영상제작", "영상 제작", "영상 만들어",
+            "영상 만들", "쇼츠", "릴스", "틱톡", "광고 영상", "히그스필드", "힉스필드",
         ),
     ),
     PackRule(

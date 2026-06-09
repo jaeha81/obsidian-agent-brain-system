@@ -171,6 +171,59 @@ Pulse
             "Public dashboard refresh failed: html locked",
         )
 
+    def test_build_report_runs_graphify_evolution_after_ready_report(self):
+        report_path = ROOT / "ObsidianVault" / "00_UPGRADE" / "pulse-evolution" / "2026-06-10.md"
+        capture_path = ROOT / "ObsidianVault" / "04_Wiki" / "daily-plus" / "2026-06-10.md"
+        output_path = ROOT / "docs" / "daily-plus.html"
+        graphify_record = (
+            ROOT
+            / "ObsidianVault"
+            / "10_AgentBus"
+            / "completed"
+            / "20260610_daily_graphify_evolution.md"
+        )
+        report_text = """---
+date: 2026-06-10
+card_count: 2
+candidate_count: 2
+---
+
+### P1 - Card 1
+"""
+        capture_text = """---
+date: 2026-06-10
+card_count: 2
+---
+
+## Pulse Cards
+"""
+        candidate = mock.Mock(status="applied")
+
+        with mock.patch.object(morning, "latest_report", return_value=report_path):
+            with mock.patch.object(morning, "read_text", side_effect=[report_text, capture_text]):
+                with mock.patch.object(morning, "generate_dashboard", return_value=output_path):
+                    with mock.patch.object(morning, "parse_candidates", return_value=[candidate]):
+                        with mock.patch.object(morning, "attach_statuses"):
+                            with mock.patch.object(morning, "candidate_scores", return_value=(5, 4)):
+                                with mock.patch.object(morning, "load_history", return_value=[]):
+                                    with mock.patch.object(morning, "write_text_or_keep_existing"):
+                                        with mock.patch.object(
+                                            morning,
+                                            "run_daily_graphify_evolution",
+                                            return_value=graphify_record,
+                                        ) as run_graphify:
+                                            output = morning.build_report()
+
+        self.assertEqual(
+            output,
+            ROOT
+            / "ObsidianVault"
+            / "10_AgentBus"
+            / "reports"
+            / "20260610_daily_plus_dashboard_report.md",
+        )
+        run_graphify.assert_called_once_with(date="2026-06-10")
+
 
 if __name__ == "__main__":
     unittest.main()

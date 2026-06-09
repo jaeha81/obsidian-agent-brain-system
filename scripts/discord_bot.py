@@ -271,6 +271,8 @@ _REQUIRED_CONTEXT_PACKS = [
     _VAULT / "05_Frameworks" / "LegalizeKR" / "legalize_update_policy.md",
 ]
 _CONTEXT_PACK_CHAR_LIMIT = int(os.getenv("BUCKY_CONTEXT_PACK_CHAR_LIMIT", "18000"))
+_LATEST_GRAPHIFY_SUMMARY = _VAULT / "10_AgentBus" / "completed" / "latest_daily_graphify_evolution.md"
+_GRAPHIFY_SUMMARY_CHAR_LIMIT = int(os.getenv("BUCKY_GRAPHIFY_SUMMARY_CHAR_LIMIT", "4000"))
 _context_cache: dict = {"text": "", "loaded_at": 0.0}
 _CONTEXT_TTL = 300  # 5분
 
@@ -421,6 +423,18 @@ def _read_required_context_packs() -> str:
         return ""
     return "\n\n---\n\n# Bucky Required Context Packs\n\n" + "\n\n---\n\n".join(sections)
 
+def _read_latest_graphify_summary() -> str:
+    try:
+        text = _LATEST_GRAPHIFY_SUMMARY.read_text(encoding="utf-8", errors="replace").strip()
+    except Exception:
+        return ""
+    if not text:
+        return ""
+    excerpt = text[:_GRAPHIFY_SUMMARY_CHAR_LIMIT]
+    if len(text) > len(excerpt):
+        excerpt += "\n\n[TRUNCATED: Graphify summary char limit reached]"
+    return "\n\n---\n\n# Latest Daily Graphify Evolution\n\n" + excerpt
+
 def _load_bucky_context() -> str:
     import time
     now = time.time()
@@ -431,6 +445,9 @@ def _load_bucky_context() -> str:
         packs = _read_required_context_packs()
         if packs:
             text = f"{text}\n\n{packs}"
+        graphify_summary = _read_latest_graphify_summary()
+        if graphify_summary:
+            text = f"{text}\n\n{graphify_summary}"
         _context_cache["text"] = text
         _context_cache["loaded_at"] = now
         return text
@@ -832,6 +849,119 @@ def _dashboard_watch_tags(payload: dict) -> list[str]:
     if dashboard_type and dashboard_type not in tags:
         tags.append(dashboard_type)
     return tags
+
+
+_VIDEO_GENERATION_KEYWORDS = (
+    "higgsfield", "히그스필드", "힉스필드", "video generation", "text to video",
+    "image to video", "ai video", "영상제작", "영상 제작", "영상 만들어",
+    "영상 만들", "쇼츠", "릴스", "틱톡", "광고 영상", "유튜브 인트로",
+)
+
+
+def _payload_text_for_intent(payload: dict) -> str:
+    values: list[str] = []
+    for key in (
+        "dashboard_type", "action", "title", "summary", "body", "note",
+        "capture_target", "watch_command", "url", "link", "tags",
+    ):
+        value = payload.get(key)
+        if isinstance(value, (list, tuple, set)):
+            values.extend(str(item) for item in value)
+        else:
+            values.append(str(value or ""))
+    return "\n".join(values)
+
+
+def _looks_like_video_generation_request(payload: dict) -> bool:
+    text = _payload_text_for_intent(payload).lower()
+    return any(keyword.lower() in text for keyword in _VIDEO_GENERATION_KEYWORDS)
+
+
+def _build_higgsfield_video_prompt(payload: dict, reference_url: str = "") -> str:
+    dashboard_type = str(payload.get("dashboard_type") or "unknown")
+    action = str(payload.get("action") or "")
+    title = str(payload.get("title") or payload.get("summary") or "").strip()
+    body = str(payload.get("body") or payload.get("note") or "").strip()
+    request_id = str(payload.get("request_id") or "").strip()
+    source_assets = str(payload.get("source_assets") or payload.get("files") or "").strip()
+    prompt = str(payload.get("prompt") or payload.get("video_prompt") or "").strip()
+
+    lines = [
+        "[Bucky Higgsfield Video Production Intake]",
+        f"dashboard_type: {dashboard_type}",
+        f"action: {action}",
+    ]
+    if request_id:
+        lines.append(f"request_id: {request_id}")
+    if title:
+        lines.append(f"title: {title}")
+    if reference_url:
+        lines.append(f"reference_url: {reference_url}")
+    if source_assets:
+        lines.append(f"source_assets: {source_assets}")
+    if prompt:
+        lines.append(f"video_prompt: {prompt}")
+    if body:
+        lines.append("")
+        lines.append(body)
+    lines.extend(
+        [
+            "",
+            "## Required behavior",
+            "Load `ObsidianVault/06_Context_Packs/bucky-higgsfield-video-production-mcp-2026-06-10.md`.",
+            "Treat this as a video production request, not a generic chat summary.",
+            "Normalize goal, platform, duration, aspect_ratio, source_assets, style, script, negative_constraints, approval_state, and evidence.",
+            "If a reference URL is present, use it only as benchmark/style evidence after capture; do not copy protected content.",
+            "Use the configured `higgsfield` MCP server when available. If auth, credit, or MCP tool access is missing, report `blocked_auth_required` or `approval_required` with the exact next action.",
+            "Return a concise Korean status with: MCP state, normalized payload, execution/approval state, and next action.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+async def _handle_higgsfield_video_payload(payload: dict, channel) -> bool:
+    if not _looks_like_video_generation_request(payload):
+        return False
+
+    reference_url = _extract_youtube_url_from_payload(payload)
+    dashboard_type = str(payload.get("dashboard_type") or "dashboard")
+    action = str(payload.get("action") or "video")
+    title = str(payload.get("title") or payload.get("summary") or "AI video production").strip()
+    request_id = str(payload.get("request_id") or "").strip()
+
+    if channel:
+        lines = [
+            f"🎞️ **[Video Production Intake] Higgsfield MCP 준비** (`{dashboard_type}/{action}`)",
+            f"- title: {title[:160]}",
+        ]
+        if reference_url:
+            lines.append(f"- reference: {reference_url}")
+        if request_id:
+            lines.append(f"- request_id: `{request_id[:12]}`")
+        await channel.send("\n".join(lines))
+
+    if not channel:
+        return True
+
+    try:
+        timeout_s = int(os.getenv("HIGGSFIELD_VIDEO_BUCKY_TIMEOUT", "120"))
+        reply = await asyncio.wait_for(
+            ask_bucky(
+                str(channel.id),
+                _build_higgsfield_video_prompt(payload, reference_url),
+                session_key=_dashboard_session_key(payload),
+                session_label=_dashboard_session_label(payload),
+            ),
+            timeout=timeout_s,
+        )
+        for chunk in split_message(reply):
+            await channel.send(chunk)
+    except asyncio.TimeoutError:
+        await channel.send("⚠️ Higgsfield 영상 제작 요청은 수신됐지만 Bucky 응답 시간이 초과됐습니다. 같은 채널에서 이어서 지시하세요.")
+    except Exception as exc:
+        print(f"[VideoProduction] Bucky 라우팅 실패: {exc}", flush=True)
+        await channel.send(f"⚠️ Higgsfield 영상 제작 라우팅 실패: `{exc}`")
+    return True
 
 
 async def _handle_dashboard_watch_payload(payload: dict, channel) -> bool:
@@ -3700,6 +3830,10 @@ class BuckyDiscordBot(discord.Client):
         if action == "health_check":
             if channel:
                 await channel.send("✅ intake 채널 정상 — Bucky 연결 대기 중. 작업은 이 채널에서 이어서 대화하세요.")
+            return
+
+        # 영상 제작 요청 — Higgsfield MCP용 Bucky 프로토콜로 우선 라우팅.
+        if await _handle_higgsfield_video_payload(payload, channel):
             return
 
         # Daily Plus 대시보드 intake — Bucky에게 라우팅해서 응답 전송 (대화 가능 상태)

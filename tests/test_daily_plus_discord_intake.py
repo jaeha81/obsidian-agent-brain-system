@@ -1,6 +1,8 @@
 import unittest
 import sys
+import tempfile
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -90,6 +92,27 @@ class DailyPlusDiscordIntakeTests(unittest.TestCase):
         self.assertIn("이 메시지는 UTF-8 한글 검증입니다.", reply)
         self.assertIn("ObsidianVault/01_RAW/utf8-smoke.md", reply)
         self.assertIn("다음 사용자 작업 지시를 기다리는 상태입니다.", reply)
+
+
+    def test_bucky_default_context_includes_latest_graphify_summary(self):
+        discord_bot = _get_discord_bot()
+        with tempfile.TemporaryDirectory() as tmp:
+            context_file = Path(tmp) / "BUCKY_CONTEXT.md"
+            context_file.write_text("base context", encoding="utf-8")
+            with mock.patch.object(discord_bot, "_CONTEXT_FILE", context_file):
+                with mock.patch.object(discord_bot, "_CONTEXT_TTL", 0):
+                    with mock.patch.object(discord_bot, "_read_required_context_packs", return_value="required packs"):
+                        with mock.patch.object(
+                            discord_bot,
+                            "_read_latest_graphify_summary",
+                            return_value="# Daily Graphify Evolution\nNodes: 42",
+                        ):
+                            context = discord_bot._load_bucky_context()
+
+        self.assertIn("base context", context)
+        self.assertIn("required packs", context)
+        self.assertIn("Daily Graphify Evolution", context)
+        self.assertIn("Nodes: 42", context)
 
 
 if __name__ == "__main__":

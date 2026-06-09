@@ -129,6 +129,16 @@ class TestSelectContextPack:
         assert isinstance(sel["packs"], list)
         assert len(sel["packs"]) > 0
 
+    def test_keyword_routes_to_video_production(self):
+        sel = select_context_pack(
+            task_type="general",
+            body="Higgsfield MCP로 쇼츠 영상 제작 요청을 처리해줘.",
+        )
+
+        assert sel["key"] == "video_production"
+        assert sel["primary_worker"] == "Bucky Video Producer"
+        assert any("higgsfield-video-production" in p for p in sel["packs"])
+
 
 # ---------------------------------------------------------------------------
 # build_instruction_packet — pytest

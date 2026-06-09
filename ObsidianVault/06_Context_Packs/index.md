@@ -35,6 +35,9 @@ Agent work should load compact Context Packs instead of rereading long legacy so
 - [[06_Context_Packs/bucky-vault-ingestion-record-policy|Bucky Vault ingestion and record policy]]
 - [[06_Context_Packs/bucky-security-runtime-governance|Bucky security and runtime governance]]
 - [[06_Context_Packs/bucky-user-project-terrain|Bucky user and project terrain]]
+- [[06_Context_Packs/bucky-one-person-entrepreneur-mindset-video-2026-06-10|Bucky one-person entrepreneur mindset]]
+- [[06_Context_Packs/bucky-atoms-multi-agent-builder-video-2026-06-10|Bucky Atoms multi-agent builder lessons]]
+- [[06_Context_Packs/bucky-higgsfield-video-production-mcp-2026-06-10|Bucky Higgsfield video production MCP]]
 
 ## Web Delivery
 

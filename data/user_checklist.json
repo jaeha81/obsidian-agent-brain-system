@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-09"
+    "last_updated": "2026-06-10"
   },
   "tasks": [
     {
@@ -308,28 +308,6 @@
       "refs": []
     },
     {
-      "id": "CL-023",
-      "title": "│ 40 files skipped       │",
-      "description": "",
-      "priority": "대기",
-      "category": "자동감지",
-      "status": "pending",
-      "added": "2026-06-09",
-      "source": "discord-auto",
-      "refs": []
-    },
-    {
-      "id": "CL-024",
-      "title": "│ [시간별 그래프]            │",
-      "description": "",
-      "priority": "대기",
-      "category": "자동감지",
-      "status": "pending",
-      "added": "2026-06-09",
-      "source": "discord-auto",
-      "refs": []
-    },
-    {
       "id": "CL-025",
       "title": "태블릿 음성 인테이크 스크립트 구현 (Phase 1 — 로컬 Whisper)",
       "description": "scripts/tablet_voice_intake.py 구현: 태블릿 마이크 30초 청크 캡처 → 로컬 Whisper STT → bucky_stt_enhancer 처리 → tablet-batch-upload-manifest 형식으로 패키징 → bucky_chat_server.py:8765 전송. 과금 없는 Phase 1 범위.",
@@ -385,6 +363,17 @@
       "refs": [
         "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md"
       ]
+    },
+    {
+      "id": "CL-029",
+      "title": "커밋/푸시 (사용자 승인 대기)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

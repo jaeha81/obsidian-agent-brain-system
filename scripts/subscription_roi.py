@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 
 # Force UTF-8 stdout on Windows (cp949 default breaks unicode dashes/emojis)
@@ -43,8 +44,15 @@ USER_HOME = Path(os.environ.get("USERPROFILE", os.path.expanduser("~")))
 CODEX_SESSIONS = USER_HOME / ".codex" / "sessions"
 CLAUDE_PROJECTS = USER_HOME / ".claude" / "projects"
 VAULT_REPORTS = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault/00_System/roi-reports")
+ROOT = Path(__file__).resolve().parents[1]
+CLI_TOOLS_LOG = ROOT / "ObsidianVault" / "05_Logs" / "cli-tools.jsonl"
 
 SUB_COST_MONTHLY = 100  # USD per service
+CLI_LIMIT_PATTERNS = re.compile(
+    r"(usage limit|rate limit|subscription limit|out of .*usage|resets .*(am|pm)|"
+    r"too many requests|429|사용\s*한도|구독\s*한도|한도\s*초과|할당량\s*초과)",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -200,6 +208,89 @@ def collect_claude(since: datetime, project_filter: str | None = None) -> AgentR
 
 def format_int(n: int) -> str:
     return f"{n:,}"
+
+
+def collect_cli_usage_state(
+    log_path: Path | str | None = None,
+    since: datetime | None = None,
+) -> dict[str, object]:
+    """Summarize real Bucky/Claude/Codex CLI call state from the append-only log."""
+    path = Path(log_path) if log_path is not None else CLI_TOOLS_LOG
+    models: dict[str, dict[str, int]] = {}
+    state: dict[str, object] = {
+        "total_calls": 0,
+        "successes": 0,
+        "failures": 0,
+        "limit_events": 0,
+        "latest_limit_event": None,
+        "recommended_claude_model": "sonnet",
+        "models": models,
+    }
+    if not path.exists():
+        return state
+
+    def model_bucket(model: str) -> dict[str, int]:
+        key = model or "unknown"
+        if key not in models:
+            models[key] = {"calls": 0, "successes": 0, "failures": 0}
+        return models[key]
+
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        return state
+
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        timestamp = str(rec.get("timestamp") or "")
+        if since and timestamp:
+            try:
+                ts = datetime.fromisoformat(timestamp)
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=KST)
+                if ts < since:
+                    continue
+            except ValueError:
+                pass
+
+        model = str(rec.get("model") or "unknown")
+        success = bool(rec.get("success"))
+        detail = str(rec.get("response_summary") or "")
+        bucket = model_bucket(model)
+        bucket["calls"] += 1
+        state["total_calls"] = int(state["total_calls"]) + 1
+        if success:
+            bucket["successes"] += 1
+            state["successes"] = int(state["successes"]) + 1
+        else:
+            bucket["failures"] += 1
+            state["failures"] = int(state["failures"]) + 1
+
+        command = str(rec.get("command") or "").lower()
+        if "claude" in command and not success and CLI_LIMIT_PATTERNS.search(detail):
+            state["limit_events"] = int(state["limit_events"]) + 1
+            state["latest_limit_event"] = {
+                "timestamp": timestamp,
+                "model": model,
+                "task_type": str(rec.get("task_type") or ""),
+                "source": str(rec.get("source") or ""),
+                "detail": detail,
+            }
+
+    sonnet = models.get("sonnet", {})
+    haiku = models.get("haiku", {})
+    if int(state["limit_events"]) > 0 or int(sonnet.get("failures", 0)) > 0:
+        state["recommended_claude_model"] = "haiku"
+    elif int(haiku.get("calls", 0)) == 0 and int(state["total_calls"]) > 0:
+        state["recommended_claude_model"] = "haiku"
+
+    return state
 
 
 def summarize_usage(

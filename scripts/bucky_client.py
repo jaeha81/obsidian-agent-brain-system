@@ -16,6 +16,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -47,6 +48,15 @@ except ImportError:
 # Sonnet/Haiku/Opus 한도 초과 패턴 (Claude CLI stderr/stdout)
 LIMIT_PATTERNS = re.compile(
     r"(usage limit|rate limit|hit your .* limit|사용 한도|한도에 도달|quota exceeded)",
+    re.IGNORECASE,
+)
+
+
+LIMIT_PATTERNS = re.compile(
+    r"(usage limit|rate limit|hit your .* limit|quota exceeded|subscription limit|"
+    r"claude ai usage limit|exceeded .*usage|out of .*usage|resets .*(am|pm)|"
+    r"too many requests|429|"
+    r"사용\s*한도|구독\s*한도|한도\s*초과|할당량\s*초과)",
     re.IGNORECASE,
 )
 
@@ -165,6 +175,15 @@ def run_bucky(
                 file=sys.stderr,
             )
             continue
+    if isinstance(last_err, BuckyLimitError):
+        return _run_codex_after_claude_limit(
+            prompt,
+            system_prompt=system_prompt,
+            timeout=timeout,
+            with_tools=False,
+            task_type=task_type or "",
+            source="run_bucky_codex_on_limit",
+        )
     raise last_err or BuckyError("All fallback models exhausted")
 
 
@@ -280,6 +299,15 @@ def run_bucky_with_tools(
                 file=sys.stderr,
             )
             continue
+    if isinstance(last_err, BuckyLimitError):
+        return _run_codex_after_claude_limit(
+            prompt,
+            system_prompt=system_prompt,
+            timeout=timeout,
+            with_tools=True,
+            task_type=task_type or "",
+            source="run_bucky_with_tools_codex_on_limit",
+        )
     raise last_err or BuckyError("All fallback models exhausted")
 
 
@@ -295,6 +323,118 @@ def is_codex_available() -> bool:
     if any(sep in command for sep in ("\\", "/", ":")):
         return Path(command).exists()
     return shutil.which(command) is not None
+
+
+def _codex_on_limit_enabled() -> bool:
+    return os.getenv("BUCKY_CODEX_ON_LIMIT", "1").strip() != "0"
+
+
+def _run_codex_after_claude_limit(
+    prompt: str,
+    *,
+    system_prompt: str | None,
+    timeout: int | None,
+    with_tools: bool,
+    task_type: str,
+    source: str,
+) -> str:
+    if not _codex_on_limit_enabled():
+        raise BuckyLimitError("Claude usage limit hit and Codex fallback is disabled")
+    if not is_codex_available():
+        raise BuckyLimitError(
+            f"Claude usage limit hit and Codex CLI not found. CODEX_COMMAND={codex_command()!r}"
+        )
+    print("[bucky] Claude limit hit -> running Codex-only fallback", file=sys.stderr)
+    return _invoke_codex(
+        prompt,
+        system_prompt=system_prompt,
+        timeout=timeout,
+        with_tools=with_tools,
+        task_type=task_type,
+        source=source,
+    )
+
+
+def _invoke_codex(
+    prompt: str,
+    *,
+    system_prompt: str | None,
+    timeout: int | None,
+    with_tools: bool,
+    task_type: str,
+    source: str,
+) -> str:
+    import time as _time
+
+    timeout_s = timeout or int(os.getenv("CODEX_TIMEOUT", os.getenv("BUCKY_TIMEOUT_CODE", "300")))
+    if with_tools:
+        sandbox = os.getenv("CODEX_TOOLS_SANDBOX", "workspace-write").strip() or "workspace-write"
+    else:
+        sandbox = os.getenv("CODEX_SANDBOX", "read-only").strip() or "read-only"
+    model = os.getenv("CODEX_MODEL", "").strip()
+
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w", encoding="utf-8") as tf:
+        output_path = tf.name
+
+    try:
+        cmd = [
+            codex_command(),
+            "exec",
+            "-C",
+            str(ROOT),
+            "--sandbox",
+            sandbox,
+            "--output-last-message",
+            output_path,
+            "-",
+        ]
+        if model:
+            cmd[2:2] = ["--model", model]
+
+        effective_prompt = prompt
+        if system_prompt:
+            effective_prompt = f"{system_prompt.strip()}\n\n{prompt}"
+
+        env = os.environ.copy()
+        env["PYTHONUTF8"] = "1"
+        t0 = _time.monotonic()
+        result = subprocess.run(
+            cmd,
+            input=effective_prompt,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(ROOT),
+            timeout=timeout_s,
+            env=env,
+        )
+        duration_ms = int((_time.monotonic() - t0) * 1000)
+
+        out_path = Path(output_path)
+        output = out_path.read_text(encoding="utf-8").strip() if out_path.exists() else result.stdout.strip()
+        success = result.returncode == 0
+        detail = output or (result.stderr or result.stdout or "").strip()
+
+        _cli_log(
+            command=codex_command(),
+            prompt=effective_prompt,
+            response=detail,
+            success=success,
+            duration_ms=duration_ms,
+            model=model or "codex-default",
+            task_type=task_type,
+            source=source,
+        )
+
+        if not success:
+            raise BuckyError(f"Codex fallback failed with code {result.returncode}: {detail[:400]}")
+        return output
+    finally:
+        try:
+            Path(output_path).unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def _strip_preamble(text: str) -> str:

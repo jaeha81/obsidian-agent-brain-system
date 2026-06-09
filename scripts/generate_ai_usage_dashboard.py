@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 from scripts.subscription_roi import (  # noqa: E402
     SUB_COST_MONTHLY,
     AgentReport,
+    collect_cli_usage_state,
     collect_claude,
     collect_codex,
     format_int,
@@ -209,22 +210,104 @@ def render_bucky_routing() -> str:
       </div>"""
 
 
+def render_cli_usage_state(usage_state: dict[str, object] | None) -> str:
+    """Render observed CLI state so the dashboard is not just a static policy page."""
+    if not usage_state:
+        usage_state = {
+            "total_calls": 0,
+            "limit_events": 0,
+            "recommended_claude_model": "sonnet",
+            "latest_limit_event": None,
+            "models": {},
+        }
+    latest = usage_state.get("latest_limit_event")
+    if isinstance(latest, dict):
+        latest_text = (
+            f"{latest.get('timestamp', '-')} · {latest.get('model', '-')} · "
+            f"{latest.get('detail', '-')}"
+        )
+    else:
+        latest_text = "최근 한도 이벤트 없음"
+
+    models = usage_state.get("models")
+    rows = []
+    if isinstance(models, dict):
+        for model, stats in sorted(models.items()):
+            if not isinstance(stats, dict):
+                continue
+            rows.append(
+                "<tr>"
+                f"<td>{esc(model)}</td>"
+                f"<td>{esc(stats.get('calls', 0))}</td>"
+                f"<td>{esc(stats.get('successes', 0))}</td>"
+                f"<td>{esc(stats.get('failures', 0))}</td>"
+                "</tr>"
+            )
+    if not rows:
+        rows.append('<tr><td colspan="4">아직 CLI 호출 로그가 없습니다.</td></tr>')
+
+    recommended = str(usage_state.get("recommended_claude_model") or "sonnet")
+    if recommended == "haiku":
+        policy = (
+            "Haiku 우선: 상태 확인, 분류, 짧은 요약, 태그/추출은 Haiku로 보내고 "
+            "Sonnet 절약: 구현, 파일 편집, 테스트 수정, 긴 분석에만 Sonnet을 사용합니다."
+        )
+    else:
+        policy = (
+            "Sonnet 기본: 구현과 긴 분석은 Sonnet을 유지하되, 반복 분류/상태 확인은 Haiku로 분리합니다."
+        )
+
+    return f"""
+    <section class="panel">
+      <h2>실제 감지 상태</h2>
+      <div class="state-grid">
+        <div><strong>{esc(usage_state.get("total_calls", 0))}</strong><span>최근 CLI 호출</span></div>
+        <div><strong>{esc(usage_state.get("limit_events", 0))}</strong><span>Claude 한도 이벤트</span></div>
+        <div><strong>{esc(recommended)}</strong><span>권장 Claude 모델</span></div>
+      </div>
+      <p class="note">{esc(latest_text)}</p>
+      <table>
+        <thead><tr><th>모델</th><th>호출</th><th>성공</th><th>실패</th></tr></thead>
+        <tbody>{"".join(rows)}</tbody>
+      </table>
+      <p class="note"><strong>{esc(policy)}</strong></p>
+    </section>
+"""
+
+
 def render_dashboard(
     reports: list[AgentReport],
     days: int,
     generated_at: str,
     reset_hours: float,
     target_sessions_per_reset: int = 2,
+    usage_state: dict[str, object] | None = None,
 ) -> str:
     cards = "\n".join(render_agent_card(report, days, reset_hours, target_sessions_per_reset) for report in reports)
     daily_rows = render_daily_rows(reports)
     bucky_routing = render_bucky_routing()
+    cli_state = render_cli_usage_state(usage_state)
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#58a6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bucky">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js');}}</script>
 <title>AI Usage · AI 사용량 대시보드</title>
+<script>
+(function(){{
+  function getCookie(n){{var v=document.cookie.split(';');for(var i=0;i<v.length;i++){{var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}}return '';}}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){{location.replace('/login.html?r='+encodeURIComponent(location.pathname));}}
+  else{{document.documentElement.style.visibility='';}}
+}})();
+</script>
 <style>
   :root {{ --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }}
   * {{ box-sizing:border-box; }}
@@ -253,6 +336,10 @@ def render_dashboard(
   .metric-grid {{ display:grid; grid-template-columns:repeat(4,minmax(90px,1fr)); gap:10px; }}
   .metric-grid div {{ border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; min-height:82px; }}
   .metric-grid strong {{ display:block; font-size:24px; }}
+  .state-grid {{ display:grid; grid-template-columns:repeat(3,minmax(160px,1fr)); gap:10px; margin-bottom:12px; }}
+  .state-grid div {{ border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }}
+  .state-grid strong {{ display:block; font-size:22px; }}
+  .state-grid span {{ color:var(--muted); font-size:13px; }}
   .metric-grid span, .note, td, th, dd, dt {{ color:var(--muted); font-size:13px; line-height:1.5; }}
   .bar {{ height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; }}
   .bar span {{ display:block; height:100%; background:var(--blue); border-radius:inherit; }}
@@ -285,7 +372,7 @@ def render_dashboard(
   .guardrails div {{ border-left:4px solid var(--blue); background:#fbfdff; padding:14px; border-radius:8px; }}
   .guardrails strong {{ display:block; margin-bottom:6px; }}
   footer {{ padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }}
-  @media (max-width:900px) {{ .agent-grid, .ops-grid, .guardrails, .bucky-grid {{ grid-template-columns:1fr; }} .metric-grid {{ grid-template-columns:repeat(2,1fr); }} dl div, .quota-dl div {{ grid-template-columns:1fr; }} }}
+  @media (max-width:900px) {{ .agent-grid, .ops-grid, .guardrails, .bucky-grid, .state-grid {{ grid-template-columns:1fr; }} .metric-grid {{ grid-template-columns:repeat(2,1fr); }} dl div, .quota-dl div {{ grid-template-columns:1fr; }} }}
 </style>
 </head>
 <body>
@@ -310,6 +397,7 @@ def render_dashboard(
   <section class="agent-grid">
     {cards}
   </section>
+  {cli_state}
   <section class="panel">
     <h2>Bucky 운영 규칙</h2>
     {bucky_routing}
@@ -347,8 +435,9 @@ def generate(days: int = 7) -> Path:
     target_sessions = env_int("AI_USAGE_TARGET_SESSIONS_PER_RESET", 2)
     since = datetime.now(KST) - timedelta(days=days)
     reports = [collect_claude(since), collect_codex(since)]
+    usage_state = collect_cli_usage_state(since=since)
     generated_at = datetime.now(KST).strftime("%Y-%m-%d %H:%M:%S KST")
-    html_text = render_dashboard(reports, days, generated_at, reset_hours, target_sessions)
+    html_text = render_dashboard(reports, days, generated_at, reset_hours, target_sessions, usage_state)
     DOCS.mkdir(parents=True, exist_ok=True)
     output = DOCS / "ai-usage.html"
     output.write_text("\n".join(line.rstrip() for line in html_text.splitlines()) + "\n", encoding="utf-8", newline="\n")

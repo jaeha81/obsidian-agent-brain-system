@@ -25,6 +25,7 @@ from generate_daily_plus_dashboard import (
     read_text,
     generate,
 )
+from daily_graphify_evolution import run_daily_graphify_evolution
 
 
 PUBLIC_URL = "https://jaeha81.github.io/obsidian-agent-brain-system/daily-plus.html"
@@ -313,6 +314,10 @@ public_url: {PUBLIC_URL}
         outbox_body,
         [f"date: {date}", "status: ready", PUBLIC_URL],
     )
+    try:
+        run_daily_graphify_evolution(date=date)
+    except Exception as exc:
+        print(f"[daily-plus-morning-report] graphify evolution skipped: {exc}", file=sys.stderr)
     return morning_report
 
 
