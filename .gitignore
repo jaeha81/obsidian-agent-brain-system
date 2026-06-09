@@ -87,6 +87,15 @@ ObsidianVault/03_Projects/*
 !/.obsidian/plugins/bucky-agent/**
 .trash/
 .smart-env/
+.agents/
+.cache/
+
+# Runtime data (CL-030: auto-generated, not tracked)
+data/bucky_memory.db
+data/bucky_memory.db-shm
+data/bucky_memory.db-wal
+data/intake_queue/processed/
+data/wishket_loop_history.json
 
 # Graphify output/cache
 graphify-out/cache/
