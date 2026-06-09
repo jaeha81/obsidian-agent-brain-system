@@ -34,9 +34,11 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
 from bucky_client import BuckyError, run_bucky
+
+DOCS_DIR = ROOT / "docs"
 
 app = Flask(__name__)
 
@@ -45,6 +47,12 @@ try:
     app.register_blueprint(os_bp)
 except Exception as _e:
     print(f"[bucky-chat-server] OS API blueprint skipped: {_e}")
+
+try:
+    from bucky_agent_os_api import agent_os_bp
+    app.register_blueprint(agent_os_bp)
+except Exception as _e:
+    print(f"[bucky-chat-server] Agent OS API blueprint skipped: {_e}")
 
 
 @app.after_request
@@ -257,6 +265,22 @@ def clear_chat():
     if session_id and session_id in _sessions:
         del _sessions[session_id]
     return jsonify({"ok": True})
+
+
+@app.get("/")
+@app.get("/index.html")
+def serve_index():
+    return send_from_directory(str(DOCS_DIR), "index.html")
+
+
+@app.get("/bucky-os.html")
+def serve_bucky_os():
+    return send_from_directory(str(DOCS_DIR), "bucky-os.html")
+
+
+@app.get("/<path:filename>")
+def serve_docs(filename):
+    return send_from_directory(str(DOCS_DIR), filename)
 
 
 def main() -> None:
