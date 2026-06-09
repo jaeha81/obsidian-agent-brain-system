@@ -18,7 +18,7 @@ exports.handler = async function(event) {
               return {
                         statusCode: 200,
                         headers: {
-                                    'Set-Cookie': `bucky_auth=${correct}; Path=/; Max-Age=604800; HttpOnly; SameSite=Strict`,
+                                    'Set-Cookie': `bucky_auth=authenticated; Path=/; Max-Age=604800; SameSite=Lax`,
                                     'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ ok: true })
