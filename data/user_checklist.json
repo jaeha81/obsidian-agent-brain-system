@@ -3,7 +3,7 @@
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
     "last_updated": "2026-06-10",
-    "last_completed": "CL-028"
+    "last_completed": "CL-033"
   },
   "tasks": [
     {
@@ -238,10 +238,12 @@
       "description": "",
       "priority": "대기",
       "category": "자동감지",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-07",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/raw_import_watcher.py 구현 완료 확인. 음성/영상/YT URL/문서 패턴 감지 + --once/--interval 옵션 + RAW_IMPORT → 01_RAW 이동 로직. 코드베이스 검수에서 실제 구현 확인됨.",
       "source": "discord-auto",
-      "refs": []
+      "refs": ["scripts/raw_import_watcher.py"]
     },
     {
       "id": "CL-018",
@@ -392,7 +394,9 @@
       "description": "영상 분석 완료(Jack Roberts Hermes OS). 현재 BuckyOS는 skeleton만 존재 → Phase 1~4 순차 구현으로 데이터+시각화+실시간 기능 추가. Phase 1(API): 1~2일, Phase 2(그래프+차트): 1~2일, Phase 3(실시간): 1일, Phase 4(디자인): 1~2일. 총 5~7일 예상.",
       "priority": "P0",
       "category": "개발",
-      "status": "pending_approval",
+      "status": "done",
+      "completed": "2026-06-10",
+      "completion_note": "코드베이스 검수 완료: 3d-force-graph(Pantheon), Memory Stack 4레이어 탭, AI Spend 차트, Mission Goals 트리, /agent-os/ API 10개, 30초 자동갱신+Live 인디케이터, Obsidian Graph iframe 임베드 모두 구현 확인. 미완 3개(Activity Feed 독립 폴링, Demo 데이터 T021-T024, 실그래프 렌더 함수) 후속 태스크로 이관.",
       "added": "2026-06-10",
       "source": "영상 벤치마킹 분석 (Claude Code 2026-06-10)",
       "refs": [
@@ -434,6 +438,39 @@
     {
       "id": "CL-032",
       "title": "Obsidian에서 3D Graph 플러그인 리로드 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-034",
+      "title": "git push (별도 승인 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-035",
+      "title": ".git/packed-refs.lock` 잠금 파일 (아래 안내)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-036",
+      "title": ".git/packed-refs.lock` 잔여 (push는 정상 완료, 무해)",
       "description": "",
       "priority": "대기",
       "category": "자동감지",
