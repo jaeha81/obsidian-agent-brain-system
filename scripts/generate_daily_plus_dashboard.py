@@ -559,6 +559,9 @@ def parse_candidates(text: str) -> list[Candidate]:
     return candidates
 
 
+_KNOWN_STATUSES = frozenset({"queued", "applied", "needs-user-approval", "staged", "parked"})
+
+
 def parse_bucky_statuses(date: str) -> dict[int, str]:
     compact = date.replace("-", "")
     outbox = VAULT / "10_AgentBus" / "outbox" / "Bucky"
@@ -569,10 +572,14 @@ def parse_bucky_statuses(date: str) -> dict[int, str]:
     statuses: dict[int, str] = {}
     for line in text.splitlines():
         parts = [part.strip() for part in line.split("|")]
-        if len(parts) < 7 or not parts[1].isdigit():
+        if len(parts) < 4 or not parts[1].isdigit():
             continue
-        status = parts[6].replace("*", "").strip()
-        statuses[int(parts[1])] = status
+        card = int(parts[1])
+        for part in parts[2:]:
+            token = part.replace("`", "").replace("*", "").strip().split()[0].lower() if part.strip() else ""
+            if token in _KNOWN_STATUSES:
+                statuses[card] = token
+                break
     return statuses
 
 
@@ -1113,8 +1120,7 @@ def generate(date: str | None) -> Path:
     attach_statuses(date, candidates)
     history = load_history()
 
-    if not candidates:
-        raise RuntimeError(f"No candidates parsed from {report_path}")
+    # empty candidates = pending collection day; render dashboard in waiting state
 
     session = parse_session_log(SESSION_LOG_PATH)
     session_html = render_session_section(session)
