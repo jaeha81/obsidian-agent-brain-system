@@ -797,6 +797,95 @@ def _extract_attachment_paths_from_content(content: str) -> list[str]:
     return [part.strip() for part in first_line.split(",") if part.strip()]
 
 
+def _extract_youtube_url_from_text(text: str) -> str:
+    """Return the first YouTube URL in free text, with common punctuation trimmed."""
+    for raw_url in _URL_PATTERN.findall(str(text or "")):
+        url = raw_url.rstrip(").,]}>\"'")
+        if _YOUTUBE_PATTERN.search(url):
+            return url
+    return ""
+
+
+def _extract_youtube_url_from_payload(payload: dict) -> str:
+    for key in ("capture_target", "watch_command", "url", "link", "body", "summary", "title"):
+        value = payload.get(key)
+        if isinstance(value, (list, tuple)):
+            value = "\n".join(str(item) for item in value)
+        url = _extract_youtube_url_from_text(str(value or ""))
+        if url:
+            return url
+    return ""
+
+
+def _dashboard_watch_tags(payload: dict) -> list[str]:
+    raw_tags = payload.get("tags") or []
+    if isinstance(raw_tags, str):
+        tags = [tag.strip() for tag in raw_tags.split(",") if tag.strip() and tag.strip().lower() != "(none)"]
+    elif isinstance(raw_tags, (list, tuple, set)):
+        tags = [str(tag).strip() for tag in raw_tags if str(tag).strip()]
+    else:
+        tags = []
+    for tag in ("dashboard-watch", "youtube"):
+        if tag not in tags:
+            tags.append(tag)
+    dashboard_type = str(payload.get("dashboard_type") or "").strip()
+    if dashboard_type and dashboard_type not in tags:
+        tags.append(dashboard_type)
+    return tags
+
+
+async def _handle_dashboard_watch_payload(payload: dict, channel) -> bool:
+    watch_url = _extract_youtube_url_from_payload(payload)
+    if not watch_url:
+        return False
+
+    dashboard_type = str(payload.get("dashboard_type") or "dashboard")
+    action = str(payload.get("action") or "watch")
+    title = str(payload.get("title") or "YouTube watch intake").strip()
+    request_id = str(payload.get("request_id") or "").strip()
+    tags = _dashboard_watch_tags(payload)
+
+    if channel:
+        lines = [
+            f"🎬 **[Watch Intake] YouTube 분석 시작** (`{dashboard_type}/{action}`)",
+            f"- title: {title[:160]}",
+            f"- url: {watch_url}",
+        ]
+        if request_id:
+            lines.append(f"- request_id: `{request_id[:12]}`")
+        await channel.send("\n".join(lines))
+
+    try:
+        from bucky_youtube_capture import capture_youtube
+        if channel:
+            async with channel.typing():
+                yt_result = await asyncio.to_thread(lambda: capture_youtube(watch_url, tags))
+        else:
+            yt_result = await asyncio.to_thread(lambda: capture_youtube(watch_url, tags))
+    except Exception as exc:
+        if channel:
+            await channel.send(f"⚠️ YouTube watch 처리 실패: `{type(exc).__name__}: {exc}`")
+        return True
+
+    if not yt_result.get("success"):
+        if channel:
+            await channel.send(f"⚠️ YouTube watch 저장 실패: `{yt_result.get('error', '')}`")
+        return True
+
+    reply_lines = [
+        "✅ **YouTube 지식 저장 완료**",
+        f"- title: {yt_result.get('title') or title}",
+        f"- path: `{yt_result.get('filepath', '')}`",
+        f"- transcript: {'yes' if yt_result.get('has_transcript') else 'no'}",
+    ]
+    if yt_result.get("summary"):
+        reply_lines.append(f"\n```text\n{str(yt_result['summary'])[:500]}\n```")
+    if channel:
+        for chunk in split_message("\n".join(reply_lines)):
+            await channel.send(chunk)
+    return True
+
+
 def build_daily_plus_intake_session_prompt(
     payload: dict,
     saved_paths: list[str] | None = None,
@@ -3543,6 +3632,7 @@ class BuckyDiscordBot(discord.Client):
             "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
             "taskboard":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
             "checklist":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
+            "knowledge_intake": lambda: JH_CHAT_CHANNEL_ID,
         }
 
         print("[IntakeConsumer] 시작", flush=True)
@@ -3613,6 +3703,9 @@ class BuckyDiscordBot(discord.Client):
             return
 
         # Daily Plus 대시보드 intake — Bucky에게 라우팅해서 응답 전송 (대화 가능 상태)
+        if await _handle_dashboard_watch_payload(payload, channel):
+            return
+
         if dashboard_type == "daily_plus" and channel:
             if action in {"execute", "approve_execute"}:
                 await _dispatch_dashboard_execution_task(payload, channel)
@@ -4460,6 +4553,24 @@ class BuckyDiscordBot(discord.Client):
                     await message.channel.send(f"✅ 메모 저장: `{fp.name}`")
                 except Exception as e:
                     await message.channel.send(f"❌ 저장 실패: {e}")
+            return
+
+        if content.startswith("/watch ") or content.startswith("!watch "):
+            watch_url = _extract_youtube_url_from_text(content)
+            if not watch_url:
+                await message.channel.send("⚠️ 사용법: `/watch <YouTube URL>`")
+                return
+            await _handle_dashboard_watch_payload(
+                {
+                    "dashboard_type": "discord_watch",
+                    "action": "watch",
+                    "title": "Discord /watch",
+                    "capture_target": watch_url,
+                    "tags": "discord-watch",
+                    "request_id": f"discord-watch-{message.id}",
+                },
+                message.channel,
+            )
             return
 
         # ── P1: Pattern Extractor ──────────────────────────────────────

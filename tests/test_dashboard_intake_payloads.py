@@ -160,8 +160,29 @@ class RouterFieldConsistencyTests(unittest.TestCase):
 
     def test_channel_map_covers_all_dashboard_types(self):
         bot = read_text("scripts/discord_bot.py")
-        for dtype in ("repo", "wishket", "daily_plus", "task_board", "taskboard", "checklist"):
+        for dtype in ("repo", "wishket", "daily_plus", "task_board", "taskboard", "checklist", "knowledge_intake"):
             self.assertIn(f'"{dtype}"', bot)
+
+    def test_knowledge_intake_payload_auto_routes_youtube_to_watch(self):
+        html = read_text("docs/index.html")
+        self.assertIn("function extractYoutubeWatchUrl", html)
+        self.assertIn("dashboard_type: 'knowledge_intake'", html)
+        self.assertIn("action: youtubeUrl ? 'watch' : 'capture'", html)
+        self.assertIn("capture_target: youtubeUrl", html)
+        self.assertIn("watch_command: youtubeUrl ? `/watch ${youtubeUrl}` : ''", html)
+        self.assertIn("await postToIntake(intakePayload)", html)
+
+    def test_knowledge_intake_watch_routes_to_youtube_capture_before_bucky_wait(self):
+        bot = read_text("scripts/discord_bot.py")
+        self.assertIn("async def _handle_dashboard_watch_payload", bot)
+        self.assertIn("def _extract_youtube_url_from_payload", bot)
+        self.assertIn('content.startswith("/watch ")', bot)
+        self.assertIn("capture_youtube(watch_url, tags)", bot)
+        branch = bot[bot.index("if await _handle_dashboard_watch_payload(payload, channel):"):]
+        self.assertLess(
+            branch.index("if await _handle_dashboard_watch_payload(payload, channel):"),
+            branch.index('if dashboard_type == "daily_plus" and channel:'),
+        )
 
     def test_task_board_intake_sends_immediate_discord_ack_before_bucky(self):
         bot = read_text("scripts/discord_bot.py")

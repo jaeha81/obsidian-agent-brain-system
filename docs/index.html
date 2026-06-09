@@ -400,7 +400,7 @@
 
 <section class="intake-panel" aria-label="Bucky knowledge intake">
   <div class="intake-title">Bucky Knowledge Intake</div>
-  <div class="intake-sub">Paste a link, YouTube URL, note, article text, or attach files. The dashboard sends it to the configured Discord webhook, where Bucky stores it in Obsidian Agent Brain System raw intake.</div>
+  <div class="intake-sub">Paste a link, YouTube URL, note, article text, or attach files. The dashboard sends it to Bucky OS intake first; YouTube links are routed through /watch automatically.</div>
   <div class="intake-grid">
     <select id="intakeType" aria-label="Intake type">
       <option value="auto">Auto detect</option>
@@ -1278,8 +1278,9 @@ function buildIntakePayload() {
   const tags = document.getElementById('intakeTags').value.trim();
   const files = document.getElementById('intakeFiles').files;
   const fileLines = Array.from(files || []).slice(0, 10).map(f => `- ${f.name} (${Math.ceil(f.size / 1024)} KB)`);
+  const youtubeUrl = extractYoutubeWatchUrl(`${title}\n${body}`);
   const isSingleUrl = /^https?:\/\/\S+$/i.test(body);
-  const command = isSingleUrl ? `!capture ${body}` : `!capture ${title || body || '[Dashboard file intake]'}`;
+  const command = youtubeUrl ? `/watch ${youtubeUrl}` : (isSingleUrl ? `!capture ${body}` : `!capture ${title || body || '[Dashboard file intake]'}`);
   return [
     command,
     '',
@@ -1293,6 +1294,33 @@ function buildIntakePayload() {
     body && !isSingleUrl ? body : ''
   ].join('\n').trim();
 }
+function extractYoutubeWatchUrl(text) {
+  const source = String(text || '');
+  const match = source.match(/https?:\/\/(?:www\.)?(?:youtu\.be\/[^\s<>"']+|youtube\.com\/(?:watch\?[^\s<>"']+|shorts\/[^\s<>"']+))/i);
+  return match ? match[0].replace(/[),.\]]+$/, '') : '';
+}
+function buildKnowledgeIntakePayload() {
+  const type = document.getElementById('intakeType').value;
+  const title = document.getElementById('intakeTitle').value.trim();
+  const body = document.getElementById('intakeBody').value.trim();
+  const tags = document.getElementById('intakeTags').value.trim();
+  const youtubeUrl = extractYoutubeWatchUrl(`${title}\n${body}`);
+  return {
+    dashboard_type: 'knowledge_intake',
+    target_channel: 'jh-chat',
+    action: youtubeUrl ? 'watch' : 'capture',
+    request_id: `knowledge-${Date.now()}`,
+    type,
+    title: title || (youtubeUrl ? 'YouTube watch intake' : 'Dashboard knowledge intake'),
+    body,
+    tags,
+    capture_target: youtubeUrl,
+    watch_command: youtubeUrl ? `/watch ${youtubeUrl}` : '',
+    source: 'repo-dashboard',
+    created_at: new Date().toISOString(),
+    source_dashboard_url: location.href
+  };
+}
 async function copyIntakePayload() {
   const payload = buildIntakePayload();
   navigator.clipboard.writeText(payload).then(() => {
@@ -1303,10 +1331,28 @@ async function sendKnowledgeIntake() {
   const url = localStorage.getItem('bucky-webhook');
   const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
   const payload = buildIntakePayload();
+  const intakePayload = buildKnowledgeIntakePayload();
   const files = document.getElementById('intakeFiles').files;
   if (!payload && (!files || !files.length)) {
     showToast('Nothing to send', 'Add a link, note, or file first.');
     return;
+  }
+  try {
+    await postToIntake(intakePayload);
+    if (files && files.length && url) {
+      await postWebhookWithFiles(url, name, payload, files);
+    }
+    showToast(
+      intakePayload.action === 'watch' ? 'Watch intake queued' : 'Bucky intake queued',
+      intakePayload.action === 'watch' ? 'YouTube link will be captured through /watch.' : 'Queued through local Bucky OS intake.'
+    );
+    document.getElementById('intakeTitle').value = '';
+    document.getElementById('intakeBody').value = '';
+    document.getElementById('intakeTags').value = '';
+    document.getElementById('intakeFiles').value = '';
+    return;
+  } catch (e) {
+    showToast('Local intake failed', 'Falling back to Discord webhook.');
   }
   const ok = await postWebhookWithFiles(url, name, payload, files);
   if (ok) {
