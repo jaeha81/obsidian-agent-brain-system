@@ -4,14 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User-Bucky 체크리스트</title>
-<script>document.documentElement.style.visibility='hidden'</script>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-netlifyIdentity.on('init',function(u){
-  if(!u){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
   else{document.documentElement.style.visibility='';}
-});
-netlifyIdentity.on('logout',function(){location.replace('/login.html');});
+})();
 </script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
