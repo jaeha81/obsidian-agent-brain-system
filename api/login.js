@@ -15,13 +15,18 @@ function safeRedirect(value, fallback) {
 }
 
 async function parseBody(req) {
-  return new Promise((resolve) => {
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (req.body && typeof req.body === 'string') {
+    return Object.fromEntries(new URLSearchParams(req.body));
+  }
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
     req.on('end', () => {
-      const params = new URLSearchParams(body);
-      resolve(Object.fromEntries(params));
+      const body = Buffer.concat(chunks).toString();
+      resolve(Object.fromEntries(new URLSearchParams(body)));
     });
+    req.on('error', reject);
   });
 }
 
