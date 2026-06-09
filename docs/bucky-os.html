@@ -399,6 +399,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
       Home
     </div>
+    <div class="nav-item" onclick="switchPage('tasks',this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Tasks
+    </div>
     <div class="nav-item" onclick="switchPage('skills',this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
       Skills
@@ -439,7 +443,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div class="breadcrumb">
       Operator <span class="sep">/</span> <span>local</span>
     </div>
-    <div class="agent-status">
+    <div class="agent-status" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <button onclick="loadTasksData()" style="padding:3px 10px;border-radius:5px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600;transition:all .15s">⟳ REFRESH</button>
+      <span id="clock" style="font-family:monospace;font-size:12px;color:var(--dim);min-width:50px">00:00:00</span>
       <span id="status-label" style="color:var(--dim)">BUCKY-AGENT</span>
       <div class="status-pill" id="status-pill">
         <div class="badge-dot online"></div>
@@ -547,6 +553,45 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ═══ TASKS PAGE ═══ -->
+    <div class="page" id="page-tasks">
+      <div class="section-header">
+        <span class="section-title">Mission Control</span>
+      </div>
+
+      <div class="stat-row" id="task-stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="ts-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">P0 Critical</div>
+          <div class="stat-value" style="color:var(--red)" id="ts-p0">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">P1 Important</div>
+          <div class="stat-value" id="ts-p1">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Done</div>
+          <div class="stat-value" style="color:var(--green)" id="ts-done">—</div>
+        </div>
+      </div>
+
+      <div style="padding:0 24px">
+        <div class="section-header">
+          <span class="section-title">Pending Tasks</span>
+          <button onclick="loadTasksData()" style="padding:4px 10px;border-radius:5px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">⟳ Refresh</button>
+        </div>
+        <div id="tasks-list-pending" style="margin-bottom:20px"></div>
+
+        <div class="section-header">
+          <span class="section-title">Recently Done</span>
+        </div>
+        <div id="tasks-list-done"></div>
       </div>
     </div>
 
@@ -688,6 +733,17 @@ let mainSim = null, memSim = null;
 let allNodes = [], allEdges = [];
 let currentFilter = 'all';
 
+// ── CLOCK ──
+(function tickClock() {
+  const el = document.getElementById('clock');
+  function upd() {
+    const now = new Date();
+    el.textContent = now.toTimeString().slice(0, 8);
+  }
+  upd();
+  setInterval(upd, 1000);
+})();
+
 // ── PAGE SWITCHING ──
 function switchPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -695,6 +751,7 @@ function switchPage(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   if (el) el.classList.add('active');
   if (name === 'memory' && !memSim) renderMemoryGraph();
+  if (name === 'tasks') loadTasksData();
 }
 
 // ── GRAPH COLOR ──
@@ -929,6 +986,56 @@ function renderPersonaCards(skills) {
     </div>`;
 
   document.getElementById('skills-count').textContent = personas.length;
+}
+
+// ── TASKS DATA ──
+async function loadTasksData() {
+  try {
+    const r = await fetch(`${API}/agent-os/tasks`);
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    const { pending = [], done = [], summary = {} } = d;
+
+    // Stats
+    document.getElementById('ts-total').textContent = summary.total || 0;
+    document.getElementById('ts-p0').textContent = summary.p0_count || 0;
+    document.getElementById('ts-p1').textContent = summary.p1_count || 0;
+    document.getElementById('ts-done').textContent = summary.done || 0;
+
+    // Pending list
+    const pendingEl = document.getElementById('tasks-list-pending');
+    if (pending.length) {
+      pendingEl.innerHTML = pending.map(t => {
+        const priClass = t.priority === 'P0' ? 'stat-value' : t.priority === 'P1' ? 'stat-sub' : 'stat-sub';
+        const priCol = t.priority === 'P0' ? 'color:var(--red)' : t.priority === 'P1' ? 'color:var(--accent)' : 'color:var(--dim)';
+        return `<div class="cmd-card" style="margin-bottom:8px">
+          <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)">
+            <span style="font-family:monospace;font-size:11px;color:var(--dim);min-width:50px">${t.id || '—'}</span>
+            <span style="flex:1;font-size:12px">${t.title || '—'}</span>
+            <span style="font-family:monospace;font-size:10px;padding:2px 6px;border-radius:3px;${priCol};${t.priority === 'P0' ? 'background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3)' : t.priority === 'P1' ? 'background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3)' : 'background:rgba(107,107,128,.15);border:1px solid rgba(107,107,128,.3)'}">${t.priority || '대기'}</span>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      pendingEl.innerHTML = '<div style="color:var(--green);font-size:12px;padding:20px;text-align:center">All tasks complete ✓</div>';
+    }
+
+    // Done list
+    const doneEl = document.getElementById('tasks-list-done');
+    if (done.length) {
+      doneEl.innerHTML = done.slice(0, 10).map(t => `<div class="cmd-card" style="margin-bottom:4px;opacity:.6">
+        <div style="padding:8px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-family:monospace;font-size:11px;color:var(--dim);min-width:50px">${t.id || '—'}</span>
+          <span style="flex:1;font-size:12px;text-decoration:line-through">${t.title || '—'}</span>
+        </div>
+      </div>`).join('');
+      if (done.length > 10) doneEl.innerHTML += `<div style="color:var(--dim);font-size:11px;padding:8px 14px">+${done.length - 10} more</div>`;
+    } else {
+      doneEl.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:20px;text-align:center">No completed tasks</div>';
+    }
+  } catch(e) {
+    document.getElementById('tasks-list-pending').innerHTML = '<div style="color:var(--dim);font-size:11px">Failed to load tasks</div>';
+  }
 }
 
 // ── ACTIVITY EVENTS ──
