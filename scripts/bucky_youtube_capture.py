@@ -134,10 +134,68 @@ def fetch_youtube_meta(url: str) -> dict:
 
 # ── 트랜스크립트 수집 ────────────────────────────────────────────────────────
 
+def _parse_subtitle_text(content: str, fmt: str) -> str:
+    """VTT/SRT 파일에서 순수 텍스트 추출."""
+    lines = []
+    for line in content.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        if fmt == "vtt" and (line.startswith("WEBVTT") or "-->" in line):
+            continue
+        if fmt == "srt" and ("-->" in line or line.isdigit()):
+            continue
+        line = re.sub(r"<[^>]+>", "", line)
+        if line:
+            lines.append(line)
+    return " ".join(lines)[:6000]
+
+
+def _fetch_transcript_ytdlp(video_id: str) -> str:
+    """yt-dlp로 자막 파일 다운로드 (youtube-transcript-api 실패 시 폴백)."""
+    try:
+        import yt_dlp  # type: ignore
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ydl_opts = {
+                "quiet": True,
+                "no_warnings": True,
+                "skip_download": True,
+                "writeautosub": True,
+                "writesubtitles": True,
+                "subtitleslangs": ["ko", "en", "ko-KR"],
+                "subtitlesformat": "vtt",
+                "outtmpl": str(Path(tmpdir) / "%(id)s.%(ext)s"),
+            }
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            for sub_file in sorted(Path(tmpdir).glob(f"{video_id}*.vtt")):
+                text = _parse_subtitle_text(sub_file.read_text(encoding="utf-8", errors="replace"), "vtt")
+                if text:
+                    print(f"[YouTube] yt-dlp 자막 성공: {sub_file.name}", flush=True)
+                    return text
+
+            for sub_file in sorted(Path(tmpdir).glob(f"{video_id}*.srt")):
+                text = _parse_subtitle_text(sub_file.read_text(encoding="utf-8", errors="replace"), "srt")
+                if text:
+                    print(f"[YouTube] yt-dlp SRT 자막 성공: {sub_file.name}", flush=True)
+                    return text
+    except Exception as e:
+        print(f"[YouTube] yt-dlp 자막 폴백 실패: {e}", flush=True)
+    return ""
+
+
+_transcript_fail_reason: dict = {}  # video_id → 실패 사유 (rate_limited / no_subtitles / error)
+
+
 def fetch_transcript(video_id: str, lang: str = "ko") -> str:
     """
     youtube-transcript-api 사용 (설치된 경우).
-    미설치 시 자막 없음 메시지 반환.
+    rate limit/자막 없음 시 yt-dlp 자막으로 폴백.
+    실패 사유는 _transcript_fail_reason[video_id]에 기록.
     """
     if not video_id:
         return ""
@@ -147,7 +205,7 @@ def fetch_transcript(video_id: str, lang: str = "ko") -> str:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
 
-        # 한국어 우선, 없으면 영어, 없으면 자동
+        # 한국어 우선, 없으면 영어, 없으면 자동생성 전체 탐색
         transcript = None
         for try_lang in [lang, "en", None]:
             try:
@@ -159,17 +217,36 @@ def fetch_transcript(video_id: str, lang: str = "ko") -> str:
             except Exception:
                 continue
 
+        if transcript is None:
+            # 모든 사용 가능한 transcript 중 첫 번째 시도
+            try:
+                available = list(transcript_list)
+                if available:
+                    transcript = available[0]
+            except Exception:
+                pass
+
         if transcript:
             entries = transcript.fetch()
             full_text = " ".join(e["text"] for e in entries)
-            return full_text[:6000]  # 최대 6000자
+            return full_text[:6000]
 
     except ImportError:
         pass
     except Exception as e:
-        print(f"[YouTube] 트랜스크립트 수집 실패: {e}", flush=True)
+        err_str = str(e).lower()
+        if "429" in err_str or "too many" in err_str or "blocked" in err_str:
+            print(f"[YouTube] rate limit 감지, yt-dlp 폴백 시도", flush=True)
+            _transcript_fail_reason[video_id] = "rate_limited"
+        elif "no transcript" in err_str or "subtitles" in err_str or "disabled" in err_str:
+            print(f"[YouTube] 자막 없음, yt-dlp 폴백 시도", flush=True)
+            _transcript_fail_reason[video_id] = "no_subtitles"
+        else:
+            print(f"[YouTube] 트랜스크립트 수집 실패: {e}", flush=True)
+            _transcript_fail_reason[video_id] = "error"
 
-    return ""
+    # yt-dlp 자막 폴백
+    return _fetch_transcript_ytdlp(video_id)
 
 
 # ── Claude API 요약 ──────────────────────────────────────────────────────────
@@ -220,8 +297,26 @@ def summarize_with_claude(title: str, transcript: str, description: str) -> str:
 # ── Obsidian 저장 ────────────────────────────────────────────────────────────
 
 def save_to_obsidian(meta: dict, transcript: str, summary: str, tags: list) -> Path:
-    """YouTube 영상 → Obsidian 지식 노트 저장."""
+    """YouTube 영상 → Obsidian 지식 노트 저장. 동일 video_id 중복 시 기존 파일 반환."""
     KNOWLEDGE_DIR.mkdir(parents=True, exist_ok=True)
+
+    # 중복 체크: 같은 video_id가 이미 저장된 파일 있으면 기존 파일 반환
+    video_id = meta.get("video_id", "")
+    if video_id:
+        for existing in sorted(KNOWLEDGE_DIR.glob("*-yt-*.md"), reverse=True):
+            try:
+                header = existing.read_text(encoding="utf-8", errors="ignore")[:600]
+                # youtu.be/ID, youtube.com/watch?v=ID, youtube.com/shorts/ID, video_id: "ID" 모두 커버
+                if (
+                    f"/{video_id}" in header
+                    or f"v={video_id}" in header
+                    or f'"{video_id}"' in header
+                    or f"video_id: {video_id}" in header
+                ):
+                    print(f"[YouTube] 중복 감지, 기존 파일 반환: {existing.name}", flush=True)
+                    return existing
+            except Exception:
+                continue
 
     date_str = datetime.now().strftime("%Y-%m-%d")
     title = meta.get("title", "YouTube Video") or "YouTube Video"
@@ -231,13 +326,14 @@ def save_to_obsidian(meta: dict, transcript: str, summary: str, tags: list) -> P
     filename = f"{date_str}-yt-{slug}.md"
     filepath = KNOWLEDGE_DIR / filename
     if filepath.exists():
-        ts = datetime.now().strftime("%H%M%S")
-        filepath = KNOWLEDGE_DIR / f"{date_str}-yt-{slug}-{ts}.md"
+        # 파일명 충돌 시 video_id suffix 사용 (타임스탬프 대신)
+        filepath = KNOWLEDGE_DIR / f"{date_str}-yt-{slug}-{video_id[:7] if video_id else 'dup'}.md"
 
     tags_yaml = "\n".join(f"  - {t}" for t in (tags or ["youtube", "video-knowledge"]))
     channel = meta.get("channel", "")
     publish_date = meta.get("publish_date", "")
     thumbnail = meta.get("thumbnail", "")
+    transcript_status = meta.get("transcript_status", "none" if not transcript else "ok")
 
     # 트랜스크립트 섹션 (있을 경우)
     transcript_section = ""
@@ -252,6 +348,7 @@ def save_to_obsidian(meta: dict, transcript: str, summary: str, tags: list) -> P
 title: "{title}"
 source: "{meta.get('url', '')}"
 source_type: youtube
+video_id: {video_id}
 channel: "{channel}"
 publish_date: "{publish_date}"
 date: {date_str}
@@ -260,6 +357,7 @@ tags:
 {tags_yaml}
 status: knowledge
 has_transcript: {"true" if transcript else "false"}
+transcript_status: {transcript_status}
 ---
 
 # {title}
@@ -321,8 +419,10 @@ def capture_youtube(
 
     # 2. 트랜스크립트
     print(f"[YouTube] 트랜스크립트 수집 중...", flush=True)
+    _transcript_fail_reason.pop(video_id, None)
     transcript = fetch_transcript(video_id, lang)
     has_transcript = bool(transcript)
+    meta["transcript_status"] = "ok" if has_transcript else _transcript_fail_reason.get(video_id, "none")
 
     # 3. 요약 (Claude API)
     summary = ""
@@ -334,9 +434,10 @@ def capture_youtube(
             meta.get("description", ""),
         )
 
-    # 4. Obsidian 저장
+    # 4. Obsidian 저장 (중복 시 기존 파일 경로 반환)
     filepath = save_to_obsidian(meta, transcript, summary, tags or ["youtube", "knowledge", "auto-capture"])
-    print(f"[YouTube] 저장 완료: {filepath}", flush=True)
+    is_duplicate = filepath.exists() and filepath.stat().st_mtime < (datetime.now().timestamp() - 5)
+    print(f"[YouTube] {'중복 스킵' if is_duplicate else '저장 완료'}: {filepath}", flush=True)
 
     return {
         "success": True,
@@ -346,6 +447,7 @@ def capture_youtube(
         "has_transcript": has_transcript,
         "video_id": video_id,
         "channel": meta.get("channel", ""),
+        "duplicate": is_duplicate,
     }
 
 

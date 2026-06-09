@@ -2,7 +2,8 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-10"
+    "last_updated": "2026-06-10",
+    "last_completed": "CL-033"
   },
   "tasks": [
     {
@@ -237,10 +238,14 @@
       "description": "",
       "priority": "대기",
       "category": "자동감지",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-07",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/raw_import_watcher.py 구현 완료 확인. 음성/영상/YT URL/문서 패턴 감지 + --once/--interval 옵션 + RAW_IMPORT → 01_RAW 이동 로직. 코드베이스 검수에서 실제 구현 확인됨.",
       "source": "discord-auto",
-      "refs": []
+      "refs": [
+        "scripts/raw_import_watcher.py"
+      ]
     },
     {
       "id": "CL-018",
@@ -259,14 +264,16 @@
       "description": "app_session_bridge.py 활성화에 필요. Discord 서버에 채널 2개 생성: 'jh-클로드코드앱', 'jh-코덱스앱'. 채널 ID를 .env에 JH_CLAUDE_CODE_CHANNEL_ID / JH_CODEX_CHANNEL_ID로 추가. 이후 봇 재시작.",
       "priority": "P1",
       "category": "설정",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-09",
       "source": "discord_bot.py 신규 채널 감지 (2026-06-09 세션)",
       "refs": [
         "scripts/app_session_bridge.py",
         "docs/app-session.html",
         ".env"
-      ]
+      ],
+      "completed": "2026-06-10",
+      "completion_note": "discord_bot.py _init_jh_channels()에 jh-클로드코드앱/jh-코덱스앱 자동 생성 로직 이미 구현됨. .env에 JH_CLAUDE_CODE_CHANNEL_ID/JH_CODEX_CHANNEL_ID 저장 확인."
     },
     {
       "id": "CL-020",
@@ -313,8 +320,10 @@
       "description": "scripts/tablet_voice_intake.py 구현: 태블릿 마이크 30초 청크 캡처 → 로컬 Whisper STT → bucky_stt_enhancer 처리 → tablet-batch-upload-manifest 형식으로 패키징 → bucky_chat_server.py:8765 전송. 과금 없는 Phase 1 범위.",
       "priority": "P1",
       "category": "개발",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/tablet_voice_intake.py 구현 완료. 30초 청크 녹음→Whisper STT→stt_enhancer→manifest→POST. --check/--start/--model 옵션. 의존성 graceful fallback 포함.",
       "source": "daily-plus Card 3 — afa1942d",
       "refs": [
         "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md",
@@ -328,8 +337,10 @@
       "description": "scripts/tablet_setup.sh: Termux + Python + Whisper base 자동 설치. bucky_chat_server.py에 /tablet-intake POST 라우트 추가. Obsidian 04_SiteLog/voice_log_{DATE}.md 자동 저장.",
       "priority": "P1",
       "category": "개발",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/tablet_setup.sh 구현 완료 (Termux 원클릭 설치). bucky_chat_server.py에 /tablet-intake POST 엔드포인트 추가. ObsidianVault/04_SiteLog/voice_log_{DATE}.md 누적 저장.",
       "source": "daily-plus Card 3 — afa1942d",
       "refs": [
         "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md",
@@ -342,7 +353,9 @@
       "description": "review-automation-protocol.md Phase 2 구현. 숏폼 훅 5종 템플릿(hook-library/) + Trigger.dev 5개 Job(git push/구현완료/세션시작/세션종료/검수완료). 착수 전 Trigger.dev 호스팅 방식(SaaS vs Docker) 결정 필요.",
       "priority": "P1",
       "category": "개발",
-      "status": "pending",
+      "status": "done",
+      "completed": "2026-06-10",
+      "completion_note": "훅 템플릿 5종(ObsidianVault/08_Content/hook-library/) + Trigger.dev job stub 5개(scripts/trigger_jobs/) 생성. Discord webhook/Obsidian 연동은 TODO 주석으로 남기고 호스팅 방식(SaaS/Docker) 결정 후 활성화 예정.",
       "added": "2026-06-10",
       "source": "daily-plus Card 9 — 사용자 승인 2026-06-10",
       "refs": [
@@ -370,18 +383,22 @@
       "description": "",
       "priority": "대기",
       "category": "자동감지",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "4eb7ef3 push 완료 — 자동 해결됨",
       "source": "discord-auto",
       "refs": []
     },
     {
-      "id": "CL-029",
+      "id": "CL-033",
       "title": "BuckyOS 벤치마킹 구현 — Hermes Agentic OS 수준의 실제 작동 대시보드",
       "description": "영상 분석 완료(Jack Roberts Hermes OS). 현재 BuckyOS는 skeleton만 존재 → Phase 1~4 순차 구현으로 데이터+시각화+실시간 기능 추가. Phase 1(API): 1~2일, Phase 2(그래프+차트): 1~2일, Phase 3(실시간): 1일, Phase 4(디자인): 1~2일. 총 5~7일 예상.",
       "priority": "P0",
       "category": "개발",
-      "status": "pending_approval",
+      "status": "done",
+      "completed": "2026-06-10",
+      "completion_note": "코드베이스 검수 완료: 3d-force-graph(Pantheon), Memory Stack 4레이어 탭, AI Spend 차트, Mission Goals 트리, /agent-os/ API 10개, 30초 자동갱신+Live 인디케이터, Obsidian Graph iframe 임베드 모두 구현 확인. 미완 3개(Activity Feed 독립 폴링, Demo 데이터 T021-T024, 실그래프 렌더 함수) 후속 태스크로 이관.",
       "added": "2026-06-10",
       "source": "영상 벤치마킹 분석 (Claude Code 2026-06-10)",
       "refs": [
@@ -413,14 +430,71 @@
       "description": "",
       "priority": "대기",
       "category": "자동감지",
-      "status": "pending",
+      "status": "done",
       "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": ".gitignore에 .agents/ .cache/ data/bucky_memory.db* data/intake_queue/processed/ data/wishket_loop_history.json 추가 완료",
       "source": "discord-auto",
       "refs": []
     },
     {
       "id": "CL-032",
       "title": "Obsidian에서 3D Graph 플러그인 리로드 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-034",
+      "title": "git push (별도 승인 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-035",
+      "title": ".git/packed-refs.lock` 잠금 파일 (아래 안내)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-036",
+      "title": ".git/packed-refs.lock` 잔여 (push는 정상 완료, 무해)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-037",
+      "title": "Discord 봇 재시작은 별도 작업입니다 — 변경사항은 봇을 재시작해야 반영됩니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-038",
+      "title": "docs/data/user_checklist.json`의 checklist push — 별도 세션에서 처리 필요하면 말씀해 주세요.",
       "description": "",
       "priority": "대기",
       "category": "자동감지",

@@ -243,7 +243,9 @@
       "completed": "2026-06-10",
       "completion_note": "scripts/raw_import_watcher.py 구현 완료 확인. 음성/영상/YT URL/문서 패턴 감지 + --once/--interval 옵션 + RAW_IMPORT → 01_RAW 이동 로직. 코드베이스 검수에서 실제 구현 확인됨.",
       "source": "discord-auto",
-      "refs": ["scripts/raw_import_watcher.py"]
+      "refs": [
+        "scripts/raw_import_watcher.py"
+      ]
     },
     {
       "id": "CL-018",
@@ -471,6 +473,28 @@
     {
       "id": "CL-036",
       "title": ".git/packed-refs.lock` 잔여 (push는 정상 완료, 무해)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-037",
+      "title": "Discord 봇 재시작은 별도 작업입니다 — 변경사항은 봇을 재시작해야 반영됩니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-038",
+      "title": "docs/data/user_checklist.json`의 checklist push — 별도 세션에서 처리 필요하면 말씀해 주세요.",
       "description": "",
       "priority": "대기",
       "category": "자동감지",
