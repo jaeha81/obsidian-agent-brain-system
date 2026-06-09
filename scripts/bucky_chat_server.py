@@ -223,6 +223,27 @@ def update_wishket():
     return jsonify(result), code
 
 
+@app.post("/update-profile")
+def update_profile():
+    """위시켓 프로필 자동 업데이트 (헤드라인 + 자기소개)."""
+    py = sys.executable
+    scraper = str(SCRIPTS / "wishket_scraper.py")
+
+    def _run():
+        env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+        r = subprocess.run(
+            [py, "-X", "utf8", scraper, "--update-profile"],
+            capture_output=True, text=True, env=env, cwd=str(ROOT)
+        )
+        if r.returncode != 0:
+            return {"ok": False, "stderr": r.stderr[-500:]}
+        return {"ok": True, "msg": "프로필 업데이트 완료"}
+
+    import threading
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"status": "running", "msg": "프로필 업데이트 시작됨. 30초 후 위시켓에서 확인하세요."}), 202
+
+
 @app.delete("/chat")
 def clear_chat():
     data = request.get_json(silent=True) or {}

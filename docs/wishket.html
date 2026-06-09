@@ -377,6 +377,9 @@
     <input type="text" id="whName" placeholder="Wishket Dashboard">
     <label style="margin-top:10px;display:block">Bucky OS 엔드포인트 (로컬, 선택)</label>
     <input type="url" id="buckyOsUrl" placeholder="http://localhost:8765">
+    <label style="margin-top:10px;display:block">GitHub PAT (원격 업데이트용, 선택)</label>
+    <input type="password" id="ghPat" placeholder="ghp_xxxx — repo workflow 권한 필요">
+    <p style="font-size:11px;color:#8b949e;margin:4px 0 0">로컬 서버 연결 실패 시 GitHub Actions로 자동 폴백. PAT는 이 브라우저에만 저장됩니다.</p>
     <div style="margin-top:12px"><button class="wh-btn" onclick="testWebhook()">🧪 연결 테스트</button></div>
     <div class="wh-btns">
       <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
@@ -722,8 +725,43 @@ function triggerUpdate(force) {
   }).catch(() => {
     btn.disabled = false;
     btn.textContent = '↺ 업데이트';
-    showToast('연결 실패', 'Bucky 서버(localhost:8765)가 실행 중인지 확인하세요.');
+    const pat = getGhPat();
+    if (pat) {
+      triggerViaGitHub(force, pat);
+    } else {
+      showToast('연결 실패', '로컬 서버 불가. ⚙️ 설정에서 GitHub PAT를 등록하면 원격 업데이트 가능합니다.');
+    }
   });
+}
+
+async function triggerViaGitHub(force, pat) {
+  const btn = document.getElementById('updateBtn');
+  btn.disabled = true;
+  btn.textContent = 'GitHub 트리거 중...';
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${pat}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ref: 'master', inputs: { force: force ? 'true' : 'false', wishket_only: 'true' } })
+    });
+    btn.disabled = false;
+    btn.textContent = '↺ 업데이트';
+    if (res.status === 204) {
+      showToast('GitHub Actions 시작됨', '2~3분 후 페이지를 새로고침하세요. (GitHub Actions 실행 중)');
+      setTimeout(() => location.reload(), 180000);
+    } else {
+      const err = await res.text();
+      showToast('GitHub Actions 실패', `HTTP ${res.status} — PAT 권한(repo+workflow) 확인`);
+    }
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '↺ 업데이트';
+    showToast('GitHub 연결 실패', e.message);
+  }
 }
 
 // ── 상태 변경 ──
@@ -810,9 +848,13 @@ function closeBuckyPanel() {
 // ── Discord + Bucky OS ──
 const DEFAULT_WEBHOOK = '';
 const WK_BUCKY_OS_KEY = 'wkBuckyOsEndpoint';
+const WK_GH_PAT_KEY = 'wkGhPat';
+const GH_REPO = 'jaeha81/obsidian-agent-brain-system';
+const GH_WORKFLOW = 'dashboard-update.yml';
 function getWebhookUrl() { return localStorage.getItem('wh_url') || DEFAULT_WEBHOOK || ''; }
 function getWebhookName() { return localStorage.getItem('wh_name') || 'Wishket Dashboard'; }
 function getWkBuckyEndpoint() { return (localStorage.getItem(WK_BUCKY_OS_KEY) || 'http://localhost:8765').replace(/\/$/, ''); }
+function getGhPat() { return localStorage.getItem(WK_GH_PAT_KEY) || ''; }
 
 async function postToWkIntake(payload) {
   const res = await fetch(getWkBuckyEndpoint() + '/intake', {
@@ -951,6 +993,7 @@ function openWebhookSettings() {
   document.getElementById('whUrl').value = localStorage.getItem('wh_url') || '';
   document.getElementById('whName').value = localStorage.getItem('wh_name') || '';
   document.getElementById('buckyOsUrl').value = localStorage.getItem(WK_BUCKY_OS_KEY) || 'http://localhost:8765';
+  document.getElementById('ghPat').value = localStorage.getItem(WK_GH_PAT_KEY) || '';
   document.getElementById('whOverlay').classList.add('show');
 }
 function closeWebhookSettings() { document.getElementById('whOverlay').classList.remove('show'); }
@@ -958,11 +1001,14 @@ function saveWebhook() {
   const url = document.getElementById('whUrl').value.trim();
   const name = document.getElementById('whName').value.trim();
   const osUrl = document.getElementById('buckyOsUrl').value.trim();
+  const pat = document.getElementById('ghPat').value.trim();
   if (url) localStorage.setItem('wh_url', url);
   if (name) localStorage.setItem('wh_name', name);
   if (osUrl) localStorage.setItem(WK_BUCKY_OS_KEY, osUrl);
+  if (pat) localStorage.setItem(WK_GH_PAT_KEY, pat);
+  else localStorage.removeItem(WK_GH_PAT_KEY);
   closeWebhookSettings();
-  showToast('저장 완료', 'Bucky OS + Discord 설정이 저장되었습니다.');
+  showToast('저장 완료', 'Bucky OS + Discord + GitHub PAT 설정이 저장되었습니다.');
 }
 async function testWebhook() {
   const url = document.getElementById('whUrl').value.trim();

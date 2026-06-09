@@ -460,12 +460,142 @@ def manual_login() -> None:
         browser.close()
 
 
+WISHKET_PROFILE_EDIT = f"{WISHKET_BASE}/partner/profile/edit/"
+
+PROFILE_DATA = {
+    "headline": "AI 자동화 개발자 · Python · LangChain · 인테리어건축",
+    "bio": (
+        "Python 기반 AI 에이전트 및 업무 자동화 개발 전문가입니다.\n\n"
+        "• LangChain / GPT / Claude API 기반 에이전트·봇 개발\n"
+        "• Playwright 자동화, 웹 스크래핑, Discord 봇 개발\n"
+        "• FastAPI 백엔드, RESTful API 설계\n"
+        "• 인테리어·건축 설계 10년+ 현장 경험\n\n"
+        "AI 자동화로 반복 업무를 줄이고 수익을 극대화하는 맞춤 솔루션을 제공합니다."
+    ),
+}
+
+
+def update_profile() -> bool:
+    """위시켓 프로필 페이지에 접속해 소개글·헤드라인을 자동으로 업데이트한다."""
+    from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        context = browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            locale="ko-KR",
+            viewport={"width": 1280, "height": 900},
+        )
+        page = context.new_page()
+
+        # 저장된 세션 쿠키 로드, 없으면 자동 로그인
+        cookies = _load_cached_cookies()
+        if cookies:
+            context.add_cookies(cookies)
+        else:
+            if not _do_login(page):
+                print("[Profile] 로그인 실패")
+                browser.close()
+                return False
+
+        try:
+            print(f"[Profile] 프로필 편집 페이지 이동: {WISHKET_PROFILE_EDIT}")
+            page.goto(WISHKET_PROFILE_EDIT, timeout=30000)
+            page.wait_for_load_state("networkidle", timeout=15000)
+
+            if not _is_logged_in(page):
+                print("[Profile] 세션 만료 — 재로그인 시도")
+                if not _do_login(page):
+                    print("[Profile] 재로그인 실패")
+                    browser.close()
+                    return False
+                page.goto(WISHKET_PROFILE_EDIT, timeout=30000)
+                page.wait_for_load_state("networkidle", timeout=15000)
+
+            _save_screenshot(page, "profile_before")
+
+            # 헤드라인 (한 줄 소개) 입력 시도
+            headline_selectors = [
+                'input[name="headline"]',
+                'input[placeholder*="한 줄"]',
+                'input[placeholder*="소개"]',
+                'input[id*="headline"]',
+                'input[id*="introduce"]',
+            ]
+            for sel in headline_selectors:
+                el = page.query_selector(sel)
+                if el:
+                    el.triple_click()
+                    el.fill(PROFILE_DATA["headline"])
+                    print(f"[Profile] 헤드라인 입력 완료 ({sel})")
+                    break
+            else:
+                print("[Profile] 헤드라인 필드 미발견 — 스킵")
+
+            # 자기소개 textarea 입력 시도
+            bio_selectors = [
+                'textarea[name="introduce"]',
+                'textarea[name="bio"]',
+                'textarea[name="description"]',
+                'textarea[placeholder*="소개"]',
+                'textarea[placeholder*="경력"]',
+                'textarea[id*="introduce"]',
+                'textarea[id*="bio"]',
+            ]
+            for sel in bio_selectors:
+                el = page.query_selector(sel)
+                if el:
+                    el.triple_click()
+                    el.fill(PROFILE_DATA["bio"])
+                    print(f"[Profile] 자기소개 입력 완료 ({sel})")
+                    break
+            else:
+                print("[Profile] 자기소개 필드 미발견 — 스킵")
+
+            # 저장 버튼 클릭
+            save_selectors = [
+                'button[type="submit"]',
+                'button:has-text("저장")',
+                'button:has-text("완료")',
+                'input[type="submit"]',
+            ]
+            saved = False
+            for sel in save_selectors:
+                el = page.query_selector(sel)
+                if el:
+                    el.click()
+                    page.wait_for_timeout(2000)
+                    print(f"[Profile] 저장 버튼 클릭 ({sel})")
+                    saved = True
+                    break
+
+            _save_screenshot(page, "profile_after")
+            browser.close()
+            return saved
+
+        except PWTimeout as e:
+            _save_screenshot(page, "profile_error")
+            print(f"[Profile] 타임아웃: {e}")
+            browser.close()
+            return False
+        except Exception as e:
+            _save_screenshot(page, "profile_error")
+            print(f"[Profile] 오류: {e}")
+            browser.close()
+            return False
+
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="위시켓 공고 스크래퍼")
     parser.add_argument("--manual-login", action="store_true", help="브라우저를 열어 수동 로그인 후 쿠키 저장")
     parser.add_argument("--clear-cache", action="store_true", help="저장된 세션 쿠키 삭제 후 재로그인")
+    parser.add_argument("--update-profile", action="store_true", help="위시켓 프로필 자동 업데이트")
     args = parser.parse_args()
 
     if args.clear_cache and _SESSION_CACHE.exists():
@@ -474,6 +604,9 @@ if __name__ == "__main__":
 
     if args.manual_login:
         manual_login()
+    elif args.update_profile:
+        ok = update_profile()
+        print("[Profile] 업데이트 완료" if ok else "[Profile] 업데이트 실패 — .cache/wishket_debug_profile_*.png 확인")
     else:
         projects, path = run()
         print(f"\n수집 결과: {len(projects)}개")

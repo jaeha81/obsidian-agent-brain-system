@@ -4,7 +4,16 @@ on:
   schedule:
     # 매일 09:00 KST (= 00:00 UTC)
     - cron: '0 0 * * *'
-  workflow_dispatch:  # 수동 트리거
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '캐시 초기화 후 전체 재수집 (true/false)'
+        required: false
+        default: 'false'
+      wishket_only:
+        description: '위시켓만 업데이트 (true/false)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
@@ -25,16 +34,28 @@ jobs:
           python-version: '3.12'
 
       - name: Python 의존성 설치
-        run: pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 playwright python-dotenv
+
+      - name: Playwright Chromium 설치
+        run: playwright install chromium --with-deps
 
       - name: 레포 대시보드 업데이트
+        if: github.event.inputs.wishket_only != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/update_dashboard.py
 
       - name: 위시켓 공고 스크래핑
-        run: python scripts/wishket_scraper.py
+        env:
+          WISHKET_EMAIL: ${{ secrets.WISHKET_EMAIL }}
+          WISHKET_PASSWORD: ${{ secrets.WISHKET_PASSWORD }}
+        run: |
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python -X utf8 scripts/wishket_scraper.py --clear-cache
+          else
+            python -X utf8 scripts/wishket_scraper.py
+          fi
         continue-on-error: true
 
       - name: 위시켓 대시보드 업데이트
