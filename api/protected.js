@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const sessionToken = (process.env.SESSION_TOKEN || '').trim();
 
-  if (!sessionToken || cookies.bucky_session !== sessionToken) {
+  if (!sessionToken || cookies.bucky_auth !== sessionToken) {
     const redirect = encodeURIComponent('/' + page + '.html');
     res.writeHead(302, { Location: `/login.html?redirect=${redirect}` });
     res.end();
