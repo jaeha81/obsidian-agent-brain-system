@@ -114,6 +114,71 @@ class DailyPlusDiscordIntakeTests(unittest.TestCase):
         self.assertIn("Daily Graphify Evolution", context)
         self.assertIn("Nodes: 42", context)
 
+    def test_chris_channel_context_includes_chris_role_instructions(self):
+        discord_bot = _get_discord_bot()
+        with tempfile.TemporaryDirectory() as tmp:
+            context_file = Path(tmp) / "BUCKY_CONTEXT.md"
+            chris_file = Path(tmp) / "chris.md"
+            context_file.write_text("base context", encoding="utf-8")
+            chris_file.write_text(
+                "Chris is Graph Brain Advisor. Bucky remains central brain.",
+                encoding="utf-8",
+            )
+            with mock.patch.object(discord_bot, "_CONTEXT_FILE", context_file):
+                with mock.patch.object(discord_bot, "_CHRIS_ROLE_FILE", chris_file):
+                    with mock.patch.object(discord_bot, "_CONTEXT_TTL", 0):
+                        with mock.patch.object(discord_bot, "_CHRIS_CONTEXT_TTL", 0):
+                            with mock.patch.object(discord_bot, "JH_CHRIS_CHANNEL_ID", "123"):
+                                with mock.patch.object(discord_bot, "_read_required_context_packs", return_value=""):
+                                    with mock.patch.object(discord_bot, "_read_latest_graphify_summary", return_value=""):
+                                        context = discord_bot._load_agent_context("123", "hello")
+
+        self.assertIn("base context", context)
+        self.assertIn("Chris Role Instructions", context)
+        self.assertIn("Graph Brain Advisor", context)
+        self.assertIn("Bucky remains central brain", context)
+
+    def test_knowledge_intake_context_includes_chris_role_instructions(self):
+        discord_bot = _get_discord_bot()
+        with tempfile.TemporaryDirectory() as tmp:
+            context_file = Path(tmp) / "BUCKY_CONTEXT.md"
+            chris_file = Path(tmp) / "chris.md"
+            context_file.write_text("base context", encoding="utf-8")
+            chris_file.write_text("Chris reviews Graphify output.", encoding="utf-8")
+            with mock.patch.object(discord_bot, "_CONTEXT_FILE", context_file):
+                with mock.patch.object(discord_bot, "_CHRIS_ROLE_FILE", chris_file):
+                    with mock.patch.object(discord_bot, "_CONTEXT_TTL", 0):
+                        with mock.patch.object(discord_bot, "_CHRIS_CONTEXT_TTL", 0):
+                            with mock.patch.object(discord_bot, "JH_CHRIS_CHANNEL_ID", ""):
+                                with mock.patch.object(discord_bot, "_read_required_context_packs", return_value=""):
+                                    with mock.patch.object(discord_bot, "_read_latest_graphify_summary", return_value=""):
+                                        context = discord_bot._load_agent_context(
+                                            "999",
+                                            "dashboard_type: knowledge_intake\nGraphify memo",
+                                        )
+
+        self.assertIn("Chris Role Instructions", context)
+        self.assertIn("Chris reviews Graphify output", context)
+
+    def test_non_chris_context_omits_chris_role_instructions(self):
+        discord_bot = _get_discord_bot()
+        with tempfile.TemporaryDirectory() as tmp:
+            context_file = Path(tmp) / "BUCKY_CONTEXT.md"
+            chris_file = Path(tmp) / "chris.md"
+            context_file.write_text("base context", encoding="utf-8")
+            chris_file.write_text("Chris reviews Graphify output.", encoding="utf-8")
+            with mock.patch.object(discord_bot, "_CONTEXT_FILE", context_file):
+                with mock.patch.object(discord_bot, "_CHRIS_ROLE_FILE", chris_file):
+                    with mock.patch.object(discord_bot, "_CONTEXT_TTL", 0):
+                        with mock.patch.object(discord_bot, "_CHRIS_CONTEXT_TTL", 0):
+                            with mock.patch.object(discord_bot, "JH_CHRIS_CHANNEL_ID", "123"):
+                                with mock.patch.object(discord_bot, "_read_required_context_packs", return_value=""):
+                                    with mock.patch.object(discord_bot, "_read_latest_graphify_summary", return_value=""):
+                                        context = discord_bot._load_agent_context("999", "normal chat")
+
+        self.assertIn("base context", context)
+        self.assertNotIn("Chris Role Instructions", context)
+
 
 if __name__ == "__main__":
     unittest.main()
