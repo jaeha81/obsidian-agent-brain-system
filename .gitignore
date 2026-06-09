@@ -71,6 +71,8 @@ ObsidianVault/03_Projects/*
 !ObsidianVault/03_Projects/github-repos/**
 !ObsidianVault/03_Projects/ecommerce-roadmap/
 !ObsidianVault/03_Projects/ecommerce-roadmap/**
+!ObsidianVault/03_Projects/agents/
+!ObsidianVault/03_Projects/agents/**
 
 # Obsidian private runtime (repo-root; only Bucky bootstrap is tracked)
 /.obsidian/*
