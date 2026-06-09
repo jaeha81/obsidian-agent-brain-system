@@ -328,6 +328,7 @@
 
 <div class="controls">
   <button class="wh-btn" style="border-radius:20px;font-size:0.78rem" onclick="openWebhookSettings()">⚙️ Discord 웹훅</button>
+  <button class="filter-btn" id="updateBtn" onclick="triggerUpdate(false)" style="border-color:rgba(88,166,255,0.5);color:var(--accent)">↺ 업데이트</button>
   <button class="filter-btn active" onclick="setFilter(this,'all')">전체</button>
   <button class="filter-btn" onclick="setFilter(this,'new')">🔵 새 공고</button>
   <button class="filter-btn" onclick="setFilter(this,'bid')">🟡 응찰 중</button>
@@ -682,6 +683,32 @@ function updateProgress() {
 function updateLastScan() {
   const dates = PROJECTS.map(p => p.scraped_at).filter(Boolean).sort().reverse();
   document.getElementById('lastScan').textContent = dates.length > 0 ? dates[0].slice(0, 16).replace('T', ' ') : '없음';
+}
+
+// ── 위시켓 업데이트 ──
+function triggerUpdate(force) {
+  const btn = document.getElementById('updateBtn');
+  const buckyUrl = getWkBuckyEndpoint();
+  btn.disabled = true;
+  btn.textContent = '업데이트 중...';
+  fetch(buckyUrl + '/update-wishket', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ force: !!force, async: true })
+  }).then(r => r.json()).then(d => {
+    btn.disabled = false;
+    btn.textContent = '↺ 업데이트';
+    if (d.ok === false) {
+      showToast('업데이트 실패', d.stderr || d.msg || '오류 발생');
+    } else {
+      showToast('업데이트 시작됨', d.msg || '1~2분 후 페이지를 새로고침하세요.');
+      setTimeout(() => location.reload(), 90000);
+    }
+  }).catch(() => {
+    btn.disabled = false;
+    btn.textContent = '↺ 업데이트';
+    showToast('연결 실패', 'Bucky 서버(localhost:8765)가 실행 중인지 확인하세요.');
+  });
 }
 
 // ── 상태 변경 ──

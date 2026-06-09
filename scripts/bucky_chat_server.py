@@ -21,6 +21,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import uuid
@@ -166,6 +167,60 @@ def intake_dashboard():
         return jsonify({"error": f"queue write failed: {exc}"}), 500
 
     return jsonify({"status": "accepted", "request_id": request_id, "queue_file": filename}), 202
+
+
+@app.post("/update-wishket")
+def update_wishket():
+    """Trigger wishket scraper → dashboard generator → git push.
+
+    Returns immediately with 202 if async=true (default), or waits for result.
+    """
+    data = request.get_json(silent=True) or {}
+    force = bool(data.get("force", False))
+    async_mode = bool(data.get("async", True))
+
+    py = sys.executable
+    scraper = str(SCRIPTS / "wishket_scraper.py")
+    generator = str(SCRIPTS / "generate_wishket_dashboard.py")
+
+    def _run():
+        env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+        scraper_args = [py, "-X", "utf8", scraper]
+        if force:
+            scraper_args.append("--clear-cache")
+        r1 = subprocess.run(scraper_args, capture_output=True, text=True, env=env, cwd=str(ROOT))
+        if r1.returncode != 0:
+            return {"ok": False, "step": "scraper", "stderr": r1.stderr[-500:]}
+
+        r2 = subprocess.run([py, "-X", "utf8", generator], capture_output=True, text=True, env=env, cwd=str(ROOT))
+        if r2.returncode != 0:
+            return {"ok": False, "step": "generator", "stderr": r2.stderr[-500:]}
+
+        r3 = subprocess.run(
+            ["git", "add", "docs/wishket.html"],
+            capture_output=True, text=True, cwd=str(ROOT)
+        )
+        diff = subprocess.run(["git", "diff", "--cached", "--stat"], capture_output=True, text=True, cwd=str(ROOT))
+        if not diff.stdout.strip():
+            return {"ok": True, "changed": False, "msg": "공고 변경 없음"}
+
+        subprocess.run(
+            ["git", "commit", "-m", "chore: wishket 대시보드 수동 업데이트"],
+            capture_output=True, text=True, cwd=str(ROOT)
+        )
+        r4 = subprocess.run(["git", "push"], capture_output=True, text=True, cwd=str(ROOT))
+        if r4.returncode != 0:
+            return {"ok": False, "step": "push", "stderr": r4.stderr[-500:]}
+        return {"ok": True, "changed": True, "msg": "업데이트 완료, GitHub Pages 배포 중 (1~2분)"}
+
+    if async_mode:
+        import threading
+        threading.Thread(target=_run, daemon=True).start()
+        return jsonify({"status": "running", "msg": "업데이트 시작됨. 1~2분 후 새로고침하세요."}), 202
+
+    result = _run()
+    code = 200 if result.get("ok") else 500
+    return jsonify(result), code
 
 
 @app.delete("/chat")
