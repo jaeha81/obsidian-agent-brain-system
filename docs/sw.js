@@ -1,4 +1,4 @@
-const CACHE = 'bucky-v1';
+const CACHE = 'bucky-v2';
 const STATIC = [
   '/offline.html',
   '/manifest.json',
