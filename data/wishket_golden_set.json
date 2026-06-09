@@ -1,0 +1,110 @@
+[
+  {
+    "id": "gs_001",
+    "title": "Python LangChain AI 에이전트 백엔드 개발",
+    "description": "LangChain 기반 RAG 시스템 구축. Python FastAPI 백엔드, GPT-4 연동, 문서 임베딩 파이프라인 개발. 에이전트 자동화 흐름 설계 포함. 기존 챗봇 서비스 고도화.",
+    "budget_wan": 780,
+    "should_recommend": true,
+    "expected_priority": "P1",
+    "label_reason": "핵심 스택(AI+Python+LangChain+에이전트) + 고예산"
+  },
+  {
+    "id": "gs_002",
+    "title": "GPT 기반 자동화 챗봇 Discord 봇 개발",
+    "description": "Discord 서버용 GPT 챗봇. Python 봇 개발, 자동화 커맨드, 웹훅 연동. 에이전트 기능 포함.",
+    "budget_wan": 300,
+    "should_recommend": true,
+    "expected_priority": "P1",
+    "label_reason": "AI+자동화+봇+Python 키워드 집중"
+  },
+  {
+    "id": "gs_003",
+    "title": "LLM RAG 법령 검색 시스템 구축",
+    "description": "한국 법령 데이터 기반 RAG 시스템. LangChain + OpenAI API, 판례 검색 자동화, 법령 파이프라인 구축. 백엔드 FastAPI.",
+    "budget_wan": 1200,
+    "should_recommend": true,
+    "expected_priority": "P1",
+    "label_reason": "LLM+RAG+법령+판례+파이프라인 — 완벽 매치"
+  },
+  {
+    "id": "gs_004",
+    "title": "인테리어 설계 AI 도면 분석 자동화",
+    "description": "AutoCAD 도면 이미지 분석 후 AI로 자재 견적 자동 생성. 인테리어 설계 데이터 수집 파이프라인. Python 백엔드.",
+    "budget_wan": 500,
+    "should_recommend": true,
+    "expected_priority": "P1",
+    "label_reason": "인테리어+도면+AI+자동화+파이프라인 — 재하님 전문 분야 융합"
+  },
+  {
+    "id": "gs_005",
+    "title": "Make.com n8n 워크플로우 자동화 구축",
+    "description": "노코드 자동화 워크플로우. Make.com + n8n 연동, Zapier 대체 시스템. 대시보드 연결.",
+    "budget_wan": 200,
+    "should_recommend": true,
+    "expected_priority": "P2",
+    "label_reason": "노코드+자동화+n8n+Make.com 키워드 — 중예산"
+  },
+  {
+    "id": "gs_006",
+    "title": "데이터 수집 크롤링 스크래핑 파이프라인",
+    "description": "Python 기반 대규모 웹 크롤링 시스템. 스크래핑 자동화, 데이터 파이프라인, API 연동. 수집엔진 구축.",
+    "budget_wan": 400,
+    "should_recommend": true,
+    "expected_priority": "P1",
+    "label_reason": "크롤링+스크래핑+파이프라인+수집엔진+Python"
+  },
+  {
+    "id": "gs_007",
+    "title": "C++ 임베디드 시스템 PLC 자동화 제어",
+    "description": "산업용 PLC 제어 시스템 C++ 개발. 임베디드 펌웨어 구현. FPGA 로직 설계.",
+    "budget_wan": 2000,
+    "should_recommend": false,
+    "expected_priority": "P4",
+    "label_reason": "C++/임베디드/PLC/펌웨어/FPGA — 재하님 비전문 분야 감점"
+  },
+  {
+    "id": "gs_008",
+    "title": "드론 하드웨어 회로 설계 개발",
+    "description": "드론 비행 제어 보드 회로 설계. 로봇 하드웨어 제작. IoT 하드웨어 개발.",
+    "budget_wan": 800,
+    "should_recommend": false,
+    "expected_priority": "P4",
+    "label_reason": "드론+하드웨어+로봇+회로 — 완전 감점 영역"
+  },
+  {
+    "id": "gs_009",
+    "title": "WordPress 기업 홈페이지 제작",
+    "description": "WordPress로 기업 소개 홈페이지 제작. 반응형 디자인, 관리자 페이지.",
+    "budget_wan": 50,
+    "should_recommend": false,
+    "expected_priority": "P3",
+    "label_reason": "웹 보너스는 있지만 저예산+WordPress 특화"
+  },
+  {
+    "id": "gs_010",
+    "title": "iOS 네이티브 앱 개발 Swift",
+    "description": "Swift 기반 iOS 모바일 앱. 쇼핑몰 앱, 결제 연동, 푸시 알림.",
+    "budget_wan": 300,
+    "should_recommend": false,
+    "expected_priority": "P3",
+    "label_reason": "모바일/Swift — 재하님 스택 아님, 키워드 매치 없음"
+  },
+  {
+    "id": "gs_011",
+    "title": "React TypeScript 프론트엔드 대시보드",
+    "description": "React + TypeScript로 관리자 대시보드 구현. Next.js, 프론트엔드 개발. 서버 연동.",
+    "budget_wan": 150,
+    "should_recommend": false,
+    "expected_priority": "P3",
+    "label_reason": "프론트엔드 위주, 저예산 — P3 경계선"
+  },
+  {
+    "id": "gs_012",
+    "title": "AI 공공 교육서비스 LLM 개발",
+    "description": "공공기관 교육 플랫폼 LLM 통합. 생성형 AI 기반 학습 콘텐츠 자동화. 에이전트 설계.",
+    "budget_wan": 700,
+    "should_recommend": true,
+    "expected_priority": "P1",
+    "label_reason": "LLM+생성형+AI+에이전트+자동화 + 고예산"
+  }
+]
