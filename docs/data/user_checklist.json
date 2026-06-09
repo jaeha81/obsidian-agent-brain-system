@@ -374,6 +374,60 @@
       "added": "2026-06-10",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-029",
+      "title": "BuckyOS 벤치마킹 구현 — Hermes Agentic OS 수준의 실제 작동 대시보드",
+      "description": "영상 분석 완료(Jack Roberts Hermes OS). 현재 BuckyOS는 skeleton만 존재 → Phase 1~4 순차 구현으로 데이터+시각화+실시간 기능 추가. Phase 1(API): 1~2일, Phase 2(그래프+차트): 1~2일, Phase 3(실시간): 1일, Phase 4(디자인): 1~2일. 총 5~7일 예상.",
+      "priority": "P0",
+      "category": "개발",
+      "status": "pending_approval",
+      "added": "2026-06-10",
+      "source": "영상 벤치마킹 분석 (Claude Code 2026-06-10)",
+      "refs": [
+        "ObsidianVault/00_System/BENCHMARKS_HERMES_AGENTIC_OS.md",
+        "ObsidianVault/00_System/INSTRUCTION_BUCKYOS_IMPLEMENTATION.md",
+        "docs/bucky-agent-os.html"
+      ]
+    },
+    {
+      "id": "CL-031",
+      "title": "Obsidian 그래프 뷰어 수정 — 2D/3D 설정 + AgentBus 필터 복구",
+      "description": "graph.json: -path:10_AgentBus 필터 제거 (AgentBus 노드 이제 표시). data.json: 3D Graph 설정 정리 (중복 제거, 색상 통일, nodeSize↑, particleCount↑, showLabels=true). Obsidian 재시작 필요.",
+      "priority": "P1",
+      "category": "설정",
+      "status": "done",
+      "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "2D 그래프 필터 수정 완료. 3D Graph 설정 정리 완료. VAULT_GRAPH_AUDIT.md 작성. Obsidian 재시작 후 시각 검증 대기.",
+      "source": "그래프 뷰어 감시 (Claude Code 2026-06-10)",
+      "refs": [
+        "ObsidianVault/.obsidian/graph.json",
+        "ObsidianVault/.obsidian/plugins/3d-graph/data.json",
+        "ObsidianVault/00_System/VAULT_GRAPH_AUDIT.md"
+      ]
+    },
+    {
+      "id": "CL-030",
+      "title": "`data/bucky_memory.db`, `.agents/`, `.cache/`, 지식 노트 4개, `data/intake_queue/` 는 제외 (데이터/임시 파일)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-032",
+      "title": "Obsidian에서 3D Graph 플러그인 리로드 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

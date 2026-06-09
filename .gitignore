@@ -152,3 +152,6 @@ scripts/.codex_collector_state.json
 .vercel
 
 .worktrees/
+
+# Local Netlify folder
+.netlify

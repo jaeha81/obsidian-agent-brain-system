@@ -952,14 +952,16 @@ const DEMO = {
     ]
   },
   tasks: {
-    summary: { total: 7, pending: 4, p0_count: 1, p1_count: 2, done: 3 },
+    summary: { total: 9, pending: 2, p0_count: 0, p1_count: 1, done: 7 },
     pending: [
-      { id: 'T021', title: 'Hermes Agentic OS — Pantheon 3D 통합', priority: 'P0' },
-      { id: 'T022', title: 'Memory Stack API 연결 + SQLite 최적화', priority: 'P1' },
-      { id: 'T023', title: 'Mission Control Graph iframe 임베드', priority: 'P1' },
-      { id: 'T024', title: 'AI Spend 공식 잔여량 수집 파이프라인', priority: 'P2' },
+      { id: 'T025', title: 'Anthropic API 공식 잔여량 자동 수집 파이프라인', priority: 'P1' },
+      { id: 'T026', title: 'Cloudflare Pages 이전 (GitHub Pages 대체)', priority: 'P2' },
     ],
     done: [
+      { id: 'T021', title: 'BuckyOS Skill Pantheon — cytoscape 3D 그래프 구현', completion_note: '2026-06-10' },
+      { id: 'T022', title: 'Memory Stack 4-layer 시각화 카드 UI', completion_note: '2026-06-10' },
+      { id: 'T023', title: 'Mission Control Goals + 진행률 카드 UI', completion_note: '2026-06-10' },
+      { id: 'T024', title: 'AI Spend 대시보드 카드 + Activity 피드 UI', completion_note: '2026-06-10' },
       { id: 'T016', title: 'BuckyOS GAP 1~5 분석 완료', completion_note: '2026-06-10' },
       { id: 'T017', title: 'Memory fit-bounds + Reset 버튼 추가', completion_note: '2026-06-10' },
       { id: 'T018', title: 'bucky_memory.db 경로 수정', completion_note: '2026-06-10' },
@@ -987,8 +989,10 @@ const DEMO = {
     ]
   },
   dream: {
-    total_sessions: 3,
+    total_sessions: 6,
     sessions: [
+      { title: '2026-06-10e — Phase 2+3 완성', body: '30s 자동갱신·Live dot 인디케이터 추가.\nD3 edge 필터 버그 수정. T021~T024 완료.\n커밋: 3b36c20.' },
+      { title: '2026-06-10c — Memory Stack UI', body: 'Memory 4-layer 탭 시각화 구현.\n단기·에피소딕·시멘틱·절차적 레이어.\nAPI /agent-os/memory 확장.' },
       { title: '2026-06-10b — Hermes GAP 분석', body: 'Pantheon 3D, Graph 임베드, Memory Stack,\nMission Control, AI Spend 5개 GAP 파악.\nCodex handoff 완료.' },
       { title: '2026-06-10 — BuckyOS 재설계', body: 'bucky_memory.db 경로 수정.\nMemory fit-bounds + Reset 버튼 추가.\n$9.30/62세션 확인.' },
     ]
@@ -1023,15 +1027,15 @@ const DEMO = {
   goals: {
     active: true,
     goal: 'BuckyOS Hermes Agentic OS 수준 업그레이드',
-    summary: { progress_percent: 60 },
+    summary: { progress_percent: 80 },
     focus: true,
     created: '2026-06-09',
     subtasks: [
       { id: 1, body: 'Skill Pantheon cytoscape 그래프 구현', status: 'done' },
       { id: 2, body: 'Memory Stack 4-layer 카드 UI', status: 'done' },
-      { id: 3, body: 'Mission Goals progress bar', status: 'done' },
-      { id: 4, body: 'AI Spend 공식 잔여량 파이프라인', status: 'pending' },
-      { id: 5, body: 'Project Graph iframe 임베드', status: 'pending' },
+      { id: 3, body: 'Mission Goals progress bar + Activity 피드', status: 'done' },
+      { id: 4, body: 'AI Spend 30s 자동갱신 + Live 인디케이터', status: 'done' },
+      { id: 5, body: 'AI Spend 공식 잔여량 실제 파이프라인 (T025)', status: 'pending' },
     ]
   },
   spend: {
@@ -1044,18 +1048,18 @@ const DEMO = {
   },
   activity: {
     events: [
-      { type:'task',   title:'T021 착수: Pantheon 3D 통합', ts:'2026-06-10T22:10:00' },
-      { type:'system', title:'bucky_memory.db 경로 수정 완료', ts:'2026-06-10T21:55:00' },
+      { type:'task',   title:'T021~T024 완료: Hermes GAP 1~5 UI 전 구현', ts:'2026-06-10T23:50:00' },
+      { type:'system', title:'Phase 2+3 자동갱신 + Live dot 인디케이터 추가 (3b36c20)', ts:'2026-06-10T23:30:00' },
+      { type:'system', title:'bucky-os.html D3 edge 필터 버그 수정', ts:'2026-06-10T23:10:00' },
       { type:'report', title:'Hermes GAP 5개 분석 → Codex handoff', ts:'2026-06-10T21:30:00' },
-      { type:'chat',   title:'Discord #jh-태스크보드 메시지 수신', ts:'2026-06-10T20:00:00' },
-      { type:'task',   title:'T017 완료: Memory fit-bounds', ts:'2026-06-10T19:45:00' },
+      { type:'task',   title:'T017 완료: Memory fit-bounds + Reset 버튼', ts:'2026-06-10T19:45:00' },
     ]
   },
   overview: {
     agents: { bucky:'active', codex:'idle', discord:'online', wishket:'idle' },
-    tasks:  { pending:4, done:3 },
+    tasks:  { pending:2, done:7 },
     knowledge: { skills:12, context_packs:5 },
-    checked_at: '2026-06-10T22:00:00'
+    checked_at: '2026-06-10T23:50:00'
   }
 };
 
