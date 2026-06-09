@@ -7,6 +7,32 @@
     { "source": "/wishket.html", "destination": "/api/protected?page=wishket" },
     { "source": "/investment-report.html", "destination": "/api/protected?page=investment-report" }
   ],
+  "headers": [
+    {
+      "source": "/bucky-os.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/bucky-agent-os.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/project-graph.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/task-board.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/daily-plus.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/ai-usage.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
+  ],
   "functions": {
     "api/protected.js": {
       "includeFiles": "docs/**"
