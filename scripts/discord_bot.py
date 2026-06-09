@@ -1514,7 +1514,8 @@ def _make_voice_sink_class():
                 _stop = asyncio.Event()
                 _anim = asyncio.create_task(_animate_thinking(thinking_msg, _stop))
                 try:
-                    reply = await ask_bucky(str(self.guild_id), text)
+                    voice_channel_id = str(ch.id)
+                    reply = await ask_bucky(voice_channel_id, text)
                 finally:
                     _stop.set()
                     _anim.cancel()

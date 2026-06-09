@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-09b"
+    "last_updated": "2026-06-09"
   },
   "tasks": [
     {
@@ -281,6 +281,18 @@
         "클로드코드스킬도입/스킬도입가이드.md",
         ".agents/skills/"
       ]
+    },
+    {
+      "id": "CL-021",
+      "title": "원격 충돌(index.lock) — 집 PC에서 위 명령어 실행 필요",
+      "description": "index.lock 없음, origin/master 동기화 완료 — 자동 해결됨",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-09",
+      "completed": "2026-06-09",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

@@ -81,6 +81,9 @@ class DiscordBotDashboardSessionSourceTests(unittest.TestCase):
         self.assertIn("session_key=_dashboard_session_key(payload)", src)
         self.assertIn("session_label=_dashboard_session_label(payload)", src)
         self.assertIn("_mem.resume_session", src)
+        self.assertIn("voice_channel_id = str(ch.id)", src)
+        self.assertIn("await ask_bucky(voice_channel_id, text)", src)
+        self.assertNotIn("await ask_bucky(str(self.guild_id), text)", src)
 
 
 if __name__ == "__main__":
