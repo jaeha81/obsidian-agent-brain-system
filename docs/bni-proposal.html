@@ -182,6 +182,29 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 .contact-section{margin-top:72px;background:var(--tech-dark);border-radius:4px;padding:52px 48px;color:var(--white);position:relative;overflow:hidden}
 .contact-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-lt) 28%,transparent 100%)}
 .contact-bg{position:absolute;bottom:-28px;right:0;font-family:'Inter',sans-serif;font-size:200px;font-weight:700;color:rgba(255,255,255,.015);line-height:1;pointer-events:none;user-select:none}
+
+.journey-section{padding:72px 0 0}
+.journey-inner{display:grid;grid-template-columns:1fr 2fr;gap:64px;align-items:start}
+.journey-label-col{position:sticky;top:40px}
+.journey-stages{display:flex;flex-direction:column;gap:0;margin-top:28px}
+.journey-stage{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--stone-mid);position:relative}
+.journey-stage:last-child{border-bottom:1px solid var(--stone-mid)}
+.js-num{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;min-width:20px;padding-top:2px}
+.js-info{}
+.js-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.js-desc{font-size:11px;color:var(--ink-light);line-height:1.55}
+.journey-narrative{display:flex;flex-direction:column;gap:0}
+.journey-pull{border-left:3px solid var(--gold);padding:20px 28px;background:var(--gold-pale);margin-bottom:36px;border-radius:0 3px 3px 0}
+.journey-pull-text{font-family:'Noto Serif KR',serif;font-size:clamp(15px,2vw,18px);font-weight:700;color:var(--ink);line-height:1.6;letter-spacing:-.02em}
+.journey-body{display:flex;flex-direction:column;gap:18px}
+.journey-para{font-size:13.5px;color:var(--ink-light);line-height:1.9;letter-spacing:-.005em}
+.journey-para strong{color:var(--ink);font-weight:700}
+.journey-sample-box{margin-top:24px;background:var(--ink-mid);border-radius:4px;padding:24px 28px;display:flex;gap:18px;align-items:flex-start}
+.jsb-icon{width:36px;height:36px;border:1px solid rgba(184,134,11,.3);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.jsb-icon svg{width:16px;height:16px;stroke:var(--gold-lt);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.jsb-title{font-size:12px;font-weight:700;color:var(--white);margin-bottom:5px}
+.jsb-text{font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.65}
+@media(max-width:860px){.journey-inner{grid-template-columns:1fr}.journey-label-col{position:static}}
 .contact-layout{display:flex;gap:56px;align-items:flex-start;position:relative;z-index:1}
 .contact-left{flex:1}
 .contact-eyebrow{font-family:'Inter',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-lt);margin-bottom:12px}
@@ -299,6 +322,40 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 </div>
 
 <main class="page">
+
+<section class="journey-section reveal">
+  <div class="journey-inner">
+    <div class="journey-label-col">
+      <p class="section-eyebrow">My Journey</p>
+      <h2 class="section-title">현장에서 AI로,<br>그리고 그 너머로</h2>
+      <p class="section-sub" style="max-width:100%">비개발자가 어떻게 AI 시스템을 직접 구축하고, 그 여정을 공개 자산으로 만드는지에 대한 이야기입니다.</p>
+      <div class="journey-stages">
+        <div class="journey-stage"><div class="js-num">01</div><div class="js-info"><div class="js-title">AI 성장기</div><div class="js-desc">도구 탐색·워크플로우 구축</div></div></div>
+        <div class="journey-stage"><div class="js-num">02</div><div class="js-info"><div class="js-title">에이전트 구축기</div><div class="js-desc">멀티 에이전트 OS 직접 설계</div></div></div>
+        <div class="journey-stage"><div class="js-num">03</div><div class="js-info"><div class="js-title">사업 적용기</div><div class="js-desc">현장·수주·서비스에 AI 내재화</div></div></div>
+        <div class="journey-stage"><div class="js-num">04</div><div class="js-info"><div class="js-title">미래 실험실</div><div class="js-desc">새로운 가능성을 함께 탐색</div></div></div>
+      </div>
+    </div>
+    <div class="journey-narrative">
+      <div class="journey-pull">
+        <p class="journey-pull-text">"저는 코드를 처음 배운 개발자가 아닙니다.<br>18년간 현장에서 도면을 읽고 현장을 지휘한 사람이<br>AI를 스스로 배우고, 스스로 시스템을 만든 이야기입니다."</p>
+      </div>
+      <div class="journey-body">
+        <p class="journey-para">인테리어·건축 현장에서 18년을 일하면서 늘 느꼈던 것은 반복되는 업무의 무게였습니다. 견적서, 현장 보고서, 발주처와의 미팅 정리, 도면 검토 — 매번 처음부터 다시 하는 이 과정들이 정말 사람이 직접 해야 하는 일인지에 대한 질문이 쌓였습니다. 그 질문이 저를 AI로 이끌었습니다.</p>
+        <p class="journey-para">처음에는 단순한 도구로 시작했습니다. <strong>ChatGPT로 견적 초안을 만들고, Claude로 보고서를 요약하는</strong> 수준이었죠. 하지만 현장 경험을 가진 사람이 AI를 만나면 더 정밀하게 요구할 수 있다는 것을 알게 되었습니다. "도면 어시스턴트"가 무엇을 어떻게 이해해야 하는지, "견적 자동화"가 왜 단순 계산이 아닌지 — 현장을 아는 사람만이 AI에게 제대로 된 맥락을 줄 수 있습니다.</p>
+        <p class="journey-para">그렇게 2년의 시간 동안 <strong>멀티 에이전트 운영체제 'Bucky Brain System'</strong>을 혼자 설계하고 운영하게 되었습니다. 4개의 AI 에이전트가 실시간으로 협력하고, 사용할수록 스스로 학습하며 진화하는 시스템입니다. 이 과정에서 발견한 것은, 비개발자라는 출발점이 오히려 더 현실적인 문제 해결로 이어진다는 사실이었습니다. 지금 저는 <strong>그 여정 자체를 공개 자산으로 만드는 일</strong>을 하고 있습니다.</p>
+        <p class="journey-para">저와 같이 코딩 없이 AI를 활용하려는 분들, 특히 건설·인테리어·제조 현장의 전문가들이 AI 도입에서 헤매지 않도록 — 성공만이 아니라 실패와 시행착오까지 모두 공개하는 것이 제 역할이라고 생각합니다. 이 소개 페이지 역시 그 시스템으로 만들어졌습니다.</p>
+        <div class="journey-sample-box">
+          <div class="jsb-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div>
+            <div class="jsb-title">슈퍼 샘플 프로젝트 원칙</div>
+            <p class="jsb-text">저 자신이 곧 사례 연구입니다. AI 자동화를 구상하고, 실행하고, 결과를 측정하는 전 과정을 — 잘 된 것도, 잘못된 것도 — 그대로 공개합니다. 검증된 방법만 권하지 않습니다. 함께 검증하는 과정을 나눕니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section class="section reveal">
   <p class="section-eyebrow">AI Adoption Impact</p>
