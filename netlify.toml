@@ -1,10 +1,6 @@
 [build]
   publish = "docs"
 
-[[edge_functions]]
-  path = "/*"
-  function = "auth"
-
 [[headers]]
   for = "/*"
   [headers.values]

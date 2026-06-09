@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JH 레포 상품화 대시보드</title>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+netlifyIdentity.on('init',function(u){
+  if(!u){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+});
+netlifyIdentity.on('logout',function(){location.replace('/login.html');});
+</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bucky Agent OS — 로그인</title>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -54,82 +55,83 @@
     box-shadow: 0 24px 64px rgba(0,0,0,0.5);
   }
 
-  .error-box {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.3);
+  .info-box {
+    background: rgba(37,99,235,0.08);
+    border: 1px solid rgba(37,99,235,0.2);
     border-radius: 8px;
     padding: 12px 16px;
-    color: #fca5a5;
-    font-size: 0.875rem;
-    margin-bottom: 20px;
-    display: none;
-  }
-  .error-box.show { display: block; }
-
-  label {
-    display: block;
-    color: #94a3b8;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+    color: #93c5fd;
+    font-size: 0.85rem;
+    margin-bottom: 24px;
+    line-height: 1.5;
   }
 
-  .input-wrap {
-    position: relative;
-    margin-bottom: 20px;
-  }
-  input[type="password"] {
-    width: 100%;
-    padding: 12px 44px 12px 16px;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 10px;
-    color: #e2e8f0;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input[type="password"]:focus { border-color: #2563eb; }
-  input[type="password"]::placeholder { color: #475569; }
-
-  .toggle-pw {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #475569;
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 2px;
-    line-height: 1;
-  }
-  .toggle-pw:hover { color: #94a3b8; }
-
-  .submit-btn {
+  .google-btn {
     width: 100%;
     padding: 13px;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    background: #fff;
     border: none;
     border-radius: 10px;
-    color: white;
+    color: #1f2937;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.1s;
     letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
-  .submit-btn:hover { opacity: 0.92; }
-  .submit-btn:active { transform: scale(0.99); }
+  .google-btn:hover { opacity: 0.92; }
+  .google-btn:active { transform: scale(0.99); }
+  .google-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  .divider {
+    text-align: center;
+    color: #334155;
+    font-size: 0.78rem;
+    margin: 16px 0;
+    position: relative;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #1e293b;
+  }
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+
+  .email-btn {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    letter-spacing: -0.01em;
+  }
+  .email-btn:hover { border-color: #2563eb; color: #e2e8f0; }
 
   .footer-note {
     text-align: center;
     margin-top: 24px;
     color: #334155;
     font-size: 0.78rem;
+  }
+
+  .loading {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+    padding: 20px 0;
+    display: none;
   }
 </style>
 </head>
@@ -142,45 +144,44 @@
   </div>
 
   <div class="card">
-    <div class="error-box" id="errBox">비밀번호가 올바르지 않습니다. 다시 시도해주세요.</div>
+    <div class="info-box">승인된 계정만 접근 가능합니다.</div>
 
-    <form method="POST" action="/api/login" id="loginForm">
-      <input type="hidden" name="redirect" id="redirectInput" value="">
-      <label for="pw">비밀번호</label>
-      <div class="input-wrap">
-        <input type="password" id="pw" name="password" placeholder="비밀번호를 입력하세요" autofocus required />
-        <button type="button" class="toggle-pw" onclick="togglePw()" id="toggleBtn">👁</button>
-      </div>
-      <button type="submit" class="submit-btn">입장하기</button>
-    </form>
+    <div id="loginButtons">
+      <button class="google-btn" onclick="netlifyIdentity.open('login')">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Google로 로그인
+      </button>
+
+      <div class="divider">또는</div>
+
+      <button class="email-btn" onclick="netlifyIdentity.open('login')">이메일로 로그인</button>
+    </div>
+
+    <div class="loading" id="loadingMsg">로그인 확인 중...</div>
   </div>
 
   <p class="footer-note">obsidian-agent-brain-system &mdash; 내부 전용</p>
 </div>
 
 <script>
-(function(){
-  const params = new URLSearchParams(location.search);
-  if (params.get('error') === '1') {
-    document.getElementById('errBox').classList.add('show');
+netlifyIdentity.on('init', function(user) {
+  if (user) {
+    document.getElementById('loginButtons').style.display = 'none';
+    document.getElementById('loadingMsg').style.display = 'block';
+    var r = new URLSearchParams(location.search).get('r') || '/';
+    location.replace(r);
   }
-  const redirect = params.get('redirect');
-  if (redirect) {
-    document.getElementById('redirectInput').value = redirect;
-  }
-})();
+});
 
-function togglePw() {
-  const input = document.getElementById('pw');
-  const btn = document.getElementById('toggleBtn');
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁';
-  }
-}
+netlifyIdentity.on('login', function(user) {
+  var r = new URLSearchParams(location.search).get('r') || '/';
+  location.replace(r);
+});
 </script>
 </body>
 </html>
