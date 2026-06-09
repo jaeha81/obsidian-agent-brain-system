@@ -221,9 +221,35 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   .contact-section{padding:36px 24px}
   .contact-layout{flex-direction:column;gap:28px}
   .contact-item{min-width:auto}
+  .cf-row-2{grid-template-columns:1fr}
   .footer{padding:18px 24px 40px}
 }
 @media(max-width:480px){.usecase-grid{grid-template-columns:1fr}.portfolio-grid{grid-template-columns:1fr}}
+.cf-layout{gap:48px;align-items:flex-start}
+.cf-info-items{margin-top:28px;display:flex;flex-direction:column;gap:8px}
+.cf-info-item{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s}
+.cf-info-item:hover{color:var(--gold-lt)}
+.cf-info-item svg{width:14px;height:14px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;flex-shrink:0}
+.cf-right{flex:1.3;min-width:0}
+.cf{display:flex;flex-direction:column;gap:14px}
+.cf-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cf-field{display:flex;flex-direction:column;gap:5px}
+.cf-label{font-family:'Inter',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.cf-label-hint{font-weight:400;letter-spacing:0;text-transform:none;font-size:10px;color:rgba(255,255,255,.22)}
+.cf-input,.cf-select,.cf-textarea{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;padding:10px 13px;font-family:'Noto Sans KR','Inter',sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color .2s,background .2s;width:100%}
+.cf-input::placeholder,.cf-textarea::placeholder{color:rgba(255,255,255,.2)}
+.cf-input:focus,.cf-select:focus,.cf-textarea:focus{border-color:rgba(184,134,11,.5);background:rgba(255,255,255,.07)}
+.cf-select{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,.3)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:10px}
+.cf-select option{background:var(--tech-dark);color:var(--white)}
+.cf-textarea{resize:vertical;min-height:90px}
+.cf-upload-area{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.12);border-radius:3px;padding:18px;cursor:pointer;transition:border-color .2s,background .2s;text-align:center}
+.cf-upload-area:hover{border-color:rgba(184,134,11,.4);background:rgba(184,134,11,.04)}
+.cf-upload-icon{color:rgba(255,255,255,.3)}
+.cf-upload-text{font-size:12.5px;color:rgba(255,255,255,.45)}
+.cf-upload-hint{font-size:10.5px;color:rgba(255,255,255,.22)}
+.cf-submit{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gold);color:var(--ink);font-family:'Noto Sans KR','Inter',sans-serif;font-size:13px;font-weight:700;border:none;border-radius:3px;padding:13px 24px;cursor:pointer;transition:background .2s;width:100%;margin-top:4px}
+.cf-submit:hover{background:var(--gold-lt)}
+.cf-submit svg{stroke:var(--ink)}
 @media print{
   body{background:white}
   .hero-inner{grid-template-columns:1fr;padding:28px 32px}
@@ -391,16 +417,61 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 
 <div class="contact-section">
   <div class="contact-bg">JH</div>
-  <div class="contact-layout">
+  <div class="contact-layout cf-layout">
     <div class="contact-left">
       <div class="contact-eyebrow">Get in Touch</div>
       <div class="contact-headline">협업·문의를<br>환영합니다</div>
       <p class="contact-sub">AI 자동화, 인테리어·건축 설계, 신사업 기획 등 무엇이든 부담 없이 연락 주세요.</p>
+      <div class="cf-info-items">
+        <a class="cf-info-item" href="tel:01066229851"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.29 6.29l.96-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>010-6622-9851</a>
+        <a class="cf-info-item" href="mailto:dltkddlf231@gmail.com"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>dltkddlf231@gmail.com</a>
+      </div>
     </div>
-    <div class="contact-right">
-      <a class="contact-item" href="tel:01066229851"><span class="ci-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.29 6.29l.96-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>010-6622-9851</a>
-      <a class="contact-item" href="mailto:dltkddlf231@gmail.com"><span class="ci-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>dltkddlf231@gmail.com</a>
-      <a class="contact-item" href="https://jaeha81.github.io/obsidian-agent-brain-system/bni-proposal.html"><span class="ci-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>소개 페이지</a>
+    <div class="contact-right cf-right">
+      <form class="cf" action="https://formsubmit.co/dltkddlf231@gmail.com" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_subject" value="이재하 소개 페이지 문의">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="https://jaeha81.github.io/obsidian-agent-brain-system/bni-proposal.html?sent=1">
+        <div class="cf-row-2">
+          <div class="cf-field">
+            <label class="cf-label">이름</label>
+            <input class="cf-input" type="text" name="name" placeholder="홍길동" required>
+          </div>
+          <div class="cf-field">
+            <label class="cf-label">연락처</label>
+            <input class="cf-input" type="text" name="contact" placeholder="이메일 또는 전화번호" required>
+          </div>
+        </div>
+        <div class="cf-field">
+          <label class="cf-label">문의 유형</label>
+          <select class="cf-select" name="type" required>
+            <option value="" disabled selected>선택해 주세요</option>
+            <option value="협업 제안">협업 제안</option>
+            <option value="견적·의뢰">견적·의뢰</option>
+            <option value="AI 자동화 컨설팅">AI 자동화 컨설팅</option>
+            <option value="인테리어·건축 문의">인테리어·건축 문의</option>
+            <option value="기타 문의">기타 문의</option>
+          </select>
+        </div>
+        <div class="cf-field">
+          <label class="cf-label">내용</label>
+          <textarea class="cf-textarea" name="message" rows="4" placeholder="문의 내용을 자유롭게 작성해 주세요." required></textarea>
+        </div>
+        <div class="cf-field">
+          <label class="cf-label">파일 첨부 <span class="cf-label-hint">(도면·사진·문서 등, 여러 개 선택 가능)</span></label>
+          <label class="cf-upload-area" id="uploadArea">
+            <input type="file" name="attachment" id="fileInput" multiple accept="image/*,.pdf,.dwg,.xlsx,.docx" style="display:none">
+            <div class="cf-upload-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="cf-upload-text">클릭하거나 드래그해서 파일 첨부</div>
+            <div class="cf-upload-hint" id="fileNames">이미지 · PDF · CAD · Excel · Word</div>
+          </label>
+        </div>
+        <button class="cf-submit" type="submit">
+          문의 보내기
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </form>
     </div>
   </div>
 </div>
@@ -419,6 +490,12 @@ const bo=new IntersectionObserver(e=>{e.forEach(e=>{if(!e.isIntersecting)return;
 document.querySelectorAll('.bar-fill[data-width]').forEach(b=>bo.observe(b));
 const ro=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ro.unobserve(e.target)}})},{threshold:.08});
 document.querySelectorAll('.reveal').forEach(r=>ro.observe(r));
+const fi=document.getElementById('fileInput');
+if(fi){fi.addEventListener('change',()=>{const fn=document.getElementById('fileNames');if(!fn)return;const f=fi.files;fn.textContent=f.length?Array.from(f).map(x=>x.name).join(', '):'이미지 · PDF · CAD · Excel · Word'})}
+const ua=document.getElementById('uploadArea');
+if(ua){ua.addEventListener('dragover',e=>{e.preventDefault();ua.style.borderColor='rgba(184,134,11,.6)'});ua.addEventListener('dragleave',()=>{ua.style.borderColor=''});ua.addEventListener('drop',e=>{e.preventDefault();ua.style.borderColor='';if(fi&&e.dataTransfer.files.length){const dt=new DataTransfer();Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));fi.files=dt.files;fi.dispatchEvent(new Event('change'))}})}
+const sp=new URLSearchParams(location.search);
+if(sp.get('sent')==='1'){const b=document.querySelector('.cf-submit');if(b){b.textContent='문의가 전송되었습니다 ✓';b.style.background='#2d6a4f';b.style.pointerEvents='none'}}
 </script>
 </body>
 </html>
