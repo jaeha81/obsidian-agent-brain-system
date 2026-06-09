@@ -950,12 +950,16 @@ def render_dashboard(
 <p style="margin:0 32px 10px;color:var(--muted);font-size:0.78rem"><strong>공식 대화 채널:</strong> 사용자 직접 대화는 <code>jh-chat</code>만 사용하고, <code>일반</code> 채널은 운영 경로로 사용하지 않습니다. 오늘의플러스 intake는 <strong>jh-오늘의플러스</strong> 채널로 전달합니다.</p>
 <p style="margin:0 32px 16px;color:var(--muted);font-size:0.78rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart는 사용자 승인 후 Bucky가 실행 가능한 작업으로 취급합니다.</p>
 <main>
-  <nav class="toc-bar" aria-label="빠른 이동" style="padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)">
+  <nav class="toc-bar" aria-label="빠른 이동" style="position:sticky;top:0;z-index:20;background:var(--bg);padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)">
     <strong>빠른 이동</strong>
-    <a href="#daily-plus-results" style="color:var(--teal);text-decoration:none">결과</a>
-    <a href="#daily-plus-candidates" style="color:var(--teal);text-decoration:none">후보</a>
+    <a href="#summary" style="color:var(--teal);text-decoration:none">요약</a>
+    <a href="#daily-plus-results" style="color:var(--teal);text-decoration:none">Bucky 전송</a>
+    <a href="#evolution" style="color:var(--teal);text-decoration:none">진화 분석</a>
+    <a href="#next-priority" style="color:var(--teal);text-decoration:none">다음 실행</a>
+    <a href="#session-history" style="color:var(--teal);text-decoration:none">세션 내역</a>
+    <a href="#daily-plus-candidates" style="color:var(--teal);text-decoration:none">후보 카드</a>
   </nav>
-  <section class="hero-grid">
+  <section id="summary" class="hero-grid">
     <div class="panel">
       <h2>{esc(date)} 처리 요약</h2>
       <div class="status-line">
@@ -1012,7 +1016,7 @@ def render_dashboard(
     </div>
   </section>
 
-  <section>
+  <section id="evolution">
     <div class="section-title">
       <h2>첫 오늘의 플러스 대비 진화</h2>
       <span class="muted">매일 09:00 보고 기준</span>
@@ -1030,7 +1034,7 @@ def render_dashboard(
     </div>
   </section>
 
-  <section>
+  <section id="next-priority">
     <div class="section-title">
       <h2>다음 실행 항목</h2>
       <span class="muted">P1과 승인 필요 항목 우선</span>
@@ -1042,7 +1046,7 @@ def render_dashboard(
     </div>
   </section>
 
-  {f'''<section>
+  {f'''<section id="session-history">
     <div class="section-title">
       <h2>이번 세션 업데이트 내용 요약</h2>
       <span class="muted">AgentBus Phase 1 게이트 완료 + 구현 상세</span>

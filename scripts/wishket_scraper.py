@@ -40,7 +40,6 @@ KEYWORDS = os.getenv(
     "WISHKET_KEYWORDS",
     "Python,AI,자동화,Discord,봇,FastAPI,웹개발,Claude,GPT,크롤링,데이터",
 ).split(",")
-MIN_BUDGET_WAN = int(os.getenv("WISHKET_MIN_BUDGET", "50"))
 
 _SESSION_CACHE = CACHE_DIR / "wishket_session.json"
 _SESSION_TTL = 86400  # 24시간
@@ -325,8 +324,20 @@ def fetch_projects(max_pages: int = 5) -> list[dict]:
 
         # 로그인 버튼 존재 여부로 로그인 상태 판단
         if not _is_logged_in(page):
-            print("[Wishket] 미로그인 상태 — 로그인 시도")
-            if not _do_login(page):
+            print("[Wishket] 미로그인 상태 — 자동 로그인 시도")
+            login_ok = _do_login(page)
+            if not login_ok:
+                # 캐시 세션이 오염됐을 수 있으므로 삭제 후 1회 재시도
+                print("[Wishket] 로그인 실패 — 캐시 삭제 후 재시도")
+                if _SESSION_CACHE.exists():
+                    _SESSION_CACHE.unlink()
+                try:
+                    page.goto(WISHKET_LOGIN, wait_until="domcontentloaded", timeout=20000)
+                except PWTimeout:
+                    pass
+                login_ok = _do_login(page)
+            if not login_ok:
+                print("[Wishket] 자동 로그인 2회 실패 — 수동 로그인 필요 (python scripts/wishket_scraper.py --manual-login)")
                 browser.close()
                 return []
             _save_cookies(context.cookies())
@@ -371,8 +382,6 @@ def fetch_projects(max_pages: int = 5) -> list[dict]:
                 link = (WISHKET_BASE + href) if href and href.startswith("/") else href
                 budget_wan = _parse_budget(budget_text)
 
-                if budget_wan and budget_wan < MIN_BUDGET_WAN:
-                    continue
                 if not _is_relevant(title, description):
                     continue
 
@@ -426,8 +435,47 @@ def run() -> tuple[list[dict], Path]:
     return projects, out
 
 
+def manual_login() -> None:
+    """헤드리스 OFF로 브라우저를 띄워 사용자가 수동으로 로그인한 뒤 쿠키를 저장한다."""
+    from playwright.sync_api import sync_playwright
+
+    print("[Wishket] 수동 로그인 모드 — 브라우저가 열립니다. 로그인 후 Enter 키를 누르세요.")
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=False)
+        context = browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            locale="ko-KR",
+            viewport={"width": 1280, "height": 900},
+        )
+        page = context.new_page()
+        page.goto(WISHKET_LOGIN)
+        input("로그인 완료 후 Enter 키를 누르세요...")
+        cookies = context.cookies()
+        _save_cookies(cookies)
+        print(f"[Wishket] 쿠키 {len(cookies)}개 저장 완료 → {_SESSION_CACHE}")
+        browser.close()
+
+
 if __name__ == "__main__":
-    projects, path = run()
-    print(f"\n수집 결과: {len(projects)}개")
-    for p in projects[:5]:
-        print(f"  - {p['title']} | {p['budget']} | {p['link']}")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="위시켓 공고 스크래퍼")
+    parser.add_argument("--manual-login", action="store_true", help="브라우저를 열어 수동 로그인 후 쿠키 저장")
+    parser.add_argument("--clear-cache", action="store_true", help="저장된 세션 쿠키 삭제 후 재로그인")
+    args = parser.parse_args()
+
+    if args.clear_cache and _SESSION_CACHE.exists():
+        _SESSION_CACHE.unlink()
+        print(f"[Wishket] 세션 캐시 삭제: {_SESSION_CACHE}")
+
+    if args.manual_login:
+        manual_login()
+    else:
+        projects, path = run()
+        print(f"\n수집 결과: {len(projects)}개")
+        for p in projects[:5]:
+            print(f"  - {p['title']} | {p['budget']} | {p['link']}")
