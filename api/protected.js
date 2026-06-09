@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const filePath = path.join(__dirname, '..', 'docs', page + '.html');
+  const filePath = path.join(__dirname, '..', 'protected', page + '.html');
   try {
     const html = fs.readFileSync(filePath, 'utf8');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
