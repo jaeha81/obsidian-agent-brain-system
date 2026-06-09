@@ -377,6 +377,42 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .empty-plus{font-size:24px;opacity:.4}
 .empty-label{font-size:12px;font-weight:600}
 .empty-hint{font-size:10px;opacity:.6;text-align:center}
+
+/* ─── MEMORY STACK (GAP 3) ─── */
+.mem-stack-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
+.ms-layer-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.ms-layer-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ms-layer-name{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.8px;text-transform:uppercase}
+.ms-layer-cnt{font-size:10px;color:var(--dim);font-family:monospace}
+.ms-fact{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--text);line-height:1.4}
+.ms-fact:last-child{border-bottom:none}
+.ms-fact-ts{color:var(--dim);font-size:10px;flex-shrink:0;font-family:monospace}
+.ms-empty{color:var(--dim);font-size:10px;font-style:italic}
+
+/* ─── GOALS / MISSION CONTROL (GAP 4) ─── */
+.goals-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.goals-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.goals-meta{font-size:10px;color:var(--dim);margin-bottom:12px;font-family:monospace}
+.goals-pct{font-size:26px;font-weight:900;color:var(--accent);font-family:monospace;line-height:1}
+.goals-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin:8px 0 12px}
+.goals-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s ease}
+.goals-subtask{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;color:var(--dim)}
+.goals-subtask.done{color:var(--text)}
+.goals-sdot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.goals-subtask.done .goals-sdot{background:var(--green)}
+
+/* ─── AI SPEND (GAP 5) ─── */
+.spend-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.spend-stat-block{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.spend-stat-v{font-size:20px;font-weight:900;font-family:monospace;color:var(--accent2)}
+.spend-stat-v.warn{color:var(--yellow)}
+.spend-stat-v.ok{color:var(--green)}
+.spend-stat-l{font-size:10px;color:var(--dim);letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
+.spend-model-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:5px}
+.spend-model-n{font-size:11px;font-family:monospace;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spend-model-c{font-size:11px;font-weight:700;color:var(--accent2);min-width:52px;text-align:right;flex-shrink:0}
+.spend-bar-wrap{width:80px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;flex-shrink:0}
+.spend-bar-fill{height:100%;border-radius:2px;background:var(--accent2)}
 </style>
 </head>
 <body>
@@ -581,6 +617,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         </div>
       </div>
 
+      <!-- ── MISSION GOAL (GAP 4) ── -->
+      <div style="padding:0 24px 4px">
+        <div class="section-header">
+          <span class="section-title">Active Mission</span>
+        </div>
+        <div id="goals-card">
+          <div style="color:var(--dim);font-size:12px;padding:16px;text-align:center">Loading goal…</div>
+        </div>
+      </div>
+
       <div style="padding:0 24px">
         <div class="section-header">
           <span class="section-title">Pending Tasks</span>
@@ -679,6 +725,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <span style="margin-left:auto" id="mem-graph-stats">—</span>
         </div>
       </div>
+
+      <!-- ── MEMORY STACK (GAP 3) ── -->
+      <div style="padding:0 24px 24px">
+        <div class="section-header" style="margin-top:16px">
+          <span class="section-title">Memory Stack</span>
+          <span class="section-count" id="stack-count">—</span>
+        </div>
+        <div class="mem-stack-grid" id="mem-stack-grid">
+          <div style="color:var(--dim);font-size:12px;padding:20px;grid-column:span 2;text-align:center">Loading memory layers…</div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ ACTIVITY PAGE ═══ -->
@@ -708,6 +765,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <div class="event-list" id="event-list">
         <div style="color:var(--dim);font-size:12px;padding:20px;text-align:center">Loading activity…</div>
       </div>
+
+      <!-- ── AI SPEND (GAP 5) ── -->
+      <div style="padding:0 24px 24px">
+        <div class="section-header" style="margin-top:16px">
+          <span class="section-title">AI Spend</span>
+        </div>
+        <div class="spend-stats-row" id="spend-stats-row">
+          <div class="spend-stat-block"><div class="spend-stat-v ok" id="sp-calls">—</div><div class="spend-stat-l">Total Calls</div></div>
+          <div class="spend-stat-block"><div class="spend-stat-v ok" id="sp-success">—</div><div class="spend-stat-l">Success</div></div>
+          <div class="spend-stat-block"><div class="spend-stat-v ok" id="sp-limits">—</div><div class="spend-stat-l">Limits Hit</div></div>
+        </div>
+        <div id="spend-models">
+          <div style="color:var(--dim);font-size:12px;padding:8px;text-align:center">Loading models…</div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -728,12 +800,85 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 //  BUCKY AGENT OS  —  JS Core
 // ════════════════════════════════════════════
 
-const API = 'http://localhost:8765';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? '' : 'http://localhost:8765';
 let graphData = null;
 let mainSim = null, memSim = null;
 let mainZoom = null, memZoom = null;
 let allNodes = [], allEdges = [];
 let currentFilter = 'all';
+
+/* ── DEMO DATA ── */
+const DEMO = {
+  graph:    { nodes: [], edges: [], stats: { nodes: 0, edges: 0, clusters: 0, isolated: 0, built_at: '(demo)' } },
+  stats:    { memory: { fact_count: 42, session_count: 8 }, agentbus: { tasks_pending: 4, inbox_count: 0 }, skills: { count: 17, files: [] }, context_packs: { count: 5 } },
+  cost:     { total_sessions: 62, estimated_saved_usd: 9.30 },
+  activity: { events: [
+    { type: 'awareness', title: 'BuckyOS Hermes 재설계 완료', detail: 'GAP 3~5 카드 추가', ts: '2026-06-10T22:00:00' },
+    { type: 'report',    title: 'Hermes GAP 분석 → Codex handoff', detail: '5개 GAP 파악',   ts: '2026-06-10T21:30:00' },
+    { type: 'chat',      title: 'Discord #jh-태스크보드 메시지 수신', detail: '봇 연결 확인', ts: '2026-06-10T20:00:00' },
+  ]},
+  tasks: {
+    summary: { total: 7, pending: 4, p0_count: 1, p1_count: 2, done: 3 },
+    pending: [
+      { id: 'T021', title: 'Hermes Agentic OS — Pantheon 3D 통합', priority: 'P0' },
+      { id: 'T022', title: 'Memory Stack API 연결 + SQLite 최적화', priority: 'P1' },
+      { id: 'T023', title: 'Mission Control Graph iframe 임베드', priority: 'P1' },
+    ],
+    done: [
+      { id: 'T017', title: 'Memory fit-bounds + Reset 버튼 추가' },
+      { id: 'T018', title: 'bucky_memory.db 경로 수정' },
+    ]
+  },
+  memory: {
+    summary: { fact_count: 42, session_count: 8, message_count: 156 },
+    layers: {
+      short_term: [
+        { role: 'user',      content: 'Hermes GAP 5개 분석 완료',          ts: '2026-06-10T22:00' },
+        { role: 'assistant', content: 'BuckyOS 재설계 커밋 fec17e5 확인',   ts: '2026-06-10T21:50' },
+      ],
+      episodic: [
+        { preview: 'Hermes GAP 분석 세션',         started: '2026-06-10T21:00', msg_count: 24 },
+        { preview: 'BuckyOS 재설계 + Memory 수정', started: '2026-06-10T19:00', msg_count: 18 },
+      ],
+      semantic: {
+        goal: [
+          { fact: 'BuckyOS Hermes 수준 업그레이드',  ts: '2026-06-10' },
+          { fact: 'Wishket 수익화 우선',              ts: '2026-06-09' },
+        ],
+        tech: [
+          { fact: 'bucky_memory.db → data/ 경로', ts: '2026-06-10' },
+        ],
+      },
+      procedural: [
+        { fact: '완료 보고: 파일 경로+출력 필수',           category: 'protocol', ts: '2026-06-01' },
+        { fact: '저장 경계: G:/obsidian-agent-brain-system', category: 'safety',   ts: '2026-06-01' },
+      ]
+    }
+  },
+  goals: {
+    active: true,
+    goal: 'BuckyOS Hermes Agentic OS 수준 업그레이드',
+    summary: { progress_percent: 60 },
+    focus: true,
+    created: '2026-06-09',
+    subtasks: [
+      { id: 1, body: 'Skill Pantheon cytoscape 그래프 구현', status: 'done' },
+      { id: 2, body: 'Memory Stack 4-layer 카드 UI', status: 'done' },
+      { id: 3, body: 'Mission Goals progress bar', status: 'done' },
+      { id: 4, body: 'AI Spend 공식 잔여량 파이프라인', status: 'pending' },
+      { id: 5, body: 'Project Graph iframe 임베드', status: 'pending' },
+    ]
+  },
+  spend: {
+    summary: { total_calls: 62, successes: 58, limit_events: 4 },
+    models: {
+      'claude-sonnet-4-6': { calls: 45, failures: 2, limit_events: 2 },
+      'claude-opus-4-7':   { calls: 12, failures: 1, limit_events: 1 },
+      'claude-haiku-4-5':  { calls:  5, failures: 1, limit_events: 1 },
+    }
+  }
+};
 
 function fitBounds(svg, g, zoom, W, H) {
   try {
@@ -927,7 +1072,10 @@ function filterGraph(type, el) {
   let nodes, edges;
   if (type === 'all' || type === 'reset') {
     nodes = graphData.nodes.map(d => ({...d}));
-    edges = graphData.edges.map(d => ({...d}));
+    const allIds = new Set(nodes.map(n => n.id));
+    edges = graphData.edges
+      .filter(e => allIds.has(e.source) && allIds.has(e.target))
+      .map(d => ({...d}));
   } else {
     nodes = graphData.nodes.filter(n => (n.file_type || '').toLowerCase() === type).map(d => ({...d}));
     const ids = new Set(nodes.map(n => n.id));
@@ -1008,54 +1156,159 @@ function renderPersonaCards(skills) {
   document.getElementById('skills-count').textContent = personas.length;
 }
 
+// ── GAP 3: MEMORY STACK ──
+function renderMemoryStack(d) {
+  const L = d.layers || {};
+  const s = d.summary || {};
+  const stackEl = document.getElementById('mem-stack-grid');
+  if (!stackEl) return;
+  document.getElementById('stack-count').textContent = `${s.fact_count || 0}F · ${s.session_count || 0}S`;
+
+  function factRows(items) {
+    if (!items || !items.length) return '<div class="ms-empty">No entries</div>';
+    return items.slice(0, 3).map(f => {
+      const txt = f.content || f.fact || f.preview || '';
+      const ts = (f.ts || f.started || '').slice(0, 10);
+      return `<div class="ms-fact"><span>${txt.slice(0, 55)}${txt.length > 55 ? '…' : ''}</span>${ts ? `<span class="ms-fact-ts">${ts}</span>` : ''}</div>`;
+    }).join('');
+  }
+
+  function semRows(sem) {
+    if (!sem || typeof sem !== 'object') return '<div class="ms-empty">No facts</div>';
+    const all = [];
+    for (const facts of Object.values(sem)) { if (Array.isArray(facts)) all.push(...facts); }
+    return factRows(all.slice(0, 3));
+  }
+
+  const layers = [
+    { key: 'short_term',  label: 'Short-Term',  rows: factRows(L.short_term),                  cnt: (L.short_term || []).length + ' msgs' },
+    { key: 'episodic',    label: 'Episodic',     rows: factRows(L.episodic),                    cnt: (L.episodic || []).length + ' sessions' },
+    { key: 'semantic',    label: 'Semantic',     rows: semRows(L.semantic),                     cnt: (s.fact_count || 0) + ' facts' },
+    { key: 'procedural',  label: 'Procedural',   rows: factRows(L.procedural || L.procedures),  cnt: ((L.procedural || L.procedures || []).length) + ' rules' },
+  ];
+
+  stackEl.innerHTML = layers.map(l => `
+    <div class="ms-layer-card">
+      <div class="ms-layer-hdr">
+        <span class="ms-layer-name">${l.label}</span>
+        <span class="ms-layer-cnt">${l.cnt}</span>
+      </div>
+      <div>${l.rows}</div>
+    </div>`).join('');
+}
+
+// ── GAP 4: MISSION GOALS ──
+function renderGoals(d) {
+  const el = document.getElementById('goals-card');
+  if (!el) return;
+  if (!d || !d.active) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:16px">No active mission goal</div>';
+    return;
+  }
+  const subtasks = d.subtasks || [];
+  const pct = Math.max(0, Math.min(100, (d.summary || {}).progress_percent || 0));
+  const done = subtasks.filter(t => t.status === 'done').length;
+  el.innerHTML = `<div class="goals-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <div class="goals-title">${d.goal || ''}</div>
+        <div class="goals-meta">${d.focus ? 'Focus ON' : 'Focus OFF'} · since ${d.created || '—'}</div>
+      </div>
+      <div class="goals-pct">${pct}%</div>
+    </div>
+    <div class="goals-bar"><div class="goals-bar-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-family:monospace">SUBTASKS (${done}/${subtasks.length})</div>
+    ${subtasks.map(t => `<div class="goals-subtask ${t.status === 'done' ? 'done' : ''}">
+      <div class="goals-sdot"></div><span>${t.body || ''}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── GAP 5: AI SPEND ──
+function renderSpend(d) {
+  const s = d.summary || {};
+  const models = d.models || {};
+  const entries = Object.entries(models);
+  const total = s.total_calls || 0;
+
+  const spCalls = document.getElementById('sp-calls');
+  const spSuccess = document.getElementById('sp-success');
+  const spLimits = document.getElementById('sp-limits');
+  if (spCalls) { spCalls.textContent = total; spCalls.className = 'spend-stat-v ok'; }
+  if (spSuccess) { spSuccess.textContent = s.successes || 0; spSuccess.className = 'spend-stat-v ok'; }
+  if (spLimits) {
+    spLimits.textContent = s.limit_events || 0;
+    spLimits.className = 'spend-stat-v ' + ((s.limit_events || 0) > 0 ? 'warn' : 'ok');
+  }
+
+  const modelsEl = document.getElementById('spend-models');
+  if (!modelsEl || !entries.length) return;
+  const colours = ['#3b82f6', '#a855f7', '#f59e0b', '#22c55e', '#ef4444'];
+  modelsEl.innerHTML = entries.map(([name, m], i) => {
+    const pct = total ? Math.round((m.calls || 0) / total * 100) : 0;
+    const shortName = name.replace('claude-', '').replace('-20251001', '');
+    return `<div class="spend-model-row">
+      <div class="spend-model-n" title="${name}">${shortName}</div>
+      <div class="spend-bar-wrap"><div class="spend-bar-fill" style="width:${pct}%;background:${colours[i % colours.length]}"></div></div>
+      <div class="spend-model-c">${m.calls || 0} calls</div>
+    </div>`;
+  }).join('');
+}
+
 // ── TASKS DATA ──
+function renderTasksData(d) {
+  const { pending = [], done = [], summary = {} } = d;
+  document.getElementById('ts-total').textContent = summary.total || 0;
+  document.getElementById('ts-p0').textContent = summary.p0_count || 0;
+  document.getElementById('ts-p1').textContent = summary.p1_count || 0;
+  document.getElementById('ts-done').textContent = summary.done || 0;
+
+  const pendingEl = document.getElementById('tasks-list-pending');
+  if (pending.length) {
+    pendingEl.innerHTML = pending.map(t => {
+      const priCol = t.priority === 'P0' ? 'color:var(--red);background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3)'
+                   : t.priority === 'P1' ? 'color:var(--accent);background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3)'
+                   : 'color:var(--dim);background:rgba(107,107,128,.15);border:1px solid rgba(107,107,128,.3)';
+      return `<div class="cmd-card" style="margin-bottom:8px">
+        <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)">
+          <span style="font-family:monospace;font-size:11px;color:var(--dim);min-width:50px">${t.id || '—'}</span>
+          <span style="flex:1;font-size:12px">${t.title || '—'}</span>
+          <span style="font-family:monospace;font-size:10px;padding:2px 6px;border-radius:3px;${priCol}">${t.priority || '대기'}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    pendingEl.innerHTML = '<div style="color:var(--green);font-size:12px;padding:20px;text-align:center">All tasks complete ✓</div>';
+  }
+
+  const doneEl = document.getElementById('tasks-list-done');
+  if (done.length) {
+    doneEl.innerHTML = done.slice(0, 10).map(t => `<div class="cmd-card" style="margin-bottom:4px;opacity:.6">
+      <div style="padding:8px 14px;display:flex;align-items:center;gap:10px">
+        <span style="font-family:monospace;font-size:11px;color:var(--dim);min-width:50px">${t.id || '—'}</span>
+        <span style="flex:1;font-size:12px;text-decoration:line-through">${t.title || '—'}</span>
+      </div></div>`).join('');
+    if (done.length > 10) doneEl.innerHTML += `<div style="color:var(--dim);font-size:11px;padding:8px 14px">+${done.length - 10} more</div>`;
+  } else {
+    doneEl.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:20px;text-align:center">No completed tasks</div>';
+  }
+}
+
 async function loadTasksData() {
+  renderTasksData(DEMO.tasks);
+  renderGoals(DEMO.goals);
   try {
     const r = await fetch(`${API}/agent-os/tasks`);
     if (!r.ok) throw new Error(r.status);
     const d = await r.json();
-    const { pending = [], done = [], summary = {} } = d;
-
-    // Stats
-    document.getElementById('ts-total').textContent = summary.total || 0;
-    document.getElementById('ts-p0').textContent = summary.p0_count || 0;
-    document.getElementById('ts-p1').textContent = summary.p1_count || 0;
-    document.getElementById('ts-done').textContent = summary.done || 0;
-
-    // Pending list
-    const pendingEl = document.getElementById('tasks-list-pending');
-    if (pending.length) {
-      pendingEl.innerHTML = pending.map(t => {
-        const priClass = t.priority === 'P0' ? 'stat-value' : t.priority === 'P1' ? 'stat-sub' : 'stat-sub';
-        const priCol = t.priority === 'P0' ? 'color:var(--red)' : t.priority === 'P1' ? 'color:var(--accent)' : 'color:var(--dim)';
-        return `<div class="cmd-card" style="margin-bottom:8px">
-          <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)">
-            <span style="font-family:monospace;font-size:11px;color:var(--dim);min-width:50px">${t.id || '—'}</span>
-            <span style="flex:1;font-size:12px">${t.title || '—'}</span>
-            <span style="font-family:monospace;font-size:10px;padding:2px 6px;border-radius:3px;${priCol};${t.priority === 'P0' ? 'background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3)' : t.priority === 'P1' ? 'background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3)' : 'background:rgba(107,107,128,.15);border:1px solid rgba(107,107,128,.3)'}">${t.priority || '대기'}</span>
-          </div>
-        </div>`;
-      }).join('');
-    } else {
-      pendingEl.innerHTML = '<div style="color:var(--green);font-size:12px;padding:20px;text-align:center">All tasks complete ✓</div>';
-    }
-
-    // Done list
-    const doneEl = document.getElementById('tasks-list-done');
-    if (done.length) {
-      doneEl.innerHTML = done.slice(0, 10).map(t => `<div class="cmd-card" style="margin-bottom:4px;opacity:.6">
-        <div style="padding:8px 14px;display:flex;align-items:center;gap:10px">
-          <span style="font-family:monospace;font-size:11px;color:var(--dim);min-width:50px">${t.id || '—'}</span>
-          <span style="flex:1;font-size:12px;text-decoration:line-through">${t.title || '—'}</span>
-        </div>
-      </div>`).join('');
-      if (done.length > 10) doneEl.innerHTML += `<div style="color:var(--dim);font-size:11px;padding:8px 14px">+${done.length - 10} more</div>`;
-    } else {
-      doneEl.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:20px;text-align:center">No completed tasks</div>';
-    }
+    renderTasksData(d);
+    // Try live goals too
+    const gr = await fetch(`${API}/agent-os/goals`).then(x => x.json()).catch(() => null);
+    if (gr) renderGoals(gr);
   } catch(e) {
-    document.getElementById('tasks-list-pending').innerHTML = '<div style="color:var(--dim);font-size:11px">Failed to load tasks</div>';
+    // Keep DEMO data already rendered
   }
+
 }
 
 // ── ACTIVITY EVENTS ──
@@ -1081,73 +1334,81 @@ function renderActivity(events, stats) {
     </div>`).join('');
 }
 
+// ── RENDER STAT CARDS ──
+function renderStatCards(graph, stats, cost) {
+  const s = graph.stats || {};
+  document.getElementById('footer-graph').textContent = `Graph: ${s.built_at || '(demo)'}`;
+  document.getElementById('ms-nodes').textContent = s.nodes || (graph.nodes || []).length;
+  document.getElementById('ms-edges').textContent = s.edges || (graph.edges || []).length;
+  document.getElementById('ms-clusters').textContent = s.clusters || '—';
+  document.getElementById('ms-isolated').textContent = s.isolated || '—';
+  document.getElementById('mem-headline').innerHTML = `${(graph.nodes || []).length} <em>files indexed</em>`;
+
+  document.getElementById('s-facts').textContent = stats.memory?.fact_count || 0;
+  const sessions = cost.total_sessions || 0;
+  document.getElementById('s-mem-bar').style.width = Math.min(sessions / 100 * 100, 100) + '%';
+  document.getElementById('s-mem-sub').textContent = `${stats.context_packs?.count || 0} context packs`;
+  document.getElementById('s-model').textContent = 'claude-sonnet';
+  document.getElementById('s-model-pill').textContent = 'CODEX ×';
+  document.getElementById('s-model-sub').textContent = `${stats.skills?.count || 0} skills loaded`;
+  document.getElementById('s-savings').textContent = `$${cost.estimated_saved_usd?.toFixed(2) || '0.00'}`;
+  document.getElementById('s-savings-sub').textContent = `${sessions} sessions`;
+  document.getElementById('s-date').textContent = s.built_at ? `Since ${s.built_at.slice(0, 10)}` : '(demo)';
+  const chart = document.getElementById('mini-chart');
+  if (chart) {
+    const bars = chart.querySelectorAll('.mini-bar');
+    [20, 35, 50, 40, 70, 60, 90].forEach((h, i) => { if (bars[i]) bars[i].style.height = h + '%'; });
+    if (bars.length) bars[bars.length - 1].classList.add('accent');
+  }
+}
+
 // ── LOAD ALL DATA ──
 async function loadAll() {
-  try {
-    const [graph, stats, cost, activity] = await Promise.all([
-      fetch(`${API}/os/graph`).then(r => r.json()),
-      fetch(`${API}/os/stats`).then(r => r.json()),
-      fetch(`${API}/os/session-cost`).then(r => r.json()),
-      fetch(`${API}/os/activity`).then(r => r.json()),
-    ]);
+  // Render DEMO immediately so UI is never blank
+  renderStatCards(DEMO.graph, DEMO.stats, DEMO.cost);
+  renderPersonaCards(DEMO.stats.skills.files);
+  renderActivity(DEMO.activity.events, DEMO.stats);
+  renderMemoryStack(DEMO.memory);
+  renderGoals(DEMO.goals);
+  renderSpend(DEMO.spend);
 
+  const [graphR, statsR, costR, activityR, memR, spendR] = await Promise.allSettled([
+    fetch(`${API}/os/graph`).then(r => r.json()),
+    fetch(`${API}/os/stats`).then(r => r.json()),
+    fetch(`${API}/os/session-cost`).then(r => r.json()),
+    fetch(`${API}/os/activity`).then(r => r.json()),
+    fetch(`${API}/agent-os/memory`).then(r => r.json()),
+    fetch(`${API}/agent-os/spend`).then(r => r.json()),
+  ]);
+
+  const graph    = graphR.status    === 'fulfilled' ? graphR.value    : DEMO.graph;
+  const stats    = statsR.status    === 'fulfilled' ? statsR.value    : DEMO.stats;
+  const cost     = costR.status     === 'fulfilled' ? costR.value     : DEMO.cost;
+  const activity = activityR.status === 'fulfilled' ? activityR.value : DEMO.activity;
+  const mem      = memR.status      === 'fulfilled' ? memR.value      : DEMO.memory;
+  const spend    = spendR.status    === 'fulfilled' ? spendR.value    : DEMO.spend;
+
+  // Graph
+  if ((graph.nodes || []).length > 0) {
     graphData = graph;
     const nodes = graph.nodes.map(d => ({...d}));
-    const edges = graph.edges.map(d => ({...d}));
-
-    // Compute degrees
+    const nodeIds = new Set(nodes.map(n => n.id));
+    const edges = graph.edges
+      .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
+      .map(d => ({...d}));
     const degMap = {};
-    edges.forEach(e => {
-      degMap[e.source] = (degMap[e.source] || 0) + 1;
-      degMap[e.target] = (degMap[e.target] || 0) + 1;
-    });
+    edges.forEach(e => { degMap[e.source] = (degMap[e.source] || 0) + 1; degMap[e.target] = (degMap[e.target] || 0) + 1; });
     nodes.forEach(n => n.degree = degMap[n.id] || 0);
-
     allNodes = nodes; allEdges = edges;
-
-    // Render main graph
     renderMainGraph(nodes, edges);
-
-    // Stat cards
-    const s = graph.stats || {};
-    document.getElementById('footer-version').textContent = `Bucky OS v1.0`;
-    document.getElementById('footer-graph').textContent = `Graph: ${s.built_at || '—'}`;
-    document.getElementById('ms-nodes').textContent = s.nodes || nodes.length;
-    document.getElementById('ms-edges').textContent = s.edges || edges.length;
-    document.getElementById('ms-clusters').textContent = s.clusters || '—';
-    document.getElementById('ms-isolated').textContent = s.isolated || '—';
-    document.getElementById('mem-headline').innerHTML = `${nodes.length} <em>files indexed</em>`;
-
-    document.getElementById('s-facts').textContent = stats.memory?.fact_count || 0;
-    const sessions = cost.total_sessions || 0;
-    const pct = Math.min(sessions / 100 * 100, 100);
-    document.getElementById('s-mem-bar').style.width = pct + '%';
-    document.getElementById('s-mem-sub').textContent = `${stats.context_packs?.count || 0} context packs`;
-    document.getElementById('s-model').textContent = 'claude-sonnet';
-    document.getElementById('s-model-pill').textContent = 'CODEX ×';
-    document.getElementById('s-model-sub').textContent = `${stats.skills?.count || 0} skills loaded`;
-    document.getElementById('s-savings').textContent = `$${cost.estimated_saved_usd?.toFixed(2) || '0.00'}`;
-    document.getElementById('s-savings-sub').textContent = `${sessions} sessions · $${cost.savings_per_session} avg savings`;
-    document.getElementById('s-date').textContent = `Since ${s.built_at?.slice(0, 10) || '—'}`;
-
-    // Mini chart
-    const chart = document.getElementById('mini-chart');
-    const bars = chart.querySelectorAll('.mini-bar');
-    const heights = [20, 35, 50, 40, 70, 60, 90];
-    bars.forEach((b, i) => b.style.height = (heights[i % heights.length]) + '%');
-    if (bars.length) bars[bars.length - 1].classList.add('accent');
-
-    // Skills
-    renderPersonaCards(stats.skills?.files || []);
-
-    // Activity
-    renderActivity(activity.events || [], stats);
-
-  } catch(e) {
-    console.warn('[Bucky OS] API error:', e);
-    // Render empty state gracefully
-    renderPersonaCards([]);
   }
+
+  renderStatCards(graph, stats, cost);
+  renderPersonaCards(stats.skills?.files || []);
+  renderActivity(activity.events || [], stats);
+  renderMemoryStack(mem);
+  renderGoals(DEMO.goals); // goals come from tasks page; loadTasksData handles live
+  renderSpend(spend);
 }
 
 // ── SERVER CHECK ──
