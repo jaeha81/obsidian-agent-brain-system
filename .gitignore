@@ -148,3 +148,5 @@ scripts/.codex_collector_state.json
 .vercel
 
 .vercel
+
+.worktrees/
