@@ -29,7 +29,7 @@ export default async (req, res) => {
 
        if (password === expectedPassword) {
                 const maxAge = 60 * 60 * 24 * 7;
-                const cookie = `bucky_auth=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}; Path=/`;
+                        const cookie = `bucky_auth=${sessionToken}; Secure; SameSite=Strict; Max-Age=${maxAge}; Path=/`;
                 res.writeHead(302, { 'Set-Cookie': cookie, 'Location': target });
                 res.end();
        } else {
