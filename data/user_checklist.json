@@ -293,6 +293,19 @@
       "completed": "2026-06-09",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-022",
+      "title": "push는 아직 안 함 — push 진행할까요?",
+      "description": "",
+      "priority": "완료",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-09",
+      "completed": "2026-06-09",
+      "completion_note": "git push origin master 완료: 841a1de",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }
