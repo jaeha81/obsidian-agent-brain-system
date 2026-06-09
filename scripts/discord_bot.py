@@ -274,8 +274,17 @@ _REQUIRED_CONTEXT_PACKS = [
 _CONTEXT_PACK_CHAR_LIMIT = int(os.getenv("BUCKY_CONTEXT_PACK_CHAR_LIMIT", "18000"))
 _LATEST_GRAPHIFY_SUMMARY = _VAULT / "10_AgentBus" / "completed" / "latest_daily_graphify_evolution.md"
 _GRAPHIFY_SUMMARY_CHAR_LIMIT = int(os.getenv("BUCKY_GRAPHIFY_SUMMARY_CHAR_LIMIT", "4000"))
+_CHRIS_ROLE_FILE = Path(
+    os.getenv(
+        "CHRIS_ROLE_FILE",
+        str(_VAULT / "03_Projects" / "agents" / "chris.md"),
+    )
+)
+_CHRIS_CONTEXT_CHAR_LIMIT = int(os.getenv("CHRIS_CONTEXT_CHAR_LIMIT", "6000"))
 _context_cache: dict = {"text": "", "loaded_at": 0.0}
+_chris_context_cache: dict = {"text": "", "loaded_at": 0.0}
 _CONTEXT_TTL = 300  # 5분
+_CHRIS_CONTEXT_TTL = 300
 
 # ── Checklist 헬퍼 ─────────────────────────────────────────────────────────
 _CHECKLIST_JSON = _ROOT / "data" / "user_checklist.json"
@@ -456,6 +465,48 @@ def _load_bucky_context() -> str:
         return BUCKY_SYSTEM_PROMPT
 
 # ── 사용자 접근제어 ─────────────────────────────────────────────────────────────
+
+def _read_chris_role_context() -> str:
+    import time
+    now = time.time()
+    if now - _chris_context_cache["loaded_at"] < _CHRIS_CONTEXT_TTL and _chris_context_cache["text"]:
+        return _chris_context_cache["text"]
+    try:
+        text = _CHRIS_ROLE_FILE.read_text(encoding="utf-8", errors="replace").strip()
+    except Exception:
+        return ""
+    if not text:
+        return ""
+    excerpt = text[:_CHRIS_CONTEXT_CHAR_LIMIT]
+    if len(text) > len(excerpt):
+        excerpt += "\n\n[TRUNCATED: Chris role char limit reached]"
+    context = "\n\n---\n\n# Chris Role Instructions\n\n" + excerpt
+    _chris_context_cache["text"] = context
+    _chris_context_cache["loaded_at"] = now
+    return context
+
+
+def _uses_chris_context(channel_id: str, user_message: str = "") -> bool:
+    if JH_CHRIS_CHANNEL_ID and str(channel_id) == str(JH_CHRIS_CHANNEL_ID):
+        return True
+    text = (user_message or "").lower()
+    return (
+        "knowledge_intake" in text
+        or "daily plus knowledge intake" in text
+        or "target_channel: jh-chris" in text
+        or "jh-chris" in text
+    )
+
+
+def _load_agent_context(channel_id: str, user_message: str = "") -> str:
+    context = _load_bucky_context()
+    if not _uses_chris_context(channel_id, user_message):
+        return context
+    chris_context = _read_chris_role_context()
+    if not chris_context:
+        return context
+    return f"{context}\n\n{chris_context}"
+
 
 _USERS_CONFIG_PATH = _ROOT / "configs" / "discord_users.yaml"
 
@@ -1957,7 +2008,7 @@ async def ask_bucky(
         rag_context = await asyncio.to_thread(_get_rag_context, user_message)
         rag_block = f"\n\n{rag_context}" if rag_context else ""
 
-    bucky_context = _load_bucky_context()
+    bucky_context = _load_agent_context(channel_id, user_message)
     session_anchor = (
         "# Active dashboard session\n\n"
         f"- key: {session_key}\n"
@@ -5040,7 +5091,7 @@ class BuckyDiscordBot(discord.Client):
         # ── 컨텍스트 조회 / 업데이트 ─────────────────────────────────────────────
         if content in ("!컨텍스트", "!context"):
             try:
-                ctx = _load_bucky_context()
+                ctx = _load_agent_context(str(message.channel.id), content)
                 preview = ctx[:1200] + ("\n...(이하 생략)" if len(ctx) > 1200 else "")
                 await message.channel.send(f"📋 **BUCKY_CONTEXT.md 현재 내용:**\n```\n{preview}\n```")
             except Exception as e:

@@ -1,142 +1,22 @@
 {
   "collapse-filter": false,
-  "search": "-path:01_RAW -path:09_Archive -path:10_AgentBus -path:00_UPGRADE -path:graphify-out -path:Inbox/DiscordCaptures -path:.obsidian -path:legacy-import -path:10_AgentBus/claims",
-  "showTags": true,
-  "showAttachments": true,
-  "hideUnresolved": true,
-  "showOrphans": true,
+  "search": "-path:01_RAW -path:09_Archive -path:00_UPGRADE -path:graphify-out -path:Inbox/DiscordCaptures -path:.obsidian -path:legacy-import",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": false,
   "collapse-color-groups": false,
-  "colorGroups": [
-    {
-      "query": "tag:#area/ai_automation",
-      "color": {
-        "a": 1,
-        "rgb": 4349167
-      }
-    },
-    {
-      "query": "tag:#area/gpt_feedback",
-      "color": {
-        "a": 1,
-        "rgb": 3394815
-      }
-    },
-    {
-      "query": "tag:#area/interior_design",
-      "color": {
-        "a": 1,
-        "rgb": 16744448
-      }
-    },
-    {
-      "query": "tag:#area/client_consulting",
-      "color": {
-        "a": 1,
-        "rgb": 16719872
-      }
-    },
-    {
-      "query": "tag:#status/active",
-      "color": {
-        "a": 1,
-        "rgb": 65280
-      }
-    },
-    {
-      "query": "tag:#status/inbox",
-      "color": {
-        "a": 1,
-        "rgb": 8947848
-      }
-    },
-    {
-      "query": "tag:#status/archive",
-      "color": {
-        "a": 1,
-        "rgb": 6710886
-      }
-    },
-    {
-      "query": "path:10_AgentBus",
-      "color": {
-        "a": 1,
-        "rgb": 13007069
-      }
-    },
-    {
-      "query": "path:03_Projects",
-      "color": {
-        "a": 1,
-        "rgb": 16007006
-      }
-    },
-    {
-      "query": "path:03_Knowledge",
-      "color": {
-        "a": 1,
-        "rgb": 16486972
-      }
-    },
-    {
-      "query": "path:05_Frameworks",
-      "color": {
-        "a": 1,
-        "rgb": 2282478
-      }
-    },
-    {
-      "query": "path:06_Context_Packs",
-      "color": {
-        "a": 1,
-        "rgb": 10011513
-      }
-    },
-    {
-      "query": "path:04_Wiki",
-      "color": {
-        "a": 1,
-        "rgb": 8702998
-      }
-    },
-    {
-      "query": "path:00_System",
-      "color": {
-        "a": 1,
-        "rgb": 16436245
-      }
-    },
-    {
-      "query": "path:05_Logs",
-      "color": {
-        "a": 1,
-        "rgb": 6809849
-      }
-    },
-    {
-      "query": "path:07_Reports",
-      "color": {
-        "a": 1,
-        "rgb": 6333946
-      }
-    },
-    {
-      "query": "path:Inbox",
-      "color": {
-        "a": 1,
-        "rgb": 14707829
-      }
-    }
-  ],
+  "colorGroups": [],
   "collapse-display": false,
   "showArrow": false,
-  "textFadeMultiplier": -1.8,
-  "nodeSizeMultiplier": 1.3,
-  "lineSizeMultiplier": 0.45,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
   "collapse-forces": false,
-  "centerStrength": 0.12,
-  "repelStrength": 20,
-  "linkStrength": 0.45,
-  "linkDistance": 380,
-  "scale": 0.021528718442430272,
-  "close": true
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.059326171874999875,
+  "close": false
 }

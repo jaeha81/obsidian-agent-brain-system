@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuckyOS — 시스템 워크플로우</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #04040e;
+  --surface: #08081a;
+  --card:    rgba(10,10,24,0.85);
+  --border:  rgba(0,212,255,0.15);
+  --cyan:    #00d4ff;
+  --amber:   #f5a623;
+  --green:   #00ff88;
+  --purple:  #a855f7;
+  --red:     #ff4757;
+  --blue:    #3b82f6;
+  --muted:   #4a4a6a;
+  --text:    #e8e8f8;
+  --dim:     #7878a8;
+  --sans:    "Space Grotesk", system-ui, sans-serif;
+  --mono:    "Space Mono", monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px;
+  height: 52px;
+  background: rgba(4,4,14,0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--cyan); letter-spacing: .04em; }
+.topbar-sub { font-size: 11px; color: var(--dim); font-family: var(--mono); }
+
+/* ── MAIN ── */
+.page { padding: 32px 28px 60px; max-width: 1400px; margin: 0 auto; }
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── FLOW DIAGRAM ── */
+.flow-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+/* Layer row */
+.layer {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  position: relative;
+}
+
+/* Layer label */
+.layer-label {
+  width: 110px;
+  min-width: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 16px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border-right: 2px solid var(--border);
+}
+
+/* Nodes row */
+.layer-nodes {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 24px;
+  position: relative;
+}
+
+/* Connector line between layers */
+.connector {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.connector-line {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 0 110px;
+  height: 36px;
+  position: relative;
+}
+.connector-line svg {
+  position: absolute;
+  left: 110px; top: 0;
+  width: calc(100% - 110px);
+  height: 100%;
+  overflow: visible;
+}
+
+/* Node card */
+.node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: default;
+  transition: border-color .2s, box-shadow .2s, transform .15s;
+  min-width: 100px;
+  text-align: center;
+  position: relative;
+}
+.node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(0,212,255,0.18);
+  border-color: rgba(0,212,255,0.4);
+}
+.node-icon { font-size: 20px; line-height: 1; }
+.node-name { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.node-sub  { font-size: 9px; color: var(--dim); font-family: var(--mono); white-space: nowrap; }
+.node-badge {
+  position: absolute;
+  top: -6px; right: -6px;
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+/* Color themes */
+.node.user    { border-color: rgba(0,212,255,0.35); }
+.node.user .node-name { color: var(--cyan); }
+.node.orch    { border-color: rgba(245,166,35,0.45); background: rgba(245,166,35,0.06); }
+.node.orch .node-name { color: var(--amber); }
+.node.exec    { border-color: rgba(0,255,136,0.35); background: rgba(0,255,136,0.04); }
+.node.exec .node-name { color: var(--green); }
+.node.know    { border-color: rgba(168,85,247,0.35); background: rgba(168,85,247,0.04); }
+.node.know .node-name { color: var(--purple); }
+.node.out     { border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.04); }
+.node.out .node-name { color: var(--blue); }
+.node.route   { border-color: rgba(255,71,87,0.35); background: rgba(255,71,87,0.04); }
+.node.route .node-name { color: var(--red); }
+.node.ext     { border-color: rgba(120,120,168,0.35); background: rgba(120,120,168,0.06); }
+.node.ext .node-name { color: var(--dim); }
+
+.badge-live { background: rgba(0,255,136,0.18); color: var(--green); border: 1px solid rgba(0,255,136,0.35); }
+.badge-db   { background: rgba(168,85,247,0.18); color: var(--purple); border: 1px solid rgba(168,85,247,0.35); }
+.badge-mcp  { background: rgba(0,212,255,0.18); color: var(--cyan); border: 1px solid rgba(0,212,255,0.35); }
+.badge-ext  { background: rgba(245,166,35,0.18); color: var(--amber); border: 1px solid rgba(245,166,35,0.35); }
+
+/* ── FLOW ARROWS (SVG between layers) ── */
+.arrows {
+  position: relative;
+  height: 40px;
+  margin-left: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.arrows svg {
+  overflow: visible;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── DETAIL PANELS ── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin-top: 32px;
+}
+.detail-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.detail-card h3 {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.detail-card .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-cyan   { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+.dot-amber  { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.dot-green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+.dot-blue   { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+.dot-red    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.55;
+}
+.flow-step .num {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--cyan);
+  min-width: 16px;
+  margin-top: 2px;
+}
+.flow-step .txt strong { color: var(--text); }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 18px;
+  margin-top: 28px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--dim); }
+
+/* ── ANIMATED PULSES ── */
+@keyframes pulse-dot {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.4; transform:scale(.7); }
+}
+.live-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+@keyframes flow-dash {
+  to { stroke-dashoffset: -40; }
+}
+.flow-arrow-line {
+  animation: flow-dash 1.8s linear infinite;
+}
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 640px) {
+  html, body { font-size: 12px; }
+
+  .topbar { padding: 0 14px; height: 48px; }
+  .topbar-title { font-size: 13px; }
+  .topbar-sub { display: none; }
+
+  .page { padding: 20px 12px 48px; }
+
+  /* Hide layer label on mobile — show it above nodes as a header */
+  .layer { flex-direction: column; }
+  .layer-label {
+    width: 100%;
+    min-width: unset;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    justify-content: flex-start;
+    padding: 6px 12px;
+    font-size: 9px;
+    margin-bottom: 0;
+  }
+  .layer-nodes {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 12px 10px;
+  }
+
+  /* Nodes: smaller on mobile */
+  .node {
+    min-width: calc(50% - 8px);
+    max-width: calc(50% - 8px);
+    padding: 10px 10px;
+  }
+  .node-icon { font-size: 16px; }
+  .node-name { font-size: 10px; white-space: normal; word-break: keep-all; }
+  .node-sub  { font-size: 8px; white-space: normal; word-break: break-all; }
+
+  /* Flow arrows: remove left offset on mobile */
+  .flow-arrow-wrap { margin-left: 0 !important; }
+  .arrows { margin-left: 0; }
+
+  /* Detail grid: single column */
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .detail-card { padding: 14px 14px; }
+  .detail-card h3 { font-size: 11px; }
+  .flow-step { font-size: 10px; }
+
+  /* Active pipeline: 2 per row */
+  .page > div[style*="grid-template-columns:repeat(auto-fill,minmax(220px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Legend: wrap tightly */
+  .legend { gap: 10px; padding: 12px 14px; }
+  .legend-item { font-size: 10px; }
+
+  /* Section labels */
+  .section-label { font-size: 9px; }
+}
+
+@media (max-width: 380px) {
+  .node {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .page > div[style*="grid-template-columns:repeat(auto-fill,minmax(220px"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">BuckyOS — 시스템 워크플로우</div>
+    <div class="topbar-sub">Current Architecture · 2026-06-10</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--green)">
+    <span class="live-dot"></span> LIVE
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ═══════════════ MAIN FLOW ═══════════════ -->
+  <div class="section-label">전체 데이터 플로우</div>
+
+  <div class="flow-wrap">
+
+    <!-- ── Layer 1: INPUT ── -->
+    <div class="layer">
+      <div class="layer-label" style="color:var(--cyan)">INPUT</div>
+      <div class="layer-nodes">
+        <div class="node user">
+          <div class="node-icon">👤</div>
+          <div class="node-name">사용자 (재하)</div>
+          <div class="node-sub">jaeha3767</div>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">→</div>
+        <div class="node user">
+          <div class="node-icon">💬</div>
+          <div class="node-name">Discord</div>
+          <div class="node-sub">#jh-chat / #jh-tasks</div>
+          <span class="node-badge badge-live">LIVE</span>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">·</div>
+        <div class="node user">
+          <div class="node-icon">⌨️</div>
+          <div class="node-name">Claude Code CLI</div>
+          <div class="node-sub">직접 지시</div>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">·</div>
+        <div class="node ext">
+          <div class="node-icon">🌐</div>
+          <div class="node-name">Vercel Dashboard</div>
+          <div class="node-sub">bucky-os.html</div>
+          <span class="node-badge badge-ext">WEB</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 1→2 -->
+    <div class="flow-arrow-wrap" style="display:flex;height:36px;margin-left:110px;align-items:center;justify-content:center;">
+      <svg width="60%" height="100%" overflow="visible">
+        <defs>
+          <marker id="arr1" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(0,212,255,0.5)"/>
+          </marker>
+        </defs>
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(0,212,255,0.4)" stroke-width="1.5"
+              stroke-dasharray="6,4" marker-end="url(#arr1)" class="flow-arrow-line"/>
+      </svg>
+    </div>
+
+    <!-- ── Layer 2: ORCHESTRATION ── -->
+    <div class="layer">
+      <div class="layer-label" style="color:var(--amber)">ORCH</div>
+      <div class="layer-nodes">
+        <div class="node orch" style="min-width:160px;">
+          <div class="node-icon">🧠</div>
+          <div class="node-name">Bucky (오케스트레이터)</div>
+          <div class="node-sub">discord_bot.py · Port 8765</div>
+          <span class="node-badge badge-live">BOT</span>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">→</div>
+        <div class="node route">
+          <div class="node-icon">🗂️</div>
+          <div class="node-name">Context Pack<br>Selector</div>
+          <div class="node-sub">context_pack_selector.py</div>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">·</div>
+        <div class="node route">
+          <div class="node-icon">📋</div>
+          <div class="node-name">AgentBus<br>Dispatcher</div>
+          <div class="node-sub">agent_dispatcher.py</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 2→3 -->
+    <div class="flow-arrow-wrap" style="display:flex;height:36px;margin-left:110px;align-items:center;justify-content:center;">
+      <svg width="60%" height="100%" overflow="visible">
+        <defs>
+          <marker id="arr2" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(245,166,35,0.5)"/>
+          </marker>
+        </defs>
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(245,166,35,0.4)" stroke-width="1.5"
+              stroke-dasharray="6,4" marker-end="url(#arr2)" class="flow-arrow-line" style="animation-delay:.4s"/>
+      </svg>
+    </div>
+
+    <!-- ── Layer 3: EXECUTION ── -->
+    <div class="layer">
+      <div class="layer-label" style="color:var(--green)">EXEC</div>
+      <div class="layer-nodes">
+        <div class="node exec" style="min-width:140px;">
+          <div class="node-icon">🛠️</div>
+          <div class="node-name">Claude Code</div>
+          <div class="node-sub">구현 · 운영 에이전트</div>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">·</div>
+        <div class="node exec" style="min-width:140px;">
+          <div class="node-icon">🔍</div>
+          <div class="node-name">Codex</div>
+          <div class="node-sub">검수 · 독립 리뷰어</div>
+        </div>
+        <div style="font-size:18px;color:var(--muted)">·</div>
+        <div class="node exec" style="opacity:.55;min-width:130px;">
+          <div class="node-icon">⚗️</div>
+          <div class="node-name">Gemini Layer</div>
+          <div class="node-sub">보류 (API키 미등록)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 3→4 -->
+    <div class="flow-arrow-wrap" style="display:flex;height:36px;margin-left:110px;align-items:center;justify-content:center;">
+      <svg width="60%" height="100%" overflow="visible">
+        <defs>
+          <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(0,255,136,0.5)"/>
+          </marker>
+        </defs>
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(0,255,136,0.4)" stroke-width="1.5"
+              stroke-dasharray="6,4" marker-end="url(#arr3)" class="flow-arrow-line" style="animation-delay:.8s"/>
+      </svg>
+    </div>
+
+    <!-- ── Layer 4: KNOWLEDGE ── -->
+    <div class="layer">
+      <div class="layer-label" style="color:var(--purple)">KNOW</div>
+      <div class="layer-nodes" style="flex-wrap:wrap;gap:10px;">
+        <div class="node know">
+          <div class="node-icon">📚</div>
+          <div class="node-name">ObsidianVault</div>
+          <div class="node-sub">~5,900 노드</div>
+        </div>
+        <div class="node know">
+          <div class="node-icon">🗃️</div>
+          <div class="node-name">bucky_memory.db</div>
+          <div class="node-sub">단기·에피소딕·시멘틱·절차</div>
+          <span class="node-badge badge-db">DB</span>
+        </div>
+        <div class="node know">
+          <div class="node-icon">🕸️</div>
+          <div class="node-name">InfraNodus</div>
+          <div class="node-sub">텍스트 의미 그래프</div>
+          <span class="node-badge badge-mcp">MCP</span>
+        </div>
+        <div class="node know">
+          <div class="node-icon">🗺️</div>
+          <div class="node-name">Graphify</div>
+          <div class="node-sub">코드 구조 지도 (보조)</div>
+        </div>
+        <div class="node know">
+          <div class="node-icon">📦</div>
+          <div class="node-name">Context Packs</div>
+          <div class="node-sub">06_Context_Packs/</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 4→5 -->
+    <div class="flow-arrow-wrap" style="display:flex;height:36px;margin-left:110px;align-items:center;justify-content:center;">
+      <svg width="60%" height="100%" overflow="visible">
+        <defs>
+          <marker id="arr4" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(168,85,247,0.5)"/>
+          </marker>
+        </defs>
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(168,85,247,0.4)" stroke-width="1.5"
+              stroke-dasharray="6,4" marker-end="url(#arr4)" class="flow-arrow-line" style="animation-delay:1.2s"/>
+      </svg>
+    </div>
+
+    <!-- ── Layer 5: OUTPUT ── -->
+    <div class="layer">
+      <div class="layer-label" style="color:var(--blue)">OUTPUT</div>
+      <div class="layer-nodes" style="flex-wrap:wrap;gap:10px;">
+        <div class="node out">
+          <div class="node-icon">🖥️</div>
+          <div class="node-name">bucky-os.html</div>
+          <div class="node-sub">D3 · 5-페이지 대시보드</div>
+          <span class="node-badge badge-live">WEB</span>
+        </div>
+        <div class="node out">
+          <div class="node-icon">🚀</div>
+          <div class="node-name">bucky-agent-os.html</div>
+          <div class="node-sub">Mission Control</div>
+        </div>
+        <div class="node out">
+          <div class="node-icon">📊</div>
+          <div class="node-name">ai-usage.html</div>
+          <div class="node-sub">AI Spend 추적</div>
+        </div>
+        <div class="node out">
+          <div class="node-icon">📋</div>
+          <div class="node-name">daily-plus.html</div>
+          <div class="node-sub">일일 업그레이드</div>
+        </div>
+        <div class="node out">
+          <div class="node-icon">📝</div>
+          <div class="node-name">Vault Notes</div>
+          <div class="node-sub">03_Knowledge · 06_Context_Packs</div>
+        </div>
+        <div class="node ext">
+          <div class="node-icon">🐙</div>
+          <div class="node-name">GitHub · Vercel</div>
+          <div class="node-sub">CI/CD 배포</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /flow-wrap -->
+
+  <!-- ═══════════════ DETAIL PANELS ═══════════════ -->
+  <div class="section-label" style="margin-top:40px">레이어별 상세</div>
+
+  <div class="detail-grid">
+
+    <!-- Discord Routing -->
+    <div class="detail-card">
+      <h3><span class="dot dot-cyan"></span> Discord 채널 라우팅</h3>
+      <div class="flow-step"><span class="num">01</span><span class="txt"><strong>#jh-chat</strong> → Bucky 직접 대화, RAG 응답</span></div>
+      <div class="flow-step"><span class="num">02</span><span class="txt"><strong>#jh-tasks</strong> → Claude 불경유 즉시 배정 (&lt;1초), 동시 5~10개</span></div>
+      <div class="flow-step"><span class="num">03</span><span class="txt"><strong>#jh-status</strong> → 현황판 자동 갱신 (30s 인터벌)</span></div>
+      <div class="flow-step"><span class="num">04</span><span class="txt"><strong>#jh-results</strong> → 완료 시 @멘션 자동 알림</span></div>
+    </div>
+
+    <!-- Bucky Orchestration -->
+    <div class="detail-card">
+      <h3><span class="dot dot-amber"></span> Bucky 오케스트레이션 흐름</h3>
+      <div class="flow-step"><span class="num">01</span><span class="txt">요청 수신 → <strong>context_pack_selector.py</strong>로 Context Pack 선택</span></div>
+      <div class="flow-step"><span class="num">02</span><span class="txt">Goal Mode 패킷 생성 (goal/baseline/target_state/constraints)</span></div>
+      <div class="flow-step"><span class="num">03</span><span class="txt"><strong>AgentBus dispatcher</strong>로 태스크 큐 투입</span></div>
+      <div class="flow-step"><span class="num">04</span><span class="txt">Claude Code (구현) / Codex (검수) 병행 하달</span></div>
+    </div>
+
+    <!-- AgentBus Queue -->
+    <div class="detail-card">
+      <h3><span class="dot dot-red"></span> AgentBus 태스크 큐</h3>
+      <div class="flow-step"><span class="num">01</span><span class="txt"><strong>data/intake_queue/</strong> → 신규 태스크 대기</span></div>
+      <div class="flow-step"><span class="num">02</span><span class="txt"><strong>data/dispatcher_registry.json</strong> → 에이전트 등록 상태</span></div>
+      <div class="flow-step"><span class="num">03</span><span class="txt"><strong>data/intake_queue/processed/</strong> → 완료 태스크 보관</span></div>
+      <div class="flow-step"><span class="num">04</span><span class="txt">approval_required 태스크 → pending_approval 게이트 대기</span></div>
+    </div>
+
+    <!-- Knowledge Layer -->
+    <div class="detail-card">
+      <h3><span class="dot dot-purple"></span> 지식 레이어 구조</h3>
+      <div class="flow-step"><span class="num">01</span><span class="txt"><strong>ObsidianVault</strong> — 마크다운 노트 (5,900+ 파일, 10,997 엣지)</span></div>
+      <div class="flow-step"><span class="num">02</span><span class="txt"><strong>bucky_memory.db</strong> — 단기/에피소딕/시멘틱/절차적 SQLite</span></div>
+      <div class="flow-step"><span class="num">03</span><span class="txt"><strong>InfraNodus MCP</strong> — 텍스트 의미 그래프 (현재 활성)</span></div>
+      <div class="flow-step"><span class="num">04</span><span class="txt"><strong>Context Packs</strong> → 에이전트 지침 압축본 (06_Context_Packs/)</span></div>
+    </div>
+
+    <!-- Execution Agents -->
+    <div class="detail-card">
+      <h3><span class="dot dot-green"></span> 실행 에이전트 분담</h3>
+      <div class="flow-step"><span class="num">01</span><span class="txt"><strong>Claude Code</strong> — 구현/운영, Bucky 패킷 수신 후 실행</span></div>
+      <div class="flow-step"><span class="num">02</span><span class="txt"><strong>Codex</strong> — 독립 검수·디버그, Claude 산출물 교차검증</span></div>
+      <div class="flow-step"><span class="num">03</span><span class="txt"><strong>Gemini Layer</strong> — 리서치/멀티모달 (GEMINI_API_KEY 등록 시 활성화)</span></div>
+      <div class="flow-step"><span class="num">04</span><span class="txt">모든 완료 보고 = 파일경로 + 명령출력 증거 필수</span></div>
+    </div>
+
+    <!-- Output Dashboards -->
+    <div class="detail-card">
+      <h3><span class="dot dot-blue"></span> 출력 대시보드</h3>
+      <div class="flow-step"><span class="num">01</span><span class="txt"><strong>bucky-os.html</strong> — D3 3D그래프·태스크·메모리·미션 5-페이지</span></div>
+      <div class="flow-step"><span class="num">02</span><span class="txt"><strong>bucky-agent-os.html</strong> — Mission Control (GAP 3/4/5 완성)</span></div>
+      <div class="flow-step"><span class="num">03</span><span class="txt"><strong>ai-usage.html</strong> — Claude 구독 사용량 추적</span></div>
+      <div class="flow-step"><span class="num">04</span><span class="txt"><strong>daily-plus.html</strong> — Daily Plus 후보 큐레이션</span></div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ ACTIVE PIPELINE ═══════════════ -->
+  <div class="section-label" style="margin-top:40px">활성 파이프라인 (2026-06-10)</div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
+
+    <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.25);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--green);margin-bottom:8px;letter-spacing:.1em">ACTIVE</div>
+      <div style="font-size:12px;font-weight:600">Discord 봇</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">discord_bot.py<br>PID 잠금 · 단일 인스턴스</div>
+    </div>
+
+    <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.25);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--green);margin-bottom:8px;letter-spacing:.1em">ACTIVE</div>
+      <div style="font-size:12px;font-weight:600">Wishket 에이전트</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">Phase 3 완료<br>테스트 23/23 통과</div>
+    </div>
+
+    <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.25);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--green);margin-bottom:8px;letter-spacing:.1em">ACTIVE</div>
+      <div style="font-size:12px;font-weight:600">BuckyOS 대시보드</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">Vercel 배포<br>30s 자동갱신</div>
+    </div>
+
+    <div style="background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--amber);margin-bottom:8px;letter-spacing:.1em">PENDING</div>
+      <div style="font-size:12px;font-weight:600">Gemini Layer</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">API 키 등록 후 활성화<br>리서치·멀티모달</div>
+    </div>
+
+    <div style="background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--amber);margin-bottom:8px;letter-spacing:.1em">PENDING</div>
+      <div style="font-size:12px;font-weight:600">AgentBus 7 게이트</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">승인 대기 중<br>사용자 확인 필요</div>
+    </div>
+
+    <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--blue);margin-bottom:8px;letter-spacing:.1em">GOAL</div>
+      <div style="font-size:12px;font-weight:600">스나이퍼 대행 플랫폼</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">MVP v0.1 배포 완료<br>v0.2 계획 중</div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ LEGEND ═══════════════ -->
+  <div class="legend">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;margin-right:8px">LEGEND:</div>
+    <div class="legend-item"><span class="dot dot-cyan"></span> 사용자 입력</div>
+    <div class="legend-item"><span class="dot dot-amber"></span> 오케스트레이션</div>
+    <div class="legend-item"><span class="dot dot-red"></span> 라우팅·큐</div>
+    <div class="legend-item"><span class="dot dot-green"></span> 실행 에이전트</div>
+    <div class="legend-item"><span class="dot dot-purple"></span> 지식 레이어</div>
+    <div class="legend-item"><span class="dot dot-blue"></span> 출력·대시보드</div>
+    <div class="legend-item" style="color:var(--dim);font-size:10px">점선 화살표 = 데이터 흐름</div>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>

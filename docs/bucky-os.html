@@ -413,6 +413,78 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .spend-model-c{font-size:11px;font-weight:700;color:var(--accent2);min-width:52px;text-align:right;flex-shrink:0}
 .spend-bar-wrap{width:80px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;flex-shrink:0}
 .spend-bar-fill{height:100%;border-radius:2px;background:var(--accent2)}
+
+/* ─── WORKFLOW PAGE ─── */
+#page-workflow .wf-wrap{padding:4px 0 48px;max-width:1100px}
+#page-workflow{
+  --wf-card:rgba(10,10,24,0.85);
+  --wf-border:rgba(0,212,255,0.15);
+  --wf-cyan:#00d4ff;
+  --wf-amber:#f5a623;
+  --wf-green:#00ff88;
+  --wf-purple:#a855f7;
+  --wf-red:#ff4757;
+  --wf-blue:#3b82f6;
+  --wf-muted:#4a4a6a;
+  --wf-text:#e8e8f8;
+  --wf-dim:#7878a8;
+  --wf-mono:"Space Mono",monospace;
+}
+.wf-section-label{font-family:var(--wf-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--wf-dim);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.wf-section-label::after{content:'';flex:1;height:1px;background:var(--wf-border)}
+.wf-flow-wrap{display:flex;flex-direction:column;gap:0;position:relative}
+.wf-layer{display:flex;align-items:stretch;gap:0;position:relative}
+.wf-layer-label{width:100px;min-width:100px;display:flex;align-items:center;justify-content:flex-end;padding-right:14px;font-family:var(--wf-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--wf-dim);border-right:2px solid var(--wf-border)}
+.wf-layer-nodes{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 20px;flex-wrap:wrap}
+.wf-arrows{position:relative;height:36px;margin-left:100px;display:flex;align-items:center;justify-content:center}
+.wf-arrows svg{overflow:visible;width:100%;height:100%}
+.wf-node{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 14px;background:var(--wf-card);border:1px solid var(--wf-border);border-radius:10px;cursor:default;transition:border-color .2s,box-shadow .2s,transform .15s;min-width:90px;text-align:center;position:relative}
+.wf-node:hover{transform:translateY(-2px);box-shadow:0 0 16px rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.35)}
+.wf-node-icon{font-size:18px;line-height:1}
+.wf-node-name{font-size:10px;font-weight:600}
+.wf-node-sub{font-size:9px;color:var(--wf-dim);font-family:var(--wf-mono)}
+.wf-node-badge{position:absolute;top:-6px;right:-6px;font-size:8px;padding:1px 5px;border-radius:20px;font-family:var(--wf-mono);font-weight:700;letter-spacing:.06em}
+.wf-node.wf-user{border-color:rgba(0,212,255,0.35)}.wf-node.wf-user .wf-node-name{color:var(--wf-cyan)}
+.wf-node.wf-orch{border-color:rgba(245,166,35,0.45);background:rgba(245,166,35,0.06)}.wf-node.wf-orch .wf-node-name{color:var(--wf-amber)}
+.wf-node.wf-exec{border-color:rgba(0,255,136,0.35);background:rgba(0,255,136,0.04)}.wf-node.wf-exec .wf-node-name{color:var(--wf-green)}
+.wf-node.wf-know{border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.04)}.wf-node.wf-know .wf-node-name{color:var(--wf-purple)}
+.wf-node.wf-out{border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.04)}.wf-node.wf-out .wf-node-name{color:var(--wf-blue)}
+.wf-node.wf-route{border-color:rgba(255,71,87,0.35);background:rgba(255,71,87,0.04)}.wf-node.wf-route .wf-node-name{color:var(--wf-red)}
+.wf-node.wf-ext{border-color:rgba(120,120,168,0.35);background:rgba(120,120,168,0.06)}.wf-node.wf-ext .wf-node-name{color:var(--wf-dim)}
+.wf-badge-live{background:rgba(0,255,136,0.18);color:var(--wf-green);border:1px solid rgba(0,255,136,0.35)}
+.wf-badge-db{background:rgba(168,85,247,0.18);color:var(--wf-purple);border:1px solid rgba(168,85,247,0.35)}
+.wf-badge-mcp{background:rgba(0,212,255,0.18);color:var(--wf-cyan);border:1px solid rgba(0,212,255,0.35)}
+.wf-badge-ext{background:rgba(245,166,35,0.18);color:var(--wf-amber);border:1px solid rgba(245,166,35,0.35)}
+@keyframes wf-flow-dash{to{stroke-dashoffset:-40}}
+.wf-arrow-line{animation:wf-flow-dash 1.8s linear infinite}
+.wf-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:28px}
+.wf-detail-card{background:var(--wf-card);border:1px solid var(--wf-border);border-radius:12px;padding:16px 18px}
+.wf-detail-card h3{font-size:11px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.wf-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.wf-dot-cyan{background:var(--wf-cyan);box-shadow:0 0 6px var(--wf-cyan)}
+.wf-dot-amber{background:var(--wf-amber);box-shadow:0 0 6px var(--wf-amber)}
+.wf-dot-green{background:var(--wf-green);box-shadow:0 0 6px var(--wf-green)}
+.wf-dot-purple{background:var(--wf-purple);box-shadow:0 0 6px var(--wf-purple)}
+.wf-dot-blue{background:var(--wf-blue);box-shadow:0 0 6px var(--wf-blue)}
+.wf-dot-red{background:var(--wf-red);box-shadow:0 0 6px var(--wf-red)}
+.wf-flow-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:7px;font-size:11px;color:var(--wf-dim);line-height:1.5}
+.wf-flow-step .wf-num{font-family:var(--wf-mono);font-size:9px;color:var(--wf-cyan);min-width:16px;margin-top:2px}
+.wf-flow-step .wf-txt strong{color:var(--wf-text)}
+.wf-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:24px;padding:14px 18px;background:var(--wf-card);border:1px solid var(--wf-border);border-radius:10px}
+.wf-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--wf-dim)}
+.wf-live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--wf-green);box-shadow:0 0 6px var(--wf-green);animation:pulse-dot 1.8s ease-in-out infinite}
+.wf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--wf-border)}
+.wf-header-title{font-size:15px;font-weight:600;color:var(--wf-cyan);letter-spacing:.04em}
+.wf-header-sub{font-size:11px;color:var(--wf-dim);font-family:var(--wf-mono)}
+@media(max-width:640px){
+  #page-workflow .wf-wrap{padding:0 0 40px}
+  .wf-layer{flex-direction:column}
+  .wf-layer-label{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--wf-border);justify-content:flex-start;padding:6px 12px}
+  .wf-layer-nodes{justify-content:flex-start;padding:10px 8px}
+  .wf-node{min-width:calc(50% - 8px);max-width:calc(50% - 8px);padding:8px}
+  .wf-arrows{margin-left:0}
+  .wf-detail-grid{grid-template-columns:1fr;gap:8px;margin-top:16px}
+}
 </style>
 </head>
 <body>
@@ -450,6 +522,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div class="nav-item" onclick="switchPage('activity',this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
       Activity
+    </div>
+    <div class="nav-item" onclick="switchPage('workflow',this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+      Workflow
     </div>
   </div>
 
@@ -781,6 +857,124 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         </div>
       </div>
     </div>
+
+    <!-- ═══ WORKFLOW PAGE ═══ -->
+    <div class="page" id="page-workflow">
+      <div class="wf-wrap">
+        <div class="wf-header">
+          <div>
+            <div class="wf-header-title">BuckyOS — 시스템 워크플로우</div>
+            <div class="wf-header-sub">Current Architecture · 2026-06-10</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-family:var(--wf-mono);font-size:11px;color:var(--wf-green)">
+            <span class="wf-live-dot"></span> LIVE
+          </div>
+        </div>
+
+        <div class="wf-section-label">전체 데이터 플로우</div>
+        <div class="wf-flow-wrap">
+
+          <!-- INPUT -->
+          <div class="wf-layer">
+            <div class="wf-layer-label" style="color:var(--wf-cyan)">INPUT</div>
+            <div class="wf-layer-nodes">
+              <div class="wf-node wf-user"><div class="wf-node-icon">👤</div><div class="wf-node-name">사용자 (재하)</div><div class="wf-node-sub">jaeha3767</div></div>
+              <div style="font-size:16px;color:var(--wf-muted)">→</div>
+              <div class="wf-node wf-user"><div class="wf-node-icon">💬</div><div class="wf-node-name">Discord</div><div class="wf-node-sub">#jh-chat / #jh-tasks</div><span class="wf-node-badge wf-badge-live">LIVE</span></div>
+              <div style="font-size:16px;color:var(--wf-muted)">·</div>
+              <div class="wf-node wf-user"><div class="wf-node-icon">⌨️</div><div class="wf-node-name">Claude Code CLI</div><div class="wf-node-sub">직접 지시</div></div>
+              <div style="font-size:16px;color:var(--wf-muted)">·</div>
+              <div class="wf-node wf-ext"><div class="wf-node-icon">🌐</div><div class="wf-node-name">Vercel Dashboard</div><div class="wf-node-sub">bucky-os.html</div><span class="wf-node-badge wf-badge-ext">WEB</span></div>
+            </div>
+          </div>
+          <div class="wf-arrows"><svg width="60%" height="100%" overflow="visible"><defs><marker id="wfarr1" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(0,212,255,0.5)"/></marker></defs><line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(0,212,255,0.4)" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#wfarr1)" class="wf-arrow-line"/></svg></div>
+
+          <!-- ORCH -->
+          <div class="wf-layer">
+            <div class="wf-layer-label" style="color:var(--wf-amber)">ORCH</div>
+            <div class="wf-layer-nodes">
+              <div class="wf-node wf-orch" style="min-width:150px;"><div class="wf-node-icon">🧠</div><div class="wf-node-name">Bucky (오케스트레이터)</div><div class="wf-node-sub">discord_bot.py · Port 8765</div><span class="wf-node-badge wf-badge-live">BOT</span></div>
+              <div style="font-size:16px;color:var(--wf-muted)">→</div>
+              <div class="wf-node wf-route"><div class="wf-node-icon">🗂️</div><div class="wf-node-name">Context Pack Selector</div><div class="wf-node-sub">context_pack_selector.py</div></div>
+              <div style="font-size:16px;color:var(--wf-muted)">·</div>
+              <div class="wf-node wf-route"><div class="wf-node-icon">📋</div><div class="wf-node-name">AgentBus Dispatcher</div><div class="wf-node-sub">agent_dispatcher.py</div></div>
+            </div>
+          </div>
+          <div class="wf-arrows"><svg width="60%" height="100%" overflow="visible"><defs><marker id="wfarr2" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(245,166,35,0.5)"/></marker></defs><line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(245,166,35,0.4)" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#wfarr2)" class="wf-arrow-line" style="animation-delay:.4s"/></svg></div>
+
+          <!-- EXEC -->
+          <div class="wf-layer">
+            <div class="wf-layer-label" style="color:var(--wf-green)">EXEC</div>
+            <div class="wf-layer-nodes">
+              <div class="wf-node wf-exec" style="min-width:130px;"><div class="wf-node-icon">🛠️</div><div class="wf-node-name">Claude Code</div><div class="wf-node-sub">구현 · 운영 에이전트</div></div>
+              <div style="font-size:16px;color:var(--wf-muted)">·</div>
+              <div class="wf-node wf-exec" style="min-width:130px;"><div class="wf-node-icon">🔍</div><div class="wf-node-name">Codex</div><div class="wf-node-sub">검수 · 독립 리뷰어</div></div>
+              <div style="font-size:16px;color:var(--wf-muted)">·</div>
+              <div class="wf-node wf-exec" style="opacity:.5;min-width:120px;"><div class="wf-node-icon">⚗️</div><div class="wf-node-name">Gemini Layer</div><div class="wf-node-sub">보류 (API키 미등록)</div></div>
+            </div>
+          </div>
+          <div class="wf-arrows"><svg width="60%" height="100%" overflow="visible"><defs><marker id="wfarr3" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(0,255,136,0.5)"/></marker></defs><line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(0,255,136,0.4)" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#wfarr3)" class="wf-arrow-line" style="animation-delay:.8s"/></svg></div>
+
+          <!-- KNOW -->
+          <div class="wf-layer">
+            <div class="wf-layer-label" style="color:var(--wf-purple)">KNOW</div>
+            <div class="wf-layer-nodes">
+              <div class="wf-node wf-know"><div class="wf-node-icon">📚</div><div class="wf-node-name">ObsidianVault</div><div class="wf-node-sub">~5,900 노드</div></div>
+              <div class="wf-node wf-know"><div class="wf-node-icon">🗃️</div><div class="wf-node-name">bucky_memory.db</div><div class="wf-node-sub">단기·에피소딕·시멘틱·절차</div><span class="wf-node-badge wf-badge-db">DB</span></div>
+              <div class="wf-node wf-know"><div class="wf-node-icon">🕸️</div><div class="wf-node-name">InfraNodus</div><div class="wf-node-sub">텍스트 의미 그래프</div><span class="wf-node-badge wf-badge-mcp">MCP</span></div>
+              <div class="wf-node wf-know"><div class="wf-node-icon">🗺️</div><div class="wf-node-name">Graphify</div><div class="wf-node-sub">코드 구조 지도 (보조)</div></div>
+              <div class="wf-node wf-know"><div class="wf-node-icon">📦</div><div class="wf-node-name">Context Packs</div><div class="wf-node-sub">06_Context_Packs/</div></div>
+            </div>
+          </div>
+          <div class="wf-arrows"><svg width="60%" height="100%" overflow="visible"><defs><marker id="wfarr4" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(168,85,247,0.5)"/></marker></defs><line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(168,85,247,0.4)" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#wfarr4)" class="wf-arrow-line" style="animation-delay:1.2s"/></svg></div>
+
+          <!-- OUTPUT -->
+          <div class="wf-layer">
+            <div class="wf-layer-label" style="color:var(--wf-blue)">OUTPUT</div>
+            <div class="wf-layer-nodes">
+              <div class="wf-node wf-out"><div class="wf-node-icon">🖥️</div><div class="wf-node-name">bucky-os.html</div><div class="wf-node-sub">D3 · 6-페이지 대시보드</div><span class="wf-node-badge wf-badge-live">WEB</span></div>
+              <div class="wf-node wf-out"><div class="wf-node-icon">🚀</div><div class="wf-node-name">bucky-agent-os.html</div><div class="wf-node-sub">Mission Control</div></div>
+              <div class="wf-node wf-out"><div class="wf-node-icon">📊</div><div class="wf-node-name">ai-usage.html</div><div class="wf-node-sub">AI Spend 추적</div></div>
+              <div class="wf-node wf-out"><div class="wf-node-icon">📝</div><div class="wf-node-name">Vault Notes</div><div class="wf-node-sub">03_Knowledge · Packs</div></div>
+              <div class="wf-node wf-ext"><div class="wf-node-icon">🐙</div><div class="wf-node-name">GitHub · Vercel</div><div class="wf-node-sub">CI/CD 배포</div></div>
+            </div>
+          </div>
+
+        </div><!-- /wf-flow-wrap -->
+
+        <div class="wf-section-label" style="margin-top:36px">레이어별 상세</div>
+        <div class="wf-detail-grid">
+          <div class="wf-detail-card"><h3><span class="wf-dot wf-dot-cyan"></span> Discord 채널 라우팅</h3><div class="wf-flow-step"><span class="wf-num">01</span><span class="wf-txt"><strong>#jh-chat</strong> → Bucky 직접 대화, RAG 응답</span></div><div class="wf-flow-step"><span class="wf-num">02</span><span class="wf-txt"><strong>#jh-tasks</strong> → Claude 불경유 즉시 배정 (&lt;1초)</span></div><div class="wf-flow-step"><span class="wf-num">03</span><span class="wf-txt"><strong>#jh-status</strong> → 현황판 자동 갱신 (30s)</span></div><div class="wf-flow-step"><span class="wf-num">04</span><span class="wf-txt"><strong>#jh-results</strong> → 완료 시 @멘션 자동 알림</span></div></div>
+          <div class="wf-detail-card"><h3><span class="wf-dot wf-dot-amber"></span> Bucky 오케스트레이션</h3><div class="wf-flow-step"><span class="wf-num">01</span><span class="wf-txt">요청 수신 → <strong>context_pack_selector.py</strong>로 팩 선택</span></div><div class="wf-flow-step"><span class="wf-num">02</span><span class="wf-txt">Goal Mode 패킷 생성 (goal/baseline/constraints)</span></div><div class="wf-flow-step"><span class="wf-num">03</span><span class="wf-txt"><strong>AgentBus dispatcher</strong>로 태스크 큐 투입</span></div><div class="wf-flow-step"><span class="wf-num">04</span><span class="wf-txt">Claude Code (구현) / Codex (검수) 병행 하달</span></div></div>
+          <div class="wf-detail-card"><h3><span class="wf-dot wf-dot-red"></span> AgentBus 태스크 큐</h3><div class="wf-flow-step"><span class="wf-num">01</span><span class="wf-txt"><strong>data/intake_queue/</strong> → 신규 태스크 대기</span></div><div class="wf-flow-step"><span class="wf-num">02</span><span class="wf-txt"><strong>dispatcher_registry.json</strong> → 에이전트 등록</span></div><div class="wf-flow-step"><span class="wf-num">03</span><span class="wf-txt"><strong>processed/</strong> → 완료 태스크 보관</span></div><div class="wf-flow-step"><span class="wf-num">04</span><span class="wf-txt">approval_required → pending_approval 게이트</span></div></div>
+          <div class="wf-detail-card"><h3><span class="wf-dot wf-dot-purple"></span> 지식 레이어 구조</h3><div class="wf-flow-step"><span class="wf-num">01</span><span class="wf-txt"><strong>ObsidianVault</strong> — 마크다운 노트 5,900+ 파일</span></div><div class="wf-flow-step"><span class="wf-num">02</span><span class="wf-txt"><strong>bucky_memory.db</strong> — SQLite 4레이어 메모리</span></div><div class="wf-flow-step"><span class="wf-num">03</span><span class="wf-txt"><strong>InfraNodus MCP</strong> — 텍스트 의미 그래프 (활성)</span></div><div class="wf-flow-step"><span class="wf-num">04</span><span class="wf-txt"><strong>Context Packs</strong> → 에이전트 지침 압축본</span></div></div>
+          <div class="wf-detail-card"><h3><span class="wf-dot wf-dot-green"></span> 실행 에이전트 분담</h3><div class="wf-flow-step"><span class="wf-num">01</span><span class="wf-txt"><strong>Claude Code</strong> — 구현/운영, Bucky 패킷 수신 후 실행</span></div><div class="wf-flow-step"><span class="wf-num">02</span><span class="wf-txt"><strong>Codex</strong> — 독립 검수·디버그, 교차검증</span></div><div class="wf-flow-step"><span class="wf-num">03</span><span class="wf-txt"><strong>Gemini Layer</strong> — API키 등록 시 활성화</span></div><div class="wf-flow-step"><span class="wf-num">04</span><span class="wf-txt">완료 보고 = 파일경로 + 명령출력 증거 필수</span></div></div>
+          <div class="wf-detail-card"><h3><span class="wf-dot wf-dot-blue"></span> 출력 대시보드</h3><div class="wf-flow-step"><span class="wf-num">01</span><span class="wf-txt"><strong>bucky-os.html</strong> — D3 그래프·태스크·메모리·워크플로우</span></div><div class="wf-flow-step"><span class="wf-num">02</span><span class="wf-txt"><strong>bucky-agent-os.html</strong> — Mission Control (GAP 3/4/5)</span></div><div class="wf-flow-step"><span class="wf-num">03</span><span class="wf-txt"><strong>ai-usage.html</strong> — Claude 구독 사용량 추적</span></div><div class="wf-flow-step"><span class="wf-num">04</span><span class="wf-txt"><strong>daily-plus.html</strong> — Daily Plus 후보 큐레이션</span></div></div>
+        </div>
+
+        <div class="wf-section-label" style="margin-top:32px">활성 파이프라인 (2026-06-10)</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:24px">
+          <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.25);border-radius:10px;padding:12px 14px"><div style="font-size:10px;font-family:var(--wf-mono);color:var(--wf-green);margin-bottom:6px;letter-spacing:.1em">ACTIVE</div><div style="font-size:12px;font-weight:600;color:var(--wf-text)">Discord 봇</div><div style="font-size:10px;color:var(--wf-dim);margin-top:3px">discord_bot.py · PID 잠금</div></div>
+          <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.25);border-radius:10px;padding:12px 14px"><div style="font-size:10px;font-family:var(--wf-mono);color:var(--wf-green);margin-bottom:6px;letter-spacing:.1em">ACTIVE</div><div style="font-size:12px;font-weight:600;color:var(--wf-text)">Wishket 에이전트</div><div style="font-size:10px;color:var(--wf-dim);margin-top:3px">Phase 3 완료 · 테스트 23/23</div></div>
+          <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.25);border-radius:10px;padding:12px 14px"><div style="font-size:10px;font-family:var(--wf-mono);color:var(--wf-green);margin-bottom:6px;letter-spacing:.1em">ACTIVE</div><div style="font-size:12px;font-weight:600;color:var(--wf-text)">BuckyOS 대시보드</div><div style="font-size:10px;color:var(--wf-dim);margin-top:3px">Vercel 배포 · 30s 자동갱신</div></div>
+          <div style="background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:12px 14px"><div style="font-size:10px;font-family:var(--wf-mono);color:var(--wf-amber);margin-bottom:6px;letter-spacing:.1em">PENDING</div><div style="font-size:12px;font-weight:600;color:var(--wf-text)">Gemini Layer</div><div style="font-size:10px;color:var(--wf-dim);margin-top:3px">API 키 등록 후 활성화</div></div>
+          <div style="background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:12px 14px"><div style="font-size:10px;font-family:var(--wf-mono);color:var(--wf-amber);margin-bottom:6px;letter-spacing:.1em">PENDING</div><div style="font-size:12px;font-weight:600;color:var(--wf-text)">AgentBus 7 게이트</div><div style="font-size:10px;color:var(--wf-dim);margin-top:3px">승인 대기 중</div></div>
+          <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:12px 14px"><div style="font-size:10px;font-family:var(--wf-mono);color:var(--wf-blue);margin-bottom:6px;letter-spacing:.1em">GOAL</div><div style="font-size:12px;font-weight:600;color:var(--wf-text)">스나이퍼 대행 플랫폼</div><div style="font-size:10px;color:var(--wf-dim);margin-top:3px">MVP v0.1 배포 완료</div></div>
+        </div>
+
+        <div class="wf-legend">
+          <div style="font-family:var(--wf-mono);font-size:10px;color:var(--wf-dim);letter-spacing:.08em;margin-right:6px">LEGEND:</div>
+          <div class="wf-legend-item"><span class="wf-dot wf-dot-cyan"></span> 사용자 입력</div>
+          <div class="wf-legend-item"><span class="wf-dot wf-dot-amber"></span> 오케스트레이션</div>
+          <div class="wf-legend-item"><span class="wf-dot wf-dot-red"></span> 라우팅·큐</div>
+          <div class="wf-legend-item"><span class="wf-dot wf-dot-green"></span> 실행 에이전트</div>
+          <div class="wf-legend-item"><span class="wf-dot wf-dot-purple"></span> 지식 레이어</div>
+          <div class="wf-legend-item"><span class="wf-dot wf-dot-blue"></span> 출력·대시보드</div>
+          <div class="wf-legend-item" style="font-size:10px">점선 = 데이터 흐름</div>
+        </div>
+
+      </div><!-- /wf-wrap -->
+    </div><!-- /page-workflow -->
 
   </div><!-- /content -->
 </div><!-- /main -->
