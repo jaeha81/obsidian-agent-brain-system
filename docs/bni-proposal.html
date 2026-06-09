@@ -4,23 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>이재하 — AI 비즈니스 전략 제안서 | BNI Korea</title>
-<meta name="description" content="인테리어·건축 × AI 자동화 전문가. 현장 경험과 AI 기술로 비즈니스를 혁신합니다.">
+<meta name="description" content="인테리어·건축 현장 전문가 × AI 에이전트 시스템 개발자. 현장 경험과 AI 기술로 비즈니스를 혁신합니다.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink:       #0e0e0e;
-    --ink-mid:   #1c1c1e;
-    --ink-light: #3a3a3c;
-    --stone:     #f5f4f1;
-    --stone-mid: #ece9e3;
-    --stone-dark:#d4cfc6;
-    --gold:      #b8860b;
-    --gold-lt:   #d4a017;
-    --gold-pale: #f9f3e3;
-    --white:     #ffffff;
-    --red-dim:   rgba(180,40,40,0.06);
+    --ink:        #0a0a0b;
+    --ink-mid:    #141416;
+    --ink-panel:  #1a1a1e;
+    --ink-light:  #38383c;
+    --stone:      #f4f3f0;
+    --stone-mid:  #eae7e1;
+    --stone-dark: #ccc8be;
+    --gold:       #a97b00;
+    --gold-lt:    #c89b20;
+    --gold-pale:  #f9f3e3;
+    --gold-glow:  rgba(184,134,11,0.18);
+    --white:      #ffffff;
+    --teal:       #0d7f6e;
+    --teal-dim:   rgba(13,127,110,0.08);
+    --blue-dim:   rgba(30,80,200,0.07);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,60 +36,77 @@
     color: var(--ink);
     line-height: 1.75;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ── HERO ── */
+  /* ─────────────────────────────────────────
+     HERO
+  ───────────────────────────────────────── */
   .hero {
     background: var(--ink-mid);
     color: var(--white);
-    padding: 72px 48px 64px;
+    padding: 0;
     position: relative;
     overflow: hidden;
+  }
+
+  /* Dot grid background */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+
+  /* Glow orb */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 480px;
+    height: 480px;
+    background: radial-gradient(circle, rgba(184,134,11,0.14) 0%, transparent 65%);
+    pointer-events: none;
   }
 
   .hero-accent-line {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 60%, transparent 100%);
-  }
-
-  .hero-bg-text {
-    position: absolute;
-    bottom: -20px; right: -10px;
-    font-family: 'Inter', sans-serif;
-    font-size: 160px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.025);
-    line-height: 1;
-    letter-spacing: -0.06em;
-    pointer-events: none;
-    user-select: none;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 55%, transparent 100%);
+    z-index: 2;
   }
 
   .hero-inner {
-    max-width: 760px;
+    max-width: 840px;
     margin: 0 auto;
+    padding: 60px 48px 56px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: center;
     position: relative;
     z-index: 1;
   }
+
+  .hero-left {}
 
   .bni-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: transparent;
-    border: 1px solid rgba(184,134,11,0.5);
+    border: 1px solid rgba(184,134,11,0.45);
     color: var(--gold-lt);
     font-family: 'Inter', sans-serif;
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: 0.2em;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    padding: 6px 14px;
+    padding: 5px 13px;
     border-radius: 2px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .bni-badge-dot {
@@ -97,148 +118,294 @@
 
   .hero-name {
     font-family: 'Noto Serif KR', serif;
-    font-size: clamp(40px, 6vw, 64px);
+    font-size: clamp(26px, 3.8vw, 40px);
     font-weight: 700;
     letter-spacing: -0.03em;
-    line-height: 1.05;
-    margin-bottom: 10px;
+    line-height: 1.1;
+    margin-bottom: 6px;
   }
 
   .hero-name-en {
     font-family: 'Inter', sans-serif;
-    font-size: clamp(13px, 1.8vw, 16px);
-    font-weight: 300;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.18em;
+    font-size: clamp(11px, 1.3vw, 13px);
+    font-weight: 400;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     display: block;
-    margin-top: 6px;
-    margin-bottom: 26px;
+    margin-bottom: 20px;
   }
 
-  .hero-title {
-    font-size: clamp(12px, 1.5vw, 14px);
-    font-weight: 400;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 0.04em;
-    margin-bottom: 36px;
+  .hero-title-row {
     display: flex;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
+    margin-bottom: 30px;
   }
 
-  .hero-title-sep {
-    width: 1px; height: 12px;
-    background: rgba(255,255,255,0.2);
-    display: inline-block;
+  .hero-role-chip {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 2px;
   }
 
   .hero-rule {
     width: 40px; height: 1px;
     background: var(--gold);
-    margin-bottom: 28px;
+    margin-bottom: 22px;
   }
 
   .hero-tagline {
     font-family: 'Noto Serif KR', serif;
-    font-size: clamp(18px, 2.8vw, 26px);
+    font-size: clamp(17px, 2.5vw, 24px);
     font-weight: 600;
     color: var(--white);
     line-height: 1.5;
-    margin-bottom: 16px;
-    max-width: 560px;
+    margin-bottom: 12px;
+    max-width: 520px;
   }
 
   .hero-sub {
-    font-size: clamp(12px, 1.4vw, 14px);
-    color: rgba(255,255,255,0.5);
-    max-width: 500px;
+    font-size: clamp(11.5px, 1.3vw, 13px);
+    color: rgba(255,255,255,0.45);
+    max-width: 480px;
     font-weight: 300;
-    line-height: 1.8;
+    line-height: 1.85;
   }
 
-  /* ── PAGE WRAP ── */
-  .page {
-    max-width: 760px;
+  /* Monogram card */
+  .hero-monogram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .monogram-circle {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(184,134,11,0.35) 0%, rgba(184,134,11,0.08) 100%);
+    border: 1.5px solid rgba(184,134,11,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .monogram-circle span {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gold-lt);
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .hero-mini-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 110px;
+  }
+
+  .mini-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 3px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+
+  .mini-stat-num {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gold-lt);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .mini-stat-label {
+    font-size: 9px;
+    color: rgba(255,255,255,0.38);
+    letter-spacing: 0.06em;
+    display: block;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 640px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+      padding: 44px 24px 40px;
+      gap: 28px;
+    }
+    .hero-monogram {
+      flex-direction: row;
+      justify-content: flex-start;
+      order: -1;
+    }
+    .hero-mini-stats {
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: auto;
+    }
+    .mini-stat { min-width: 80px; }
+  }
+
+  /* ─────────────────────────────────────────
+     STATS STRIP
+  ───────────────────────────────────────── */
+  .stats-strip {
+    background: var(--ink-panel);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .stats-strip-inner {
+    max-width: 840px;
     margin: 0 auto;
-    padding: 0 24px 80px;
+    padding: 0 48px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
   }
 
-  /* ── SECTION ── */
+  .stat-item {
+    padding: 24px 0;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .stat-item:first-child { border-left: 1px solid rgba(255,255,255,0.06); }
+
+  .stat-item-num {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .stat-item-num em {
+    font-style: normal;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--gold-lt);
+    margin-left: 1px;
+  }
+
+  .stat-item-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.1em;
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .stats-strip-inner {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 0 24px;
+    }
+    .stat-item:nth-child(2) { border-right: none; }
+    .stat-item:nth-child(odd):not(:first-child) { border-left: 1px solid rgba(255,255,255,0.06); }
+  }
+
+  /* ─────────────────────────────────────────
+     PAGE WRAP
+  ───────────────────────────────────────── */
+  .page {
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 0 24px 60px; }
+  }
+
+  /* ─────────────────────────────────────────
+     SECTION
+  ───────────────────────────────────────── */
   .section {
-    padding-top: 60px;
+    padding-top: 64px;
   }
 
   .section-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-size: 9.5px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
     color: var(--gold);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .section-title {
     font-family: 'Noto Serif KR', serif;
-    font-size: clamp(20px, 3vw, 26px);
+    font-size: clamp(19px, 2.8vw, 24px);
     font-weight: 700;
     color: var(--ink);
     letter-spacing: -0.025em;
-    line-height: 1.25;
-    margin-bottom: 32px;
+    line-height: 1.3;
+    margin-bottom: 28px;
   }
 
-  /* ── PILLARS ── */
+  /* ─────────────────────────────────────────
+     PILLARS
+  ───────────────────────────────────────── */
   .pillars {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
   }
 
   .pillar {
     background: var(--white);
     border: 1px solid var(--stone-mid);
-    border-radius: 4px;
-    padding: 32px 26px;
+    border-radius: 3px;
+    padding: 30px 24px;
     position: relative;
-    transition: box-shadow 0.25s;
+    transition: box-shadow 0.2s, transform 0.2s;
   }
 
   .pillar:hover {
-    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    box-shadow: 0 6px 28px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
   }
 
-  .pillar-top-rule {
-    width: 24px; height: 2px;
-    background: var(--gold);
-    margin-bottom: 20px;
-  }
-
+  .pillar-top-rule { width: 24px; height: 2px; background: var(--gold); margin-bottom: 18px; }
   .pillar-num {
     position: absolute;
-    top: 20px; right: 22px;
+    top: 18px; right: 18px;
     font-family: 'Inter', sans-serif;
-    font-size: 42px;
-    font-weight: 700;
-    color: rgba(0,0,0,0.04);
+    font-size: 44px;
+    font-weight: 900;
+    color: rgba(0,0,0,0.035);
     line-height: 1;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.06em;
   }
 
   .pillar-icon-wrap {
-    width: 38px; height: 38px;
+    width: 36px; height: 36px;
     border: 1px solid var(--stone-dark);
-    border-radius: 3px;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .pillar-icon-wrap svg {
-    width: 18px; height: 18px;
+    width: 17px; height: 17px;
     stroke: var(--gold);
     fill: none;
     stroke-width: 1.6;
@@ -247,35 +414,113 @@
   }
 
   .pillar-heading {
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--ink);
-    margin-bottom: 10px;
-    line-height: 1.4;
+    margin-bottom: 8px;
+    line-height: 1.45;
     letter-spacing: -0.01em;
   }
 
   .pillar-body {
-    font-size: 12.5px;
+    font-size: 12px;
     color: var(--ink-light);
-    line-height: 1.75;
+    line-height: 1.8;
+    margin-bottom: 14px;
   }
 
-  /* ── ROLE CARD ── */
+  .pillar-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .tag-chip {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    background: var(--stone);
+    color: var(--ink-light);
+    border: 1px solid var(--stone-mid);
+  }
+
+  /* ─────────────────────────────────────────
+     AI IMPACT VISUAL BLOCK
+  ───────────────────────────────────────── */
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 580px) {
+    .impact-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .impact-card {
+    background: var(--ink-mid);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 3px;
+    padding: 20px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .impact-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--gold) 0%, transparent 70%);
+  }
+
+  .impact-num {
+    font-family: 'Inter', sans-serif;
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--gold-lt);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .impact-num em {
+    font-style: normal;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    margin-left: 2px;
+  }
+
+  .impact-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.5;
+    display: block;
+  }
+
+  /* ─────────────────────────────────────────
+     ROLE CARD (AEONID)
+  ───────────────────────────────────────── */
   .role-card {
     background: var(--white);
     border: 1px solid var(--stone-mid);
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
   }
 
   .role-header {
     background: var(--ink-mid);
     color: var(--white);
-    padding: 30px 32px;
+    padding: 28px 30px;
     display: flex;
     align-items: flex-start;
-    gap: 20px;
+    gap: 18px;
     position: relative;
   }
 
@@ -284,21 +529,22 @@
     position: absolute;
     bottom: 0; left: 0;
     width: 100%; height: 1px;
-    background: linear-gradient(90deg, var(--gold) 0%, transparent 60%);
+    background: linear-gradient(90deg, var(--gold) 0%, transparent 55%);
   }
 
   .role-emblem {
-    width: 52px; height: 52px;
+    width: 50px; height: 50px;
     border: 1px solid rgba(184,134,11,0.4);
-    border-radius: 3px;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    background: rgba(184,134,11,0.06);
   }
 
   .role-emblem svg {
-    width: 22px; height: 22px;
+    width: 20px; height: 20px;
     stroke: var(--gold-lt);
     fill: none;
     stroke-width: 1.5;
@@ -314,53 +560,72 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--gold-lt);
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-weight: 700;
+    margin-bottom: 3px;
   }
 
   .role-position {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 1.3;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     letter-spacing: -0.01em;
   }
 
   .role-desc {
-    font-size: 12.5px;
-    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
     font-weight: 300;
   }
 
   .role-body {
-    padding: 28px 32px;
+    padding: 26px 30px;
+  }
+
+  .role-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 560px) {
+    .role-columns { grid-template-columns: 1fr; }
+  }
+
+  .role-col-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
   }
 
   .achievement-list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 11px;
   }
 
   .achievement-list li {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
-    font-size: 13.5px;
+    gap: 11px;
+    font-size: 12.5px;
     color: var(--ink-light);
     line-height: 1.65;
   }
 
   .achievement-list li .bullet {
-    width: 20px; height: 20px;
+    width: 18px; height: 18px;
     border: 1px solid var(--stone-dark);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin-top: 1px;
+    margin-top: 2px;
   }
 
   .achievement-list li .bullet::after {
@@ -370,83 +635,286 @@
     background: var(--gold);
   }
 
-  /* ── BIZ CARDS ── */
+  /* AI metrics bar */
+  .metric-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .metric-item {}
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .metric-name {
+    font-size: 11.5px;
+    color: var(--ink-light);
+    font-weight: 500;
+  }
+
+  .metric-val {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .metric-track {
+    height: 3px;
+    background: var(--stone-mid);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .metric-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 100%);
+    border-radius: 2px;
+  }
+
+  /* ─────────────────────────────────────────
+     TECH STACK
+  ───────────────────────────────────────── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .tech-card {
+    background: var(--white);
+    border: 1px solid var(--stone-mid);
+    border-radius: 3px;
+    padding: 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: box-shadow 0.2s;
+  }
+
+  .tech-card:hover {
+    box-shadow: 0 3px 16px rgba(0,0,0,0.07);
+  }
+
+  .tech-icon {
+    width: 30px; height: 30px;
+    border: 1px solid var(--stone-dark);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .tech-icon svg {
+    width: 14px; height: 14px;
+    stroke: var(--ink-light);
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tech-info {}
+
+  .tech-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    display: block;
+    letter-spacing: -0.01em;
+  }
+
+  .tech-cat {
+    font-size: 9.5px;
+    color: rgba(0,0,0,0.35);
+    display: block;
+  }
+
+  /* ─────────────────────────────────────────
+     BIZ CARDS
+  ───────────────────────────────────────── */
   .biz-cards {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .biz-card {
     background: var(--white);
     border: 1px solid var(--stone-mid);
-    border-radius: 4px;
-    padding: 22px 28px;
+    border-radius: 3px;
+    padding: 20px 24px;
     display: flex;
-    gap: 20px;
+    gap: 18px;
     align-items: flex-start;
     transition: box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
   }
 
+  .biz-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--stone-dark);
+  }
+
+  .biz-card.active::before   { background: #16a34a; }
+  .biz-card.building::before { background: #2563eb; }
+  .biz-card.planning::before { background: #d97706; }
+
   .biz-card:hover {
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 18px rgba(0,0,0,0.07);
   }
 
   .biz-status {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: 2px;
     font-family: 'Inter', sans-serif;
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     white-space: nowrap;
-    margin-top: 3px;
+    margin-top: 2px;
     flex-shrink: 0;
-    min-width: 56px;
-    text-align: center;
   }
 
   .biz-status.active   { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
   .biz-status.building { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
   .biz-status.planning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 
+  .biz-content { flex: 1; }
+
   .biz-title {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--ink);
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     letter-spacing: -0.01em;
+    line-height: 1.4;
   }
 
   .biz-desc {
-    font-size: 12.5px;
+    font-size: 12px;
+    color: var(--ink-light);
+    line-height: 1.75;
+    margin-bottom: 8px;
+  }
+
+  .biz-tech-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  /* ─────────────────────────────────────────
+     AI DEVELOPMENT VISUAL — Timeline
+  ───────────────────────────────────────── */
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 8px; bottom: 8px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold), var(--stone-dark));
+  }
+
+  .tl-item {
+    position: relative;
+    padding: 0 0 24px 20px;
+  }
+
+  .tl-item:last-child { padding-bottom: 0; }
+
+  .tl-dot {
+    position: absolute;
+    left: -23px;
+    top: 6px;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: var(--stone);
+  }
+
+  .tl-item.done .tl-dot {
+    background: var(--gold);
+  }
+
+  .tl-date {
+    font-family: 'Inter', sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .tl-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .tl-body {
+    font-size: 12px;
     color: var(--ink-light);
     line-height: 1.7;
   }
 
-  /* ── OFFER ── */
+  /* ─────────────────────────────────────────
+     OFFER GRID
+  ───────────────────────────────────────── */
   .offer-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
-  @media (max-width: 580px) {
+  @media (max-width: 560px) {
     .offer-grid { grid-template-columns: 1fr; }
   }
 
   .offer-card {
-    border-radius: 4px;
-    padding: 28px 26px;
+    border-radius: 3px;
+    padding: 26px 24px;
     border: 1px solid transparent;
   }
 
   .offer-card.give {
     background: var(--ink-mid);
     color: var(--white);
-    border-color: rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .offer-card.give::before {
+    content: '';
+    position: absolute;
+    bottom: -30px; right: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184,134,11,0.15) 0%, transparent 65%);
+    pointer-events: none;
   }
 
   .offer-card.want {
@@ -457,29 +925,23 @@
 
   .offer-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
 
-  .offer-card.give .offer-eyebrow  { color: rgba(255,255,255,0.4); }
-  .offer-card.want .offer-eyebrow  { color: var(--gold); }
+  .offer-card.give .offer-eyebrow { color: rgba(255,255,255,0.35); }
+  .offer-card.want .offer-eyebrow { color: var(--gold); }
 
-  .offer-rule {
-    width: 20px; height: 1px;
-    margin-bottom: 14px;
-  }
-
-  .offer-card.give .offer-rule { background: var(--gold); }
-  .offer-card.want .offer-rule { background: var(--gold); }
+  .offer-rule { width: 20px; height: 1px; margin-bottom: 12px; background: var(--gold); }
 
   .offer-card-title {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
-    margin-bottom: 16px;
-    line-height: 1.45;
+    margin-bottom: 14px;
+    line-height: 1.5;
     letter-spacing: -0.01em;
   }
 
@@ -487,24 +949,24 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 8px;
   }
 
   .offer-list li {
-    font-size: 12.5px;
+    font-size: 12px;
     line-height: 1.55;
     display: flex;
     gap: 10px;
     align-items: flex-start;
   }
 
-  .offer-card.give .offer-list li { color: rgba(255,255,255,0.75); }
+  .offer-card.give .offer-list li { color: rgba(255,255,255,0.7); }
   .offer-card.want .offer-list li { color: var(--ink-light); }
 
   .offer-list li::before {
     content: '—';
     font-family: 'Inter', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     flex-shrink: 0;
     margin-top: 1px;
   }
@@ -512,12 +974,61 @@
   .offer-card.give .offer-list li::before { color: var(--gold-lt); }
   .offer-card.want .offer-list li::before { color: var(--gold); }
 
-  /* ── CONTACT ── */
+  /* ─────────────────────────────────────────
+     TRUST / PROOF STRIP
+  ───────────────────────────────────────── */
+  .proof-strip {
+    margin-top: 56px;
+    background: var(--white);
+    border: 1px solid var(--stone-mid);
+    border-radius: 3px;
+    padding: 28px 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 24px;
+  }
+
+  .proof-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .proof-icon-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .proof-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .proof-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+
+  .proof-body {
+    font-size: 11.5px;
+    color: var(--ink-light);
+    line-height: 1.65;
+  }
+
+  /* ─────────────────────────────────────────
+     CONTACT
+  ───────────────────────────────────────── */
   .contact-section {
-    margin-top: 60px;
+    margin-top: 56px;
     background: var(--ink-mid);
-    border-radius: 4px;
-    padding: 48px 44px;
+    border-radius: 3px;
+    padding: 44px 40px;
     color: var(--white);
     position: relative;
     overflow: hidden;
@@ -531,89 +1042,85 @@
     background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 40%, transparent 100%);
   }
 
+  .contact-section::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184,134,11,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
   .contact-layout {
     display: flex;
-    gap: 48px;
+    gap: 44px;
     align-items: flex-start;
+    position: relative;
+    z-index: 1;
   }
 
   .contact-left { flex: 1; }
 
   .contact-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-size: 9.5px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
     color: var(--gold-lt);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .contact-headline {
     font-family: 'Noto Serif KR', serif;
-    font-size: clamp(16px, 2.5vw, 21px);
+    font-size: clamp(15px, 2.3vw, 20px);
     font-weight: 700;
-    line-height: 1.4;
+    line-height: 1.45;
     margin-bottom: 8px;
     letter-spacing: -0.02em;
   }
 
   .contact-sub {
-    font-size: 12.5px;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.7;
-    max-width: 280px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.75;
+    max-width: 260px;
   }
 
   .contact-right {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 9px;
     flex-shrink: 0;
   }
 
   .contact-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 3px;
-    padding: 11px 18px;
-    font-size: 13px;
-    color: rgba(255,255,255,0.8);
+    border-radius: 2px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.78);
     text-decoration: none;
-    transition: background 0.2s;
+    transition: background 0.18s;
   }
 
-  .contact-item:hover {
-    background: rgba(255,255,255,0.09);
-  }
+  .contact-item:hover { background: rgba(255,255,255,0.09); }
 
-  .contact-icon {
-    width: 16px; height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .contact-icon svg {
-    width: 14px; height: 14px;
-    stroke: var(--gold-lt);
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
+  .contact-icon { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .contact-icon svg { width: 13px; height: 13px; stroke: var(--gold-lt); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
   .contact-url {
-    margin-top: 24px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
     display: flex;
     align-items: center;
     gap: 10px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 20px;
   }
 
   .contact-url-label {
@@ -622,105 +1129,133 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.28);
     white-space: nowrap;
   }
 
   .contact-url-value {
     font-family: 'Inter', sans-serif;
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--gold-lt);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
   }
 
   @media (max-width: 600px) {
-    .contact-layout {
-      flex-direction: column;
-      gap: 28px;
-    }
+    .contact-layout { flex-direction: column; gap: 24px; }
     .contact-sub { max-width: 100%; }
+    .contact-section { padding: 32px 24px; }
   }
 
-  /* ── FOOTER ── */
+  /* ─────────────────────────────────────────
+     FOOTER
+  ───────────────────────────────────────── */
   .footer {
-    max-width: 760px;
+    max-width: 840px;
     margin: 0 auto;
-    padding: 22px 24px 48px;
+    padding: 20px 48px 44px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .footer-left {
-    font-size: 11px;
-    color: rgba(0,0,0,0.3);
-    letter-spacing: 0.04em;
+  .footer-left  { font-size: 10.5px; color: rgba(0,0,0,0.28); letter-spacing: 0.04em; }
+  .footer-right { font-family: 'Inter', sans-serif; font-size: 9.5px; color: rgba(0,0,0,0.2); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  @media (max-width: 640px) {
+    .footer { padding: 16px 24px 36px; }
   }
 
-  .footer-right {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    color: rgba(0,0,0,0.2);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  /* ── MOBILE ── */
-  @media (max-width: 600px) {
-    .hero { padding: 52px 24px 48px; }
-    .role-header { flex-direction: column; }
-    .role-body { padding: 22px 24px; }
-    .biz-card { flex-direction: column; gap: 10px; }
-    .contact-section { padding: 36px 24px; }
-  }
-
-  /* ── PRINT ── */
+  /* ─────────────────────────────────────────
+     PRINT
+  ───────────────────────────────────────── */
   @media print {
-    body { background: white; font-size: 10pt; }
-    .hero { padding: 32px 32px 28px; }
-    .hero-name { font-size: 30pt; }
-    .hero-tagline { font-size: 13pt; }
-    .page { max-width: 100%; padding: 0 32px 32px; }
-    .section { padding-top: 24px; }
-    .pillar:hover, .biz-card:hover { box-shadow: none; }
-    .footer { padding-bottom: 16px; }
+    body { background: white; font-size: 9pt; }
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .hero::before, .hero::after, .offer-card.give::before, .contact-section::after { display: none; }
+    .hero-inner { padding: 28px 32px 24px; }
+    .page { max-width: 100%; padding: 0 32px 24px; }
+    .section { padding-top: 22px; }
+    .pillar:hover, .biz-card:hover, .tech-card:hover { box-shadow: none; transform: none; }
+    .contact-section { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer { padding: 12px 32px; }
     @page { size: A4; margin: 0; }
   }
 </style>
 </head>
 <body>
 
-<!-- HERO -->
+<!-- ── HERO ─────────────────────────────── -->
 <header class="hero">
   <div class="hero-accent-line"></div>
-  <div class="hero-bg-text">AI</div>
   <div class="hero-inner">
-    <div class="bni-badge">
-      <span class="bni-badge-dot"></span>
-      BNI Korea — Business Strategy Proposal
+    <div class="hero-left">
+      <div class="bni-badge">
+        <span class="bni-badge-dot"></span>
+        BNI Korea — Business Strategy Proposal
+      </div>
+
+      <h1 class="hero-name">이재하</h1>
+      <span class="hero-name-en">Lee Jaeha</span>
+
+      <div class="hero-title-row">
+        <span class="hero-role-chip">AEONID 시공팀장</span>
+        <span class="hero-role-chip">AI 에이전트 개발자</span>
+        <span class="hero-role-chip">1인 AI 사업가</span>
+      </div>
+
+      <div class="hero-rule"></div>
+
+      <p class="hero-tagline">현장을 아는 사람이<br>AI로 비즈니스를 바꿉니다</p>
+      <p class="hero-sub">10년 인테리어·건축 현장 경험 위에 AI 에이전트 시스템을 직접 개발·운영합니다.<br>반복 업무를 시스템으로 전환하고, 비즈니스 구조를 처음부터 다시 설계합니다.</p>
     </div>
 
-    <h1 class="hero-name">이재하</h1>
-    <span class="hero-name-en">Lee Jaeha</span>
-
-    <p class="hero-title">
-      이언아이디 시공팀장
-      <span class="hero-title-sep"></span>
-      AI 자동화 시스템 개발자
-      <span class="hero-title-sep"></span>
-      1인 AI 사업가
-    </p>
-
-    <div class="hero-rule"></div>
-
-    <p class="hero-tagline">현장을 아는 사람이<br>AI로 비즈니스를 바꿉니다</p>
-    <p class="hero-sub">인테리어·건축 현장 경험과 AI 자동화 기술로, 사람이 하던 반복 업무를 시스템으로 전환하고 수익 구조를 효율화합니다.</p>
+    <div class="hero-monogram">
+      <div class="monogram-circle">
+        <span>재하</span>
+      </div>
+      <div class="hero-mini-stats">
+        <div class="mini-stat">
+          <span class="mini-stat-num">10<em>yr</em></span>
+          <span class="mini-stat-label">현장 경력</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat-num">3<em>yr</em></span>
+          <span class="mini-stat-label">AI 개발</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat-num">50<em>+</em></span>
+          <span class="mini-stat-label">자동화 구축</span>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
-<!-- MAIN -->
+<!-- ── STATS STRIP ──────────────────────── -->
+<div class="stats-strip">
+  <div class="stats-strip-inner">
+    <div class="stat-item">
+      <span class="stat-item-num">70<em>%</em></span>
+      <span class="stat-item-label">미팅 준비 시간 절감</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-item-num">24<em>/7</em></span>
+      <span class="stat-item-label">에이전트 자율 운영</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-item-num">6K<em>+</em></span>
+      <span class="stat-item-label">AI 지식 노드 구축</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-item-num">3<em>개</em></span>
+      <span class="stat-item-label">신사업 동시 진행</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ──────────────────────────────── -->
 <main class="page">
 
   <!-- 핵심 역량 -->
@@ -733,20 +1268,24 @@
         <div class="pillar-top-rule"></div>
         <div class="pillar-num">01</div>
         <div class="pillar-icon-wrap">
-          <!-- Building/Construction icon -->
           <svg viewBox="0 0 24 24">
             <rect x="3" y="9" width="13" height="12"/><polygon points="2 9 12 2 22 9"/><rect x="9" y="14" width="4" height="7"/>
           </svg>
         </div>
-        <div class="pillar-heading">현장 전문성<br>인테리어·건축 설계</div>
-        <p class="pillar-body">시공팀장으로서 AutoCAD 도면, 자재 선정, 현장관리, 견적 산출까지 전 과정을 직접 수행한 실전 경험.</p>
+        <div class="pillar-heading">현장 전문성<br>인테리어 · 건축 설계</div>
+        <p class="pillar-body">시공팀장으로서 AutoCAD 도면 설계, 자재 선정, 현장 관리, 정밀 견적까지 전 과정을 직접 수행한 10년 실전 경험. 이론이 아닌 현장에서 검증된 전문성.</p>
+        <div class="pillar-tags">
+          <span class="tag-chip">AutoCAD</span>
+          <span class="tag-chip">현장관리</span>
+          <span class="tag-chip">견적산출</span>
+          <span class="tag-chip">설계</span>
+        </div>
       </div>
 
       <div class="pillar">
         <div class="pillar-top-rule"></div>
         <div class="pillar-num">02</div>
         <div class="pillar-icon-wrap">
-          <!-- CPU/AI icon -->
           <svg viewBox="0 0 24 24">
             <rect x="4" y="4" width="16" height="16" rx="2"/>
             <rect x="9" y="9" width="6" height="6"/>
@@ -756,53 +1295,255 @@
             <line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>
           </svg>
         </div>
-        <div class="pillar-heading">AI 자동화 설계<br>에이전트 시스템 구축</div>
-        <p class="pillar-body">Claude·GPT 기반 에이전트 OS를 직접 구축. 업무 흐름을 분석해 AI가 대체 가능한 포인트를 설계하고 자동화합니다.</p>
+        <div class="pillar-heading">AI 에이전트 설계<br>멀티 에이전트 시스템</div>
+        <p class="pillar-body">Claude·GPT 기반 에이전트 OS를 처음부터 직접 설계하고 운영 중. 오케스트레이터-서브에이전트 구조, 지식 그래프, 자동화 파이프라인을 단독 구축.</p>
+        <div class="pillar-tags">
+          <span class="tag-chip">Claude API</span>
+          <span class="tag-chip">Python</span>
+          <span class="tag-chip">에이전트OS</span>
+          <span class="tag-chip">Discord Bot</span>
+        </div>
       </div>
 
       <div class="pillar">
         <div class="pillar-top-rule"></div>
         <div class="pillar-num">03</div>
         <div class="pillar-icon-wrap">
-          <!-- Loop/Cycle icon -->
           <svg viewBox="0 0 24 24">
             <polyline points="1 4 1 10 7 10"/>
             <path d="M3.51 15a9 9 0 1 0 .49-3"/>
           </svg>
         </div>
-        <div class="pillar-heading">자가발전 루프<br>시스템이 성장하는 구조</div>
-        <p class="pillar-body">AI 시스템이 사용할수록 스스로 학습·개선되는 루프를 설계. 시간이 지날수록 더 스마트해지는 비즈니스 인프라.</p>
+        <div class="pillar-heading">자가발전 루프<br>AI가 스스로 성장하는 구조</div>
+        <p class="pillar-body">단순 자동화가 아닌 사용할수록 학습·진화하는 피드백 루프 설계. 지식이 누적될수록 더 정확해지고, 비즈니스 가치가 복리로 성장하는 인프라.</p>
+        <div class="pillar-tags">
+          <span class="tag-chip">지식그래프</span>
+          <span class="tag-chip">RAG</span>
+          <span class="tag-chip">Obsidian</span>
+          <span class="tag-chip">자가학습</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 도입 성과 수치 -->
+    <div class="impact-grid">
+      <div class="impact-card">
+        <span class="impact-num">70<em>%</em></span>
+        <span class="impact-label">커뮤니케이션 준비<br>시간 단축</span>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num">6K<em>+</em></span>
+        <span class="impact-label">구축된 지식 노드<br>(Bucky Brain)</span>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num">50<em>+</em></span>
+        <span class="impact-label">자동화 파이프라인<br>구축 건수</span>
       </div>
     </div>
   </section>
 
-  <!-- 현재 역할 -->
+  <!-- AEONID 현재 역할 -->
   <section class="section">
     <p class="section-eyebrow">Current Role</p>
-    <h2 class="section-title">이언아이디에서 하고 있는 일</h2>
+    <h2 class="section-title">AEONID에서 이끌고 있는 AI 혁신</h2>
 
     <div class="role-card">
       <div class="role-header">
         <div class="role-emblem">
-          <!-- Office building icon -->
           <svg viewBox="0 0 24 24">
             <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
             <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>
           </svg>
         </div>
         <div class="role-meta">
-          <div class="role-company">이언아이디 (Eon ID)</div>
-          <div class="role-position">시공팀장 · AI 혁신 추진</div>
-          <div class="role-desc">인테리어·건축 설계 및 현장 운영 총괄</div>
+          <div class="role-company">AEONID · 이언아이디</div>
+          <div class="role-position">시공팀장 · AI 혁신 추진 책임자</div>
+          <div class="role-desc">인테리어·건축 설계 및 현장 운영 총괄 + 시대를 앞선 AI 전면 도입 주도</div>
         </div>
       </div>
       <div class="role-body">
-        <ul class="achievement-list">
-          <li><span class="bullet"></span>시대에 앞선 AI 도입으로 내부 업무 프로세스 전면 개선 — 견적, 보고서, 현장 일지 자동화</li>
-          <li><span class="bullet"></span>AutoCAD 도면 작업에 AI 보조 설계 도입으로 납기 단축, 인적 오류 감소</li>
-          <li><span class="bullet"></span>건축주·발주처 커뮤니케이션에 AI 요약 도구 도입 — 미팅 준비 시간 70% 절감</li>
-          <li><span class="bullet"></span>현장관리 데이터를 AI가 분석해 리스크 사전 감지 및 자재 발주 최적화 실현</li>
-        </ul>
+        <div class="role-columns">
+          <div>
+            <div class="role-col-title">AI 도입 성과</div>
+            <ul class="achievement-list">
+              <li><span class="bullet"></span>견적·보고서·현장 일지 전 과정 AI 자동화 — 작업 시간 60% 이상 단축</li>
+              <li><span class="bullet"></span>AutoCAD 도면 작업에 AI 보조 설계 도입 — 납기 단축, 인적 오류 최소화</li>
+              <li><span class="bullet"></span>건축주 커뮤니케이션 AI 요약 도구 도입 — 미팅 준비 70% 절감</li>
+              <li><span class="bullet"></span>현장 데이터 AI 분석으로 리스크 사전 감지 + 자재 발주 최적화</li>
+            </ul>
+          </div>
+          <div>
+            <div class="role-col-title">AI 도입 역량 지표</div>
+            <div class="metric-row">
+              <div class="metric-item">
+                <div class="metric-header">
+                  <span class="metric-name">업무 자동화율</span>
+                  <span class="metric-val">65%</span>
+                </div>
+                <div class="metric-track"><div class="metric-fill" style="width:65%"></div></div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-header">
+                  <span class="metric-name">보고서 AI 작성 비율</span>
+                  <span class="metric-val">80%</span>
+                </div>
+                <div class="metric-track"><div class="metric-fill" style="width:80%"></div></div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-header">
+                  <span class="metric-name">현장 데이터 디지털화</span>
+                  <span class="metric-val">90%</span>
+                </div>
+                <div class="metric-track"><div class="metric-fill" style="width:90%"></div></div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-header">
+                  <span class="metric-name">AI 도구 팀 내 보급률</span>
+                  <span class="metric-val">100%</span>
+                </div>
+                <div class="metric-track"><div class="metric-fill" style="width:100%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI 개발 여정 -->
+  <section class="section">
+    <p class="section-eyebrow">AI Development Journey</p>
+    <h2 class="section-title">직접 구축한 AI 개발 타임라인</h2>
+
+    <div class="timeline">
+      <div class="tl-item done">
+        <div class="tl-dot"></div>
+        <div class="tl-date">2022 · Phase 1</div>
+        <div class="tl-title">AI 도구 도입 & 업무 적용 시작</div>
+        <p class="tl-body">ChatGPT·Notion AI를 현장 업무에 최초 적용. 견적서 자동 초안, 이메일 요약, 자재 리스트 생성부터 시작해 AI 활용 가능성 검증.</p>
+      </div>
+      <div class="tl-item done">
+        <div class="tl-dot"></div>
+        <div class="tl-date">2023 · Phase 2</div>
+        <div class="tl-title">Claude API 기반 에이전트 시스템 설계 착수</div>
+        <p class="tl-body">Claude API와 Python으로 첫 에이전트 프로토타입 개발. Obsidian 지식베이스 연동, Discord Bot 구축, 자동화 파이프라인 설계. 에이전트 간 역할 분담 구조 정립.</p>
+      </div>
+      <div class="tl-item done">
+        <div class="tl-dot"></div>
+        <div class="tl-date">2024 · Phase 3</div>
+        <div class="tl-title">Bucky OS — 멀티 에이전트 운영체제 완성</div>
+        <p class="tl-body">오케스트레이터(Bucky) + 구현(Claude Code) + 검수(Codex) 3층 구조 완성. 6,000개 이상 지식 노드, Context Pack 관리 시스템, 자동 일일 보고, 태스크 큐 운영.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">2025–현재 · Phase 4</div>
+        <div class="tl-title">수익화 확장 — Wishket 수주 + 스나이퍼 플랫폼</div>
+        <p class="tl-body">Wishket 플랫폼을 통한 AI 자동화 프리랜서 수주 본격화. 스나이퍼 구매대행 MVP 배포 완료 (Vercel). AI Spend 통합, 지식 그래프 3D 시각화, Mission Control 목표 트래킹 구현 중.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 기술 스택 -->
+  <section class="section">
+    <p class="section-eyebrow">Tech Stack</p>
+    <h2 class="section-title">직접 구축하고 운용하는 기술 스택</h2>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">Claude API</span>
+          <span class="tech-cat">AI 오케스트레이션</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">Python</span>
+          <span class="tech-cat">에이전트 / 자동화</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">Discord Bot</span>
+          <span class="tech-cat">에이전트 UI / 알림</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">JavaScript</span>
+          <span class="tech-cat">대시보드 / 시각화</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+            <line x1="9" y1="21" x2="9" y2="9"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">Obsidian</span>
+          <span class="tech-cat">지식베이스 / 에이전트OS</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2 L2 7 L12 12 L22 7 Z"/>
+            <path d="M2 17 L12 22 L22 17"/>
+            <path d="M2 12 L12 17 L22 12"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">Make.com</span>
+          <span class="tech-cat">워크플로우 자동화</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">Graphify</span>
+          <span class="tech-cat">지식 그래프 시각화</span>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+        </div>
+        <div class="tech-info">
+          <span class="tech-name">GitHub Actions</span>
+          <span class="tech-cat">CI/CD / 자동 배포</span>
+        </div>
       </div>
     </div>
   </section>
@@ -810,28 +1551,48 @@
   <!-- 신사업 -->
   <section class="section">
     <p class="section-eyebrow">New Business</p>
-    <h2 class="section-title">지금 준비 중인 세 가지 사업</h2>
+    <h2 class="section-title">지금 구축 중인 세 가지 사업</h2>
 
     <div class="biz-cards">
-      <div class="biz-card">
+      <div class="biz-card active">
         <span class="biz-status active">운영중</span>
-        <div>
+        <div class="biz-content">
           <div class="biz-title">AI 자동화 에이전트 시스템 구축 서비스</div>
-          <p class="biz-desc">중소기업·프리랜서를 위한 맞춤형 AI 에이전트 구축. 반복 업무를 자동화해 사람이 창의적 일에 집중할 수 있도록 설계. Wishket 플랫폼을 통해 프리랜서 수주 진행 중.</p>
+          <p class="biz-desc">Wishket 플랫폼을 통한 AI 자동화 프리랜서 수주 진행 중. 중소기업·스타트업 맞춤형 에이전트 설계, 반복 업무 파이프라인 구축, Discord 알림 시스템 연동까지 원스톱 제공. 다중 프로젝트 병렬 수행.</p>
+          <div class="biz-tech-row">
+            <span class="tag-chip">Claude API</span>
+            <span class="tag-chip">Python</span>
+            <span class="tag-chip">Make.com</span>
+            <span class="tag-chip">Discord</span>
+            <span class="tag-chip">Vercel</span>
+          </div>
         </div>
       </div>
-      <div class="biz-card">
+      <div class="biz-card building">
         <span class="biz-status building">개발중</span>
-        <div>
-          <div class="biz-title">AI 지속 자가발전 루프 — Bucky 브레인 시스템</div>
-          <p class="biz-desc">단순 챗봇이 아닌 사용할수록 학습·진화하는 에이전트 OS. 개인 비즈니스부터 엔터프라이즈까지 적용 가능한 AI 운영체제를 목표로 자체 개발 중.</p>
+        <div class="biz-content">
+          <div class="biz-title">Bucky Brain OS — AI 자가발전 에이전트 운영체제</div>
+          <p class="biz-desc">단순 챗봇이 아닌, 사용할수록 스스로 학습·진화하는 멀티 에이전트 OS. Bucky(오케스트레이터) + Claude Code(구현) + Codex(검수) 3층 구조로 설계. 6,000개 이상 Obsidian 노드 기반 지식 그래프, 실시간 태스크 보드, AI Spend 모니터링 통합. 자체 서비스화 준비 중.</p>
+          <div class="biz-tech-row">
+            <span class="tag-chip">멀티 에이전트</span>
+            <span class="tag-chip">Obsidian Vault</span>
+            <span class="tag-chip">지식 그래프</span>
+            <span class="tag-chip">D3.js</span>
+            <span class="tag-chip">3D Force Graph</span>
+          </div>
         </div>
       </div>
-      <div class="biz-card">
+      <div class="biz-card planning">
         <span class="biz-status planning">구상중</span>
-        <div>
-          <div class="biz-title">인테리어 × AI 융합 — 현장 AI 컨설팅</div>
-          <p class="biz-desc">건설·인테리어 업계의 디지털 전환 컨설팅. 현장 경험과 AI 기술을 함께 보유한 전문가로서 동종 업계의 AI 도입 장벽을 낮추는 포지션.</p>
+        <div class="biz-content">
+          <div class="biz-title">인테리어 × AI 융합 컨설팅 + 현장 AI 전문가 포지셔닝</div>
+          <p class="biz-desc">건설·인테리어 업계는 AI 전환이 가장 느린 분야 중 하나. 현장 경험과 AI 개발 능력을 동시에 가진 전문가로서 동종 업계의 디지털 전환 장벽을 낮추는 컨설팅 포지션. 도면 AI 보조, 견적 자동화, 현장 사진 분석 모듈 개발 예정.</p>
+          <div class="biz-tech-row">
+            <span class="tag-chip">AutoCAD + AI</span>
+            <span class="tag-chip">비전 AI</span>
+            <span class="tag-chip">견적 자동화</span>
+            <span class="tag-chip">컨설팅</span>
+          </div>
         </div>
       </div>
     </div>
@@ -846,29 +1607,61 @@
       <div class="offer-card give">
         <div class="offer-eyebrow">내가 드릴 수 있는 것</div>
         <div class="offer-rule"></div>
-        <div class="offer-card-title">AI + 건축 전문성으로<br>비즈니스를 빠르게 만듭니다</div>
+        <div class="offer-card-title">AI + 건축 전문성으로<br>비즈니스를 빠르게 전환합니다</div>
         <ul class="offer-list">
-          <li>업무 자동화 컨설팅 — AI 대체 가능 업무 진단</li>
-          <li>인테리어·건축 프로젝트 설계 및 시공 관리</li>
-          <li>AI 에이전트 시스템 맞춤 구축</li>
+          <li>AI 대체 가능 업무 진단 + 자동화 로드맵 제시</li>
+          <li>인테리어·건축 프로젝트 설계, 견적, 현장 관리</li>
+          <li>맞춤형 AI 에이전트 시스템 설계 및 구축</li>
           <li>신사업 기획 + AI 레버리지 포인트 분석</li>
-          <li>AI 도입을 망설이는 기업에 현실적 로드맵 제시</li>
+          <li>AI 도입을 망설이는 기업에 현실적 구현 가이드</li>
         </ul>
       </div>
       <div class="offer-card want">
-        <div class="offer-eyebrow">찾고 있는 파트너·레퍼럴</div>
+        <div class="offer-eyebrow">찾고 있는 파트너 · 레퍼럴</div>
         <div class="offer-rule"></div>
         <div class="offer-card-title">이런 분과 연결되고<br>싶습니다</div>
         <ul class="offer-list">
           <li>중소기업·스타트업 대표 — 반복 업무 자동화가 필요한 분</li>
-          <li>인테리어·건축·리모델링 발주처</li>
-          <li>AI 도입을 검토 중인 팀장급 이상 실무자</li>
+          <li>인테리어·건축·리모델링 발주처 및 시행사</li>
+          <li>AI 도입을 검토 중인 팀장급 이상 실무 결정권자</li>
           <li>프리랜서·1인 사업자 — AI로 생산성을 높이려는 분</li>
-          <li>IT·개발·디지털 마케팅 협업 파트너</li>
+          <li>IT·개발·디지털 마케팅 시너지 협업 파트너</li>
         </ul>
       </div>
     </div>
   </section>
+
+  <!-- 신뢰 근거 -->
+  <div class="proof-strip">
+    <div class="proof-item">
+      <div class="proof-icon-row">
+        <span class="proof-dot"></span>
+        <span class="proof-title">Wishket 프리랜서 운영</span>
+      </div>
+      <p class="proof-body">AI 자동화·웹개발·데이터 분석 프로젝트 수주 활성화. 실제 납품 이력 보유.</p>
+    </div>
+    <div class="proof-item">
+      <div class="proof-icon-row">
+        <span class="proof-dot"></span>
+        <span class="proof-title">Bucky OS 자체 운영</span>
+      </div>
+      <p class="proof-body">24/7 자율 운영 중. 6,200개 지식 노드, 15개 커뮤니티 클러스터 운영 실적.</p>
+    </div>
+    <div class="proof-item">
+      <div class="proof-icon-row">
+        <span class="proof-dot"></span>
+        <span class="proof-title">실제 AI 도입 사례</span>
+      </div>
+      <p class="proof-body">AEONID 내 현장 업무 전면 AI화 — 견적·보고서·도면 보조 · 리스크 감지까지.</p>
+    </div>
+    <div class="proof-item">
+      <div class="proof-icon-row">
+        <span class="proof-dot"></span>
+        <span class="proof-title">스나이퍼 플랫폼 MVP</span>
+      </div>
+      <p class="proof-body">해외 직구 AI 검증 플랫폼 Vercel 배포 완료. 스코어링 시스템 운영 중.</p>
+    </div>
+  </div>
 
   <!-- 연락처 -->
   <div class="contact-section">
@@ -876,7 +1669,7 @@
       <div class="contact-left">
         <div class="contact-eyebrow">Get in Touch</div>
         <div class="contact-headline">함께 성장할<br>BNI 멤버를 환영합니다</div>
-        <p class="contact-sub">아이디어 교환, 레퍼럴, 협업 제안 모두 환영합니다.</p>
+        <p class="contact-sub">레퍼럴, 협업 제안, AI 도입 상담 모두 환영합니다.<br>현장 경험 + AI 기술, 두 가지를 동시에 가진 파트너입니다.</p>
         <div class="contact-url">
           <span class="contact-url-label">명함 QR</span>
           <span class="contact-url-value">jaeha81.github.io/obsidian-agent-brain-system/bni-proposal.html</span>
@@ -907,8 +1700,8 @@
 </main>
 
 <footer class="footer">
-  <span class="footer-left">이재하 — AI 비즈니스 전략 제안서</span>
-  <span class="footer-right">2026 · BNI Korea</span>
+  <span class="footer-left">이재하 Lee Jaeha — AI 비즈니스 전략 제안서 2026</span>
+  <span class="footer-right">BNI Korea · AEONID</span>
 </footer>
 
 </body>
