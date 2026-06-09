@@ -460,6 +460,23 @@ body::after {
 .mem-stat-item { color: var(--muted); }
 .mem-stat-item strong { color: var(--text-d); text-shadow: 0 0 10px rgba(0,212,255,0.2); }
 
+.kb-stats {
+  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.kb-item {
+  flex: 1; min-width: 70px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-top: 2px solid var(--cyan);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: var(--mono); font-size: 10px; color: var(--text-d);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.kb-lbl {
+  font-size: 8px; letter-spacing: 0.08em; color: var(--muted); font-weight: 700;
+}
+
 .mem-layers { display: flex; flex-direction: column; gap: 8px; }
 
 .mem-layer-card {
@@ -519,11 +536,12 @@ body::after {
   width: 6px; height: 6px; border-radius: 50%;
   flex-shrink: 0; margin-top: 4px;
 }
-.type-task   { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-.type-report { background: var(--cyan);  box-shadow: 0 0 6px var(--cyan); }
-.type-chat   { background: var(--green); box-shadow: 0 0 6px var(--green); }
-.type-system { background: var(--muted); }
-.type-error  { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+.type-task      { background: var(--amber);  box-shadow: 0 0 6px var(--amber); }
+.type-report    { background: var(--cyan);   box-shadow: 0 0 6px var(--cyan); }
+.type-chat      { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+.type-knowledge { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+.type-system    { background: var(--muted); }
+.type-error     { background: var(--red);    box-shadow: 0 0 6px var(--red); }
 
 .activity-content { flex: 1; }
 .activity-title   { font-size: 11px; font-weight: 500; }
@@ -952,8 +970,9 @@ const DEMO = {
     ]
   },
   tasks: {
-    summary: { total: 9, pending: 2, p0_count: 0, p1_count: 1, done: 7 },
+    summary: { total: 10, pending: 3, p0_count: 0, p1_count: 2, done: 7 },
     pending: [
+      { id: 'T027', title: 'KB 지식 인테이크 위젯 — Vault 통계 Memory Stack 통합', priority: 'P1' },
       { id: 'T025', title: 'Anthropic API 공식 잔여량 자동 수집 파이프라인', priority: 'P1' },
       { id: 'T026', title: 'Cloudflare Pages 이전 (GitHub Pages 대체)', priority: 'P2' },
     ],
@@ -989,8 +1008,9 @@ const DEMO = {
     ]
   },
   dream: {
-    total_sessions: 6,
+    total_sessions: 7,
     sessions: [
+      { title: '2026-06-11 — Hermes DB 원칙 분석', body: '신영선 AI탐구 영상 분석 완료.\n7가지 DB 기반 에이전트 원칙 도출.\nT027 KB 인테이크 위젯 설계 시작.' },
       { title: '2026-06-10e — Phase 2+3 완성', body: '30s 자동갱신·Live dot 인디케이터 추가.\nD3 edge 필터 버그 수정. T021~T024 완료.\n커밋: 3b36c20.' },
       { title: '2026-06-10c — Memory Stack UI', body: 'Memory 4-layer 탭 시각화 구현.\n단기·에피소딕·시멘틱·절차적 레이어.\nAPI /agent-os/memory 확장.' },
       { title: '2026-06-10b — Hermes GAP 분석', body: 'Pantheon 3D, Graph 임베드, Memory Stack,\nMission Control, AI Spend 5개 GAP 파악.\nCodex handoff 완료.' },
@@ -998,24 +1018,24 @@ const DEMO = {
     ]
   },
   memory: {
-    summary: { fact_count: 42, session_count: 8, message_count: 156 },
+    summary: { fact_count: 45, session_count: 9, message_count: 172, kb_nodes: 6279, kb_clusters: 15, kb_intake_today: 12 },
     layers: {
       short_term: [
-        { role: 'user', content: 'Hermes GAP 5개 분석 완료', ts: '2026-06-10T22:00:00' },
-        { role: 'assistant', content: 'BuckyOS 재설계 커밋 fec17e5 확인', ts: '2026-06-10T21:50:00' },
+        { role: 'user', content: '헤르메스 DB 7원칙 분석 → T027 KB 인테이크 위젯 설계', ts: '2026-06-11T09:21:00' },
+        { role: 'assistant', content: 'KB 통계 위젯 Memory Stack 통합 계획 수립', ts: '2026-06-11T09:22:00' },
       ],
       episodic: [
+        { id: 9, preview: 'Hermes DB 원칙 분석 세션', started: '2026-06-11T09:21:00', msg_count: 8 },
         { id: 8, preview: 'Hermes GAP 분석 세션', started: '2026-06-10T21:00:00', msg_count: 24 },
-        { id: 7, preview: 'BuckyOS 재설계 + Memory 수정', started: '2026-06-10T19:00:00', msg_count: 18 },
       ],
       semantic: {
         goal: [
+          { fact: 'DB 없는 AI는 매번 새 인턴 — 지식 DB가 에이전트의 핵심 자산', ts: '2026-06-11' },
           { fact: 'BuckyOS Hermes Agentic OS 수준으로 업그레이드', ts: '2026-06-10' },
-          { fact: 'Wishket 수익화 우선, 비수익 에이전트 폐기', ts: '2026-06-09' },
         ],
         tech: [
+          { fact: 'Vault 6,279 노드 / 15 클러스터 — graphify 2026-06-11 기준', ts: '2026-06-11' },
           { fact: 'cytoscape@3.28.1 CDN — Skill Pantheon 그래프', ts: '2026-06-10' },
-          { fact: 'bucky_memory.db 경로: data/bucky_memory.db', ts: '2026-06-10' },
         ],
       },
       procedural: [
@@ -1027,7 +1047,7 @@ const DEMO = {
   goals: {
     active: true,
     goal: 'BuckyOS Hermes Agentic OS 수준 업그레이드',
-    summary: { progress_percent: 80 },
+    summary: { progress_percent: 85 },
     focus: true,
     created: '2026-06-09',
     subtasks: [
@@ -1036,6 +1056,7 @@ const DEMO = {
       { id: 3, body: 'Mission Goals progress bar + Activity 피드', status: 'done' },
       { id: 4, body: 'AI Spend 30s 자동갱신 + Live 인디케이터', status: 'done' },
       { id: 5, body: 'AI Spend 공식 잔여량 실제 파이프라인 (T025)', status: 'pending' },
+      { id: 6, body: 'KB 지식 인테이크 위젯 — Memory Stack Vault 통계 통합 (T027)', status: 'pending' },
     ]
   },
   spend: {
@@ -1048,6 +1069,9 @@ const DEMO = {
   },
   activity: {
     events: [
+      { type:'system',    title:'2026-06-11 세션: Hermes DB 7원칙 분석 → T027 설계', ts:'2026-06-11T09:21:00' },
+      { type:'knowledge', title:'YT 노트 3개 캡처: 헤르메스 에이전트 DB 특집 (신영선 AI탐구)', ts:'2026-06-11T09:18:00' },
+      { type:'report',    title:'Daily Plus 오전 리포트: 12 후보 수집 (0 적용)', ts:'2026-06-11T09:00:00' },
       { type:'task',   title:'T021~T024 완료: Hermes GAP 1~5 UI 전 구현', ts:'2026-06-10T23:50:00' },
       { type:'system', title:'Phase 2+3 자동갱신 + Live dot 인디케이터 추가 (3b36c20)', ts:'2026-06-10T23:30:00' },
       { type:'system', title:'bucky-os.html D3 edge 필터 버그 수정', ts:'2026-06-10T23:10:00' },
@@ -1059,7 +1083,7 @@ const DEMO = {
     agents: { bucky:'active', codex:'idle', discord:'online', wishket:'idle' },
     tasks:  { pending:2, done:7 },
     knowledge: { skills:12, context_packs:5 },
-    checked_at: '2026-06-10T23:50:00'
+    checked_at: '2026-06-11T09:21:00'
   }
 };
 
@@ -1295,11 +1319,18 @@ function rMemory(d, demo) {
 
   badge.textContent = `${s.fact_count || 0}F · ${s.session_count || 0}S`;
 
+  const kbHtml = (s.kb_nodes || s.kb_clusters || s.kb_intake_today)
+    ? `<div class="kb-stats">
+        <div class="kb-item"><span class="kb-lbl">VAULT</span>${(s.kb_nodes || 0).toLocaleString()} nodes</div>
+        <div class="kb-item"><span class="kb-lbl">CLUSTERS</span>${s.kb_clusters || 0}</div>
+        <div class="kb-item"><span class="kb-lbl">TODAY</span><span style="color:var(--amber)">${s.kb_intake_today || 0}</span> intake</div>
+      </div>` : '';
+
   const statsHtml = `<div class="mem-stats">
     <span class="mem-stat-item"><strong>${s.fact_count || 0}</strong> facts</span>
     <span class="mem-stat-item"><strong>${s.session_count || 0}</strong> sessions</span>
     <span class="mem-stat-item"><strong>${s.message_count || 0}</strong> msgs</span>
-  </div>`;
+  </div>${kbHtml}`;
 
   function layerFacts(items, cls) {
     if (!items || !items.length) return '<div style="color:var(--muted);font-size:10px">No entries</div>';

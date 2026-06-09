@@ -2,8 +2,8 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-10",
-    "last_completed": "CL-033"
+    "last_updated": "2026-06-11",
+    "last_completed": "CL-041"
   },
   "tasks": [
     {
@@ -500,6 +500,62 @@
       "category": "자동감지",
       "status": "pending",
       "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-039",
+      "title": "Daily Plus 2026-06-10 지식 노트 7개 생성 완료",
+      "description": "Cards 2,3,5,6,7,11,12 distiller 처리. 03_Knowledge/ 저장.",
+      "priority": "P2",
+      "category": "지식관리",
+      "status": "done",
+      "added": "2026-06-11",
+      "completed": "2026-06-11",
+      "completion_note": "7개 지식 노트 생성: estimator-csv, cad-to-estimate-poc, bluebeam-autodesk, three-orchestration-patterns, floor-plan-lighting, jh-ai-sku-blueprint, one-page-demo-onboarding",
+      "source": "daily-plus/2026-06-10.md",
+      "refs": [
+        "ObsidianVault/03_Knowledge/2026-06-11-dp-*.md"
+      ]
+    },
+    {
+      "id": "CL-040",
+      "title": "Daily Plus 2026-06-10 Cards 8,10 검증 체크리스트 추가",
+      "description": "Vault Migration Safety + Agent Telemetry 체크리스트 → review-automation-protocol.md",
+      "priority": "P1",
+      "category": "검증",
+      "status": "done",
+      "added": "2026-06-11",
+      "completed": "2026-06-11",
+      "completion_note": "review-automation-protocol.md에 Card 8 (Vault Migration Safety) + Card 10 (Agent Telemetry 5가지 신호) 섹션 추가",
+      "source": "daily-plus/2026-06-10.md",
+      "refs": [
+        "ObsidianVault/00_UPGRADE/review-automation-protocol.md"
+      ]
+    },
+    {
+      "id": "CL-041",
+      "title": "daily-plus.html 2026-06-11 날짜 trend row 추가",
+      "description": "오늘 날짜(2026-06-11) trend 행 추가 — 수집 대기 표시",
+      "priority": "P2",
+      "category": "대시보드",
+      "status": "done",
+      "added": "2026-06-11",
+      "completed": "2026-06-11",
+      "completion_note": "2026-06-11 pulse 데이터 없음. trend row 추가 (수집 대기 표시). 스크립트 자동 생성 불가 (FileNotFoundError)",
+      "source": "session",
+      "refs": [
+        "docs/daily-plus.html"
+      ]
+    },
+    {
+      "id": "CL-042",
+      "title": "- Card 1 (obsidian-queue): collector 처리 대기",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
       "source": "discord-auto",
       "refs": []
     }

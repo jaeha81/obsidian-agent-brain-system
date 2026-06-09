@@ -38,6 +38,42 @@ DISCORD_BOT = ROOT / "scripts" / "discord_bot.py"
 MEMORY_DB = ROOT / "data" / "bucky_memory.db"
 ACTIVE_GOAL = SYSTEM_DIR / "active_goal.json"
 CLI_TOOLS_LOG = VAULT / "05_Logs" / "cli-tools.jsonl"
+GRAPH_REPORT = VAULT / "graphify-out" / "GRAPH_REPORT.md"
+KNOWLEDGE_DIR = VAULT / "03_Knowledge"
+
+def _parse_graph_report() -> dict[str, int]:
+    """Parse Nodes/Clusters from GRAPH_REPORT.md."""
+    result = {"kb_nodes": 0, "kb_clusters": 0}
+    if not GRAPH_REPORT.exists():
+        return result
+    try:
+        text = GRAPH_REPORT.read_text(encoding="utf-8")
+        for key, pattern in [
+            ("kb_nodes",    r"Nodes:\s*(\d+)"),
+            ("kb_clusters", r"Clusters:\s*(\d+)"),
+        ]:
+            m = re.search(pattern, text)
+            if m:
+                result[key] = int(m.group(1))
+    except Exception:
+        pass
+    return result
+
+
+def _count_kb_intake_today() -> int:
+    """Count markdown files in 03_Knowledge modified today."""
+    if not KNOWLEDGE_DIR.exists():
+        return 0
+    today = time.strftime("%Y-%m-%d")
+    count = 0
+    try:
+        for f in KNOWLEDGE_DIR.glob("*.md"):
+            if time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today:
+                count += 1
+    except Exception:
+        pass
+    return count
+
 
 LIMIT_EVENT_RE = re.compile(
     r"(usage limit|rate limit|subscription limit|out of .*usage|quota exceeded|429|resets .*(am|pm))",
@@ -281,7 +317,7 @@ def dream():
 @agent_os_bp.get("/memory")
 def memory():
     """Memory stack — 4-layer structured view: short-term, episodic, semantic, procedural."""
-    summary = {"fact_count": 0, "session_count": 0, "message_count": 0}
+    summary: dict = {"fact_count": 0, "session_count": 0, "message_count": 0}
     short_term: list[dict] = []
     episodic: list[dict] = []
     semantic: dict[str, list] = {}
@@ -373,6 +409,12 @@ def memory():
         conn.close()
     except Exception:
         pass
+
+    # KB stats from Graphify
+    graph_stats = _parse_graph_report()
+    summary["kb_nodes"] = graph_stats["kb_nodes"]
+    summary["kb_clusters"] = graph_stats["kb_clusters"]
+    summary["kb_intake_today"] = _count_kb_intake_today()
 
     return jsonify({
         "summary": summary,
