@@ -45,6 +45,20 @@ class BuckyDashboardAuthTests(unittest.TestCase):
         response = self.client.post("/api/login", json={"password": "", "redirect": "/index.html"})
         self.assertEqual(response.status_code, 403)
 
+    def test_login_accepts_sha256_password_fallback(self):
+        os.environ.pop("BUCKY_DASH_PASSWORD", None)
+        os.environ["BUCKY_DASH_PASSWORD_SHA256"] = (
+            "fb59a3d960ec6f3f85771b15cb3174ea44033647599fe0b89690754ea1093c35"
+        )
+        sys.modules.pop("bucky_chat_server", None)
+        server = importlib.import_module("bucky_chat_server")
+        client = server.app.test_client()
+
+        response = client.post("/api/login", data={"password": "hashed-password", "redirect": "/index.html"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("bucky_auth=", response.headers.get("Set-Cookie", ""))
+
     def test_launch_redirects_unauthenticated_user_to_login(self):
         response = self.client.get("/launch?next=/index.html")
         self.assertEqual(response.status_code, 302)

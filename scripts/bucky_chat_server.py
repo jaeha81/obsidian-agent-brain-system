@@ -519,7 +519,16 @@ def api_login():
     password = (request.form.get("password") or body.get("password") or "").strip()
     target = _safe_next(request.form.get("redirect") or body.get("redirect"), default="/")
     expected = os.environ.get("BUCKY_DASH_PASSWORD") or os.environ.get("BUCKY_AUTH_PASSWORD") or ""
-    allowed = bool(expected) and password == expected
+    # 평문 env 미설정 시 폴백: 기존 JS 게이트(6658b13)와 동일한 SHA-256 비교 —
+    # 사용자가 이미 쓰던 대시보드 비밀번호가 그대로 통한다 (해시는 git 히스토리 공개값).
+    expected_hash = os.environ.get(
+        "BUCKY_DASH_PASSWORD_SHA256",
+        "9a02838cef35cd584f2ca164ea91d69da757d8295b9770e26a86546dd2521f01",
+    )
+    password_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+    allowed = (bool(expected) and password == expected) or (
+        bool(password) and password_hash == expected_hash
+    )
     if request.is_json:
         if not allowed:
             return jsonify({"ok": False}), 403
