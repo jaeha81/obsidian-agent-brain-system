@@ -373,9 +373,16 @@ def serve_bucky_os():
 
 @app.get("/launch")
 def auto_launch():
-    """localhost 전용 자동 로그인 → Bucky OS 리다이렉트 (바탕화면 바로가기용)."""
-    if request.remote_addr not in ("127.0.0.1", "::1"):
-        return jsonify({"error": "localhost only"}), 403
+    """자동 로그인 → Bucky OS 리다이렉트 (localhost + 본인 Tailscale 기기 전용)."""
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(request.remote_addr or "")
+        if ip.version == 6 and ip.ipv4_mapped:
+            ip = ip.ipv4_mapped
+    except ValueError:
+        return jsonify({"error": "localhost/tailnet only"}), 403
+    if not (ip.is_loopback or ip in ipaddress.ip_network("100.64.0.0/10")):
+        return jsonify({"error": "localhost/tailnet only"}), 403
     from flask import make_response, redirect
     resp = make_response(redirect("/bucky-os.html"))
     resp.set_cookie("bucky_auth", "local", path="/", httponly=False)

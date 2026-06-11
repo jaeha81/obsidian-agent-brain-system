@@ -13,7 +13,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = ROOT / "ObsidianVault"
@@ -93,16 +93,35 @@ def get_graph():
         for e in data.get("links", [])
     ]
 
-    # Fact vs inferred ratio from link confidence
+    # Fact vs inferred ratio from link confidence (computed on FULL graph)
     total = len(edges)
     extracted = sum(1 for e in edges if e.get("confidence") == "EXTRACTED")
     fact_pct = round(extracted / total * 100) if total else 0
 
-    return jsonify({
+    # Downsample: full graph is ~11.6MB / 6k+ nodes — too heavy to ship to the
+    # browser every refresh. Keep top-N nodes by degree; ?limit=0 returns all.
+    try:
+        limit = int(request.args.get("limit", 300))
+    except (TypeError, ValueError):
+        limit = 300
+    if limit > 0 and len(nodes) > limit:
+        degree: dict = {}
+        for e in edges:
+            degree[e["source"]] = degree.get(e["source"], 0) + 1
+            degree[e["target"]] = degree.get(e["target"], 0) + 1
+        nodes = sorted(nodes, key=lambda n: degree.get(n["id"], 0), reverse=True)[:limit]
+        kept = {n["id"] for n in nodes}
+        edges = [e for e in edges if e["source"] in kept and e["target"] in kept]
+
+    resp = jsonify({
         "nodes": nodes,
         "edges": edges,
         "stats": {**report, "fact_pct": fact_pct, "inferred_pct": 100 - fact_pct},
     })
+    # Browsers were memory-caching the old 7MB response and replaying it on
+    # every refresh — live dashboard data must never be cached.
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
 
 
 @os_bp.get("/stats")

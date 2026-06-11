@@ -2,7 +2,14 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#07100d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bucky OS">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <title>Bucky Agent OS</title>
 <script>
 (function(){
@@ -165,6 +172,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 /* ─── PAGE AREA ─── */
 .page{display:none;padding:20px 24px}
 .page.active{display:block}
+.home-body{padding:20px 24px}
+.inner-pad{padding:0 24px}
+.inner-pad-b{padding:0 24px 24px}
 
 /* ─── STAT CARDS ROW ─── */
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
@@ -485,6 +495,66 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   .wf-arrows{margin-left:0}
   .wf-detail-grid{grid-template-columns:1fr;gap:8px;margin-top:16px}
 }
+
+/* ─── MOBILE (≤768px) ─── */
+@media(max-width:768px){
+  #shell{height:100dvh}
+
+  /* sidebar → fixed bottom tab bar */
+  #sidebar{
+    position:fixed;left:0;right:0;bottom:0;top:auto;z-index:100;
+    width:100%;min-width:0;height:auto;flex-direction:row;
+    border-right:none;border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom)
+  }
+  .logo,.nav-label,.agents-section,.sidebar-footer{display:none}
+  .nav-section{flex:1;display:flex;padding:4px 2px}
+  .nav-item{
+    flex:1;flex-direction:column;justify-content:center;align-items:center;
+    gap:3px;padding:6px 2px;font-size:9px;margin-bottom:0
+  }
+  .nav-item.active{background:transparent;border:none;color:var(--accent)}
+  .nav-item svg{width:18px;height:18px}
+  #content{padding-bottom:78px}
+
+  /* top bar */
+  #topbar{padding:0 10px}
+  #status-label{display:none}
+  .agent-status{gap:8px!important}
+
+  /* hero */
+  .hero-banner{height:150px}
+  .hero-title{font-size:19px;letter-spacing:1px}
+  .hero-content{padding:24px 14px 12px}
+  .hero-subtitle{font-size:10px}
+  .skills-hero{height:130px}
+
+  /* page paddings */
+  .page{padding:14px 12px}
+  .home-body{padding:14px 12px}
+  .inner-pad,.inner-pad-b{padding:0}
+
+  /* grids */
+  .stat-row{grid-template-columns:repeat(2,1fr);gap:8px}
+  .persona-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .mem-stats-row{grid-template-columns:repeat(2,1fr);gap:8px}
+  .activity-stats{gap:8px}
+  .act-stat{padding:12px 8px}
+  .act-stat-value{font-size:26px}
+  .spend-stats-row{gap:6px}
+  .mem-stack-grid{grid-template-columns:1fr}
+  .cmd-grid{grid-template-columns:1fr}
+  .cmd-section{border-right:none;border-bottom:1px solid var(--border)}
+  .cmd-section:last-child{border-bottom:none}
+
+  /* graphs */
+  .graph-canvas{height:300px}
+  #memory-svg{height:300px}
+  .memory-headline{font-size:22px}
+  .memory-headline em{font-size:13px}
+  .section-header{flex-wrap:wrap;gap:8px}
+  .mem-graph-header{flex-wrap:wrap;gap:6px}
+}
 </style>
 </head>
 <body>
@@ -602,7 +672,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="tool-tab"><span class="dot dot-dim"></span>Graphify</div>
       </div>
 
-      <div style="padding:20px 24px">
+      <div class="home-body">
 
         <!-- Stat Cards -->
         <div class="stat-row" id="stat-row">
@@ -694,7 +764,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       </div>
 
       <!-- ── MISSION GOAL (GAP 4) ── -->
-      <div style="padding:0 24px 4px">
+      <div class="inner-pad">
         <div class="section-header">
           <span class="section-title">Active Mission</span>
         </div>
@@ -703,7 +773,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         </div>
       </div>
 
-      <div style="padding:0 24px">
+      <div class="inner-pad">
         <div class="section-header">
           <span class="section-title">Pending Tasks</span>
           <button onclick="loadTasksData()" style="padding:4px 10px;border-radius:5px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--accent);cursor:pointer;font-size:11px;font-weight:600">⟳ Refresh</button>
@@ -803,7 +873,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       </div>
 
       <!-- ── MEMORY STACK (GAP 3) ── -->
-      <div style="padding:0 24px 24px">
+      <div class="inner-pad-b">
         <div class="section-header" style="margin-top:16px">
           <span class="section-title">Memory Stack</span>
           <span class="section-count" id="stack-count">—</span>
@@ -843,7 +913,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       </div>
 
       <!-- ── AI SPEND (GAP 5) ── -->
-      <div style="padding:0 24px 24px">
+      <div class="inner-pad-b">
         <div class="section-header" style="margin-top:16px">
           <span class="section-title">AI Spend</span>
         </div>
@@ -994,8 +1064,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 //  BUCKY AGENT OS  —  JS Core
 // ════════════════════════════════════════════
 
-const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? '' : 'http://localhost:8765';
+// 서버(8765)가 직접/프록시로 서빙하면 same-origin, 정적 호스팅(Pages)·file://만 localhost 폴백
+const API = (window.location.protocol === 'file:' || /\.pages\.dev$|\.github\.io$/i.test(window.location.hostname))
+  ? 'http://localhost:8765' : '';
 let graphData = null;
 let mainSim = null, memSim = null;
 let mainZoom = null, memZoom = null;
