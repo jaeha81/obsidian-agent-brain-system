@@ -568,6 +568,36 @@ function buildResumeMessage(task) {
   ].join("\n");
 }
 
+function isManualChecklistTask(task) {
+  const text = [
+    task.title || "",
+    task.desc || "",
+    task.category || "",
+    task.source || ""
+  ].join(" ").toLowerCase();
+  const manualMarkers = [
+    "requires_approval=true",
+    "requires_user_approval=true",
+    "approval_required",
+    "사용자 승인",
+    "수동",
+    "직접",
+    "로그인",
+    "비밀번호",
+    "password",
+    "credential",
+    "chrome extension",
+    "vercel",
+    "supabase",
+    "local pc control",
+    "bot restart",
+    "zero trust",
+    "api key",
+    "크레딧"
+  ];
+  return manualMarkers.some(marker => text.includes(marker.toLowerCase()));
+}
+
 async function sendResume(id) {
   const task = TASKS.find(t => t.id === id);
   if (!task) return;
@@ -602,6 +632,8 @@ async function sendResume(id) {
           status: ts.status,
           note: ts.note || "",
           source_dashboard_url: location.href,
+          requires_user_approval: isManualChecklistTask(task),
+          execution_mode: isManualChecklistTask(task) ? "approval_required" : "auto_executable",
           body
         })
       });

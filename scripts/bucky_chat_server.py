@@ -18,6 +18,7 @@ Endpoints:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -48,6 +49,34 @@ PROTECTED_PAGES = ("wishket.html", "bucky-daily.html", "investment-report.html")
 app = Flask(__name__)
 
 try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env", encoding="utf-8", override=False)
+except Exception:
+    pass
+
+AUTH_COOKIE_NAME = "bucky_auth"
+AUTH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60
+PUBLIC_PATHS = {
+    "/login",
+    "/login.html",
+    "/api/login",
+    "/api/logout",
+    "/launch",
+    "/health",
+    "/favicon.ico",
+    "/manifest.json",
+    "/sw.js",
+}
+PUBLIC_PREFIXES = ("/icons/",)
+PROTECTED_API_PATHS = {
+    "/chat",
+    "/intake",
+    "/tablet-intake",
+    "/update-wishket",
+    "/update-profile",
+}
+
+try:
     from bucky_os_api import os_bp
     app.register_blueprint(os_bp)
 except Exception as _e:
@@ -62,7 +91,13 @@ except Exception as _e:
 
 @app.after_request
 def _cors(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    origin = request.headers.get("Origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Vary"] = "Origin"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "same-origin"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
@@ -76,6 +111,54 @@ def _preflight():
 
 MAX_HISTORY = 20
 _sessions: dict[str, list[dict]] = defaultdict(list)
+
+
+def _auth_secret() -> str:
+    return (
+        os.environ.get("BUCKY_DASH_AUTH_SECRET")
+        or os.environ.get("BUCKY_DASH_PASSWORD")
+        or os.environ.get("BUCKY_AUTH_PASSWORD")
+        or ""
+    )
+
+
+def _auth_token() -> str:
+    secret = _auth_secret()
+    if not secret:
+        return ""
+    return hashlib.sha256(("bucky-dashboard:" + secret).encode("utf-8")).hexdigest()
+
+
+def _is_authenticated_request() -> bool:
+    token = _auth_token()
+    return bool(token) and request.cookies.get(AUTH_COOKIE_NAME) == token
+
+
+def _is_public_path(path: str) -> bool:
+    return path in PUBLIC_PATHS or any(path.startswith(prefix) for prefix in PUBLIC_PREFIXES)
+
+
+def _is_html_path(path: str) -> bool:
+    return path == "/" or path.endswith(".html") or "." not in Path(path).name
+
+
+@app.before_request
+def _require_dashboard_auth():
+    if request.method == "OPTIONS":
+        return None
+
+    path = request.path or "/"
+    if _is_public_path(path):
+        return None
+
+    if path in PROTECTED_API_PATHS and not _is_authenticated_request():
+        return jsonify({"error": "authentication required"}), 401
+
+    if _is_html_path(path) and not _is_authenticated_request():
+        from flask import redirect
+        return redirect("/login.html?r=" + quote(path))
+
+    return None
 
 
 def _build_prompt(history: list[dict], user_message: str) -> str:
@@ -399,7 +482,15 @@ def _safe_next(raw: str | None, default: str = "/bucky-os.html") -> str:
 def _auth_cookie_response(target: str):
     from flask import make_response, redirect
     resp = make_response(redirect(target))
-    resp.set_cookie("bucky_auth", "local", path="/", httponly=False)
+    token = _auth_token()
+    resp.set_cookie(
+        AUTH_COOKIE_NAME,
+        token,
+        max_age=AUTH_COOKIE_MAX_AGE,
+        path="/",
+        httponly=False,
+        samesite="Lax",
+    )
     return resp
 
 
@@ -409,9 +500,11 @@ def auto_launch():
 
     ?next=/task-board.html 처럼 도착 페이지 지정 가능 (기본 Bucky OS).
     """
-    if not _is_trusted_source():
-        return jsonify({"error": "localhost/tailnet only"}), 403
-    return _auth_cookie_response(_safe_next(request.args.get("next")))
+    from flask import redirect
+    target = _safe_next(request.args.get("next"))
+    if _is_authenticated_request():
+        return redirect(target)
+    return redirect("/login.html?r=" + quote(target))
 
 
 @app.post("/api/login")
@@ -425,18 +518,33 @@ def api_login():
     body = request.get_json(silent=True) or {}
     password = (request.form.get("password") or body.get("password") or "").strip()
     target = _safe_next(request.form.get("redirect") or body.get("redirect"), default="/")
-    expected = os.environ.get("BUCKY_DASH_PASSWORD", "")
-    allowed = _is_trusted_source() or (bool(expected) and password == expected)
+    expected = os.environ.get("BUCKY_DASH_PASSWORD") or os.environ.get("BUCKY_AUTH_PASSWORD") or ""
+    allowed = bool(expected) and password == expected
     if request.is_json:
         if not allowed:
             return jsonify({"ok": False}), 403
         resp = jsonify({"ok": True, "redirect": target})
-        resp.set_cookie("bucky_auth", "local", path="/", httponly=False)
+        resp.set_cookie(
+            AUTH_COOKIE_NAME,
+            _auth_token(),
+            max_age=AUTH_COOKIE_MAX_AGE,
+            path="/",
+            httponly=False,
+            samesite="Lax",
+        )
         return resp
     if not allowed:
         from flask import redirect
         return redirect("/login.html?error=1&r=" + quote(target))
     return _auth_cookie_response(target)
+
+
+@app.get("/api/logout")
+def api_logout():
+    from flask import make_response, redirect
+    resp = make_response(redirect("/login.html"))
+    resp.delete_cookie(AUTH_COOKIE_NAME, path="/")
+    return resp
 
 
 @app.get("/wishket.html")
@@ -448,9 +556,19 @@ def serve_protected_page():
     name = request.path.lstrip("/")
     if name not in PROTECTED_PAGES:
         return jsonify({"error": "not found"}), 404
-    if request.cookies.get("bucky_auth") != "local":
+    if not _is_authenticated_request():
         return redirect("/login.html?r=" + quote(request.path))
     return send_from_directory(str(PROTECTED_DIR), name)
+
+
+@app.get("/login")
+@app.get("/login.html")
+def serve_login_page():
+    from flask import redirect
+    target = _safe_next(request.args.get("r") or request.args.get("redirect"), default="/bucky-os.html")
+    if _is_authenticated_request():
+        return redirect(target)
+    return send_from_directory(str(DOCS_DIR), "login.html")
 
 
 @app.get("/<path:filename>")

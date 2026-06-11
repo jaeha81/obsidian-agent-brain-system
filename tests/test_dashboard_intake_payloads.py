@@ -216,6 +216,21 @@ class RouterFieldConsistencyTests(unittest.TestCase):
             branch.index("reply = await asyncio.wait_for("),
         )
 
+    def test_auto_executable_checklist_resume_dispatches_worker_task(self):
+        bot = read_text("scripts/discord_bot.py")
+        branch = bot[bot.index('if dashboard_type == "checklist" and action == "resume_task" and channel:'):]
+        self.assertIn("_checklist_requires_manual_action(payload)", branch)
+        self.assertIn("_dispatch_dashboard_execution_task({**payload, \"action\": \"execute\"}, channel)", branch)
+        self.assertLess(
+            branch.index("_dispatch_dashboard_execution_task({**payload, \"action\": \"execute\"}, channel)"),
+            branch.index('if dashboard_type in {"daily_plus", "task_board", "taskboard", "checklist"}'),
+        )
+
+    def test_checklist_payload_marks_resume_task_as_auto_executable_candidate(self):
+        html = read_text("docs/checklist.html")
+        self.assertIn("requires_user_approval: isManualChecklistTask(task)", html)
+        self.assertIn("execution_mode: isManualChecklistTask(task) ? \"approval_required\" : \"auto_executable\"", html)
+
     def test_dashboard_execution_task_uses_worker_pool(self):
         bot = read_text("scripts/discord_bot.py")
         self.assertIn("async def _dispatch_dashboard_execution_task", bot)
