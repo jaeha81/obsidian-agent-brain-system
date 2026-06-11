@@ -107,6 +107,7 @@ STATUS_LABELS = {
     "rejected": "보류/거절",
     "staged": "스테이징",
     "done": "처리 완료",
+    "parked": "후보 유지",
 }
 
 

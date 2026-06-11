@@ -558,6 +558,28 @@
       "added": "2026-06-11",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-043",
+      "title": "Pulse 수집 — 오늘 ChatGPT Pulse 수집 후 `04_Wiki/daily-plus/2026-06-11.md` 업데이트하면 대시보드가 자동 반영됩니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-044",
+      "title": "자동 적용 파이프라인(스테이징 → 구현 자동화)은 이번에 건드리지 않았습니다. 현재는 여전히 수동 세션 방식입니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

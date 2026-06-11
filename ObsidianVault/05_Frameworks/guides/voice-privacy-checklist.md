@@ -87,3 +87,67 @@ Discord Bucky 봇이 음성 발화를 수집할 때:
 - 개인정보보호법 제24조의2 (민감정보 처리 제한)
 
 > 이 체크리스트는 참고용이며, 법적 판단은 전문 변호사 상담이 필요합니다.
+
+---
+
+## 프라이버시 우선 STT 설정 (2026-06-09 추가)
+
+> source: daily-plus/2026-06-09.md (Card 4)
+
+### 기본 설정 — VOSK small-ko (완전 로컬, 무과금)
+
+```python
+from vosk import Model, KaldiRecognizer
+import wave
+
+model = Model("vosk-model-small-ko-0.22")  # ~50-100MB
+
+def transcribe(wav_path: str) -> str:
+    wf = wave.open(wav_path, "rb")
+    rec = KaldiRecognizer(model, wf.getframerate())
+    result = []
+    while True:
+        data = wf.readframes(4000)
+        if len(data) == 0:
+            break
+        if rec.AcceptWaveform(data):
+            result.append(rec.Result())
+    result.append(rec.FinalResult())
+    return " ".join(r for r in result if r)
+```
+
+### STT 폴백 체계
+
+| 단계 | 조건 | 방법 |
+|------|------|------|
+| 1차 | 기본 | VOSK 로컬 처리 |
+| 2차 | 신뢰도 < 85% | whisper.cpp 로컬 (larger 모델) |
+| 3차 | 긴급/오프라인 불가 | OpenAI Whisper API (사용자 사전 동의 필수) |
+
+```bash
+# whisper.cpp 폴백 실행
+./whisper -m models/ggml-small.bin -l ko -f input.wav
+```
+
+### 현장 음성 처리 흐름
+
+```
+현장 녹음 (WAV 16kHz Mono)
+    ↓
+VOSK 로컬 변환
+    ↓ (신뢰도 < 85%)
+whisper.cpp 재처리
+    ↓
+텍스트 → 개인정보 마스킹 (_PRIVACY_MASK 패턴)
+    ↓
+원본 WAV 삭제 (설정 시)
+    ↓
+Vault: 04_SiteLog/{날짜}_{장소코드}_transcript.md
+```
+
+### 프라이버시 원칙 (현장 운영)
+
+1. 음성 데이터는 기기 밖으로 전송 불가 (1·2차)
+2. 3차 클라우드 처리 시 사용자 실시간 확인 필요
+3. 변환 완료 후 원본 WAV 즉시 삭제
+4. Vault에는 마스킹된 텍스트만 보관

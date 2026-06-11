@@ -1158,6 +1158,7 @@ function renderMainGraph(nodes, edges) {
       .on('end', (e, d) => { if (!e.active) mainSim.alphaTarget(0); d.fx = null; d.fy = null; }));
 
   mainSim = d3.forceSimulation(nodes)
+    .alphaDecay(0.05)
     .force('link', d3.forceLink(edges).id(d => d.id).distance(28).strength(.9))
     .force('charge', d3.forceManyBody().strength(-35))
     .force('center', d3.forceCenter(0, 0))
@@ -1178,8 +1179,17 @@ function renderMainGraph(nodes, edges) {
 // ── MEMORY GRAPH (glowing style) ──
 function renderMemoryGraph() {
   if (!graphData) return;
-  const nodes = graphData.nodes.map(d => ({...d}));
-  const edges = graphData.edges.map(d => ({...d}));
+  if (memSim) { memSim.stop(); memSim = null; }
+  // Downsample same as main graph
+  const MAX_NODES = 300;
+  const allN = graphData.nodes.map(d => ({...d}));
+  const allE = graphData.edges.map(d => ({...d}));
+  const degMap = {};
+  allE.forEach(e => { degMap[e.source] = (degMap[e.source]||0)+1; degMap[e.target] = (degMap[e.target]||0)+1; });
+  allN.forEach(n => n.degree = degMap[n.id]||0);
+  const nodes = allN.length > MAX_NODES ? allN.sort((a,b)=>b.degree-a.degree).slice(0,MAX_NODES) : allN;
+  const visIds = new Set(nodes.map(n=>n.id));
+  const edges = allE.filter(e=>visIds.has(e.source)&&visIds.has(e.target));
 
   const svg = d3.select('#memory-svg');
   svg.selectAll('*').remove();
@@ -1215,7 +1225,6 @@ function renderMemoryGraph() {
       if (t === 'config') return '#4ade80';
       return '#c084fc';
     })
-    .attr('filter', 'url(#glow)')
     .style('cursor', 'pointer')
     .on('mouseover', (e, d) => showTooltip(e, d, nodes, edges))
     .on('mouseout', hideTooltip)
@@ -1225,6 +1234,7 @@ function renderMemoryGraph() {
       .on('end', (e, d) => { if (!e.active) memSim.alphaTarget(0); d.fx = null; d.fy = null; }));
 
   memSim = d3.forceSimulation(nodes)
+    .alphaDecay(0.05)
     .force('link', d3.forceLink(edges).id(d => d.id).distance(22).strength(.8))
     .force('charge', d3.forceManyBody().strength(-30))
     .force('center', d3.forceCenter(0, 0))
@@ -1585,18 +1595,26 @@ async function loadAll() {
   const mem      = memR.status      === 'fulfilled' ? memR.value      : DEMO.memory;
   const spend    = spendR.status    === 'fulfilled' ? spendR.value    : DEMO.spend;
 
-  // Graph
+  // Graph — stop old sim first, then downsample to top 300 by degree
   if ((graph.nodes || []).length > 0) {
+    if (mainSim) { mainSim.stop(); mainSim = null; }
     graphData = graph;
-    const nodes = graph.nodes.map(d => ({...d}));
-    const nodeIds = new Set(nodes.map(n => n.id));
-    const edges = graph.edges
+    const allN = graph.nodes.map(d => ({...d}));
+    const nodeIds = new Set(allN.map(n => n.id));
+    const allE = graph.edges
       .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
       .map(d => ({...d}));
     const degMap = {};
-    edges.forEach(e => { degMap[e.source] = (degMap[e.source] || 0) + 1; degMap[e.target] = (degMap[e.target] || 0) + 1; });
-    nodes.forEach(n => n.degree = degMap[n.id] || 0);
-    allNodes = nodes; allEdges = edges;
+    allE.forEach(e => { degMap[e.source] = (degMap[e.source] || 0) + 1; degMap[e.target] = (degMap[e.target] || 0) + 1; });
+    allN.forEach(n => n.degree = degMap[n.id] || 0);
+    // Downsample: keep top 300 nodes by degree to avoid simulation overload
+    const MAX_NODES = 300;
+    const nodes = allN.length > MAX_NODES
+      ? allN.sort((a, b) => b.degree - a.degree).slice(0, MAX_NODES)
+      : allN;
+    const visIds = new Set(nodes.map(n => n.id));
+    const edges = allE.filter(e => visIds.has(e.source) && visIds.has(e.target));
+    allNodes = allN; allEdges = allE;
     renderMainGraph(nodes, edges);
   }
 
