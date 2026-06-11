@@ -101,7 +101,7 @@
   <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
   <div class="gen-stamp">
     <span class="gen-label">페이지 생성 시각</span>
-    <time class="gen-time">2026-06-10 02:59:51 KST</time>
+    <time class="gen-time">2026-06-12 08:00:36 KST</time>
   </div>
 </header>
 <main>
@@ -113,16 +113,16 @@
           <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>91</strong><span>세션</span></div>
-          <div><strong>12,468</strong><span>메시지</span></div>
+          <div><strong>81</strong><span>세션</span></div>
+          <div><strong>12,418</strong><span>메시지</span></div>
           <div><strong>100%</strong><span>활성일</span></div>
           <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>토큰</dt><dd>총 5,410,052 / 캐시 612,706,835</dd></div>
+          <div><dt>토큰</dt><dd>총 6,071,927 / 캐시 636,558,286</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 $0.26 / 메시지당 $0.002</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.29 / 메시지당 $0.002</dd></div>
           <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
         </dl>
         <div class="official-quota">
@@ -137,23 +137,23 @@
       </article>
 
 
-      <article class="agent-card limit">
+      <article class="agent-card balanced">
         <div class="agent-head">
           <h3>Codex</h3>
-          <span>한도 위험</span>
+          <span>균형</span>
         </div>
         <div class="metric-grid">
-          <div><strong>104</strong><span>세션</span></div>
-          <div><strong>14,892</strong><span>메시지</span></div>
+          <div><strong>55</strong><span>세션</span></div>
+          <div><strong>11,952</strong><span>메시지</span></div>
           <div><strong>100%</strong><span>활성일</span></div>
-          <div><strong>100%</strong><span>목표 사용률</span></div>
+          <div><strong>80.9%</strong><span>목표 사용률</span></div>
         </div>
-        <div class="bar"><span style="width:100%"></span></div>
+        <div class="bar"><span style="width:80.9%"></span></div>
         <dl>
           <div><dt>토큰</dt><dd>미수집</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 $0.22 / 메시지당 $0.002</dd></div>
-          <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.42 / 메시지당 $0.002</dd></div>
+          <div><dt>운영안</dt><dd>균형: 현재 배분을 유지하면서 작업 단위를 작게 관리합니다.</dd></div>
         </dl>
         <div class="official-quota">
           <h4 class="quota-title">공식 잔여량 (Official Quota)</h4>
@@ -171,14 +171,14 @@
     <section class="panel">
       <h2>실제 감지 상태</h2>
       <div class="state-grid">
-        <div><strong>593</strong><span>최근 CLI 호출</span></div>
-        <div><strong>34</strong><span>Claude 한도 이벤트</span></div>
+        <div><strong>670</strong><span>최근 CLI 호출</span></div>
+        <div><strong>54</strong><span>Claude 한도 이벤트</span></div>
         <div><strong>haiku</strong><span>권장 Claude 모델</span></div>
       </div>
-      <p class="note">2026-06-10T02:59:51 · sonnet · subscription limit exceeded</p>
+      <p class="note">2026-06-10T10:43:42 · opus · You&#x27;re out of extra usage · resets 11:40am (Asia/Seoul)</p>
       <table>
         <thead><tr><th>모델</th><th>호출</th><th>성공</th><th>실패</th></tr></thead>
-        <tbody><tr><td>codex-default</td><td>22</td><td>21</td><td>1</td></tr><tr><td>haiku</td><td>10</td><td>7</td><td>3</td></tr><tr><td>opus</td><td>3</td><td>0</td><td>3</td></tr><tr><td>sonnet</td><td>558</td><td>528</td><td>30</td></tr></tbody>
+        <tbody><tr><td>codex-default</td><td>31</td><td>29</td><td>2</td></tr><tr><td>haiku</td><td>23</td><td>14</td><td>9</td></tr><tr><td>opus</td><td>8</td><td>0</td><td>8</td></tr><tr><td>sonnet</td><td>608</td><td>570</td><td>38</td></tr></tbody>
       </table>
       <p class="note"><strong>Haiku 우선: 상태 확인, 분류, 짧은 요약, 태그/추출은 Haiku로 보내고 Sonnet 절약: 구현, 파일 편집, 테스트 수정, 긴 분석에만 Sonnet을 사용합니다.</strong></p>
     </section>
@@ -236,20 +236,19 @@
     <h2>일별 사용량</h2>
     <table>
       <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
-      <tbody><tr><td>2026-06-01</td><td>0s / 0m</td><td>1s / 276m</td></tr>
-<tr><td>2026-06-03</td><td>9s / 823m</td><td>38s / 2031m</td></tr>
-<tr><td>2026-06-04</td><td>9s / 1319m</td><td>11s / 2474m</td></tr>
-<tr><td>2026-06-05</td><td>9s / 709m</td><td>15s / 1903m</td></tr>
+      <tbody><tr><td>2026-06-05</td><td>4s / 151m</td><td>2s / 810m</td></tr>
 <tr><td>2026-06-06</td><td>25s / 2558m</td><td>9s / 2733m</td></tr>
 <tr><td>2026-06-07</td><td>22s / 4621m</td><td>14s / 2148m</td></tr>
 <tr><td>2026-06-08</td><td>6s / 356m</td><td>5s / 316m</td></tr>
 <tr><td>2026-06-09</td><td>8s / 1138m</td><td>3s / 2158m</td></tr>
-<tr><td>2026-06-10</td><td>3s / 944m</td><td>8s / 853m</td></tr></tbody>
+<tr><td>2026-06-10</td><td>9s / 2209m</td><td>20s / 2962m</td></tr>
+<tr><td>2026-06-11</td><td>4s / 680m</td><td>2s / 825m</td></tr>
+<tr><td>2026-06-12</td><td>3s / 705m</td><td>0s / 0m</td></tr></tbody>
     </table>
   </section>
 </main>
 <footer>
-  생성: 2026-06-10 02:59:51 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
+  생성: 2026-06-12 08:00:36 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 </body>
 </html>

@@ -1158,6 +1158,42 @@ def _dashboard_session_label(payload: dict) -> str:
     return " | ".join(parts)
 
 
+def _checklist_requires_manual_action(payload: dict) -> bool:
+    explicit = payload.get("requires_user_approval")
+    if isinstance(explicit, bool):
+        return explicit
+    execution_mode = str(payload.get("execution_mode") or "").strip().lower()
+    if execution_mode in {"approval_required", "manual", "user_approved_pc_control"}:
+        return True
+    if execution_mode in {"auto_executable", "immediate"}:
+        return False
+
+    text = " ".join(
+        str(payload.get(key) or "")
+        for key in ("title", "summary", "body", "note", "priority", "status")
+    ).lower()
+    manual_markers = (
+        "requires_approval=true",
+        "requires_user_approval=true",
+        "approval_required",
+        "user approval",
+        "manual",
+        "login",
+        "password",
+        "credential",
+        "oauth",
+        "chrome extension",
+        "vercel",
+        "supabase",
+        "local pc control",
+        "bot restart",
+        "zero trust",
+        "api key",
+        "credit",
+    )
+    return any(marker in text for marker in manual_markers)
+
+
 async def _activate_dashboard_session(channel_id: str, payload: dict) -> int | None:
     try:
         import bucky_memory as _mem
@@ -4062,6 +4098,16 @@ class BuckyDiscordBot(discord.Client):
             return
 
         # Daily Plus / Task Board / Checklist — Bucky에게 라우팅해서 응답 전송
+        if dashboard_type == "checklist" and action == "resume_task" and channel:
+            if not _checklist_requires_manual_action(payload):
+                await channel.send(
+                    f"?? **[Intake: checklist] 자동 처리 가능 항목 감지** `{request_id[:12]}`\n"
+                    f"- 제목: {title[:160]}\n"
+                    "- worker queue에 등록해 Bucky가 처리합니다."
+                )
+                await _dispatch_dashboard_execution_task({**payload, "action": "execute"}, channel)
+                return
+
         if dashboard_type in {"daily_plus", "task_board", "taskboard", "checklist"} and channel:
             summary = str(payload.get("summary") or payload.get("body") or "")
             item_id = str(payload.get("item_id") or "")
@@ -4550,6 +4596,25 @@ class BuckyDiscordBot(discord.Client):
             await message.channel.send(f"✅ 실행 중 ({mode}) | 역할: `{role}`")
             return
 
+        if content in ("!링크", "!links", "!대시보드", "!dashboard"):
+            # 모바일(폰)에서 탭해서 바로 들어가는 대시보드 링크.
+            # /launch가 자동 로그인 쿠키를 심고 next 페이지로 보냄 (localhost/Tailscale 기기 전용).
+            base = os.getenv("JH_DASH_BASE", "https://p0517a-22h2t8.tail3b2b6d.ts.net:8443")
+            fallback = os.getenv("JH_DASH_BASE_FALLBACK", "http://100.88.158.108:8765")
+            await message.channel.send(
+                "**📱 대시보드 바로가기** (Tailscale 연결된 기기 전용)\n"
+                f"🧠 Bucky OS — <{base}/launch>\n"
+                f"📋 태스크보드 — <{base}/launch?next=/task-board.html>\n"
+                f"✅ 체크리스트 — <{base}/launch?next=/checklist.html>\n"
+                f"📰 데일리플러스 — <{base}/launch?next=/daily-plus.html>\n"
+                f"💼 위시켓 — <{base}/launch?next=/wishket.html>\n"
+                f"📊 AI사용량 — <{base}/launch?next=/ai-usage.html>\n"
+                f"🎙 Bucky Voice — <{base}/launch?next=/bucky-voice.html>\n"
+                f"🏠 레포 허브 — <{base}/launch?next=/index.html>\n"
+                f"_HTTPS 주소는 폰 PWA 설치 가능 · 안 열리면 폴백: <{fallback}/launch>_"
+            )
+            return
+
         if content == "!help":
             vc_status = "활성화" if VOICE_CHANNEL_ENABLED else "비활성화"
             tts_status = "활성화" if _gtts_available else "비활성화 (pip install gTTS)"
@@ -4557,6 +4622,7 @@ class BuckyDiscordBot(discord.Client):
             await message.channel.send(
                 "**Bucky 명령어**\n"
                 "`!status` — 봇 상태 및 내 역할 확인\n"
+                "`!링크` / `!대시보드` — 📱 폰에서 여는 대시보드 바로가기\n"
                 "`!reset` — 대화 기록 초기화\n"
                 "`!session list` / `!세션목록` — 세션 목록 (시간대별 대화 분리)\n"
                 "`!session resume <번호>` / `!세션복원 <번호>` — 이전 세션 맥락 복원\n"

@@ -34,11 +34,16 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
+from urllib.parse import quote
+
 from flask import Flask, jsonify, request, send_from_directory
 
 from bucky_client import BuckyError, run_bucky
 
 DOCS_DIR = ROOT / "docs"
+PROTECTED_DIR = ROOT / "protected"
+# 공개 배포(docs/) 밖에 두고 로컬 서버에서만 쿠키 게이트로 서빙하는 페이지
+PROTECTED_PAGES = ("wishket.html", "bucky-daily.html", "investment-report.html")
 
 app = Flask(__name__)
 
@@ -371,22 +376,81 @@ def serve_bucky_os():
     return send_from_directory(str(DOCS_DIR), "bucky-os.html")
 
 
-@app.get("/launch")
-def auto_launch():
-    """자동 로그인 → Bucky OS 리다이렉트 (localhost + 본인 Tailscale 기기 전용)."""
+def _is_trusted_source() -> bool:
+    """loopback 또는 본인 Tailscale 기기(CGNAT 100.64.0.0/10)에서 온 요청인지."""
     import ipaddress
     try:
         ip = ipaddress.ip_address(request.remote_addr or "")
         if ip.version == 6 and ip.ipv4_mapped:
             ip = ip.ipv4_mapped
     except ValueError:
-        return jsonify({"error": "localhost/tailnet only"}), 403
-    if not (ip.is_loopback or ip in ipaddress.ip_network("100.64.0.0/10")):
-        return jsonify({"error": "localhost/tailnet only"}), 403
+        return False
+    return ip.is_loopback or ip in ipaddress.ip_network("100.64.0.0/10")
+
+
+def _safe_next(raw: str | None, default: str = "/bucky-os.html") -> str:
+    """리다이렉트 대상을 로컬 경로로 제한 (open redirect 방지)."""
+    nxt = (raw or "").strip()
+    if not nxt.startswith("/") or nxt.startswith("//"):
+        return default
+    return nxt
+
+
+def _auth_cookie_response(target: str):
     from flask import make_response, redirect
-    resp = make_response(redirect("/bucky-os.html"))
+    resp = make_response(redirect(target))
     resp.set_cookie("bucky_auth", "local", path="/", httponly=False)
     return resp
+
+
+@app.get("/launch")
+def auto_launch():
+    """자동 로그인 → 대시보드 리다이렉트 (localhost + 본인 Tailscale 기기 전용).
+
+    ?next=/task-board.html 처럼 도착 페이지 지정 가능 (기본 Bucky OS).
+    """
+    if not _is_trusted_source():
+        return jsonify({"error": "localhost/tailnet only"}), 403
+    return _auth_cookie_response(_safe_next(request.args.get("next")))
+
+
+@app.post("/api/login")
+def api_login():
+    """login.html 로그인 처리.
+
+    신뢰 소스(localhost/Tailscale)는 비밀번호 없이 통과 — /launch와 동일 신뢰 모델.
+    그 외 소스는 BUCKY_DASH_PASSWORD 환경변수와 대조 (미설정 시 항상 거부).
+    JSON 요청이면 {"ok": bool} 응답, 폼 요청이면 302 리다이렉트.
+    """
+    body = request.get_json(silent=True) or {}
+    password = (request.form.get("password") or body.get("password") or "").strip()
+    target = _safe_next(request.form.get("redirect") or body.get("redirect"), default="/")
+    expected = os.environ.get("BUCKY_DASH_PASSWORD", "")
+    allowed = _is_trusted_source() or (bool(expected) and password == expected)
+    if request.is_json:
+        if not allowed:
+            return jsonify({"ok": False}), 403
+        resp = jsonify({"ok": True, "redirect": target})
+        resp.set_cookie("bucky_auth", "local", path="/", httponly=False)
+        return resp
+    if not allowed:
+        from flask import redirect
+        return redirect("/login.html?error=1&r=" + quote(target))
+    return _auth_cookie_response(target)
+
+
+@app.get("/wishket.html")
+@app.get("/bucky-daily.html")
+@app.get("/investment-report.html")
+def serve_protected_page():
+    """protected/ 운영 대시보드 — 서버측 쿠키 게이트 (공개 정적 호스팅 미노출 유지)."""
+    from flask import redirect
+    name = request.path.lstrip("/")
+    if name not in PROTECTED_PAGES:
+        return jsonify({"error": "not found"}), 404
+    if request.cookies.get("bucky_auth") != "local":
+        return redirect("/login.html?r=" + quote(request.path))
+    return send_from_directory(str(PROTECTED_DIR), name)
 
 
 @app.get("/<path:filename>")

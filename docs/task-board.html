@@ -227,6 +227,28 @@
     border-top: 1px solid var(--border); margin-top: 4px;
   }
   .section-header:first-child { border-top: none; }
+
+  /* ── Mobile (≤768px) ── */
+  @media (max-width: 768px) {
+    header { padding: 12px 14px; gap: 10px; }
+    header h1 { font-size: 1.1rem; }
+    .jh-nav {
+      flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      width: 100%; padding-bottom: 4px; scrollbar-width: none;
+    }
+    .jh-nav::-webkit-scrollbar { display: none; }
+    .jh-nav a { flex-shrink: 0; }
+    .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 14px; }
+    .stat-box { min-width: 0; padding: 8px 6px; }
+    .stat-box .num { font-size: 1.2rem; }
+    .toolbar { padding: 10px 14px; }
+    .search-box { margin-left: 0; width: 100%; }
+    .grid { grid-template-columns: 1fr; padding: 14px; }
+    .wh-panel { margin: 10px 14px; }
+    .section-header { padding: 8px 14px 4px; }
+    .act-btn { padding: 7px 12px; font-size: 0.8rem; }
+    #toast { left: 14px; right: 14px; bottom: 14px; text-align: center; }
+  }
 </style>
 </head>
 <body>

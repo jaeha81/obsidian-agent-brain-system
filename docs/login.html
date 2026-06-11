@@ -130,8 +130,20 @@
   </div>
  
  <script>
-    if (new URLSearchParams(location.search).get('error') === '1') {
+    var params = new URLSearchParams(location.search);
+    var target = params.get('redirect') || params.get('r') || '/';
+
+    if (params.get('error') === '1') {
         document.getElementById('err').style.display = 'block';
+    } else {
+        // 같은 PC·Tailscale 기기는 비밀번호 없이 자동 입장 (/api/login 신뢰 소스 통과)
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({password: '', redirect: target})
+        }).then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(d) { if (d && d.ok) location.replace(d.redirect || target); })
+          .catch(function() {});
     }
 
     document.getElementById('pw').addEventListener('keydown', function(e) {
@@ -140,7 +152,7 @@
 
     function doLogin() {
         var pw = document.getElementById('pw').value;
-        var redirect = new URLSearchParams(location.search).get('redirect') || '/';
+        var redirect = target;
 
         var form = document.createElement('form');
         form.method = 'POST';
