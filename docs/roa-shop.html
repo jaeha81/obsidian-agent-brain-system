@@ -84,6 +84,7 @@
       padding: 120px 64px 80px;
       position: relative;
       background: var(--off-white);
+      isolation: isolate;
     }
     .hero-left::after {
       content: '';
@@ -101,6 +102,7 @@
       top: 80px; left: 48px;
       pointer-events: none;
       letter-spacing: -6px;
+      z-index: 0;
     }
     .hero-tag {
       font-size: 10px; font-weight: 500;
@@ -109,6 +111,7 @@
       margin-bottom: 24px;
       display: flex; align-items: center; gap: 12px;
       animation: slideInLeft 0.9s var(--ease) both;
+      position: relative; z-index: 1;
     }
     .hero-tag::before {
       content: ''; display: block;
@@ -122,6 +125,7 @@
       color: var(--charcoal);
       margin-bottom: 28px;
       animation: slideInLeft 0.9s 0.12s var(--ease) both;
+      position: relative; z-index: 1;
     }
     .hero-title em {
       font-style: italic;
@@ -134,10 +138,12 @@
       margin-bottom: 48px;
       font-weight: 300;
       animation: slideInLeft 0.9s 0.22s var(--ease) both;
+      position: relative; z-index: 1;
     }
     .hero-actions {
       display: flex; gap: 14px; flex-wrap: wrap;
       animation: slideInLeft 0.9s 0.32s var(--ease) both;
+      position: relative; z-index: 1;
     }
     .btn-primary {
       display: inline-flex; align-items: center; gap: 10px;
@@ -163,6 +169,7 @@
       position: absolute; bottom: 48px; left: 64px;
       display: flex; gap: 40px;
       animation: slideInLeft 0.9s 0.42s var(--ease) both;
+      z-index: 1;
     }
     .hero-stat-num {
       font-family: 'Cormorant Garamond', serif;
