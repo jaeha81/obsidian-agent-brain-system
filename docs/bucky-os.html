@@ -1082,8 +1082,9 @@ function fitBounds(svg, g, zoom, W, H) {
     const b = g.node().getBBox();
     if (!b.width || !b.height) return;
     const scale = Math.min(0.9 * W / b.width, 0.9 * H / b.height, 1.5);
-    const tx = W/2 - scale * (b.x + b.width/2);
-    const ty = H/2 - scale * (b.y + b.height/2);
+    // viewBox is "-W/2 -H/2 W H" → visual center is (0,0), not (W/2,H/2)
+    const tx = -scale * (b.x + b.width/2);
+    const ty = -scale * (b.y + b.height/2);
     svg.transition().duration(650)
        .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
   } catch(e) {}

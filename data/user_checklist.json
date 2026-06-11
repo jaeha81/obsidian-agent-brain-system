@@ -580,6 +580,17 @@
       "added": "2026-06-11",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-045",
+      "title": "E6 (로컬 LLM 실험) — 설치 환경 확인 필요, 다음 세션에서 별도 진행",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }
