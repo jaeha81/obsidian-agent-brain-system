@@ -292,13 +292,14 @@ body::after {
 #pane-ops #card-dream    { grid-column: 1;   grid-row: 2; }
 #pane-ops #card-activity { grid-column: 1/4; grid-row: 3; }
 
-/* AGENTS tab: agent room + skills */
+/* AGENTS tab: agent room + skills + design lab */
 #pane-agents {
   grid-template-columns: 1fr 280px;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
 }
-#pane-agents #card-agents { grid-column: 1/3; grid-row: 1; }
-#pane-agents #card-skills { grid-column: 1/3; grid-row: 2; }
+#pane-agents #card-agents     { grid-column: 1/3; grid-row: 1; }
+#pane-agents #card-skills     { grid-column: 1/3; grid-row: 2; }
+#pane-agents #card-design-lab { grid-column: 1/3; grid-row: 3; }
 
 /* BRAIN tab: graph big + memory */
 #pane-brain {
@@ -821,8 +822,9 @@ body::after {
   #pane-ops #card-overview { grid-column:1; grid-row:3; }
   #pane-ops #card-activity { grid-column:2; grid-row:3; }
 
-  #pane-agents #card-agents { grid-column:1; }
-  #pane-agents #card-skills { grid-column:1; }
+  #pane-agents #card-agents     { grid-column:1; }
+  #pane-agents #card-skills     { grid-column:1; }
+  #pane-agents #card-design-lab { grid-column:1; }
 
   #pane-brain #card-graph  { grid-column:1; }
   #pane-brain #card-memory { grid-column:1; }
@@ -1123,6 +1125,45 @@ body::after {
       </div>
       <div class="card-body" id="skills-body">
         <div class="loading-row"><div class="spinner"></div>Loading skills…</div>
+      </div>
+    </div>
+
+    <!-- Design Lab -->
+    <div class="card" id="card-design-lab">
+      <div class="card-header">
+        <span class="card-title">Design Lab</span>
+        <span class="card-badge badge-purple">CODEX</span>
+      </div>
+      <div class="card-body" id="design-lab-body">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:10px;line-height:1.5">
+          Design Lang CLI + Codex Product Design Plugin 파이프라인.<br>
+          레퍼런스 URL → DESIGN.md 추출 → Codex 구현 패킷 생성.
+        </div>
+        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">참고 URL</label>
+        <input id="design-ref-url" type="url" placeholder="https://example.com"
+               style="width:100%;background:#0a0a18;border:1px solid #2a2a3e;border-radius:6px;padding:8px;color:#d1d5db;font-size:12px;box-sizing:border-box;font-family:inherit;margin-bottom:10px">
+        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">수정 요구사항 (저작권 변형 포함)</label>
+        <textarea id="design-modification" class="acm-textarea" style="min-height:70px"
+                  placeholder="예) 컬러 팔레트는 보라색 계열로, 폰트는 Pretendard로 변경. 히어로 섹션 그리드 비율 재배치."></textarea>
+        <label style="display:block;font-size:11px;color:#9ca3af;margin:10px 0 4px">대상 프로젝트 (선택)</label>
+        <input id="design-project" type="text" placeholder="예) D:/AI프로젝트/내프로젝트"
+               style="width:100%;background:#0a0a18;border:1px solid #2a2a3e;border-radius:6px;padding:8px;color:#d1d5db;font-size:12px;box-sizing:border-box;font-family:inherit">
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button onclick="generateDesignPacket('lang')"
+                  style="flex:1;min-width:140px;padding:8px 14px;background:#0ea5e9;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:700">
+            1. Design Lang 패킷
+          </button>
+          <button onclick="generateDesignPacket('codex')"
+                  style="flex:1;min-width:140px;padding:8px 14px;background:#a855f7;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:700">
+            2. Codex 구현 패킷
+          </button>
+        </div>
+        <div id="design-feedback" style="font-size:11px;color:#22c55e;margin-top:8px;min-height:14px"></div>
+        <pre id="design-output"
+             style="display:none;margin-top:10px;background:#0a0a18;border:1px solid #2a2a3e;border-radius:6px;padding:10px;color:#d1d5db;font-size:11px;max-height:240px;overflow:auto;white-space:pre-wrap;font-family:Consolas,monospace"></pre>
+        <div style="font-size:10px;color:#f59e0b;margin-top:10px;line-height:1.5">
+          ⚠️ 저작권: 레퍼런스 디자인을 그대로 사용 금지. 컬러·폰트·레이아웃 중 최소 2개 변형 필수.
+        </div>
       </div>
     </div>
 
@@ -2263,6 +2304,125 @@ function startAutoRefresh() {
   setInterval(() => {
     withFallback('/os/activity', DEMO.activity, rActivity);
   }, 12_000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN LAB
+═══════════════════════════════════════════════════════════════ */
+function generateDesignPacket(mode) {
+  const url = (document.getElementById('design-ref-url')?.value || '').trim();
+  const mod = (document.getElementById('design-modification')?.value || '').trim();
+  const proj = (document.getElementById('design-project')?.value || '').trim() || '<프로젝트 경로>';
+  const fb = document.getElementById('design-feedback');
+  const out = document.getElementById('design-output');
+
+  if (!url) {
+    fb.style.color = '#ef4444';
+    fb.textContent = '참고 URL을 입력하세요.';
+    return;
+  }
+  let slug = '';
+  try {
+    const u = new URL(url);
+    slug = (u.hostname + u.pathname).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase();
+  } catch (e) {
+    fb.style.color = '#ef4444';
+    fb.textContent = '유효한 URL 형식이 아닙니다.';
+    return;
+  }
+
+  const packPath = `ObsidianVault/06_Context_Packs/design-extracted/${slug}/`;
+  let packet = '';
+
+  if (mode === 'lang') {
+    packet =
+`# Codex 패킷: designlang (Design Lang CLI) 실행
+
+agent: Codex
+role: design-extraction
+reference_url: ${url}
+output_dir: ${packPath}
+
+전제 조건 (최초 1회):
+  - D:/AI프로젝트/design-extract 이미 clone 됨
+  - npm install 또는 글로벌 설치 (npm i -g designlang) 완료
+  - Playwright chromium 다운로드 완료
+
+실행 절차:
+1. 기본 추출 (17+ 파일):
+   > npx designlang ${url}
+2. 정밀 추출 (스크린샷+반응형+인터랙션):
+   > npx designlang --full ${url}
+3. 출력물 이동:
+   > mv ./design-extract-output/* "G:/내 드라이브/obsidian-agent-brain-system/${packPath}"
+
+확인할 산출물:
+  - *-design-language.md      (19섹션 — Codex 구현 입력용)
+  - *-design-tokens.json      (DTCG)
+  - *-figma-variables.json
+  - *-tailwind.config.js
+  - *-anatomy.tsx
+  - *-prompts/                (Cursor/Claude Artifacts/v0 패키지)
+
+done_when:
+  - design-language.md 19섹션 모두 채워짐
+  - tokens/tailwind/figma-variables 모두 생성
+next_action: "2번 Codex 구현 패킷으로 진행"
+`;
+  } else if (mode === 'codex') {
+    packet =
+`# Codex 패킷: Product Design Plugin 구현
+
+agent: Codex
+role: design-implementation
+project: ${proj}
+reference_url: ${url}
+design_assets: ${packPath}
+
+전제 조건:
+  - Codex Product Design Plugin 활성화 완료
+  - ${packPath}*-design-language.md 추출 완료 (Step 1 산출물)
+
+수정 요구사항:
+${mod || '(미입력 — 저작권 변형 가이드를 받아 진행)'}
+
+실행 절차:
+1. Codex Product Design Plugin 활성화 확인
+2. 입력:
+   - reference URL: ${url}
+   - *-design-language.md 첨부 (${packPath})
+   - *-prompts/ 폴더의 Claude Artifacts 프롬프트 활용
+   - 수정 요구사항 위 내용 그대로 적용
+3. 구현 산출물을 ${proj} 에 직접 생성
+
+저작권 가드레일 (필수):
+  - 컬러·폰트·레이아웃 중 최소 2개 변형
+  - 원본 자산 직접 복사·재배포 금지
+
+done_when:
+  - 참고 URL의 주요 인터랙션 재현
+  - 프로젝트 스택과 호환 (빌드 성공)
+  - Codex 독립 검수 통과
+record_path: ObsidianVault/10_AgentBus/reports/<YYYYMMDD>_design_${slug}_review.md
+next_action: "#jh-results 채널 알림"
+`;
+  }
+
+  out.style.display = 'block';
+  out.textContent = packet;
+
+  try {
+    navigator.clipboard.writeText(packet).then(() => {
+      fb.style.color = '#22c55e';
+      fb.textContent = `✓ 패킷 생성 + 클립보드 복사 완료 (${mode === 'lang' ? '1단계 Design Lang' : '2단계 Codex 구현'})`;
+    }, () => {
+      fb.style.color = '#f59e0b';
+      fb.textContent = '패킷 생성 완료 (클립보드 복사 실패 — 아래 영역에서 직접 복사)';
+    });
+  } catch (e) {
+    fb.style.color = '#f59e0b';
+    fb.textContent = '패킷 생성 완료 (클립보드 미지원 — 아래 영역에서 직접 복사)';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
