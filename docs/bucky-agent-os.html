@@ -234,12 +234,8 @@ body::after {
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center;
   padding: 0 20px; gap: 4px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
   z-index: 190;
 }
-#tabbar::-webkit-scrollbar { display: none; }
 
 .tab-btn {
   font-family: var(--mono); font-size: 10px;
@@ -250,7 +246,6 @@ body::after {
   border: 1px solid transparent;
   transition: color .15s, background .15s, border-color .15s;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 .tab-btn:hover {
   color: var(--cyan);
@@ -312,14 +307,6 @@ body::after {
 }
 #pane-brain #card-graph  { grid-column: 1/3; grid-row: 1; }
 #pane-brain #card-memory { grid-column: 1/3; grid-row: 2; }
-
-/* REPOS / DAILY-PLUS / WISHKET tabs: full-height iframe */
-#pane-repos.active,
-#pane-dailyplus.active,
-#pane-wishket.active { display: block; padding: 0; }
-#pane-repos iframe,
-#pane-dailyplus iframe,
-#pane-wishket iframe { width: 100%; height: calc(100vh - 165px); border: none; border-radius: 8px; display: block; }
 
 /* METRICS tab: goals | spend / bench / repo */
 #pane-metrics {
@@ -986,6 +973,11 @@ body::after {
   .task-summary { grid-template-columns: repeat(2,1fr); }
 }
 </style>
+<style>
+.in-iframe #topbar,.in-iframe #tabbar{display:none!important}
+.in-iframe #main{margin-top:0!important}
+</style>
+<script>(function(){if(window!==window.top){document.documentElement.classList.add('in-iframe');}})();</script>
 </head>
 <body>
 
@@ -1004,7 +996,8 @@ body::after {
   <nav class="topbar-nav">
     <a class="nav-link active" href="bucky-agent-os.html">OS</a>
     <a class="nav-link" href="ai-usage.html">AI SPEND</a>
-    <a class="nav-link" href="index.html">REPOS</a>
+    <a class="nav-link" href="wishket.html">WISHKET</a>
+    <a class="nav-link" href="project-graph.html" target="_blank">GRAPH</a>
   </nav>
   <div class="topbar-divider"></div>
   <span class="sys-label">TASKS</span>
@@ -1036,15 +1029,6 @@ body::after {
   </button>
   <button class="tab-btn" onclick="switchTab('metrics')" id="tab-btn-metrics">
     <i class="tab-btn-icon">📊</i>성과
-  </button>
-  <button class="tab-btn" onclick="switchTab('repos')" id="tab-btn-repos">
-    <i class="tab-btn-icon">📁</i>레포
-  </button>
-  <button class="tab-btn" onclick="switchTab('dailyplus')" id="tab-btn-dailyplus">
-    <i class="tab-btn-icon">✨</i>오늘플러스
-  </button>
-  <button class="tab-btn" onclick="switchTab('wishket')" id="tab-btn-wishket">
-    <i class="tab-btn-icon">💼</i>위시켓
   </button>
 </div>
 
@@ -1223,21 +1207,6 @@ body::after {
     </div>
 
   </div><!-- /#pane-metrics -->
-
-  <!-- ══ REPOS PANE ══ -->
-  <div class="tab-pane" id="pane-repos">
-    <iframe src="index.html" title="레포 상품화 대시보드" loading="lazy"></iframe>
-  </div><!-- /#pane-repos -->
-
-  <!-- ══ DAILY-PLUS PANE ══ -->
-  <div class="tab-pane" id="pane-dailyplus">
-    <iframe src="daily-plus.html" title="오늘의 플러스" loading="lazy"></iframe>
-  </div><!-- /#pane-dailyplus -->
-
-  <!-- ══ WISHKET PANE ══ -->
-  <div class="tab-pane" id="pane-wishket">
-    <iframe src="wishket.html" title="위시켓 대시보드" loading="lazy"></iframe>
-  </div><!-- /#pane-wishket -->
 
 </div><!-- /#main -->
 
@@ -2269,7 +2238,7 @@ function startAutoRefresh() {
 /* ═══════════════════════════════════════════════════════════════
    TAB SWITCHING
 ═══════════════════════════════════════════════════════════════ */
-const TAB_IDS = ['ops', 'agents', 'brain', 'metrics', 'repos', 'dailyplus', 'wishket'];
+const TAB_IDS = ['ops', 'agents', 'brain', 'metrics'];
 
 function switchTab(name) {
   if (!TAB_IDS.includes(name)) return;
@@ -2286,6 +2255,8 @@ function switchTab(name) {
 
 (function restoreTab() {
   try {
+    const urlTab = new URLSearchParams(location.search).get('tab');
+    if (urlTab && TAB_IDS.includes(urlTab)) { switchTab(urlTab); return; }
     const saved = localStorage.getItem('bucky-active-tab');
     if (saved && TAB_IDS.includes(saved)) switchTab(saved);
   } catch(e) {}
