@@ -569,17 +569,30 @@ function toggleKbd() {
 
 // ── Toggle full viewport ──────────────────────────────────────────
 function toggleFullViewport() {
-  const controls = document.getElementById('controls');
-  const kbd = document.getElementById('kbd-panel');
-  const statusbar = document.getElementById('statusbar');
-  const btn = document.getElementById('btn-fullvp');
-  const hiding = controls.style.display !== 'none';
-  controls.style.display = hiding ? 'none' : '';
-  kbd.style.display = hiding ? 'none' : '';
-  statusbar.style.display = hiding ? 'none' : '';
-  btn.className = hiding ? 'active' : '';
-  btn.textContent = hiding ? '뷰 축소' : '뷰 확대';
+  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if (!inFS) {
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen).call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+  }
 }
+
+function syncFullscreenBtn() {
+  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const btn = document.getElementById('btn-fullvp');
+  const topbar = document.getElementById('topbar');
+  const controls = document.getElementById('controls');
+  const statusbar = document.getElementById('statusbar');
+  btn.className = inFS ? 'active' : '';
+  btn.textContent = inFS ? '뷰 축소' : '뷰 확대';
+  topbar.style.display = inFS ? 'none' : '';
+  controls.style.display = inFS ? 'none' : '';
+  statusbar.style.display = inFS ? 'none' : '';
+}
+
+document.addEventListener('fullscreenchange', syncFullscreenBtn);
+document.addEventListener('webkitfullscreenchange', syncFullscreenBtn);
 
 function updateDisplaySize() {
   // nothing needed — CSS handles it
