@@ -113,8 +113,10 @@ class BuckyAgentOsApiTests(unittest.TestCase):
 
         self.assertEqual(data["summary"]["fact_count"], 1)
         self.assertEqual(data["summary"]["session_count"], 1)
-        self.assertEqual(data["recent_facts"][0]["category"], "goal")
-        self.assertEqual(data["recent_messages"][0]["channel"], "jh-codex-app")
+        # 2026-06-10 4-layer Memory Stack 개편: semantic은 category→[facts] dict
+        self.assertIn("goal", data["layers"]["semantic"])
+        # short_term이 recent_messages를 대체
+        self.assertEqual(data["layers"]["short_term"][0]["channel"], "jh-codex-app")
 
     def test_goals_endpoint_reports_active_goal_progress(self):
         data = self.client.get("/agent-os/goals").get_json()

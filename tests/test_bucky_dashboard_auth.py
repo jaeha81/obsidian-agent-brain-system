@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -19,13 +20,16 @@ class BuckyDashboardAuthTests(unittest.TestCase):
         self.client = self.server.app.test_client()
 
     def test_dashboard_html_requires_auth_cookie(self):
-        response = self.client.get("/index.html")
+        # d6d1319: trusted source(loopback)는 쿠키 없이 통과하므로 비신뢰 경로를 격리
+        with patch.object(self.server, "_is_trusted_source", return_value=False):
+            response = self.client.get("/index.html")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login.html", response.headers["Location"])
 
     def test_forged_local_cookie_is_rejected(self):
         self.client.set_cookie("bucky_auth", "local")
-        response = self.client.get("/index.html")
+        with patch.object(self.server, "_is_trusted_source", return_value=False):
+            response = self.client.get("/index.html")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login.html", response.headers["Location"])
 
@@ -60,7 +64,9 @@ class BuckyDashboardAuthTests(unittest.TestCase):
         self.assertIn("bucky_auth=", response.headers.get("Set-Cookie", ""))
 
     def test_launch_redirects_unauthenticated_user_to_login(self):
-        response = self.client.get("/launch?next=/index.html")
+        # d6d1319: trusted source는 /launch에서 쿠키 발급 → 비신뢰 경로로 격리
+        with patch.object(self.server, "_is_trusted_source", return_value=False):
+            response = self.client.get("/launch?next=/index.html")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login.html", response.headers["Location"])
 
@@ -70,7 +76,9 @@ class BuckyDashboardAuthTests(unittest.TestCase):
         self.assertNotIn("비밀번호 없이 자동 입장", html)
 
     def test_state_changing_api_requires_auth(self):
-        response = self.client.post("/intake", json={"dashboard_type": "checklist"})
+        # d6d1319: trusted source는 /intake도 통과 → 비신뢰 경로로 격리
+        with patch.object(self.server, "_is_trusted_source", return_value=False):
+            response = self.client.post("/intake", json={"dashboard_type": "checklist"})
         self.assertEqual(response.status_code, 401)
 
 
