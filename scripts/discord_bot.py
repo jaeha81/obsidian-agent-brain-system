@@ -1979,13 +1979,82 @@ def _get_rag_context(query: str, top_k: int = 3) -> str:
         return ""
 
 
+def _classify_intent_sync(user_message: str, recent_history: list[dict]) -> dict:
+    """Pass 1 — Haiku로 메시지 의도 분류 (빠른 사전 호출).
+
+    Returns dict with keys:
+      intent: COMMAND | QUESTION | AMBIGUOUS | SMALL_TALK | EMOTIONAL
+      context_need: HIGH | MEDIUM | LOW
+      tone: FORMAL | CASUAL
+      topic: list[str]
+      quick_answer: str  (context_need=LOW일 때 직접 답변 후보)
+    """
+    recent_turns = "\n".join(
+        f"{item['role'].title()}: {item['content'][:300]}"
+        for item in recent_history[-4:]
+    )
+    classify_prompt = (
+        "사용자 메시지 의도를 분류하라. JSON 한 줄만 출력하라. 설명 없이.\n\n"
+        f"최근 대화:\n{recent_turns}\n\n"
+        f"새 메시지: {user_message[:600]}\n\n"
+        '출력 형식 (반드시 이 JSON 한 줄만):\n'
+        '{"intent":"COMMAND|QUESTION|AMBIGUOUS|SMALL_TALK|EMOTIONAL",'
+        '"context_need":"HIGH|MEDIUM|LOW","tone":"FORMAL|CASUAL",'
+        '"topic":["project"|"system"|"general"|"code"|"deploy"],'
+        '"quick_answer":""}\n\n'
+        "분류 기준:\n"
+        "- COMMAND: 구체적 실행 요청 (만들어/수정/배포/고쳐 등)\n"
+        "- QUESTION: 정보 조회, how/what/why\n"
+        "- AMBIGUOUS: 여러 해석 가능, 불명확\n"
+        "- SMALL_TALK: 짧은 확인/감사/단순 yes-no\n"
+        "- EMOTIONAL: 감정/의견/불만/칭찬\n"
+        "- context_need HIGH: 시스템 상태·프로젝트 지식 필수\n"
+        "- context_need MEDIUM: 일부 프로젝트 배경 있으면 좋음\n"
+        "- context_need LOW: 일반 지식으로 답변 가능\n"
+        "- quick_answer: LOW일 때 짧게 답변 가능하면 채움, 아니면 빈 문자열"
+    )
+    try:
+        raw = run_bucky(classify_prompt, task_type="classify")
+        import json as _json, re as _re
+        m = _re.search(r"\{[^{}]+\}", raw, _re.DOTALL)
+        if m:
+            parsed = _json.loads(m.group())
+            parsed.setdefault("intent", "AMBIGUOUS")
+            parsed.setdefault("context_need", "HIGH")
+            parsed.setdefault("tone", "CASUAL")
+            parsed.setdefault("topic", [])
+            parsed.setdefault("quick_answer", "")
+            return parsed
+    except Exception as _e:
+        print(f"[2-pass] 분류 실패: {_e}", flush=True)
+    return {"intent": "AMBIGUOUS", "context_need": "HIGH", "tone": "CASUAL", "topic": [], "quick_answer": ""}
+
+
+def _trim_context_for_medium(full_context: str, max_chars: int = 4000) -> str:
+    """MEDIUM context_need: 사용자 프로필 + 라우팅 기준 + 현재 임무 섹션만 발췌."""
+    lines = full_context.splitlines()
+    result, chars = [], 0
+    keep_sections = {"1.", "2.", "5.", "6.", "9.", "##"}
+    in_keep = False
+    for line in lines:
+        stripped = line.strip()
+        if any(stripped.startswith(s) for s in keep_sections) or stripped.startswith("## "):
+            in_keep = True
+        if in_keep:
+            result.append(line)
+            chars += len(line)
+            if chars >= max_chars:
+                break
+    return "\n".join(result) if result else full_context[:max_chars]
+
+
 async def ask_bucky(
     channel_id: str,
     user_message: str,
     session_key: str | None = None,
     session_label: str | None = None,
 ) -> str:
-    """Bucky Agent에 질문하고 답변 반환. NLP 전처리 후 Claude CLI 구독 경로 사용."""
+    """Bucky Agent에 질문하고 답변 반환. 2-pass: Haiku 의도 분류 → Sonnet 응답."""
     prev_session_context = ""
     try:
         import bucky_memory as _mem
@@ -1999,7 +2068,6 @@ async def ask_bucky(
         else:
             session_id = await asyncio.to_thread(_mem.get_active_session, channel_id)
         history = await asyncio.to_thread(_mem.load_session_history, channel_id, session_id)
-        # 새 세션(메시지 없음)이면 이전 세션 컨텍스트 포함
         if not history:
             prev_ctx = await asyncio.to_thread(_mem.get_prev_session_context, channel_id, session_id)
             if prev_ctx:
@@ -2009,7 +2077,16 @@ async def ask_bucky(
         history = conversation_history[channel_id]
         _use_mem = False
 
-    # Item 1: NLP 전처리 — COMMAND 의도 감지 시 구조화 힌트 삽입
+    # ── Pass 1: Haiku 의도 분류 (NLP hint와 병행) ────────────────────────────
+    intent_result = await asyncio.to_thread(_classify_intent_sync, user_message, list(history))
+    intent = intent_result.get("intent", "AMBIGUOUS")
+    context_need = intent_result.get("context_need", "HIGH")
+    tone = intent_result.get("tone", "CASUAL")
+    quick_answer = intent_result.get("quick_answer", "").strip()
+
+    print(f"[2-pass] intent={intent} context={context_need} tone={tone}", flush=True)
+
+    # NLP 전처리 (기존 COMMAND 감지 — 보완적으로 유지)
     nlp_hint = ""
     if _nlp_preprocess_fn and _NLP_ENABLED and len(user_message) > 5:
         try:
@@ -2033,18 +2110,48 @@ async def ask_bucky(
             conversation_history[channel_id] = history[-MAX_HISTORY:]
             history = conversation_history[channel_id]
 
+    # ── SMALL_TALK + LOW + quick_answer → Pass 2 생략 ───────────────────────
+    if intent == "SMALL_TALK" and context_need == "LOW" and quick_answer:
+        reply = quick_answer
+        if _use_mem:
+            await asyncio.to_thread(_mem.save_message, channel_id, "assistant", reply)
+        else:
+            history.append({"role": "assistant", "content": reply})
+        return reply
+
     transcript = "\n".join(
         f"{item['role'].title()}: {item['content']}" for item in history
     )
 
-    # RAG: 단순 메시지는 생략, 지식 쿼리만 실행
-    if _should_skip_rag(user_message):
+    # RAG: LOW context 또는 단순 메시지는 생략
+    if context_need == "LOW" or _should_skip_rag(user_message):
         rag_block = ""
     else:
         rag_context = await asyncio.to_thread(_get_rag_context, user_message)
         rag_block = f"\n\n{rag_context}" if rag_context else ""
 
-    bucky_context = _load_agent_context(channel_id, user_message)
+    # ── Pass 2 컨텍스트 선택 (context_need 기반) ────────────────────────────
+    full_context = _load_agent_context(channel_id, user_message)
+    if context_need == "LOW":
+        bucky_context = ""
+    elif context_need == "MEDIUM":
+        bucky_context = _trim_context_for_medium(full_context)
+    else:
+        bucky_context = full_context
+
+    # Pass 1 결과를 Pass 2 지시문에 주입 — Bucky가 맥락/어조를 정확히 파악하게
+    intent_hint = (
+        f"[의도 분석: {intent} | 컨텍스트 필요도: {context_need} | 어조: {tone}]\n"
+        f"응답 지침: "
+        + {
+            "COMMAND": "구체적 실행 계획과 증거를 포함해 답하라.",
+            "QUESTION": "핵심 정보를 먼저, 배경은 그 다음에 제시하라.",
+            "AMBIGUOUS": "먼저 이해한 내용을 한 문장으로 확인하고 답하라.",
+            "SMALL_TALK": "1~2문장으로 간결하게 답하라.",
+            "EMOTIONAL": "사용자의 감정/의견을 먼저 인정하고, 실질적 도움을 제안하라.",
+        }.get(intent, "상황에 맞게 판단해 답하라.")
+    )
+
     session_anchor = (
         "# Active dashboard session\n\n"
         f"- key: {session_key}\n"
@@ -2056,14 +2163,20 @@ async def ask_bucky(
         f"\n\n# 이전 세션 컨텍스트 (참고용)\n\n{prev_session_context}\n\n---\n\n"
         if prev_session_context else ""
     )
-    prompt = (
+
+    context_section = (
         "# Bucky 운영 컨텍스트\n\n"
         f"{bucky_context}\n\n"
         "---\n\n"
+        if bucky_context else ""
+    )
+
+    prompt = (
+        f"{context_section}"
         f"{prev_ctx_block}"
         f"{session_anchor}"
         "# Discord 대화\n\n"
-        "위 컨텍스트를 기반으로 아래 대화에 답변한다. "
+        f"{intent_hint}\n"
         "실행 작업이면 '요약→실행안→저장위치→다음행동' 순서로, 단순 질문이면 간결하게."
         f"{rag_block}\n\n"
         f"{transcript}"
