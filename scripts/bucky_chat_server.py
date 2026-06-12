@@ -209,9 +209,13 @@ def _require_dashboard_auth():
         return None
 
     if path in PROTECTED_API_PATHS and not _is_authenticated_request():
+        if _is_trusted_source():
+            return None
         return jsonify({"error": "authentication required"}), 401
 
     if _is_html_path(path) and not _is_authenticated_request():
+        if _is_trusted_source():
+            return None
         from flask import redirect
         return redirect("/login.html?r=" + quote(path))
 
@@ -568,11 +572,15 @@ def auto_launch():
     """자동 로그인 → 대시보드 리다이렉트 (localhost + 본인 Tailscale 기기 전용).
 
     ?next=/task-board.html 처럼 도착 페이지 지정 가능 (기본 Bucky OS).
+    신뢰 소스(loopback/Tailscale)는 비밀번호 없이 쿠키 발급.
     """
-    from flask import redirect
     target = _safe_next(request.args.get("next"))
     if _is_authenticated_request():
+        from flask import redirect
         return redirect(target)
+    if _is_trusted_source():
+        return _auth_cookie_response(target)
+    from flask import redirect
     return redirect("/login.html?r=" + quote(target))
 
 
