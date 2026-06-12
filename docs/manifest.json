@@ -33,7 +33,7 @@
     {
       "name": "Bucky Mission Control",
       "short_name": "BuckyOS",
-      "url": "/bucky-os.html",
+      "url": "/bucky-agent-os.html",
       "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
     },
     {
