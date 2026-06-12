@@ -2,8 +2,8 @@ name: 대시보드 자동 업데이트
 
 on:
   schedule:
-    # 매일 09:00 KST (= 00:00 UTC)
-    - cron: '0 0 * * *'
+    # 매일 09:00 KST 목표 (4h Actions 지연 보정 → 전날 23:50 UTC)
+    - cron: '50 23 * * *'
   workflow_dispatch:
     inputs:
       force:
