@@ -2,7 +2,7 @@
   "name": "Bucky Agent OS",
   "short_name": "Bucky",
   "description": "JH AI 에이전트 운영 대시보드",
-  "start_url": "/",
+  "start_url": "/bucky-agent-os.html",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0d1117",
@@ -30,12 +30,6 @@
     }
   ],
   "shortcuts": [
-    {
-      "name": "Bucky Mission Control",
-      "short_name": "BuckyOS",
-      "url": "/bucky-agent-os.html",
-      "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
-    },
     {
       "name": "위시켓 대시보드",
       "short_name": "위시켓",
