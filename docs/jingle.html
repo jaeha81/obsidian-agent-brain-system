@@ -49,7 +49,6 @@ header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
 
 .main { max-width: 1200px; margin: 0 auto; padding: 24px 32px; }
 
-/* Contest Info Banner */
 .contest-banner {
   background: linear-gradient(135deg, rgba(227,179,65,0.12), rgba(88,166,255,0.08));
   border: 1px solid var(--gold);
@@ -65,7 +64,6 @@ header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
 .meta-item .val { font-size: 1.3rem; font-weight: 700; color: var(--text); }
 .meta-item .key { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
 
-/* Deadline countdown */
 .deadline-box {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 8px; padding: 12px 20px;
@@ -74,7 +72,6 @@ header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
 .deadline-num { font-size: 1.8rem; font-weight: 700; color: var(--orange); font-variant-numeric: tabular-nums; }
 .deadline-label { font-size: 0.75rem; color: var(--muted); }
 
-/* Grid Layout */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
 @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr 1fr; } }
@@ -90,7 +87,6 @@ header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
   padding: 2px 7px; border-radius: 10px; color: var(--accent);
 }
 
-/* Skill Map */
 .skill-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .skill-item {
   display: flex; align-items: flex-start; gap: 10px;
@@ -109,7 +105,6 @@ header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
 .skill-status.todo { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
 .skill-status.ai { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid var(--purple); }
 
-/* Workflow Steps */
 .workflow { display: flex; flex-direction: column; gap: 10px; }
 .wf-step {
   display: flex; gap: 12px; align-items: flex-start;
@@ -130,7 +125,6 @@ header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
 .wf-body .title { font-size: 0.85rem; font-weight: 600; }
 .wf-body .detail { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
 
-/* Audio Preview */
 .audio-zone {
   border: 2px dashed var(--border); border-radius: 10px;
   padding: 24px; text-align: center; min-height: 140px;
@@ -151,7 +145,6 @@ audio { width: 100%; border-radius: 6px; }
 .upload-btn:hover { background: rgba(88,166,255,0.2); }
 .upload-btn input[type=file] { display: none; }
 
-/* URL input for audio */
 .url-row { display: flex; gap: 8px; width: 100%; }
 .url-input {
   flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text);
@@ -165,7 +158,6 @@ audio { width: 100%; border-radius: 6px; }
 }
 .url-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* Chat / Memo */
 .memo-area {
   width: 100%; min-height: 120px; background: var(--bg); border: 1px solid var(--border);
   color: var(--text); font-size: 0.82rem; border-radius: 8px; padding: 12px;
@@ -194,7 +186,6 @@ audio { width: 100%; border-radius: 6px; }
 }
 .send-btn:hover { opacity: 0.85; }
 
-/* Concept Tags */
 .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .ctag {
   font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
@@ -202,13 +193,84 @@ audio { width: 100%; border-radius: 6px; }
 }
 .ctag:hover, .ctag.on { border-color: var(--gold); color: var(--gold); background: rgba(227,179,65,0.1); }
 
-/* Progress Bar */
 .prog-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .prog-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .prog-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--accent)); border-radius: 3px; transition: width 0.5s; }
 .prog-label { font-size: 0.75rem; color: var(--muted); width: 32px; text-align: right; }
 
 .section-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+/* ─── Melody Sequencer ─── */
+.seq-outer { overflow-x: auto; padding-bottom: 4px; }
+.seq-wrapper { display: flex; align-items: flex-start; gap: 6px; min-width: 360px; }
+.seq-labels { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; width: 38px; }
+.seq-label { font-size: 0.58rem; color: var(--muted); text-align: right; padding-right: 4px; height: 26px; display: flex; align-items: center; justify-content: flex-end; }
+.seq-grid-container { flex: 1; }
+.seq-beat-marks { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; margin-bottom: 3px; }
+.beat-mark { height: 6px; border-radius: 2px; background: var(--border); }
+.beat-mark.downbeat { background: var(--gold); }
+.seq-grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; }
+.seq-cell { height: 26px; border-radius: 3px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); cursor: pointer; transition: background 0.08s, box-shadow 0.08s; user-select: none; }
+.seq-cell:hover { background: rgba(255,255,255,0.09); }
+.seq-cell.on { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 6px rgba(88,166,255,0.4); }
+.seq-cell.active-col { box-shadow: inset 0 0 0 2px var(--gold) !important; }
+.seq-cell.on.active-col { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px rgba(227,179,65,0.5) !important; }
+.seq-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.seq-btn {
+  padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer;
+  font-size: 0.85rem; font-weight: 700; transition: opacity 0.2s, transform 0.1s;
+}
+.seq-btn:active { transform: scale(0.97); }
+.seq-btn.play { background: var(--green); color: #0d1117; }
+.seq-btn.stop { background: var(--red); color: #fff; }
+.preset-btn {
+  font-size: 0.72rem; padding: 5px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: none; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.preset-btn:hover { border-color: var(--purple); color: var(--purple); background: rgba(188,140,255,0.08); }
+.seq-select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 5px 10px; border-radius: 6px; font-size: 0.78rem;
+}
+.bpm-row { display: flex; align-items: center; gap: 8px; }
+input[type=range] { accent-color: var(--accent); }
+
+/* ─── Idea Builder ─── */
+.struct-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+@media(max-width:700px){ .struct-grid { grid-template-columns: 1fr; } }
+.struct-block { padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.02); }
+.struct-block .block-label { font-size: 0.7rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.struct-block textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-size: 0.78rem; border-radius: 6px; padding: 8px; resize: vertical;
+  font-family: inherit; line-height: 1.5; min-height: 80px;
+}
+.struct-block textarea:focus { outline: none; border-color: var(--accent); }
+
+.lyric-box { padding: 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; }
+.lyric-textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-size: 0.85rem; border-radius: 6px; padding: 12px; resize: vertical;
+  font-family: 'Malgun Gothic', 'Nanum Gothic', sans-serif; line-height: 2; min-height: 110px;
+}
+.lyric-textarea:focus { outline: none; border-color: var(--gold); }
+
+.idea-cards { display: flex; flex-direction: column; gap: 8px; }
+.idea-card {
+  background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 40px 10px 14px; position: relative;
+  transition: border-color 0.2s;
+}
+.idea-card:hover { border-color: var(--accent); }
+.idea-card .num { font-size: 0.68rem; color: var(--accent); margin-bottom: 4px; font-weight: 700; }
+.idea-card .body { font-size: 0.82rem; color: var(--text); }
+.del-btn {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 0.8rem; padding: 3px 6px; border-radius: 4px; transition: all 0.2s;
+}
+.del-btn:hover { color: var(--red); background: rgba(248,81,73,0.1); }
 </style>
 </head>
 <body>
@@ -268,16 +330,16 @@ audio { width: 100%; border-radius: 6px; }
           <span class="skill-icon">🎼</span>
           <div class="skill-info">
             <div class="name">멜로디 작곡</div>
-            <div class="tool">Suno AI / Udio / AIVA</div>
-            <div class="desc">15~30초 기억에 남는 주제 선율 생성. AI로 초안 후 선택</div>
+            <div class="tool">아래 멜로디 메이커 / Suno AI / Udio</div>
+            <div class="desc">15~30초 기억에 남는 주제 선율. 브라우저 직접 작곡 가능</div>
           </div>
-          <span class="skill-status ai">AI</span>
+          <span class="skill-status ready">준비됨</span>
         </li>
         <li class="skill-item">
           <span class="skill-icon">📝</span>
           <div class="skill-info">
             <div class="name">가사/카피라이팅</div>
-            <div class="tool">Claude / 직접 작성</div>
+            <div class="tool">아래 가사 워크숍 / Claude</div>
             <div class="desc">"국민", "주권", "대한민국" 키워드 중심 2~4행 가사</div>
           </div>
           <span class="skill-status ready">준비됨</span>
@@ -333,8 +395,8 @@ audio { width: 100%; border-radius: 6px; }
         <div class="wf-step" data-step="3" onclick="toggleStep(this)">
           <div class="wf-num">3</div>
           <div class="wf-body">
-            <div class="title">AI로 멜로디 초안 3종 생성</div>
-            <div class="detail">Suno AI 또는 Udio에 프롬프트 입력 → 미리듣기 비교</div>
+            <div class="title">멜로디 메이커로 초안 작성</div>
+            <div class="detail">브라우저 시퀀서로 직접 작곡 → Suno/Udio로 확장</div>
           </div>
         </div>
         <div class="wf-step" data-step="4" onclick="toggleStep(this)">
@@ -369,7 +431,7 @@ audio { width: 100%; border-radius: 6px; }
     </div>
   </div>
 
-  <!-- Concept Tags + Audio Preview -->
+  <!-- Concept + Audio -->
   <div class="grid-2">
 
     <!-- Concept Direction -->
@@ -442,8 +504,6 @@ audio { width: 100%; border-radius: 6px; }
           지우기
         </button>
       </div>
-
-      <!-- Versions -->
       <div style="margin-top:16px;">
         <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">제작 버전 목록</div>
         <div id="versionList" style="display:flex;flex-direction:column;gap:6px;">
@@ -458,6 +518,123 @@ audio { width: 100%; border-radius: 6px; }
     </div>
   </div>
 
+  <!-- ========== MELODY MAKER ========== -->
+  <div class="card" style="margin-bottom:20px;">
+    <h3>🎹 멜로디 메이커 <span class="badge">브라우저 직접 작곡</span></h3>
+
+    <div class="seq-controls">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:0.75rem;color:var(--muted)">음계</span>
+        <select id="scaleSelect" class="seq-select" onchange="changeScale(this.value)">
+          <option value="pentatonic">펜타토닉 C (5음)</option>
+          <option value="major">장조 C (7음)</option>
+          <option value="korean">국악 선법</option>
+        </select>
+      </div>
+      <div class="bpm-row">
+        <span style="font-size:0.75rem;color:var(--muted)">BPM</span>
+        <input type="range" id="bpmSlider" min="60" max="180" value="120" oninput="bpm=+this.value;document.getElementById('bpmVal').textContent=this.value" style="width:80px;">
+        <span id="bpmVal" style="font-size:0.78rem;color:var(--text);min-width:28px">120</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:0.75rem;color:var(--muted)">프리셋</span>
+        <button class="preset-btn" onclick="loadPreset('march')">행진풍</button>
+        <button class="preset-btn" onclick="loadPreset('bright')">경쾌</button>
+        <button class="preset-btn" onclick="loadPreset('majestic')">웅장</button>
+        <button class="preset-btn" onclick="loadPreset('folk')">민요풍</button>
+        <button class="preset-btn" onclick="clearGrid()" style="color:var(--red);border-color:var(--red)">지우기</button>
+      </div>
+    </div>
+
+    <div class="seq-outer">
+      <div class="seq-wrapper" id="seqWrapper">
+        <div class="seq-labels" id="seqLabels"></div>
+        <div class="seq-grid-container">
+          <div class="seq-beat-marks" id="beatMarks"></div>
+          <div class="seq-grid" id="seqGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap;">
+      <button class="seq-btn play" id="playBtn" onclick="togglePlay()">▶ 재생</button>
+      <div id="seqStatus" style="font-size:0.75rem;color:var(--muted)">셀 클릭으로 음표 켜기/끄기 → 재생 버튼으로 반복 재생</div>
+    </div>
+
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;color:var(--muted);line-height:1.7">
+      <strong style="color:var(--text)">사용 방법</strong><br>
+      1. 위 셀을 클릭해 음표를 켜세요 (행 = 음높이, 열 = 박자)<br>
+      2. 프리셋으로 빠르게 시작하거나 직접 그려 보세요<br>
+      3. 재생 후 마음에 들면 Suno 프롬프트에 "이 멜로디 분위기"를 설명해 AI로 확장하세요
+    </div>
+  </div>
+
+  <!-- ========== IDEA BUILDER ========== -->
+  <div class="card" style="margin-bottom:20px;">
+    <h3>💡 아이디어 구축 <span class="badge">작업노트</span></h3>
+
+    <!-- Song Structure -->
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:10px">곡 구조 설계 (15~30초)</div>
+    <div class="struct-grid" style="margin-bottom:18px;">
+      <div class="struct-block">
+        <div class="block-label" style="color:var(--accent)">A — 도입 <small style="font-weight:400;color:var(--muted)">(0~8초)</small></div>
+        <textarea id="structA" placeholder="첫 인상. 간결한 훅, 기억에 남는 첫 음...
+예: 오케스트라 팡파르 + 국악 가야금 선율"></textarea>
+      </div>
+      <div class="struct-block">
+        <div class="block-label" style="color:var(--gold)">B — 주제 선율 <small style="font-weight:400;color:var(--muted)">(8~22초)</small></div>
+        <textarea id="structB" placeholder="핵심 멜로디와 메시지. 반복 가능한 훅...
+예: '국민이 주인' 가사 + 현악 합주"></textarea>
+      </div>
+      <div class="struct-block">
+        <div class="block-label" style="color:var(--green)">C — 마무리 <small style="font-weight:400;color:var(--muted)">(22~30초)</small></div>
+        <textarea id="structC" placeholder="여운. 정부 사운드 아이덴티티 확정...
+예: 합창 + 팡파르 코다"></textarea>
+      </div>
+    </div>
+
+    <!-- Lyric Workshop -->
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:10px">가사 워크숍</div>
+    <div class="lyric-box" style="margin-bottom:18px;">
+      <textarea class="lyric-textarea" id="lyricArea" placeholder="가사 초안을 여기에 작성하세요...
+예: 국민이 만든 대한민국
+    함께 나아가는 우리의 길"></textarea>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center;">
+        <button class="preset-btn" onclick="insertLyricTemplate('formal')">공식 문체</button>
+        <button class="preset-btn" onclick="insertLyricTemplate('warm')">따뜻한 문체</button>
+        <button class="preset-btn" onclick="insertLyricTemplate('dynamic')">역동적 문체</button>
+        <button class="preset-btn" onclick="insertLyricTemplate('minimal')">미니멀</button>
+        <button onclick="copyLyric()" style="font-size:0.72rem;padding:5px 12px;border-radius:10px;border:1px solid var(--accent);background:rgba(88,166,255,0.1);color:var(--accent);cursor:pointer;margin-left:auto;">
+          가사 복사
+        </button>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:6px;font-size:0.7rem;color:var(--muted);">
+        <span id="syllableCount">음절수: 0</span>
+        <span id="lineCount">줄수: 0</span>
+        <span style="color:var(--yellow)" id="syllableNote"></span>
+      </div>
+    </div>
+
+    <!-- Idea Cards -->
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:10px">아이디어 카드</div>
+    <div class="idea-cards" id="ideaCardList" style="margin-bottom:10px;">
+      <div class="idea-card">
+        <button class="del-btn" onclick="this.parentNode.remove()">✕</button>
+        <div class="num">💡 아이디어 #1</div>
+        <div class="body">오케스트라 + 어린이 코러스 조합 — 국민 세대 통합 메시지 표현</div>
+      </div>
+      <div class="idea-card">
+        <button class="del-btn" onclick="this.parentNode.remove()">✕</button>
+        <div class="num">💡 아이디어 #2</div>
+        <div class="body">국악 가야금 도입부 → 현대 오케스트라 전환 — 전통과 현대 융합</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input id="newIdeaInput" class="send-input" type="text" placeholder="새 아이디어 입력 후 Enter..." onkeydown="if(event.key==='Enter')addIdeaCard()">
+      <button class="send-btn" onclick="addIdeaCard()">추가</button>
+    </div>
+  </div>
+
   <!-- Chat Panel -->
   <div class="card" style="margin-bottom:20px;">
     <h3>💬 작업 메모 & 소통 패널</h3>
@@ -465,7 +642,7 @@ audio { width: 100%; border-radius: 6px; }
       <div class="msg bucky">
         <div class="from">Bucky</div>
         징글 공모전 워크스페이스가 열렸습니다. 현재 단계: <strong>컨셉 방향 설정</strong><br>
-        추천 첫 작업: 위 컨셉 태그를 선택한 뒤 생성된 프롬프트를 <a href="https://suno.com" target="_blank" rel="noreferrer" style="color:var(--accent)">Suno AI</a> 또는 <a href="https://udio.com" target="_blank" rel="noreferrer" style="color:var(--accent)">Udio</a>에 붙여넣어 초안 3종을 만드세요.
+        <strong>새 기능:</strong> 아래 <em>멜로디 메이커</em>로 직접 작곡하거나, 프리셋(행진풍·경쾌·웅장)으로 빠르게 시작하세요. 가사는 <em>아이디어 구축</em> 패널에서 작성할 수 있습니다.
       </div>
     </div>
     <div class="send-row">
@@ -490,7 +667,7 @@ audio { width: 100%; border-radius: 6px; }
 </div>
 
 <script>
-// Deadline countdown
+// ── Deadline countdown ──
 (function(){
   const deadline = new Date('2026-06-30T23:59:59+09:00');
   const now = new Date();
@@ -500,13 +677,12 @@ audio { width: 100%; border-radius: 6px; }
   else { el.textContent = '마감'; el.style.color = 'var(--red)'; }
 })();
 
-// Workflow toggle
+// ── Workflow ──
 function toggleStep(el){
   if(el.classList.contains('done')) return;
   document.querySelectorAll('.wf-step').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
 }
-
 function updateProgress(){
   const steps = document.querySelectorAll('.wf-step');
   let done = 0;
@@ -517,9 +693,8 @@ function updateProgress(){
 }
 updateProgress();
 
-// Tag toggle
+// ── Concept Tags ──
 function toggleTag(el){ el.classList.toggle('on'); updatePrompt(); }
-
 function updatePrompt(){
   const mood = [...document.querySelectorAll('#moodTags .ctag.on')].map(t=>t.textContent);
   const instr = [...document.querySelectorAll('#instrTags .ctag.on')].map(t=>t.textContent);
@@ -529,7 +704,6 @@ function updatePrompt(){
     '15~30초, 국민주권정부 공식 사운드, 기억에 남는 멜로디';
   document.getElementById('aiPrompt').textContent = prompt;
 }
-
 function copyPrompt(){
   const txt = document.getElementById('aiPrompt').textContent;
   navigator.clipboard.writeText(txt).then(()=>{
@@ -540,34 +714,28 @@ function copyPrompt(){
   });
 }
 
-// Audio
+// ── Audio Preview ──
 function loadFile(input){
   const file = input.files[0];
   if(!file) return;
-  const url = URL.createObjectURL(file);
-  showAudio(url, file.name);
+  showAudio(URL.createObjectURL(file), file.name);
 }
-
 function loadUrl(){
   const url = document.getElementById('audioUrl').value.trim();
   if(!url) return;
   showAudio(url, url.split('/').pop() || 'audio');
 }
-
 function showAudio(src, name){
-  const audio = document.getElementById('mainAudio');
   const srcEl = document.getElementById('audioSrc');
   srcEl.src = src;
   document.getElementById('audioName').textContent = name;
-  audio.load();
+  document.getElementById('mainAudio').load();
   document.getElementById('audioPlayerWrap').style.display = 'block';
   document.getElementById('audioZone').classList.add('has-audio');
   document.getElementById('addVerBtn').style.display = 'inline-block';
-  // store for version
   document.getElementById('addVerBtn')._src = src;
   document.getElementById('addVerBtn')._name = name;
 }
-
 function clearAudio(){
   document.getElementById('mainAudio').pause();
   document.getElementById('audioSrc').src = '';
@@ -576,7 +744,6 @@ function clearAudio(){
   document.getElementById('addVerBtn').style.display = 'none';
   document.getElementById('audioUrl').value = '';
 }
-
 let versionCount = 0;
 function addVersion(){
   const btn = document.getElementById('addVerBtn');
@@ -596,7 +763,7 @@ function addVersion(){
   btn.style.display = 'none';
 }
 
-// Chat
+// ── Chat ──
 function sendMsg(){
   const input = document.getElementById('chatInput');
   const txt = input.value.trim();
@@ -608,25 +775,260 @@ function sendMsg(){
   log.appendChild(msg);
   input.value = '';
   log.scrollTop = log.scrollHeight;
-  // Auto reply
   setTimeout(()=>{
-    const reply = getBuckyReply(txt);
     const bMsg = document.createElement('div');
     bMsg.className = 'msg bucky';
-    bMsg.innerHTML = `<div class="from">Bucky</div>${reply}`;
+    bMsg.innerHTML = `<div class="from">Bucky</div>${getBuckyReply(txt)}`;
     log.appendChild(bMsg);
     log.scrollTop = log.scrollHeight;
   }, 600);
 }
-
 function getBuckyReply(txt){
   const t = txt.toLowerCase();
-  if(t.includes('suno') || t.includes('수노')) return '위 "Suno/Udio용 프롬프트 복사" 버튼으로 프롬프트를 복사한 뒤 <a href="https://suno.com" target="_blank" style="color:var(--accent)">suno.com</a>에 붙여넣으세요. 스타일: "15 second orchestral jingle, majestic, Korean national identity"와 같이 영문 프롬프트가 더 잘 작동합니다.';
-  if(t.includes('가사') || t.includes('lyrics')) return '짧고 기억에 남는 가사를 제안합니다:<br><strong>"국민이 만든 대한민국 / 함께 나아가는 우리의 길"</strong><br>6~8음절 2행으로 멜로디에 얹기 좋습니다.';
-  if(t.includes('업로드') || t.includes('파일')) return '음원 파일은 위 "파일 업로드" 버튼으로 올리거나, URL을 붙여넣어 바로 재생할 수 있습니다. MP3·OGG·WAV 모두 지원합니다.';
-  if(t.includes('마감') || t.includes('deadline')) return `오늘부터 마감(6월 30일)까지 ${document.getElementById('dday').textContent}일 남았습니다. 여유 있게 시작하세요!`;
-  return '메모가 저장됐습니다. 컨셉 태그 선택 → AI 프롬프트 복사 → Suno/Udio에서 초안 생성 순서로 진행하시면 됩니다.';
+  if(t.includes('suno') || t.includes('수노')) return '위 "Suno/Udio용 프롬프트 복사" 버튼으로 프롬프트를 복사한 뒤 <a href="https://suno.com" target="_blank" style="color:var(--accent)">suno.com</a>에 붙여넣으세요. 영문 프롬프트 예: "15 second orchestral jingle, majestic, Korean national identity, memorable"';
+  if(t.includes('가사') || t.includes('lyrics')) return '아래 <em>아이디어 구축 → 가사 워크숍</em>에서 템플릿을 선택하거나 직접 작성하세요. 짧고 강렬하게 2행 이내로 쓰는 것이 징글에 효과적입니다.';
+  if(t.includes('멜로디') || t.includes('작곡') || t.includes('시퀀서')) return '위 멜로디 메이커에서 프리셋을 로드하거나 직접 셀을 클릭해 음표를 그리세요. 재생 후 마음에 드는 패턴을 Suno 프롬프트에 설명으로 옮기면 됩니다.';
+  if(t.includes('업로드') || t.includes('파일')) return '음원은 위 "파일 업로드" 버튼이나 URL로 올릴 수 있습니다. 올리면 버전 관리 목록에 자동 추가됩니다.';
+  if(t.includes('마감') || t.includes('deadline')) return `오늘부터 마감(6월 30일)까지 ${document.getElementById('dday').textContent}일 남았습니다. 여유 있습니다!`;
+  if(t.includes('구조') || t.includes('structure')) return '아래 아이디어 구축 패널의 <em>곡 구조 설계</em>에서 A(도입)·B(주제)·C(마무리) 3단 구조를 작성해 보세요. 15~30초 징글에 딱 맞는 구성입니다.';
+  return '메모가 저장됐습니다. 멜로디 메이커 → 아이디어 구축 → Suno/Udio 확장 순서로 진행하시면 됩니다.';
 }
+
+// ════════════════════════════════════════
+//  MELODY SEQUENCER (Web Audio API)
+// ════════════════════════════════════════
+const STEPS = 16;
+const ROWS = 8;
+let audioCtx = null;
+let isPlaying = false;
+let currentStep = 0;
+let nextStepTime = 0;
+let schedulerInterval = null;
+let bpm = 120;
+let grid = [];
+
+const scaleFreqs = {
+  pentatonic: [1046.50, 880.00, 783.99, 659.25, 587.33, 523.25, 440.00, 392.00],
+  major:      [1046.50, 987.77, 880.00, 783.99, 698.46, 659.25, 587.33, 523.25],
+  korean:     [1046.50, 880.00, 783.99, 622.25, 554.37, 523.25, 466.16, 415.30]
+};
+const scaleNames = {
+  pentatonic: ['C6','A5','G5','E5','D5','C5','A4','G4'],
+  major:      ['C6','B5','A5','G5','F5','E5','D5','C5'],
+  korean:     ['C6','A5','G5','Eb5','C#5','C5','Bb4','Ab4']
+};
+let currentScale = 'pentatonic';
+
+const presets = {
+  march: [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+    [1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0],
+    [0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0],
+    [0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0],
+    [1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  ],
+  bright: [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0],
+    [0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0],
+    [0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0],
+    [0,1,0,0,1,0,0,0,1,0,0,0,0,0,1,0],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  ],
+  majestic: [
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+    [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+    [0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  ],
+  folk: [
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0],
+    [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0],
+    [0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0],
+    [0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0],
+    [0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  ]
+};
+
+function initGrid(){
+  grid = Array(ROWS).fill(null).map(()=>Array(STEPS).fill(false));
+  renderGrid();
+}
+
+function renderGrid(){
+  const labelsEl = document.getElementById('seqLabels');
+  const gridEl = document.getElementById('seqGrid');
+  const beatEl = document.getElementById('beatMarks');
+  const names = scaleNames[currentScale];
+
+  labelsEl.innerHTML = names.map(n=>`<div class="seq-label">${n}</div>`).join('');
+
+  beatEl.innerHTML = Array(STEPS).fill(0).map((_,i)=>
+    `<div class="beat-mark${i%4===0?' downbeat':''}"></div>`
+  ).join('');
+
+  gridEl.innerHTML = '';
+  for(let r=0;r<ROWS;r++){
+    for(let s=0;s<STEPS;s++){
+      const cell = document.createElement('div');
+      cell.className = 'seq-cell'+(grid[r][s]?' on':'');
+      cell.dataset.row = r;
+      cell.dataset.step = s;
+      cell.addEventListener('pointerdown', ()=>{ grid[r][s]=!grid[r][s]; cell.classList.toggle('on'); });
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function changeScale(val){
+  currentScale = val;
+  const labelsEl = document.getElementById('seqLabels');
+  labelsEl.innerHTML = scaleNames[val].map(n=>`<div class="seq-label">${n}</div>`).join('');
+}
+
+function loadPreset(name){
+  const p = presets[name]; if(!p) return;
+  for(let r=0;r<ROWS;r++) for(let s=0;s<STEPS;s++) grid[r][s]=!!p[r][s];
+  renderGrid();
+}
+
+function clearGrid(){ initGrid(); }
+
+function togglePlay(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ alert('Web Audio API가 지원되지 않는 브라우저입니다.'); return; }
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('playBtn');
+  if(isPlaying){
+    btn.textContent = '⏹ 정지';
+    btn.className = 'seq-btn stop';
+    currentStep = 0;
+    nextStepTime = audioCtx.currentTime + 0.05;
+    schedulerInterval = setInterval(scheduler, 40);
+    document.getElementById('seqStatus').textContent = '재생 중...';
+  } else {
+    btn.textContent = '▶ 재생';
+    btn.className = 'seq-btn play';
+    clearInterval(schedulerInterval);
+    document.querySelectorAll('.seq-cell').forEach(c=>c.classList.remove('active-col'));
+    document.getElementById('seqStatus').textContent = '셀 클릭으로 음표 켜기/끄기 → 재생 버튼으로 반복 재생';
+  }
+}
+
+function scheduler(){
+  const secPerStep = (60/bpm)/4;
+  while(nextStepTime < audioCtx.currentTime + 0.12){
+    playStep(currentStep, nextStepTime);
+    highlightStep(currentStep, nextStepTime);
+    nextStepTime += secPerStep;
+    currentStep = (currentStep+1)%STEPS;
+  }
+}
+
+function playStep(step, time){
+  const freqs = scaleFreqs[currentScale];
+  for(let r=0;r<ROWS;r++){
+    if(!grid[r][step]) continue;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+    osc.connect(gain);
+    if(pan){ gain.connect(pan); pan.connect(audioCtx.destination); }
+    else { gain.connect(audioCtx.destination); }
+    osc.type = r < 3 ? 'sine' : (r < 6 ? 'triangle' : 'sine');
+    osc.frequency.setValueAtTime(freqs[r], time);
+    const vol = 0.25 - r*0.01;
+    gain.gain.setValueAtTime(vol, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.38);
+    osc.start(time);
+    osc.stop(time + 0.4);
+  }
+}
+
+function highlightStep(step, time){
+  const delay = Math.max(0, (time - audioCtx.currentTime)*1000);
+  setTimeout(()=>{
+    document.querySelectorAll('.seq-cell').forEach(c=>c.classList.remove('active-col'));
+    document.querySelectorAll(`.seq-cell[data-step="${step}"]`).forEach(c=>c.classList.add('active-col'));
+  }, delay);
+}
+
+initGrid();
+
+// ════════════════════════════════════════
+//  IDEA BUILDER
+// ════════════════════════════════════════
+let ideaCount = 2;
+
+function addIdeaCard(){
+  const input = document.getElementById('newIdeaInput');
+  const txt = input.value.trim();
+  if(!txt) return;
+  ideaCount++;
+  const list = document.getElementById('ideaCardList');
+  const card = document.createElement('div');
+  card.className = 'idea-card';
+  card.innerHTML = `
+    <button class="del-btn" onclick="this.parentNode.remove()">✕</button>
+    <div class="num">💡 아이디어 #${ideaCount}</div>
+    <div class="body">${txt}</div>
+  `;
+  list.appendChild(card);
+  input.value = '';
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+const lyricTemplates = {
+  formal:  `국민주권의 대한민국\n함께 여는 새 시대\n당신과 나, 우리 모두\n빛나는 내일을 향해`,
+  warm:    `따뜻한 손 맞잡고\n걸어가는 대한민국\n국민이 만든 오늘\n우리가 그리는 내일`,
+  dynamic: `힘차게 나아가자\n국민의 나라 대한민국\n우리가 주인이다\n새 역사를 만든다`,
+  minimal: `국민이 주인\n대한민국`
+};
+
+function insertLyricTemplate(type){
+  document.getElementById('lyricArea').value = lyricTemplates[type] || '';
+  updateLyricStats();
+}
+
+function copyLyric(){
+  const txt = document.getElementById('lyricArea').value;
+  if(!txt) return;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '복사됨!';
+    setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  });
+}
+
+function updateLyricStats(){
+  const txt = document.getElementById('lyricArea').value;
+  const syllables = txt.replace(/[\s\n]/g,'').length;
+  const lines = txt.split('\n').filter(l=>l.trim()).length;
+  document.getElementById('syllableCount').textContent = `음절수: ${syllables}`;
+  document.getElementById('lineCount').textContent = `줄수: ${lines}`;
+  const note = document.getElementById('syllableNote');
+  if(syllables > 60) note.textContent = '가사가 다소 깁니다 (30초 기준 ~40자 권장)';
+  else if(syllables > 0 && syllables <= 20) note.textContent = '간결하고 좋습니다!';
+  else note.textContent = '';
+}
+
+document.getElementById('lyricArea').addEventListener('input', updateLyricStats);
 </script>
 </body>
 </html>
