@@ -78,12 +78,22 @@ Treat Obsidian Agent Brain System as the agent operating system for JH work.
 4. Use only Bucky-provided or Bucky-confirmed instructions inside the current project scope.
 5. Keep handoffs to Codex concise and evidence-based. Codex reviews independently.
 
-When Bucky is not waiting in the loop, use `python -X utf8 scripts/context_pack_selector.py "<request text>"` as the activation switch. It returns the Bucky-managed Context Packs that Claude Code should read before implementation.
+If the user already provided exact files, commands, execution order, or forbidden actions, treat that request as the active Bucky packet for the first step. Run the first requested command before reading plans, broad diffs, whole large files, memories, or unrelated repo state.
+
+Do not call any selector on the hot path for explicit tasks. In this Windows/Google Drive runtime, starting Python or script files can be delayed enough to waste a full turn.
+
+When Bucky is not waiting in the loop and packet selection is actually needed for an unclear or new-project task, use the no-Python fast selector first:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 -Project "<repo-or-folder>" "<request text>"
+```
+
+Use the Python selector only when the fast selector is unavailable or deeper routing is explicitly needed. On this Windows/Google Drive setup, Python startup can be slow enough to waste a full turn.
 
 For a directly usable packet, run:
 
 ```powershell
-python -X utf8 scripts/context_pack_selector.py --packet --project "<repo-or-folder>" "<request text>"
+powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 -Project "<repo-or-folder>" "<request text>"
 ```
 
 Do not reuse packets from another repo or folder unless Bucky confirms they apply.

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Select compact Bucky Context Packs and optional instruction packets."""
+"""Select compact Bucky Context Packs and optional instruction packets.
+
+For common startup routing on Windows/Google Drive, prefer
+``scripts/context_pack_selector_fast.ps1``. It avoids Python startup overhead
+for direct-execution and instruction-governance packets.
+"""
 
 from __future__ import annotations
 
@@ -41,10 +46,70 @@ CORE_PACKS = (
     "ObsidianVault/06_Context_Packs/bucky-user-communication-output-policy.md",
 )
 
+DIRECT_EXECUTION_PACKS = (
+    "ObsidianVault/06_Context_Packs/bucky-context-efficiency-goal-mode.md",
+    "ObsidianVault/06_Context_Packs/bucky-user-communication-output-policy.md",
+)
+
 RUNBOOK_PACK = "ObsidianVault/00_System/BUCKY_OS_RUNBOOK.md"
 
 
 RULES: tuple[PackRule, ...] = (
+    PackRule(
+        key="direct_execution",
+        primary_worker="Codex Direct Executor",
+        role="narrow execution / focused verification",
+        packs=DIRECT_EXECUTION_PACKS,
+        notes=(
+            "Use when the user already provides files, commands, execution order, or forbidden actions.",
+            "Run the requested first command before reading plans, broad diffs, whole files, or extra context.",
+            "Open only failing files/lines after verification fails.",
+        ),
+        triggers=(
+            "git status",
+            "unittest",
+            "py_compile",
+            "syntax",
+            "문법 체크",
+            "선별 테스트",
+            "지정",
+            "변경 파일",
+            "커밋/푸시 하지",
+            "commit/push",
+            "do not commit",
+            "do not push",
+        ),
+    ),
+    PackRule(
+        key="instruction_governance",
+        primary_worker="Bucky Instruction Auditor",
+        role="instruction governance / operating-system repair",
+        packs=DIRECT_EXECUTION_PACKS
+        + (
+            "ObsidianVault/03_Projects/agents/codex-instructions.md",
+            "ObsidianVault/03_Projects/agents/roles.md",
+            "ObsidianVault/03_Projects/agents/bucky.md",
+        ),
+        notes=(
+            "Use for diagnosing excessive instructions, role conflicts, context waste, and Bucky/Codex/Claude operating rules.",
+            "Prefer a short root-cause finding and a minimal rule/script patch over broad Vault exploration.",
+        ),
+        triggers=(
+            "운영",
+            "지침",
+            "설계",
+            "사용량",
+            "느려",
+            "context waste",
+            "instruction",
+            "codex",
+            "bucky",
+            "claude",
+            "위키",
+            "그래프",
+            "graphify",
+        ),
+    ),
     PackRule(
         key="review",
         primary_worker="Codex Reviewer",
@@ -375,7 +440,7 @@ def select_context_pack(*, task_type: str, body: str) -> dict:
     )
     score, rule = scored[0]
     if score == 0:
-        rule = _find_rule("implementation")
+        rule = _find_rule("direct_execution")
     return {
         "key": rule.key,
         "primary_worker": rule.primary_worker,

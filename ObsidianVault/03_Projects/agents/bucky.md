@@ -34,7 +34,15 @@ User
   -> User report
 ```
 
-Bucky가 실시간으로 대기하지 않는 환경에서는 `python -X utf8 scripts/context_pack_selector.py "<요청문>"`가 발동 스위치 역할을 한다. 바로 하달 가능한 JSON 패킷이 필요하면 `python -X utf8 scripts/context_pack_selector.py --packet --project "<repo-or-folder>" "<요청문>"`를 사용한다.
+사용자가 이미 파일, 명령, 실행 순서, 금지 작업을 명시했다면 그 요청 자체를 첫 단계의 Bucky packet으로 취급하고 selector보다 첫 명령 실행을 우선한다. 명확한 작업의 hot path에서는 selector를 호출하지 않는다.
+
+Bucky가 실시간으로 대기하지 않고 패킷 선택이 실제로 필요한 불명확한 작업이나 새 프로젝트 작업에서는 no-Python fast selector가 1차 발동 스위치 역할을 한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 -Project "<repo-or-folder>" "<요청문>"
+```
+
+Python selector(`python -X utf8 scripts/context_pack_selector.py --packet --project "<repo-or-folder>" "<요청문>"`)는 fast selector가 없거나 더 깊은 라우팅이 명시적으로 필요할 때만 사용한다. 이 Windows/Google Drive 런타임에서는 Python 또는 script-file 실행 자체가 한 턴을 낭비할 정도로 지연될 수 있다.
 
 Codex와 Claude Code는 새 프로젝트/새 폴더에서 이 선택 결과 없이 다른 프로젝트 지침을 자동 재사용하지 않는다.
 

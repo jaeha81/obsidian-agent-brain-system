@@ -52,13 +52,15 @@ Required PASS checks:
 
 ## Packet Selection
 
-Use selector mode to see which Bucky-managed packs apply:
+If the user already provided exact files, commands, execution order, or forbidden actions, do not run selector first. Treat the user request as the active packet for the first step and run the first requested command before selector, plan, broad diff, or whole-file reads.
+
+Use the no-Python fast selector only when packet selection is actually needed for an unclear or new-project task. It avoids Python startup, but script-file execution itself may still be delayed by the host runtime, so it is not a hot-path requirement.
 
 ```powershell
-python -X utf8 scripts/context_pack_selector.py "<request text>"
+powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 -Project "<repo-or-folder>" "<request text>"
 ```
 
-Use packet mode when Claude Code or Codex needs actionable JSON:
+Use Python packet mode only when the fast selector is unavailable or deeper routing is explicitly needed:
 
 ```powershell
 python -X utf8 scripts/context_pack_selector.py --packet --project "<repo-or-folder>" "<request text>"
