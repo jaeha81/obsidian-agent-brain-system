@@ -71,6 +71,7 @@
     background: #000;
     cursor: crosshair;
     position: relative;
+    touch-action: none;
   }
   #viewport:focus { outline: none; }
   #screen-img {
@@ -80,6 +81,7 @@
     cursor: crosshair;
     user-select: none;
     -webkit-user-drag: none;
+    touch-action: none;
   }
   #overlay {
     position: absolute; inset: 0; pointer-events: none;
@@ -214,12 +216,20 @@ let frameCount = 0, lastFpsTime = Date.now();
 let lastMoveTime = 0;
 const MOVE_THROTTLE_MS = 50;
 
+// Touch state
+const touch = { startX: 0, startY: 0, lastTapTime: 0, longTimer: null, moved: false, count: 0, twoFingerY: 0 };
+
 // ── Init ──────────────────────────────────────────────────────────
 (async function init() {
   await fetchScreenInfo();
   applySettings();
   startPolling();
-  document.getElementById('viewport').focus();
+  const vp = document.getElementById('viewport');
+  vp.focus();
+  vp.addEventListener('touchstart',  onTouchStart,  { passive: false });
+  vp.addEventListener('touchmove',   onTouchMove,   { passive: false });
+  vp.addEventListener('touchend',    onTouchEnd,    { passive: false });
+  vp.addEventListener('touchcancel', onTouchCancel, { passive: false });
 })();
 
 async function fetchScreenInfo() {
@@ -326,15 +336,86 @@ function setConnected(ok, lat) {
 }
 
 // ── Coordinate mapping ────────────────────────────────────────────
-function toScreenCoords(e) {
+function coordsFromPoint(cx, cy) {
   const rect = img.getBoundingClientRect();
-  const rx = (e.clientX - rect.left) / rect.width;
-  const ry = (e.clientY - rect.top) / rect.height;
   return {
-    x: Math.round(rx * screenW),
-    y: Math.round(ry * screenH),
+    x: Math.round(((cx - rect.left) / rect.width)  * screenW),
+    y: Math.round(((cy - rect.top)  / rect.height) * screenH),
   };
 }
+
+function toScreenCoords(e) { return coordsFromPoint(e.clientX, e.clientY); }
+
+// ── Touch events ──────────────────────────────────────────────────
+function onTouchStart(e) {
+  e.preventDefault();
+  document.getElementById('viewport').focus();
+  touch.count = e.touches.length;
+  touch.moved = false;
+  clearTimeout(touch.longTimer);
+
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    touch.startX = t.clientX; touch.startY = t.clientY;
+    if (controlEnabled) {
+      const { x, y } = coordsFromPoint(t.clientX, t.clientY);
+      touch.longTimer = setTimeout(() => {
+        if (!touch.moved) sendInput({ type: 'click', x, y, button: 'right' });
+      }, 600);
+    }
+  } else if (e.touches.length === 2) {
+    touch.twoFingerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+  }
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  if (!controlEnabled) return;
+
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    if (Math.abs(t.clientX - touch.startX) > 5 || Math.abs(t.clientY - touch.startY) > 5) {
+      touch.moved = true;
+      clearTimeout(touch.longTimer);
+    }
+    const now = Date.now();
+    if (now - lastMoveTime < MOVE_THROTTLE_MS) return;
+    lastMoveTime = now;
+    const { x, y } = coordsFromPoint(t.clientX, t.clientY);
+    document.getElementById('st-mouse').textContent = `${x}, ${y}`;
+    sendInput({ type: 'move', x, y });
+
+  } else if (e.touches.length === 2) {
+    const curY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const delta = curY - touch.twoFingerY;
+    touch.twoFingerY = curY;
+    if (Math.abs(delta) > 2) {
+      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const { x, y } = coordsFromPoint(mx, my);
+      sendInput({ type: 'scroll', x, y, dy: delta > 0 ? 3 : -3 });
+    }
+  }
+}
+
+function onTouchEnd(e) {
+  e.preventDefault();
+  clearTimeout(touch.longTimer);
+  if (!controlEnabled || touch.moved || touch.count !== 1) return;
+
+  const { x, y } = coordsFromPoint(touch.startX, touch.startY);
+  const now = Date.now();
+  if (now - touch.lastTapTime < 300) {
+    sendInput({ type: 'click', x, y, double: true });
+    touch.lastTapTime = 0;
+  } else {
+    sendInput({ type: 'mousedown', x, y, button: 'left' });
+    sendInput({ type: 'mouseup',   x, y, button: 'left' });
+    touch.lastTapTime = now;
+  }
+}
+
+function onTouchCancel(e) { clearTimeout(touch.longTimer); }
 
 // ── Mouse events ──────────────────────────────────────────────────
 function onMouseMove(e) {
