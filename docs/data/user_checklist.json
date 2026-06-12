@@ -635,6 +635,56 @@
       "added": "2026-06-12",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "auto-wishket-20260612",
+      "title": "Wishket 공고 스캔 및 제안서 자동화 파이프라인 개선",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "freelance",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "wishket",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "auto-bucky-os-20260612",
+      "title": "BuckyOS 대시보드 성능 및 안정성 개선",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "infrastructure",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "bucky-os",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "auto-daily-plus-20260612",
+      "title": "Daily Plus 큐레이터 효율 개선 및 자동화",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "productivity",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "daily-plus",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "CL-050",
+      "title": "아직 별도 존재 (삭제 미완) |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

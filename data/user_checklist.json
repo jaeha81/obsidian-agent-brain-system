@@ -674,6 +674,17 @@
       "source": "repo-priority-auto",
       "repo": "daily-plus",
       "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "CL-050",
+      "title": "아직 별도 존재 (삭제 미완) |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }
