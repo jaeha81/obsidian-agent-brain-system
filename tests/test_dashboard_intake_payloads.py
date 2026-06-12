@@ -52,6 +52,14 @@ class WishketDashboardIntakePayloadTests(unittest.TestCase):
 
 
 class DashboardProgressUiTests(unittest.TestCase):
+    def test_repo_dashboard_script_blocks_are_well_formed(self):
+        html = read_text("docs/index.html")
+        self.assertEqual(html.count("<script"), html.count("</script>"))
+        inline_scripts = re.findall(r"<script(?:\s[^>]*)?>([\s\S]*?)</script>", html)
+        self.assertTrue(inline_scripts)
+        for script in inline_scripts:
+            self.assertNotIn("<script", script)
+
     def test_repo_dashboard_has_progress_state_handlers(self):
         html = read_text("docs/index.html")
         for marker in (
