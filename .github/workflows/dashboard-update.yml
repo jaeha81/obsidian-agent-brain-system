@@ -61,7 +61,12 @@ jobs:
       - name: 위시켓 대시보드 업데이트
         run: python scripts/generate_wishket_dashboard.py
 
-      - name: Daily Plus 대시보드 생성
+      - name: Daily Plus 안전망 캡처 + 진화 리포트
+        working-directory: scripts
+        run: python -X utf8 chatgpt_daily_collector.py --collect --recovery-only
+        continue-on-error: true
+
+      - name: Bucky 09시 보고 (OABS only)
         working-directory: scripts
         run: python daily_plus_morning_report.py
         continue-on-error: true
@@ -71,7 +76,11 @@ jobs:
         run: |
           git add docs/index.html docs/wishket.html docs/daily-plus.html \
             ObsidianVault/10_AgentBus/wishket_inbox/ \
-            ObsidianVault/10_AgentBus/outbox/ || true
+            ObsidianVault/10_AgentBus/outbox/ \
+            ObsidianVault/10_AgentBus/reports/ \
+            ObsidianVault/04_Wiki/daily-plus/ \
+            ObsidianVault/00_Inbox/daily-plus-triage/ \
+            ObsidianVault/00_UPGRADE/pulse-evolution/ || true
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: 커밋 & 푸시

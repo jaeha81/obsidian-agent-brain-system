@@ -714,7 +714,12 @@ def login_mode() -> None:
     print("[LOGIN] Sign in there once, then run --collect.")
 
 
-def collect_mode(force: bool = False, evolve: bool = True, allow_recovery: bool = False) -> None:
+def collect_mode(
+    force: bool = False,
+    evolve: bool = True,
+    allow_recovery: bool = False,
+    recovery_only: bool = False,
+) -> None:
     today = date.today()
     date_str = today.strftime("%Y-%m-%d")
     output_path = OUTPUT_DIR / f"{date_str}.md"
@@ -728,6 +733,14 @@ def collect_mode(force: bool = False, evolve: bool = True, allow_recovery: bool 
         print(f"[WARN] Existing Daily Plus note is invalid; recollecting: {output_path}")
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    if recovery_only:
+        reason = "Recovery-only mode: live Pulse capture skipped (CI/headless safety net)."
+        print(f"[INFO] {reason}")
+        recovery = build_recovery_capture(reason)
+        _write_note_and_evolve(recovery, output_path, today, force=True, evolve=evolve)
+        return
+
     _launch_chrome(CHATGPT_URL)
     try:
         value = _read_chatgpt_content()
@@ -757,6 +770,11 @@ def main() -> None:
         action="store_true",
         help="Write an OABS recovery Daily Plus note if official Pulse is unavailable",
     )
+    parser.add_argument(
+        "--recovery-only",
+        action="store_true",
+        help="Skip Chrome and write an OABS recovery capture directly (CI safety net)",
+    )
     args = parser.parse_args()
 
     try:
@@ -767,6 +785,7 @@ def main() -> None:
                 force=args.force,
                 evolve=not args.skip_evolve,
                 allow_recovery=args.allow_recovery,
+                recovery_only=args.recovery_only,
             )
     except KeyboardInterrupt:
         print("\n[ABORT] Interrupted by user")
