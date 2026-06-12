@@ -17,6 +17,7 @@ INBOX_DIR = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_inbox"
 TRACKER_PATH = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_tracker.json"
 DASHBOARD_PATH = ROOT / "docs" / "wishket.html"
 PROPOSALS_DIR = ROOT / "ObsidianVault" / "03_Projects" / "wishket-proposals"
+WORKFLOW_ROOT = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_dev"
 
 
 def load_inbox_projects() -> list[dict]:
@@ -126,6 +127,21 @@ def load_proposals() -> dict:
     return proposals
 
 
+def load_workflow_statuses() -> dict:
+    statuses = {}
+    if not WORKFLOW_ROOT.exists():
+        return statuses
+    for path in sorted(glob.glob(str(WORKFLOW_ROOT / "*" / "status.json"))):
+        try:
+            status = json.loads(Path(path).read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        project_id = str(status.get("project_id") or "").strip()
+        if project_id:
+            statuses[project_id] = status
+    return statuses
+
+
 def update_dashboard(projects: list[dict]) -> bool:
     html = DASHBOARD_PATH.read_text(encoding="utf-8")
 
@@ -155,6 +171,18 @@ def update_dashboard(projects: list[dict]) -> bool:
             print(f"제안서 주입: {len(proposals)}개")
 
     # 4) TRACKER_STATES 주입 — wishket_tracker.json의 응찰 상태를 HTML에 반영
+    workflow_status = load_workflow_statuses()
+    workflow_js = json.dumps(workflow_status, ensure_ascii=False, indent=2)
+    updated, n3 = re.subn(
+        r"(// .*status\.json.*\n)const WORKFLOW_STATUS = \{[\s\S]*?\};",
+        lambda m: m.group(1) + "const WORKFLOW_STATUS = " + workflow_js + ";",
+        updated,
+    )
+    if n3 == 0:
+        print("WARNING: WORKFLOW_STATUS 블록을 찾을 수 없습니다.")
+    else:
+        print(f"워크플로우 상태 주입: {len(workflow_status)}개")
+
     try:
         tracker_data = json.loads(TRACKER_PATH.read_text(encoding="utf-8")) if TRACKER_PATH.exists() else {}
         states = {}

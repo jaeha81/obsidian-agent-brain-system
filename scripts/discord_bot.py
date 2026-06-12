@@ -152,6 +152,7 @@ JH_RESULTS_CHANNEL_ID: str = os.getenv("JH_RESULTS_CHANNEL_ID", "").strip()
 # 대시보드 intake 전용 채널
 JH_REPO_DASHBOARD_CHANNEL_ID: str = os.getenv("JH_REPO_DASHBOARD_CHANNEL_ID", "").strip()
 JH_WISHKET_CHANNEL_ID: str        = os.getenv("JH_WISHKET_CHANNEL_ID", "").strip()
+JH_MYINTRO_CHANNEL_ID: str        = os.getenv("JH_MYINTRO_CHANNEL_ID", "").strip()
 JH_DAILYPLUS_CHANNEL_ID: str      = os.getenv("JH_DAILYPLUS_CHANNEL_ID", "").strip()
 JH_TASKBOARD_CHANNEL_ID: str      = os.getenv("JH_TASKBOARD_CHANNEL_ID", "").strip()
 JH_CHRIS_CHANNEL_ID: str          = os.getenv("JH_CHRIS_CHANNEL_ID", "").strip()
@@ -769,6 +770,104 @@ async def _handle_wishket_development_payload(message: Message, content: str) ->
             await message.channel.send(f"Wishket 개발요청 처리 실패: {e}")
             return True
     return False
+
+
+async def _handle_wishket_proposal_request(payload: dict, channel) -> bool:
+    if payload.get("type") != "wishket_proposal_request":
+        return False
+    from wishket_development_request import normalize_payload
+    import wishket_proposal_workflow as proposal_workflow
+
+    normalized = normalize_payload(payload)
+    proposal_workflow.ensure_project_workspace(normalized)
+    proposal_workflow.mark_proposal_started(normalized, "proposal_started")
+    if channel:
+        await channel.send(
+            "**Wishket proposal started**\n"
+            f"- slug: `{normalized['project_slug']}`\n"
+            f"- title: {normalized['project_title']}\n"
+            "- next: draft proposal and gather feedback"
+        )
+    return True
+
+
+async def _handle_wishket_feedback_payload(payload: dict, channel) -> bool:
+    if payload.get("type") != "wishket_feedback":
+        return False
+    from wishket_development_request import normalize_payload
+    import wishket_proposal_workflow as proposal_workflow
+
+    normalized = normalize_payload(payload)
+    proposal_workflow.record_feedback(normalized, str(payload.get("summary") or payload.get("body") or "").strip())
+    if channel:
+        await channel.send(
+            f"**Wishket feedback received**\n- slug: `{normalized['project_slug']}`\n- state: feedback_in_progress"
+        )
+    return True
+
+
+async def _handle_wishket_proposal_approval_payload(payload: dict, channel) -> bool:
+    if payload.get("type") != "wishket_proposal_approval":
+        return False
+    from wishket_development_request import normalize_payload
+    import wishket_proposal_workflow as proposal_workflow
+
+    normalized = normalize_payload(payload)
+    proposal_workflow.record_approval(normalized, "discord")
+    if channel:
+        await channel.send(
+            f"**Wishket proposal approved**\n- slug: `{normalized['project_slug']}`\n- development request unlocked"
+        )
+    return True
+
+
+async def _handle_collab_proposal_request(payload: dict, channel) -> bool:
+    if payload.get("type") != "collab_proposal_request":
+        return False
+    from collab_development_request import normalize_payload
+    import collab_proposal_workflow as workflow
+
+    normalized = normalize_payload(payload)
+    workflow.ensure_workspace(normalized)
+    workflow.mark_proposal_started(normalized, "discord")
+    if channel:
+        await channel.send(
+            "**Collaboration proposal started**\n"
+            f"- slug: `{normalized['request_slug']}`\n"
+            f"- title: {normalized['project_title']}\n"
+            "- source: collaboration inquiry inbox"
+        )
+    return True
+
+
+async def _handle_collab_feedback_payload(payload: dict, channel) -> bool:
+    if payload.get("type") != "collab_feedback":
+        return False
+    from collab_development_request import normalize_payload
+    import collab_proposal_workflow as workflow
+
+    normalized = normalize_payload(payload)
+    workflow.record_feedback(normalized, "discord")
+    if channel:
+        await channel.send(
+            f"**Collaboration feedback received**\n- slug: `{normalized['request_slug']}`\n- state: feedback_in_progress"
+        )
+    return True
+
+
+async def _handle_collab_proposal_approval_payload(payload: dict, channel) -> bool:
+    if payload.get("type") != "collab_proposal_approval":
+        return False
+    from collab_development_request import normalize_payload
+    import collab_proposal_workflow as workflow
+
+    normalized = normalize_payload(payload)
+    workflow.record_approval(normalized, "discord")
+    if channel:
+        await channel.send(
+            f"**Collaboration proposal approved**\n- slug: `{normalized['request_slug']}`\n- development request unlocked"
+        )
+    return True
 
 
 BUCKY_CHAT_FILE = VAULT / "10_AgentBus" / "chat" / "BUCKY_CHAT.md"
@@ -3059,21 +3158,22 @@ def _persist_env_key(key: str, value: str) -> None:
 async def _init_jh_channels(client) -> None:
     """jh-chat + intake 채널 자동 생성. (deprecated: jh-tasks/jh-status/jh-results/jh-briefing 삭제 2026-06-09)"""
     global JH_CHAT_CHANNEL_ID
-    global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
+    global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_MYINTRO_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
     global JH_CHRIS_CHANNEL_ID
     global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID
     if not client.guilds:
         return
     guild = client.guilds[0]
     _specs = [
-        ("jh-chat",        "JH_CHAT_CHANNEL_ID",            "💬 JH ↔ Bucky 대화 전용"),
-        ("jh-레포대시보드",  "JH_REPO_DASHBOARD_CHANNEL_ID", "📦 Repo 대시보드 → Bucky 라우팅"),
-        ("jh-위시켓",       "JH_WISHKET_CHANNEL_ID",         "💼 Wishket 개발요청 전용"),
-        ("jh-오늘의플러스",  "JH_DAILYPLUS_CHANNEL_ID",       "📅 Daily Plus → Bucky 브리핑"),
-        ("jh-태스크보드",   "JH_TASKBOARD_CHANNEL_ID",       "📋 태스크보드 → Bucky 라우팅"),
-        ("jh-chris",       "JH_CHRIS_CHANNEL_ID",           "🧭 Chris Graphify 지식 지도/브레인 성능 관리"),
-        ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
-        ("jh-코덱스앱",     "JH_CODEX_CHANNEL_ID",          "🔍 Codex 앱 세션 요청/상태 보고"),
+        ("jh-chat", "JH_CHAT_CHANNEL_ID", "?? JH ? Bucky ?? ??"),
+        ("jh-??????", "JH_REPO_DASHBOARD_CHANNEL_ID", "?? Repo ???? ? Bucky ???"),
+        ("jh-???", "JH_WISHKET_CHANNEL_ID", "?? Wishket ???? ??"),
+        ("jh-???", "JH_MYINTRO_CHANNEL_ID", "?? ? ?? ???? ??"),
+        ("jh-??????", "JH_DAILYPLUS_CHANNEL_ID", "?? Daily Plus ? Bucky ???"),
+        ("jh-?????", "JH_TASKBOARD_CHANNEL_ID", "?? ????? ? Bucky ???"),
+        ("jh-chris", "JH_CHRIS_CHANNEL_ID", "?? Chris Graphify ?? ??/??? ?? ??"),
+        ("jh-??????", "JH_CLAUDE_CODE_CHANNEL_ID", "?? Claude Code ? ?? ??/?? ??"),
+        ("jh-????", "JH_CODEX_CHANNEL_ID", "?? Codex ? ?? ??/?? ??"),
     ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
@@ -3101,6 +3201,7 @@ async def _init_jh_channels(client) -> None:
     _intake_env_keys = [
         ("JH_REPO_DASHBOARD_CHANNEL_ID", JH_REPO_DASHBOARD_CHANNEL_ID),
         ("JH_WISHKET_CHANNEL_ID",        JH_WISHKET_CHANNEL_ID),
+        ("JH_MYINTRO_CHANNEL_ID",        JH_MYINTRO_CHANNEL_ID),
         ("JH_DAILYPLUS_CHANNEL_ID",      JH_DAILYPLUS_CHANNEL_ID),
         ("JH_TASKBOARD_CHANNEL_ID",      JH_TASKBOARD_CHANNEL_ID),
         ("JH_CHRIS_CHANNEL_ID",          JH_CHRIS_CHANNEL_ID),
@@ -3223,6 +3324,106 @@ async def _dispatch_dashboard_execution_task(payload: dict, channel) -> dict | N
             "작업 시작/완료 상태는 이 채널에 이어서 표시됩니다."
         )
     return task
+
+
+def _build_repo_intake_ack(payload: dict) -> str:
+    action = str(payload.get("action") or "start")
+    request_id = str(payload.get("request_id") or "")
+    title = str(payload.get("title") or payload.get("repo") or payload.get("item_id") or "repo")
+    summary = str(payload.get("summary") or "").strip()
+    url = str(payload.get("url") or "").strip()
+    score = payload.get("score")
+
+    lines = [
+        f"**[Repo Dashboard] 작업구현 브리핑 준비** `{action}`",
+        f"- 레포: `{title}`",
+    ]
+    if summary:
+        lines.append(f"- 요청 액션: {summary[:240]}")
+    if url:
+        lines.append(f"- 링크: {url}")
+    if score not in (None, ""):
+        lines.append(f"- 대시보드 점수: {score}")
+    if request_id:
+        lines.append(f"- request_id: `{request_id[:12]}`")
+    lines.append("")
+    lines.append("Bucky가 구현 목표와 첫 작업 단계를 브리핑합니다. 사용자는 이 채널에서 음성 또는 채팅으로 다음 지시를 이어가면 됩니다.")
+    return "\n".join(lines)
+
+
+def _build_repo_intake_prompt(payload: dict) -> str:
+    action = str(payload.get("action") or "start")
+    request_id = str(payload.get("request_id") or "")
+    title = str(payload.get("title") or payload.get("repo") or payload.get("item_id") or "repo")
+    instruction = str(payload.get("briefing_instruction") or "").strip()
+    summary = str(payload.get("summary") or "").strip()
+    description = str(payload.get("repo_description") or payload.get("description") or "").strip()
+    reason = str(payload.get("reason") or "").strip()
+    url = str(payload.get("url") or "").strip()
+    source_url = str(payload.get("source_dashboard_url") or "").strip()
+    dashboard_context = payload.get("dashboard_context")
+    items = payload.get("items")
+
+    lines = [
+        "[Repo Dashboard Implementation Briefing]",
+        f"action: {action}",
+        f"request_id: {request_id}",
+        f"repo: {title}",
+    ]
+    if url:
+        lines.append(f"url: {url}")
+    if source_url:
+        lines.append(f"source_dashboard_url: {source_url}")
+    for key in ("language", "status", "tier", "category", "completion", "market", "score"):
+        value = payload.get(key)
+        if value not in (None, ""):
+            lines.append(f"{key}: {value}")
+    if summary:
+        lines.extend(["", "## Requested action", summary])
+    if description:
+        lines.extend(["", "## Repo description", description])
+    if reason:
+        lines.extend(["", "## Dashboard reason", reason])
+    if isinstance(dashboard_context, dict):
+        lines.append("")
+        lines.append("## Overall repo dashboard context")
+        for key in ("total_repos", "active_repos", "tier_counts", "planning_goal"):
+            value = dashboard_context.get(key)
+            if value not in (None, ""):
+                lines.append(f"{key}: {value}")
+        top_repos = dashboard_context.get("top_repos")
+        if isinstance(top_repos, list) and top_repos:
+            lines.append("top_repos:")
+            for idx, repo in enumerate(top_repos[:8], 1):
+                if not isinstance(repo, dict):
+                    continue
+                lines.append(
+                    f"{idx}. {repo.get('name') or repo.get('id')} "
+                    f"(score={repo.get('score')}, tier={repo.get('tier')}) - {repo.get('action') or ''}"
+                )
+    if instruction:
+        lines.extend(["", "## Required user-facing behavior", instruction])
+    if isinstance(items, list) and items:
+        lines.append("")
+        lines.append("## Batch items")
+        for idx, item in enumerate(items, 1):
+            if not isinstance(item, dict):
+                continue
+            item_line = f"{idx}. {item.get('name') or item.get('id')}: {item.get('action') or ''}"
+            if item.get("url"):
+                item_line += f" ({item.get('url')})"
+            lines.append(item_line)
+    lines.extend(
+        [
+            "",
+            "## Output",
+            "한국어로 사용자에게 바로 보여줄 작업구현 브리핑을 작성하세요.",
+            "먼저 전체 개발 레포 현황을 요약하고, 그 다음 선택된 레포 또는 일괄 항목의 다음 플랜을 미리 정의하세요.",
+            "포함: 전체 포트폴리오 우선순위, 구현 목표, 첫 작업 후보 2-3개, 확인해야 할 질문, 사용자가 음성/채팅으로 지시하면 이어서 진행한다는 안내.",
+            "아직 코드를 수정하거나 외부 배포를 시작하지 말고, 사용자의 다음 지시를 기다리는 형태로 끝내세요.",
+        ]
+    )
+    return "\n".join(lines).strip()
 
 
 async def _handle_jh_tasks(message: Message) -> None:
@@ -3982,6 +4183,7 @@ class BuckyDiscordBot(discord.Client):
         _channel_map = {
             "repo":        lambda: JH_REPO_DASHBOARD_CHANNEL_ID,
             "wishket":     lambda: JH_WISHKET_CHANNEL_ID,
+            "collab":      lambda: JH_MYINTRO_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
             "daily_plus":  lambda: JH_DAILYPLUS_CHANNEL_ID,
             "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
             "taskboard":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
@@ -4037,6 +4239,33 @@ class BuckyDiscordBot(discord.Client):
         title = str(payload.get("title") or payload.get("summary") or "")
         request_id = str(payload.get("request_id") or "")
 
+        # Repo dashboard intake should brief the user with portfolio context,
+        # not stop at the generic three-line intake acknowledgement.
+        if dashboard_type == "repo" and action in {"start", "batch_start", "analyze", "review"} and channel:
+            await _activate_dashboard_session(str(channel.id), payload)
+            for chunk in split_message(_build_repo_intake_ack(payload)):
+                await channel.send(chunk)
+            try:
+                timeout_s = int(os.getenv("REPO_INTAKE_BUCKY_TIMEOUT", "60"))
+                reply = await asyncio.wait_for(
+                    ask_bucky(
+                        str(channel.id),
+                        _build_repo_intake_prompt(payload),
+                        session_key=_dashboard_session_key(payload),
+                        session_label=_dashboard_session_label(payload),
+                    ),
+                    timeout=timeout_s,
+                )
+                for chunk in split_message(reply):
+                    await channel.send(chunk)
+            except asyncio.TimeoutError:
+                repo_name = title or payload.get("repo", "") or payload.get("item_id", "")
+                await channel.send(f"⚠️ Bucky 응답 시간이 초과되었습니다. `{repo_name}` 요청은 수신됐고, 이 채널에서 음성/채팅으로 다음 지시를 이어가면 됩니다.")
+            except Exception as exc:
+                print(f"[IntakeConsumer] Repo Bucky flow failed: {exc}", flush=True)
+                await channel.send(f"⚠️ Bucky 브리핑 실패: `{exc}`")
+            return
+
         briefing = (
             f"**[Intake: {dashboard_type}]** `{action}`\n"
             + (f"> {title[:200]}\n" if title else "")
@@ -4062,6 +4291,24 @@ class BuckyDiscordBot(discord.Client):
 
         # Daily Plus 대시보드 intake — Bucky에게 라우팅해서 응답 전송 (대화 가능 상태)
         if await _handle_dashboard_watch_payload(payload, channel):
+            return
+
+        if await _handle_wishket_proposal_request(payload, channel):
+            return
+
+        if await _handle_wishket_feedback_payload(payload, channel):
+            return
+
+        if await _handle_wishket_proposal_approval_payload(payload, channel):
+            return
+
+        if await _handle_collab_proposal_request(payload, channel):
+            return
+
+        if await _handle_collab_feedback_payload(payload, channel):
+            return
+
+        if await _handle_collab_proposal_approval_payload(payload, channel):
             return
 
         if dashboard_type == "daily_plus" and channel:

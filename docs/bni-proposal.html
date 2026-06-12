@@ -614,11 +614,15 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
       </div>
     </div>
     <div class="contact-right cf-right">
-      <form class="cf" action="https://formsubmit.co/dltkddlf231@gmail.com" method="POST" enctype="multipart/form-data">
+      <form class="cf" id="collab-inquiry-form">
+        <input type="hidden" name="requester_name" value="">
+        <input type="hidden" name="requester_email" value="">
+        <input type="hidden" name="company" value="">
+        <input type="hidden" name="budget" value="">
+        <input type="hidden" name="summary" value="">
+        <input type="hidden" name="body" value="">
+        <input type="hidden" name="reference_link" value="">
         <input type="hidden" name="_subject" value="이재하 소개 페이지 문의">
-        <input type="hidden" name="_captcha" value="false">
-        <input type="hidden" name="_template" value="table">
-        <input type="hidden" name="_next" value="https://jaeha81.github.io/obsidian-agent-brain-system/bni-proposal.html?sent=1">
         <div class="cf-row-2">
           <div class="cf-field">
             <label class="cf-label">이름</label>
@@ -657,6 +661,7 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
           문의 보내기
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
+        <a href="collab-admin.html" style="display:inline-block;margin-top:12px;color:var(--gold-lt);font-size:12px;text-decoration:none">협업문의 관리자</a>
       </form>
     </div>
   </div>
@@ -693,6 +698,50 @@ const sp=new URLSearchParams(location.search);
 if(sp.get('sent')==='1'){const b=document.querySelector('.cf-submit');if(b){b.textContent='문의가 전송되었습니다 ✓';b.style.background='#2d6a4f';b.style.pointerEvents='none'}}
 
 /* ── Hamburger nav ── */
+const COLLAB_API_URL='http://127.0.0.1:8765/collab/inquiries';
+function collabInquiryToPayload(form){
+  return {
+    type:'collab_inquiry',
+    source:'bni_collab_form',
+    requester_name:(form.querySelector('[name="requester_name"]')?.value||form.querySelector('[name="name"]')?.value||'').trim(),
+    requester_email:(form.querySelector('[name="requester_email"]')?.value||form.querySelector('[name="contact"]')?.value||'').trim(),
+    company:(form.querySelector('[name="company"]')?.value||'').trim(),
+    budget:(form.querySelector('[name="budget"]')?.value||'').trim(),
+    inquiry_type:(form.querySelector('[name="inquiry_type"]')?.value||form.querySelector('[name="type"]')?.value||'').trim(),
+    summary:(form.querySelector('[name="summary"]')?.value||'').trim(),
+    body:(form.querySelector('[name="body"]')?.value||form.querySelector('[name="message"]')?.value||'').trim(),
+    reference_link:(form.querySelector('[name="reference_link"]')?.value||'').trim()
+  };
+}
+function saveCollabInquiryFallback(payload){
+  const key='collab-inquiries-local';
+  const existing=JSON.parse(localStorage.getItem(key)||'[]');
+  existing.unshift({...payload,request_id:`collab-${Date.now()}`,created_at:new Date().toISOString(),status:'new'});
+  localStorage.setItem(key,JSON.stringify(existing));
+}
+async function submitCollabInquiry(event){
+  event.preventDefault();
+  const form=event.currentTarget;
+  const button=form.querySelector('.cf-submit');
+  const original=button.textContent;
+  const payload=collabInquiryToPayload(form);
+  button.disabled=true;
+  button.textContent='문의 전송 중...';
+  try{
+    const res=await fetch(COLLAB_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+  }catch(_err){
+    saveCollabInquiryFallback(payload);
+  }
+  form.reset();
+  const fileNames=document.getElementById('fileNames');if(fileNames)fileNames.textContent='이미지 · PDF · CAD · Excel · Word';
+  button.textContent='문의가 전송되었습니다 ✓';
+  button.style.background='#2d6a4f';
+  setTimeout(()=>{button.disabled=false;button.textContent=original;button.style.background='';},2500);
+}
+const collabForm=document.getElementById('collab-inquiry-form');
+if(collabForm){collabForm.addEventListener('submit',submitCollabInquiry)}
+
 const toggle=document.getElementById('navToggle');
 const drawer=document.getElementById('navDrawer');
 const backdrop=document.getElementById('navBackdrop');

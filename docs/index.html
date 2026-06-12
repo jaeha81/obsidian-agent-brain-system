@@ -404,32 +404,6 @@
   <button class="filter-btn" style="background:rgba(63,185,80,0.1);color:#3fb950;border-color:rgba(63,185,80,0.3);margin-left:4px" onclick="openAddProject()">+ 추가</button>
 </div>
 
-<section class="intake-panel" aria-label="Bucky knowledge intake">
-  <div class="intake-title">Chris Knowledge Intake</div>
-  <div class="intake-sub">Paste a link, YouTube URL, note, article text, or attach files. The dashboard sends it to Chris for Graphify-aware knowledge mapping first; YouTube links are routed through /watch automatically.</div>
-  <div class="intake-grid">
-    <select id="intakeType" aria-label="Intake type">
-      <option value="auto">Auto detect</option>
-      <option value="link">Link or YouTube</option>
-      <option value="note">Note or article</option>
-      <option value="file">File/material</option>
-      <option value="repo">Repo context</option>
-    </select>
-    <input id="intakeTitle" type="text" placeholder="Title or short label">
-  </div>
-  <div style="margin-top:10px">
-    <textarea id="intakeBody" placeholder="Paste URL, YouTube address, article text, memo, or instructions for Chris"></textarea>
-  </div>
-  <div class="intake-grid" style="margin-top:10px">
-    <input id="intakeTags" type="text" placeholder="Tags, comma separated">
-    <input id="intakeFiles" type="file" multiple>
-  </div>
-  <div class="intake-actions">
-    <button type="button" class="secondary" onclick="copyIntakePayload()">Copy payload</button>
-    <button type="button" onclick="sendKnowledgeIntake()">Send to Bucky</button>
-  </div>
-</section>
-
 <div class="grid" id="grid"></div>
 
 <footer>
@@ -1257,117 +1231,6 @@ async function postWebhook(url, username, content) {
     return false;
   }
 }
-async function postWebhookWithFiles(url, username, content, files) {
-  if (!url) {
-    showToast('Webhook missing', 'Set Discord webhook first.');
-    return false;
-  }
-  const safeFiles = Array.from(files || []).slice(0, 10);
-  if (!safeFiles.length) return postWebhook(url, username, content);
-  try {
-    const form = new FormData();
-    form.append('payload_json', JSON.stringify({ content, username: username || 'JH Dashboard' }));
-    safeFiles.forEach((file, index) => form.append(`files[${index}]`, file, file.name));
-    const r = await fetch(url, { method: 'POST', body: form });
-    if (r.ok) { showToast('Discord upload complete', `${safeFiles.length} file(s) sent to Bucky`); return true; }
-    showToast('Upload failed', 'HTTP ' + r.status);
-    return false;
-  } catch(e) {
-    showToast('Upload error', e.message);
-    return false;
-  }
-}
-function buildIntakePayload() {
-  const type = document.getElementById('intakeType').value;
-  const title = document.getElementById('intakeTitle').value.trim();
-  const body = document.getElementById('intakeBody').value.trim();
-  const tags = document.getElementById('intakeTags').value.trim();
-  const files = document.getElementById('intakeFiles').files;
-  const fileLines = Array.from(files || []).slice(0, 10).map(f => `- ${f.name} (${Math.ceil(f.size / 1024)} KB)`);
-  const youtubeUrl = extractYoutubeWatchUrl(`${title}\n${body}`);
-  const isSingleUrl = /^https?:\/\/\S+$/i.test(body);
-  const command = youtubeUrl ? `/watch ${youtubeUrl}` : (isSingleUrl ? `!capture ${body}` : `!capture ${title || body || '[Dashboard file intake]'}`);
-  return [
-    command,
-    '',
-    '[Dashboard Knowledge Intake]',
-    `type: ${type}`,
-    `title: ${title || '(untitled)'}`,
-    `tags: ${tags || '(none)'}`,
-    `source: jh-repo-dashboard`,
-    fileLines.length ? `files:\n${fileLines.join('\n')}` : 'files: (none)',
-    '',
-    body && !isSingleUrl ? body : ''
-  ].join('\n').trim();
-}
-function extractYoutubeWatchUrl(text) {
-  const source = String(text || '');
-  const match = source.match(/https?:\/\/(?:www\.)?(?:youtu\.be\/[^\s<>"']+|youtube\.com\/(?:watch\?[^\s<>"']+|shorts\/[^\s<>"']+))/i);
-  return match ? match[0].replace(/[),.\]]+$/, '') : '';
-}
-function buildKnowledgeIntakePayload() {
-  const type = document.getElementById('intakeType').value;
-  const title = document.getElementById('intakeTitle').value.trim();
-  const body = document.getElementById('intakeBody').value.trim();
-  const tags = document.getElementById('intakeTags').value.trim();
-  const youtubeUrl = extractYoutubeWatchUrl(`${title}\n${body}`);
-  return {
-    dashboard_type: 'knowledge_intake',
-    target_channel: 'jh-chris',
-    action: youtubeUrl ? 'watch' : 'capture',
-    request_id: `knowledge-${Date.now()}`,
-    type,
-    title: title || (youtubeUrl ? 'YouTube watch intake' : 'Dashboard knowledge intake'),
-    body,
-    tags,
-    capture_target: youtubeUrl,
-    watch_command: youtubeUrl ? `/watch ${youtubeUrl}` : '',
-    source: 'repo-dashboard',
-    created_at: new Date().toISOString(),
-    source_dashboard_url: location.href
-  };
-}
-async function copyIntakePayload() {
-  const payload = buildIntakePayload();
-  navigator.clipboard.writeText(payload).then(() => {
-    showToast('Payload copied', 'Paste it into the Bucky Discord channel if needed.');
-  }).catch(() => prompt('Bucky intake payload:', payload));
-}
-async function sendKnowledgeIntake() {
-  const url = localStorage.getItem('bucky-webhook');
-  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
-  const payload = buildIntakePayload();
-  const intakePayload = buildKnowledgeIntakePayload();
-  const files = document.getElementById('intakeFiles').files;
-  if (!payload && (!files || !files.length)) {
-    showToast('Nothing to send', 'Add a link, note, or file first.');
-    return;
-  }
-  try {
-    await postToIntake(intakePayload);
-    if (files && files.length && url) {
-      await postWebhookWithFiles(url, name, payload, files);
-    }
-    showToast(
-      intakePayload.action === 'watch' ? 'Watch intake queued' : 'Chris intake queued',
-      intakePayload.action === 'watch' ? 'YouTube link will be captured through /watch.' : 'Queued through local Bucky OS intake for Chris review.'
-    );
-    document.getElementById('intakeTitle').value = '';
-    document.getElementById('intakeBody').value = '';
-    document.getElementById('intakeTags').value = '';
-    document.getElementById('intakeFiles').value = '';
-    return;
-  } catch (e) {
-    showToast('Local intake failed', 'Falling back to Discord webhook.');
-  }
-  const ok = await postWebhookWithFiles(url, name, payload, files);
-  if (ok) {
-    document.getElementById('intakeTitle').value = '';
-    document.getElementById('intakeBody').value = '';
-    document.getElementById('intakeTags').value = '';
-    document.getElementById('intakeFiles').value = '';
-  }
-}
 document.getElementById('whOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeWebhookSettings();
 });
@@ -1386,6 +1249,57 @@ const BUCKY_OS_KEY = 'buckyIntakeEndpoint';
 
 function getBuckyOsEndpoint() {
   return (localStorage.getItem(BUCKY_OS_KEY) || 'http://localhost:8765').replace(/\/$/, '');
+}
+
+function buildRepoBriefingInstruction(repo) {
+  return [
+    '레포대시보드에서 작업구현 착수 요청이 들어왔습니다.',
+    '사용자에게 이 레포의 구현 목표, 우선순위, 첫 작업 단계를 간단히 브리핑하세요.',
+    '브리핑 후 사용자의 음성 또는 채팅 지시를 기다리고, 지시가 오면 작업 범위를 확정하세요.',
+    `레포: ${repo.name}`,
+    `액션: ${repo.action}`,
+    `링크: ${repo.url}`
+  ].join('\n');
+}
+
+function buildRepoBatchBriefingInstruction(items) {
+  return [
+    `레포대시보드에서 ${items.length}개 레포 일괄 작업구현 착수 요청이 들어왔습니다.`,
+    '사용자에게 우선순위와 예상 구현 흐름을 짧게 브리핑하세요.',
+    '브리핑 후 사용자의 음성 또는 채팅 지시를 기다리고, 어느 레포부터 시작할지 확정하세요.',
+    '',
+    items.map((repo, i) => `${i + 1}. ${repo.name} — ${repo.action}`).join('\n')
+  ].join('\n');
+}
+
+function buildRepoDashboardContext() {
+  const total = repos.length;
+  const tierCounts = repos.reduce((acc, repo) => {
+    acc[repo.tier] = (acc[repo.tier] || 0) + 1;
+    return acc;
+  }, {});
+  const activeCount = repos.filter(repo => repo.status === 'active').length;
+  const topRepos = [...repos]
+    .sort((a, b) => getScore(b) - getScore(a))
+    .slice(0, 8)
+    .map(repo => ({
+      id: repo.id,
+      name: repo.name,
+      action: repo.action,
+      completion: repo.completion,
+      market: repo.market,
+      score: getScore(repo),
+      tier: repo.tier,
+      category: repo.cat,
+      url: repo.url
+    }));
+  return {
+    total_repos: total,
+    active_repos: activeCount,
+    tier_counts: tierCounts,
+    top_repos: topRepos,
+    planning_goal: '전체 개발 레포 상황을 먼저 파악한 뒤, 우선순위와 다음 작업 플랜을 미리 정의한다.'
+  };
 }
 
 function makeBuckyMsg(repo) {
@@ -1414,6 +1328,17 @@ async function sendToBucky(id) {
     item_id: repo.id,
     title: repo.name,
     summary: repo.action,
+    repo_description: repo.desc,
+    reason: repo.reason,
+    language: repo.lang,
+    status: repo.status,
+    tier: repo.tier,
+    category: repo.cat,
+    completion: repo.completion,
+    market: repo.market,
+    score: getScore(repo),
+    dashboard_context: buildRepoDashboardContext(),
+    briefing_instruction: buildRepoBriefingInstruction(repo),
     url: repo.url,
     source: 'repo-dashboard',
     created_at: new Date().toISOString(),
@@ -1470,7 +1395,23 @@ async function sendAllToBucky() {
     item_id: checked.map(r => r.id).join(','),
     title: `일괄 작업 ${checked.length}개`,
     summary: checked.map((r, i) => `${i+1}. ${r.name}: ${r.action}`).join('\n'),
-    items: checked.map(r => ({ id: r.id, name: r.name, action: r.action, url: r.url })),
+    dashboard_context: buildRepoDashboardContext(),
+    briefing_instruction: buildRepoBatchBriefingInstruction(checked),
+    items: checked.map(r => ({
+      id: r.id,
+      name: r.name,
+      action: r.action,
+      url: r.url,
+      repo_description: r.desc,
+      reason: r.reason,
+      language: r.lang,
+      status: r.status,
+      tier: r.tier,
+      category: r.cat,
+      completion: r.completion,
+      market: r.market,
+      score: getScore(r)
+    })),
     source: 'repo-dashboard',
     created_at: new Date().toISOString(),
     source_dashboard_url: location.href

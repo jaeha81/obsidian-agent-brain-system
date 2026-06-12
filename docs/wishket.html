@@ -379,6 +379,8 @@ const DEFAULT_WEBHOOK = '';
 
 // ── 응찰 상태 (빌더가 tracker.json에서 주입) ──
 const TRACKER_STATES = {};
+// ── 제안서 워크플로우 상태 (빌더가 status.json에서 주입) ──
+const WORKFLOW_STATUS = {};
 
 // ── 상태 관리 (localStorage + Bucky 서버 동기) ──
 const WK_STATE_KEY = 'wk-project-state-v1';
@@ -414,6 +416,15 @@ function markBid(id) { saveState(id, 'bid'); renderProjects(getFiltered()); }
 function markWon(id) { saveState(id, 'won'); renderProjects(getFiltered()); }
 function markLost(id) { saveState(id, 'lost'); renderProjects(getFiltered()); }
 function markNew(id) { saveState(id, 'new'); renderProjects(getFiltered()); }
+function getWishketWorkflowStatus(id) {
+  return WORKFLOW_STATUS[id] || {
+    workflow_state: 'idle',
+    proposal_version: 0,
+    current_proposal_file: null,
+    approved: false,
+    feedback_pending: false
+  };
+}
 
 function getWkBuckyEndpoint() {
   const stored = localStorage.getItem(WK_BUCKY_URL_KEY) || '';
@@ -439,32 +450,82 @@ async function sendWkWebhook(url, content) {
   if (!res.ok) throw new Error('HTTP ' + res.status);
 }
 
-function formatProjectMsg(p, state) {
-  const stateLabel = { new:'새 공고', bid:'응찰 중', won:'낙찰', lost:'탈락' }[state] || state;
-  return ['**위시켓 공고 브리핑**', `**제목:** ${p.title}`, `**예산:** ${p.budget || '미정'}`, `**상태:** ${stateLabel}`, p.link ? `**링크:** ${p.link}` : '', p.description ? `**설명:** ${(p.description||'').slice(0,120)}` : ''].filter(Boolean).join('\n');
-}
-
-async function sendOneToBucky(id) {
+async function requestWishketProposal(id) {
   const p = PROJECTS.find(x => x.id === id);
   if (!p) return;
-  const state = getProjectState(id);
-  const content = formatProjectMsg(p, state);
-  try {
-    await postToIntake({ type:'wishket_briefing', target_channel:'jh-위시켓', project_title:p.title, summary:p.description||'', budget:p.budget||'', url:p.link||'', state, created_at:new Date().toISOString() });
-    showWkToast('Discord 전송', p.title.slice(0,30) + ' → jh-위시켓');
-    return;
-  } catch (_) {}
-  const wh = getWkWebhookUrl();
-  if (!wh) { openWkSettings(); return; }
-  try { await sendWkWebhook(wh, content); showWkToast('Discord 전송', '웹훅으로 전송했습니다.'); }
-  catch (e) { showWkToast('전송 실패', e.message); }
+  const linkId = ((p.link||'').match(/\/project\/(\d+)\/?/)||[])[1] || id;
+  // target_channel: 'jh-위시켓'
+  const payload = {
+    type:'wishket_proposal_request',
+    dashboard_type:'wishket',
+    target_channel:'jh-위시켓',
+    action:'start_proposal',
+    source:'wishket_dashboard',
+    source_dashboard_url: location.href,
+    project_title:p.title,
+    title:p.title,
+    project_slug:`wishket-${linkId}`,
+    request_id:`wishket-proposal-${linkId}-${Date.now()}`,
+    summary:p.description||'',
+    budget:p.budget||'',
+    url:p.link||'',
+    created_at:new Date().toISOString()
+  };
+  await postToIntake(payload);
+  showWkToast('제안서 착수', p.title.slice(0,30) + ' → jh-위시켓');
+}
+
+async function sendProposalFeedback(id) {
+  const p = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+  const feedback = prompt('피드백을 입력하세요.');
+  if (!feedback) return;
+  await postToIntake({
+    type:'wishket_feedback',
+    dashboard_type:'wishket',
+    target_channel:'jh-위시켓',
+    action:'feedback',
+    source:'wishket_dashboard',
+    source_dashboard_url: location.href,
+    project_title:p.title,
+    request_id:`wishket-feedback-${id}-${Date.now()}`,
+    summary:feedback,
+    url:p.link||'',
+    created_at:new Date().toISOString()
+  });
+  showWkToast('피드백 전송', '피드백을 접수했습니다.');
+}
+
+async function approveProposal(id) {
+  const p = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+  await postToIntake({
+    type:'wishket_proposal_approval',
+    dashboard_type:'wishket',
+    target_channel:'jh-위시켓',
+    action:'approve',
+    source:'wishket_dashboard',
+    source_dashboard_url: location.href,
+    project_title:p.title,
+    request_id:`wishket-approval-${id}-${Date.now()}`,
+    url:p.link||'',
+    created_at:new Date().toISOString()
+  });
+  showWkToast('최종 승인', '개발요청을 진행할 수 있습니다.');
 }
 
 async function sendDevelopmentRequest(id) {
   const p = PROJECTS.find(x => x.id === id);
   if (!p) return;
+  const workflow = getWishketWorkflowStatus(id);
+  if (!workflow.approved) {
+    showWkToast('승인 필요', '최종 승인 후 개발요청이 가능합니다.');
+    return;
+  }
   const linkId = ((p.link||'').match(/\/project\/(\d+)\/?/)||[])[1] || id;
-  const payload = { type:'wishket_development_request', dashboard_type:'wishket', target_channel:'jh-위시켓', action:'start', source:'wishket_dashboard', project_title:p.title, title:p.title, request_id:`wishket-${linkId}-start`, summary:p.description||'', budget:p.budget||'', url:p.link||'', requested_actions:['generate_development_plan','route_to_claude_for_implementation','route_to_codex_for_review'], approval_required:false, created_at:new Date().toISOString() };
+  // target_channel: 'jh-?꾩떆耳?
+  // approval_required: false
+  const payload = { type:'wishket_development_request', dashboard_type:'wishket', target_channel:'jh-위시켓', action:'start', source:'wishket_dashboard', source_dashboard_url: location.href, execution_mode: 'immediate', project_title:p.title, title:p.title, request_id:`wishket-${linkId}-start`, summary:p.description||'', budget:p.budget||'', url:p.link||'', requested_actions:['generate_development_plan','route_to_claude_for_implementation','route_to_codex_for_review'], approval_required:false, created_at:new Date().toISOString(), note:'Bucky immediate execution request for Claude/Codex routing.' };
   try {
     await postToIntake(payload);
     showWkToast('개발요청 접수', p.title.slice(0,30) + ' → jh-위시켓');
@@ -537,8 +598,26 @@ function renderProjects(projects) {
     const pBadge = priorityBadge(p.priority);
     const score = p.score || 0;
     const barColor = scoreColor(score);
-    const hasProposal = !!PROPOSALS[p.id];
+    const workflow = getWishketWorkflowStatus(p.id);
+    const hasProposal = !!PROPOSALS[p.id] || !!workflow.current_proposal_file;
     const state = getProjectState(p.id);
+    const proposalAction = hasProposal
+      ? `<button class="action-btn" onclick="downloadProposal('${p.id}','${p.title.replace(/'/g,"\\'")}')">제안서 다운로드</button>`
+      : `<button class="action-btn bucky-btn" onclick="requestWishketProposal('${p.id}')">제안서 만들기</button>`;
+    const feedbackAction = hasProposal
+      ? `<button class="action-btn" onclick="sendProposalFeedback('${p.id}')">피드백</button>`
+      : '';
+    const approveAction = hasProposal && !workflow.approved
+      ? `<button class="action-btn" onclick="approveProposal('${p.id}')">최종 승인</button>`
+      : '';
+    const developmentAction = workflow.approved
+      ? `<button class="action-btn devreq-btn" onclick="sendDevelopmentRequest('${p.id}')">개발요청</button>`
+      : `<button class="action-btn devreq-btn" data-disabled-devreq="true" disabled title="최종 승인 후 가능">개발요청</button>`;
+    const workflowLabel = workflow.approved
+      ? '최종 승인'
+      : hasProposal
+        ? (workflow.feedback_pending ? '피드백 대기' : '제안서 준비')
+        : '제안서 작성전';
     return `
       <div class="project-card ${pClass}">
         <div class="project-head">
@@ -559,15 +638,19 @@ function renderProjects(projects) {
         ${p.description ? `<div class="project-desc">${p.description}</div>` : ''}
         <div class="btn-row" style="margin-top:4px">
           ${p.link ? `<a class="action-btn" href="${p.link}" target="_blank" rel="noreferrer">공고 보기</a>` : ''}
-          ${hasProposal ? `<button class="action-btn" onclick="showProposal('${p.id}','${p.title.replace(/'/g,"\\'")}')">제안서 확인</button>` : ''}
+          ${proposalAction}
+          ${feedbackAction}
+          ${approveAction}
           ${state === 'new' ? `<button class="action-btn bid-btn" onclick="markBid('${p.id}')">응찰 기록</button>` : ''}
           ${state === 'bid' ? `<button class="action-btn won-btn" onclick="markWon('${p.id}')">낙찰</button>` : ''}
           ${(state === 'new' || state === 'bid') ? `<button class="action-btn lost-btn" onclick="markLost('${p.id}')">탈락</button>` : ''}
           ${(state === 'won' || state === 'lost') ? `<button class="action-btn" onclick="markNew('${p.id}')">초기화</button>` : ''}
-          <button class="action-btn bucky-btn" onclick="sendOneToBucky('${p.id}')">Discord</button>
-          <button class="action-btn devreq-btn" onclick="sendDevelopmentRequest('${p.id}')">개발요청</button>
+          ${developmentAction} <!-- disabled: !workflow.approved -->
         </div>
-        ${state !== 'new' ? `<div style="margin-top:6px"><span class="state-badge state-${state}">${{bid:'응찰 중',won:'낙찰',lost:'탈락'}[state]||state}</span></div>` : ''}
+        <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+          ${state !== 'new' ? `<span class="state-badge state-${state}">${{bid:'응찰 중',won:'낙찰',lost:'탈락'}[state]||state}</span>` : ''}
+          <span class="state-badge state-bid">${workflowLabel}</span>
+        </div>
       </div>`;
   }).join('');
 }
@@ -599,6 +682,20 @@ function filterPriority(priority, btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   applyFilter();
+}
+
+function downloadProposal(id, title) {
+  const content = PROPOSALS[id] || '제안서 없음';
+  const safeTitle = (title || id).replace(/[\\/:*?"<>|]+/g, '-').slice(0, 80);
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safeTitle}-proposal.md`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function showProposal(id, title) {

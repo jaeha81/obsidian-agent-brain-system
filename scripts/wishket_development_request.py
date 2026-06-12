@@ -16,6 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import wishket_proposal_workflow as proposal_workflow
+
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = ROOT / "ObsidianVault"
 PENDING_DIR = VAULT / "10_AgentBus" / "pending_approval"
@@ -327,7 +329,13 @@ def enqueue_codex_review_request(payload: dict[str, Any]) -> Path:
     return path
 
 
-def dispatch_request(payload: dict[str, Any]) -> tuple[str, Path, Path | None]:
+def ensure_workflow_approved(payload: dict[str, Any]) -> None:
+    status = proposal_workflow.load_status(payload["project_slug"])
+    if not status.get("approved"):
+        raise PermissionError("Wishket proposal workflow is not approved yet.")
+
+
+def dispatch_request(payload: dict[str, Any], require_workflow_approval: bool = False) -> tuple[str, Path, Path | None]:
     """Route Wishket request either to approval queue or immediate inbox.
 
     Returns (mode, primary_path, codex_path).
@@ -335,6 +343,8 @@ def dispatch_request(payload: dict[str, Any]) -> tuple[str, Path, Path | None]:
     Codex review request are enqueued; codex_path is None for approval routes.
     """
 
+    if require_workflow_approval:
+        ensure_workflow_approved(payload)
     if payload.get("approval_required"):
         return "pending_approval", queue_for_approval(payload), None
     claude_path = enqueue_immediate_request(payload)

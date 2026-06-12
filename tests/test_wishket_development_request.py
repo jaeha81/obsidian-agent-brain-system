@@ -23,6 +23,7 @@ from scripts.wishket_development_request import (  # noqa: E402
     queue_for_approval,
     split_actions,
 )
+import wishket_proposal_workflow as proposal_workflow  # noqa: E402
 
 
 class TestActionClassification(unittest.TestCase):
@@ -237,6 +238,46 @@ class TestRoutingOutputs(unittest.TestCase):
         self.assertEqual(claude_fm["type"], "implementation_request")
         self.assertEqual(codex_fm["router"], "Codex")
         self.assertEqual(codex_fm["type"], "review_request")
+
+    def test_dispatch_request_rejects_unapproved_workflow(self):
+        payload = normalize_payload(
+            {
+                "project_title": "Workflow Approval Project",
+                "url": "https://www.wishket.com/project/77777/",
+                "requested_actions": ["route_to_claude_for_implementation"],
+            }
+        )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            inbox = Path(tmpdir) / "inbox"
+            workflow_root = Path(tmpdir) / "workflow"
+            with mock.patch("scripts.wishket_development_request.INBOX_DIR", inbox), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
+            ), mock.patch.object(proposal_workflow, "WORKFLOW_ROOT", workflow_root):
+                proposal_workflow.ensure_project_workspace(payload)
+                with self.assertRaisesRegex(PermissionError, "approved"):
+                    dispatch_request(payload, require_workflow_approval=True)
+
+    def test_dispatch_request_allows_approved_workflow(self):
+        payload = normalize_payload(
+            {
+                "project_title": "Workflow Approved Project",
+                "url": "https://www.wishket.com/project/88888/",
+                "requested_actions": ["route_to_claude_for_implementation"],
+            }
+        )
+        with tempfile.TemporaryDirectory(dir=TEST_TMP_ROOT) as tmpdir:
+            inbox = Path(tmpdir) / "inbox"
+            workflow_root = Path(tmpdir) / "workflow"
+            with mock.patch("scripts.wishket_development_request.INBOX_DIR", inbox), mock.patch(
+                "scripts.wishket_development_request.DEV_ROOT", Path(tmpdir) / "dev"
+            ), mock.patch.object(proposal_workflow, "WORKFLOW_ROOT", workflow_root):
+                proposal_workflow.ensure_project_workspace(payload)
+                proposal_workflow.record_approval(payload, "dashboard")
+                mode, claude_path, codex_path = dispatch_request(payload, require_workflow_approval=True)
+                self.assertEqual(mode, "immediate")
+                self.assertTrue(claude_path.exists())
+                self.assertIsNotNone(codex_path)
+                self.assertTrue(codex_path.exists())
 
 
 if __name__ == "__main__":
