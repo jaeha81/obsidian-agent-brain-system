@@ -93,6 +93,24 @@
   .legend .candidate::before { background: #bfdbfe; }
   .legend .approval::before { background: #fdba74; }
   .legend .applied::before { background: #86efac; }
+  .chart-wrap { position: relative; height: 300px; margin-top: 20px; }
+  .analyze-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  .analyze-card { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--surface); }
+  .analyze-card h3 { margin: 0 0 8px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .analyze-metric { font-size: 30px; font-weight: 700; line-height: 1; }
+  .analyze-metric.up { color: var(--green); }
+  .analyze-metric.dn { color: var(--amber); }
+  .analyze-metric.bl { color: var(--blue); }
+  .analyze-detail { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+  .analyze-items { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 7px; font-size: 13px; }
+  .analyze-items li { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; line-height: 1.4; }
+  .itag { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .itag.ok { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+  .itag.need { background: #fff7ed; color: var(--amber); border: 1px solid #fed7aa; }
+  .itag.risk { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .score-circle { width: 68px; height: 68px; border-radius: 50%; border: 5px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+  @media (max-width: 840px) { .analyze-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .analyze-grid { grid-template-columns: 1fr; } }
 
   .command-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .command-btn { border: 1px solid var(--line); border-radius: 8px; min-height: 42px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
@@ -151,6 +169,7 @@
     .command-tray { left: 8px; right: 8px; bottom: 8px; max-height: 88vh; overflow: auto; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <header>
@@ -173,7 +192,8 @@
     <strong>빠른 이동</strong>
     <a href="#summary" style="color:var(--teal);text-decoration:none">요약</a>
     <a href="#daily-plus-results" style="color:var(--teal);text-decoration:none">Bucky 전송</a>
-    <a href="#evolution" style="color:var(--teal);text-decoration:none">진화 분석</a>
+    <a href="#evolution" style="color:var(--teal);text-decoration:none">진화 그래프</a>
+    <a href="#analyze-report" style="color:var(--teal);text-decoration:none">분석 리포트</a>
     <a href="#next-priority" style="color:var(--teal);text-decoration:none">다음 실행</a>
     <a href="#session-history" style="color:var(--teal);text-decoration:none">세션 내역</a>
     <a href="#daily-plus-candidates" style="color:var(--teal);text-decoration:none">후보 카드</a>
@@ -251,7 +271,12 @@
         <div class="compare-card"><span>누적</span><strong>149</strong><p>16일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
-      <div class="trend-wrap">
+      <div class="chart-wrap">
+        <canvas id="evolutionChart" aria-label="일별 후보 수·구현 수 추이"></canvas>
+      </div>
+
+      <!-- legacy trend rows kept as data source; hidden visually -->
+      <div class="trend-wrap" style="display:none">
 
         <div class="trend-row">
           <div class="trend-date">2026-05-27</div>
@@ -415,8 +440,84 @@
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
-        <span class="approval">승인 필요</span>
         <span class="applied">구현 반영</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 진화 분석 리포트 ===== -->
+  <section id="analyze-report">
+    <div class="section-title">
+      <h2>시스템 진화 분석 리포트</h2>
+      <span class="muted">2026-05-27 기준일 → 2026-06-12 현재 · 16일 운영</span>
+    </div>
+    <div class="panel">
+      <div class="analyze-grid">
+        <div class="analyze-card">
+          <h3>종합 진화 점수</h3>
+          <div class="score-circle">A</div>
+          <div class="analyze-detail">
+            <strong>누적 149개</strong> 후보 수집 완료.<br>
+            평균 구현율 <strong>83%</strong>로 고성능 처리 유지.
+          </div>
+        </div>
+        <div class="analyze-card">
+          <h3>지표 변화</h3>
+          <div style="display:grid;gap:8px;margin-top:4px">
+            <div>
+              <div style="font-size:12px;color:var(--muted)">호환성</div>
+              <div class="analyze-metric up">+10 <span style="font-size:14px">pts</span></div>
+              <div class="analyze-detail">75 → 85 · 시스템 안정성 향상</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--muted)">효율성</div>
+              <div class="analyze-metric dn">-5 <span style="font-size:14px">pts</span></div>
+              <div class="analyze-detail">81 → 76 · 복잡도 증가 반영</div>
+            </div>
+          </div>
+        </div>
+        <div class="analyze-card">
+          <h3>운영 통계</h3>
+          <div style="display:grid;gap:6px;margin-top:4px;font-size:13px">
+            <div class="mini"><strong>수집 일수</strong><span>14 / 16일 활성</span></div>
+            <div class="mini"><strong>총 후보</strong><span>149개</span></div>
+            <div class="mini"><strong>총 구현</strong><span>124개</span></div>
+            <div class="mini"><strong>피크</strong><span>06-06 (12개 · 92%)</span></div>
+            <div class="mini"><strong>빈 일</strong><span>06-11 (수집 없음)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px">완료된 주요 개선</div>
+          <ul class="analyze-items">
+            <li><span>에이전트OS 3D Galaxy Graph 구축</span><span class="itag ok">완료</span></li>
+            <li><span>AgentBus Phase 1 — 7개 게이트 전부 통과</span><span class="itag ok">완료</span></li>
+            <li><span>Discord 4채널 체계 (chat/tasks/status/results)</span><span class="itag ok">완료</span></li>
+            <li><span>BuckyOS Memory Stack 4레이어 시각화</span><span class="itag ok">완료</span></li>
+            <li><span>음성 파이프라인 + STT 자동 Vault 로깅</span><span class="itag ok">완료</span></li>
+            <li><span>Knowledge Bridge Builder (16개 브리지)</span><span class="itag ok">완료</span></li>
+            <li><span>모바일 Tailscale PWA 접속 개통</span><span class="itag ok">완료</span></li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px">개선 필요 항목</div>
+          <ul class="analyze-items">
+            <li><span>Gemini 에이전트 레이어 활성화 (API키 필요)</span><span class="itag need">대기</span></li>
+            <li><span>Agent Dispatcher 빌링 해결 (Gate 3)</span><span class="itag need">대기</span></li>
+            <li><span>Cloudflare Pages+Access 이전 (집 PC 복귀 후)</span><span class="itag need">대기</span></li>
+            <li><span>GitHub Actions Daily Plus 자동화 파이프라인</span><span class="itag need">대기</span></li>
+            <li><span>효율성 지표 회복 (81 수준 목표)</span><span class="itag risk">모니터링</span></li>
+            <li><span>Goal Mode / Mission Control 패널 추가</span><span class="itag need">예정</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;line-height:1.6">
+        <strong>진화 방향 브리핑</strong> — 16일간 시스템 호환성이 10pt 향상됐고 구현율 83% 이상을 안정적으로 유지했습니다.
+        효율성 5pt 하락은 기능 복잡도 증가에 따른 자연스러운 현상입니다. 다음 최우선 과제는 Gemini 에이전트 활성화와
+        Agent Dispatcher 빌링 해결로, 이 두 항목이 해결되면 완전 자동화 파이프라인이 가동됩니다.
       </div>
     </div>
   </section>
@@ -1015,6 +1116,114 @@
       }
     });
   }
+})();
+</script>
+<script>
+(function () {
+  var canvas = document.getElementById("evolutionChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  var labels = ["05-27","05-28","05-29","05-30","05-31","06-01","06-02","06-03","06-04","06-05","06-06","06-07","06-09","06-10","06-11","06-12"];
+  var candidates = [8, 12, 11, 11, 11, 12, 4, 9, 11, 12, 12, 11, 9, 12, 0, 4];
+  var applied    = [6, 10, 10,  8, 10, 10, 4, 9,  8, 10, 11,  9, 9, 10, 0, 0];
+
+  var cumulative = [];
+  var sum = 0;
+  candidates.forEach(function (v) { sum += v; cumulative.push(sum); });
+
+  new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "누적 후보",
+          data: cumulative,
+          yAxisID: "yRight",
+          borderColor: "rgba(99,102,241,0.55)",
+          backgroundColor: "rgba(99,102,241,0.07)",
+          borderDash: [4, 3],
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(99,102,241,0.7)",
+          fill: false,
+          tension: 0.35,
+          order: 3
+        },
+        {
+          label: "전체 후보",
+          data: candidates,
+          yAxisID: "yLeft",
+          borderColor: "#2563eb",
+          backgroundColor: "rgba(37,99,235,0.10)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: "#2563eb",
+          fill: true,
+          tension: 0.35,
+          order: 1
+        },
+        {
+          label: "구현 반영",
+          data: applied,
+          yAxisID: "yLeft",
+          borderColor: "#15803d",
+          backgroundColor: "rgba(21,128,61,0.12)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: "#15803d",
+          fill: true,
+          tension: 0.35,
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 12, font: { size: 12 }, color: "#475569" }
+        },
+        tooltip: {
+          callbacks: {
+            afterBody: function (items) {
+              var idx = items[0] && items[0].dataIndex;
+              if (idx === undefined) return "";
+              var c = candidates[idx], a = applied[idx];
+              if (!c) return "수집 없음";
+              return "구현율: " + Math.round(a / c * 100) + "%";
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { size: 11 }, color: "#94a3b8", maxRotation: 45 },
+          grid: { color: "rgba(0,0,0,0.04)" }
+        },
+        yLeft: {
+          type: "linear",
+          position: "left",
+          min: 0,
+          max: 14,
+          ticks: { stepSize: 2, font: { size: 11 }, color: "#94a3b8" },
+          grid: { color: "rgba(0,0,0,0.05)" },
+          title: { display: true, text: "건수", font: { size: 11 }, color: "#94a3b8" }
+        },
+        yRight: {
+          type: "linear",
+          position: "right",
+          min: 0,
+          max: 160,
+          ticks: { stepSize: 20, font: { size: 11 }, color: "rgba(99,102,241,0.7)" },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: "누적", font: { size: 11 }, color: "rgba(99,102,241,0.7)" }
+        }
+      }
+    }
+  });
 })();
 </script>
 

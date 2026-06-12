@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-11",
+    "last_updated": "2026-06-12",
     "last_completed": "CL-041"
   },
   "tasks": [
@@ -591,6 +591,89 @@
       "added": "2026-06-11",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-046",
+      "title": "봇 재시작 (변경사항 적용을 위해 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-047",
+      "title": "봇 서버 재시작 (사용자 수행 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-048",
+      "title": "봇 서버 재시작 필요 (사용자 수행)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-049",
+      "title": "서버는 사용자가 재시작해야 합니다 (`start_bucky_server.bat` 또는 Discord에서 재시작 명령).",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "auto-wishket-20260612",
+      "title": "Wishket 공고 스캔 및 제안서 자동화 파이프라인 개선",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "freelance",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "wishket",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "auto-bucky-os-20260612",
+      "title": "BuckyOS 대시보드 성능 및 안정성 개선",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "infrastructure",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "bucky-os",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "auto-daily-plus-20260612",
+      "title": "Daily Plus 큐레이터 효율 개선 및 자동화",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "productivity",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "daily-plus",
+      "created_at": "2026-06-12T10:12:26"
     }
   ]
 }

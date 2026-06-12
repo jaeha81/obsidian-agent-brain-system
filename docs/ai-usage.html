@@ -58,11 +58,28 @@
   dl div { display:grid; grid-template-columns:120px 1fr; gap:12px; }
   dt { font-weight:800; color:var(--ink); }
   dd { margin:0; }
+  /* ── Live alert banner ── */
+  #pressure-banner { display:none; position:sticky; top:0; z-index:100; padding:12px clamp(14px,3vw,42px); font-size:14px; font-weight:700; border-bottom:2px solid; }
+  #pressure-banner.critical { background:#fef2f2; color:#991b1b; border-color:#f87171; }
+  #pressure-banner.high { background:#fff7ed; color:#92400e; border-color:#fb923c; }
+  #pressure-banner.moderate { background:#fefce8; color:#713f12; border-color:#fcd34d; }
+  #live-status { font-size:12px; font-weight:400; margin-left:12px; opacity:.8; }
   .official-quota { border-top:1px solid var(--line); padding-top:12px; }
   .quota-title { margin:0 0 10px; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
   .quota-dl { display:grid; gap:6px; margin:0; }
   .quota-dl div { display:grid; grid-template-columns:130px 1fr; gap:8px; }
   .uncollected { color:var(--amber) !important; font-style:italic; }
+  /* ── Total spend & model-stats ── */
+  .spend-grid { display:grid; grid-template-columns:repeat(3,minmax(200px,1fr)); gap:14px; margin-bottom:14px; }
+  .spend-card { border:1px solid var(--line); border-radius:8px; padding:16px; background:#fbfdff; display:grid; gap:6px; }
+  .spend-card .amount { font-size:26px; font-weight:800; color:var(--ink); }
+  .spend-card .label { font-size:12px; color:var(--muted); }
+  .spend-total { border:2px solid var(--blue); background:#eff6ff; }
+  .spend-total .amount { color:var(--blue); }
+  .saving-grid { display:grid; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:12px; }
+  .saving-card { border:1px solid var(--line); border-radius:8px; padding:14px; background:#f0fdf4; }
+  .saving-card strong { display:block; font-size:16px; color:var(--green); }
+  .saving-card span { font-size:12px; color:var(--muted); }
   .ops-grid { display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:12px; }
   .ops-grid div { border:1px solid var(--line); border-radius:8px; background:#fbfdff; padding:14px; }
   .ops-grid strong { display:block; margin-bottom:8px; }
@@ -87,6 +104,7 @@
 </style>
 </head>
 <body>
+<div id="pressure-banner" role="alert"></div>
 <header>
   <nav>
     <a href="index.html">레포대시보드</a>
@@ -102,6 +120,8 @@
   <div class="gen-stamp">
     <span class="gen-label">페이지 생성 시각</span>
     <time class="gen-time">2026-06-12 08:00:36 KST</time>
+    <span class="gen-label" style="margin-left:auto">실시간 압력</span>
+    <span id="live-pressure-badge" style="font-size:14px;font-weight:700;color:#94a3b8">로딩 중…</span>
   </div>
 </header>
 <main>
@@ -232,6 +252,27 @@
       <div><strong>한도 fallback</strong><span>막히면 핸드오프를 저장하고 작업을 큐에 넣은 뒤 에이전트를 전환해 다음 리셋 창 이후 재개합니다.</span></div>
     </div>
   </section>
+  <!-- Phase 2-2: 총 AI 구독 비용 통합 뷰 -->
+  <section class="panel" id="section-spend-summary">
+    <h2>총 AI 구독 비용 <small id="spend-updated" style="font-size:12px;font-weight:400;color:var(--muted)"></small></h2>
+    <div class="spend-grid" id="spend-cards">
+      <div class="spend-card"><div class="amount">—</div><div class="label">로딩 중…</div></div>
+    </div>
+    <div id="spend-note" style="font-size:13px;color:var(--muted);margin-top:8px"></div>
+  </section>
+
+  <!-- Phase 3-2: 모델 비용 최적화 통계 -->
+  <section class="panel" id="section-model-stats">
+    <h2>모델 비용 최적화 현황</h2>
+    <div class="spend-grid" id="model-cost-summary">
+      <div class="spend-card"><div class="amount" id="stat-total">—</div><div class="label">추정 누적 비용</div></div>
+      <div class="spend-card spend-total"><div class="amount" id="stat-saving">—</div><div class="label">Haiku 라우팅 절감 가능</div></div>
+      <div class="spend-card"><div class="amount" id="stat-optimized">—</div><div class="label">최적화 후 예상 비용</div></div>
+    </div>
+    <div class="saving-grid" id="saving-cards" style="margin-top:14px"></div>
+    <p class="note" id="model-recommendation" style="margin-top:12px"></p>
+  </section>
+
   <section class="panel">
     <h2>일별 사용량</h2>
     <table>
@@ -251,5 +292,116 @@
   생성: 2026-06-12 08:00:36 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 <script src="/auth-ui.js"></script>
+<script>
+(function(){
+  const PRESSURE_LABELS = { critical: '🔴 한도 위험 — 호출 일시 중단 권고', high: '🟠 한도 압력 높음 — 속도 조절 필요', moderate: '🟡 한도 주의 — 사용량 점검', ok: '🟢 정상' };
+  const BADGE_COLORS = { critical: '#ef4444', high: '#f97316', moderate: '#eab308', ok: '#22c55e' };
+
+  function updatePressure(data) {
+    const pressure = data.pressure || 'ok';
+    const note = data.pressure_note || '';
+    const banner = document.getElementById('pressure-banner');
+    const badge = document.getElementById('live-pressure-badge');
+
+    if (badge) {
+      badge.textContent = PRESSURE_LABELS[pressure] || pressure;
+      badge.style.color = BADGE_COLORS[pressure] || '#94a3b8';
+    }
+
+    if (pressure === 'critical' || pressure === 'high' || pressure === 'moderate') {
+      banner.className = pressure;
+      const ts = data.latest_limit_event ? ` (최근 이벤트: ${data.latest_limit_event.timestamp || '—'} ${data.latest_limit_event.model || ''})` : '';
+      banner.innerHTML = `${PRESSURE_LABELS[pressure]}<span id="live-status">${note}${ts}</span>`;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  function fetchPressure() {
+    fetch('/agent-os/spend/remaining', { credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) updatePressure(data); })
+      .catch(() => {});
+  }
+
+  fetchPressure();
+  setInterval(fetchPressure, 60000);
+})();
+
+/* ── Phase 2-2: 총 AI 구독 비용 ── */
+(function(){
+  function krwFmt(n){ return n.toLocaleString('ko-KR') + '원'; }
+  function usdFmt(n){ return '$' + n.toFixed(0); }
+
+  function renderSpend(data) {
+    const subs = data.subscriptions || [];
+    const cards = document.getElementById('spend-cards');
+    if (!cards) return;
+
+    let html = '';
+    subs.forEach(s => {
+      const active = s.status === 'active';
+      const dim = active ? '' : 'opacity:.45;';
+      html += `<div class="spend-card" style="${dim}">
+        <div style="font-size:18px">${s.icon || '💳'} ${s.provider}</div>
+        <div class="amount">${usdFmt(s.monthly_usd)}<span style="font-size:13px;font-weight:400;color:var(--muted)">/월</span></div>
+        <div class="label">${s.plan} · ${active ? '활성' : '비활성'} · ≈ ${krwFmt(s.currency_krw || 0)}</div>
+      </div>`;
+    });
+
+    html += `<div class="spend-card spend-total">
+      <div class="label">월 총 구독</div>
+      <div class="amount">${usdFmt(data.total_monthly_usd || 0)}</div>
+      <div class="label">≈ ${krwFmt(data.total_monthly_krw || 0)}</div>
+    </div>`;
+
+    cards.innerHTML = html;
+
+    const upd = document.getElementById('spend-updated');
+    if (upd) upd.textContent = '· ' + (data.updated_at || '').slice(0, 16);
+    const note = document.getElementById('spend-note');
+    if (note && data.note) note.textContent = '📝 ' + data.note;
+  }
+
+  fetch('/agent-os/spend/summary', { credentials: 'same-origin' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { if (data) renderSpend(data); })
+    .catch(() => {});
+})();
+
+/* ── Phase 3-2: 모델 비용 최적화 ── */
+(function(){
+  function renderModelStats(data) {
+    const cost = data.cost_estimate || {};
+    const el = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+    el('stat-total',    '$' + (cost.total_usd || 0).toFixed(2));
+    el('stat-saving',   '$' + (cost.saving_potential_usd || 0).toFixed(2));
+    el('stat-optimized','$' + (cost.optimized_usd || 0).toFixed(2));
+
+    const cards = document.getElementById('saving-cards');
+    if (cards) {
+      const top = data.top_savings || [];
+      if (top.length === 0) {
+        cards.innerHTML = '<p style="color:var(--muted);font-size:13px">CLI 로그 데이터 없음 (cli-tools.jsonl 축적 후 표시)</p>';
+      } else {
+        cards.innerHTML = top.map(s =>
+          `<div class="saving-card">
+            <strong>$${s.potential_saving_usd.toFixed(2)} 절감 가능</strong>
+            <span>${s.model} · ${s.calls}회 → Haiku 전환 시</span>
+          </div>`
+        ).join('');
+      }
+    }
+    const rec = document.getElementById('model-recommendation');
+    if (rec) rec.textContent = data.recommendation || '';
+  }
+
+  fetch('/agent-os/model-stats', { credentials: 'same-origin' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { if (data) renderModelStats(data); })
+    .catch(() => {});
+})();
+</script>
 </body>
 </html>

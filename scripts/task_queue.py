@@ -22,16 +22,27 @@ DB_PATH = VAULT / "10_AgentBus" / "tasks" / "bucky_tasks.db"
 _lock = threading.Lock()
 _conn: Optional[sqlite3.Connection] = None
 
-# ── 라우팅 키워드 ──────────────────────────────────────────────────────────────
+# ── 라우팅 키워드 (v2: Codex=2번구현자, Claude=1번구현자) ─────────────────────
+# Codex: 백엔드·스크립트·API·테스트·자동화·DB·버그수정·리팩토링
 _CODEX_KEYWORDS = (
-    "만들어", "구현해", "구현", "코드 작성", "스크립트 작성", "테스트 작성", "리팩토링",
-    "문서화", "docstring", "implement", "create", "build", "write code", "test",
-    "refactor", "docs", "scaffold", "generate", "수정해", "추가해",
+    "백엔드", "backend", "서버", "server", "api", "endpoint",
+    "스크립트", "script", "스크립트 작성", "자동화", "automation", "배치", "batch", "크론", "cron",
+    "파이썬", "python", "shell",
+    "데이터베이스", "database", "db", "쿼리", "query", "마이그레이션", "migration",
+    "테스트", "test", "pytest", "테스트 작성", "단위테스트", "unit test",
+    "버그", "bug", "오류", "error", "디버깅", "debug", "버그수정", "fix", "수정해",
+    "리팩토링", "refactor",
+    "데이터 처리", "파싱", "parsing", "크롤링", "crawl",
+    "검수", "코드 리뷰", "code review",
 )
+# Claude Code: 프론트엔드·UI·복잡한 구현·아키텍처·전략
 _CLAUDE_KEYWORDS = (
-    "왜", "분석", "설계", "보안 검토", "아키텍처", "전략", "prd", "리뷰", "검토",
-    "why", "analyze", "design", "security", "architecture", "strategy", "review",
-    "explain", "research", "조사", "설명해",
+    "프론트엔드", "frontend", "html", "css", "javascript", "js", "react", "vue",
+    "ui", "ux", "디자인", "레이아웃", "layout", "컴포넌트", "component",
+    "페이지", "page", "대시보드", "dashboard", "차트", "chart",
+    "구현", "구현해", "만들어", "개발해", "implement", "create", "build", "추가해",
+    "아키텍처", "architecture", "설계", "시스템", "전략", "strategy", "prd",
+    "분석", "왜", "explain", "why", "조사",
 )
 _CHRIS_KEYWORDS = (
     "chris", "크리스", "graphify", "그래피파이", "그래프파이", "지식 그래프",
@@ -82,7 +93,7 @@ def _next_id() -> str:
 
 
 def route(body: str, force_agent: Optional[str] = None) -> str:
-    """키워드 기반 자동 라우팅 → codex / claude / bucky"""
+    """키워드 기반 자동 라우팅 → codex(2번구현자) / claude(1번구현자) / bucky"""
     if force_agent and force_agent in ("codex", "claude", "bucky", "chris"):
         return force_agent
     b = body.lower()

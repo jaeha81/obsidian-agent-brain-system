@@ -8,12 +8,14 @@ Register in bucky_chat_server.py:
 
 from __future__ import annotations
 
+import io
 import json
 import sqlite3
+import threading
 import time
 from pathlib import Path
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request, stream_with_context
 
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = ROOT / "ObsidianVault"
@@ -24,6 +26,7 @@ GRAPH_REPORT = GRAPHIFY_OUT / "GRAPH_REPORT.md"
 AGENTBUS_DIR = VAULT / "10_AgentBus"
 MEMORY_DB = VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
 SKILLS_DIR = ROOT / ".claude" / "skills"
+AGENTS_REGISTRY = ROOT / "data" / "agents_registry.json"
 
 os_bp = Blueprint("os", __name__, url_prefix="/os")
 
@@ -263,3 +266,199 @@ def get_session_cost():
         "estimated_saved_usd": estimated_saved,
         "savings_per_session": 0.15,
     })
+
+
+# ─── Screen Control ──────────────────────────────────────────────
+_screen_lock = threading.Lock()
+
+
+def _capture_jpeg(quality: int = 60, scale: float = 0.5) -> bytes:
+    import mss
+    from PIL import Image
+
+    with _screen_lock:
+        with mss.MSS() as sct:
+            monitor = sct.monitors[1]
+            shot = sct.grab(monitor)
+            img = Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
+    if scale != 1.0:
+        w = max(1, int(img.width * scale))
+        h = max(1, int(img.height * scale))
+        img = img.resize((w, h), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=quality, optimize=True)
+    return buf.getvalue()
+
+
+@os_bp.get("/screen/info")
+def screen_info():
+    import mss
+
+    with mss.MSS() as sct:
+        m = sct.monitors[1]
+    return jsonify({"width": m["width"], "height": m["height"], "left": m["left"], "top": m["top"]})
+
+
+@os_bp.get("/screen/snapshot")
+def screen_snapshot():
+    try:
+        quality = max(10, min(95, int(request.args.get("quality", 60))))
+        scale = max(0.1, min(1.0, float(request.args.get("scale", 0.5))))
+        jpeg = _capture_jpeg(quality, scale)
+        resp = Response(jpeg, mimetype="image/jpeg")
+        resp.headers["Cache-Control"] = "no-store"
+        return resp
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@os_bp.get("/screen/stream")
+def screen_stream():
+    try:
+        quality = max(10, min(85, int(request.args.get("quality", 50))))
+        scale = max(0.1, min(1.0, float(request.args.get("scale", 0.5))))
+        fps = max(1, min(30, float(request.args.get("fps", 10))))
+        interval = 1.0 / fps
+
+        def _gen():
+            while True:
+                try:
+                    jpeg = _capture_jpeg(quality, scale)
+                    yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n"
+                    time.sleep(interval)
+                except GeneratorExit:
+                    break
+                except Exception:
+                    break
+
+        return Response(
+            stream_with_context(_gen()),
+            mimetype="multipart/x-mixed-replace; boundary=frame",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@os_bp.get("/agents")
+def get_agents():
+    try:
+        data = json.loads(AGENTS_REGISTRY.read_text(encoding="utf-8"))
+    except Exception:
+        data = {"agents": []}
+    agents = data.get("agents", [])
+    active = sum(1 for a in agents if a.get("status") == "active")
+    return jsonify({"agents": agents, "total": len(agents), "active": active})
+
+
+@os_bp.get("/agents/<agent_id>")
+def get_agent(agent_id: str):
+    try:
+        data = json.loads(AGENTS_REGISTRY.read_text(encoding="utf-8"))
+    except Exception:
+        return jsonify({"error": "registry not found"}), 404
+    for a in data.get("agents", []):
+        if a.get("id") == agent_id:
+            return jsonify(a)
+    return jsonify({"error": "agent not found"}), 404
+
+
+@os_bp.post("/agents/<agent_id>/call")
+def call_agent(agent_id: str):
+    body = request.get_json(force=True) or {}
+    task_text = str(body.get("task", "")).strip()
+    if not task_text:
+        return jsonify({"error": "task is required"}), 400
+
+    try:
+        data = json.loads(AGENTS_REGISTRY.read_text(encoding="utf-8"))
+    except Exception:
+        return jsonify({"error": "registry not found"}), 404
+
+    agent = next((a for a in data.get("agents", []) if a.get("id") == agent_id), None)
+    if not agent:
+        return jsonify({"error": "agent not found"}), 404
+
+    # Update last_called timestamp
+    for a in data["agents"]:
+        if a.get("id") == agent_id:
+            a["last_called"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            a["status"] = "active"
+            break
+    try:
+        AGENTS_REGISTRY.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+    # Dispatch via AgentBus inbox
+    msg_id = f"{time.strftime('%Y%m%d_%H%M%S')}_{agent_id}"
+    inbox_msg = {
+        "id": msg_id,
+        "agent": agent_id,
+        "agent_name": agent.get("name", agent_id),
+        "model": agent.get("model", "claude"),
+        "domain": agent.get("domain", ""),
+        "task": task_text,
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "source": "agent-room",
+        "status": "pending",
+    }
+    try:
+        inbox_dir = AGENTBUS_DIR / "inbox"
+        inbox_dir.mkdir(parents=True, exist_ok=True)
+        inbox_file = inbox_dir / f"{msg_id}_agent_room.json"
+        inbox_file.write_text(json.dumps(inbox_msg, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as e:
+        return jsonify({"error": f"dispatch failed: {e}"}), 500
+
+    return jsonify({"ok": True, "id": msg_id, "agent": agent_id, "status": "dispatched"})
+
+
+@os_bp.post("/screen/input")
+def screen_input():
+    import pyautogui
+
+    pyautogui.FAILSAFE = False
+
+    data = request.get_json(force=True) or {}
+    ev = data.get("type", "")
+    try:
+        if ev == "move":
+            pyautogui.moveTo(int(data["x"]), int(data["y"]), duration=0)
+        elif ev == "click":
+            btn = data.get("button", "left")
+            x, y = int(data["x"]), int(data["y"])
+            if data.get("double"):
+                pyautogui.doubleClick(x, y, button=btn)
+            else:
+                pyautogui.click(x, y, button=btn)
+        elif ev == "mousedown":
+            pyautogui.mouseDown(int(data["x"]), int(data["y"]), button=data.get("button", "left"))
+        elif ev == "mouseup":
+            pyautogui.mouseUp(int(data["x"]), int(data["y"]), button=data.get("button", "left"))
+        elif ev == "scroll":
+            pyautogui.moveTo(int(data["x"]), int(data["y"]), duration=0)
+            dy = int(data.get("dy", 0))
+            dx = int(data.get("dx", 0))
+            if dy:
+                pyautogui.scroll(dy)
+            if dx:
+                pyautogui.hscroll(dx)
+        elif ev == "key":
+            key = str(data.get("key", ""))
+            if key:
+                pyautogui.press(key)
+        elif ev == "type":
+            text = str(data.get("text", ""))
+            if text:
+                pyautogui.typewrite(text, interval=0.03)
+        elif ev == "hotkey":
+            keys = data.get("keys", [])
+            if keys:
+                pyautogui.hotkey(*keys)
+        else:
+            return jsonify({"error": f"unknown type: {ev}"}), 400
+
+        return jsonify({"ok": True, "type": ev})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

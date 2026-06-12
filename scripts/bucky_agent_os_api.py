@@ -29,6 +29,7 @@ VAULT = ROOT / "ObsidianVault"
 SYSTEM_DIR = VAULT / "00_System"
 CONTEXT_PACKS_DIR = VAULT / "06_Context_Packs"
 CHECKLIST_JSON = ROOT / "data" / "user_checklist.json"
+AGENTS_REGISTRY = ROOT / "data" / "agents_registry.json"
 SKILL_SUGGESTED = ROOT / ".claude" / "skills" / "suggested"
 SKILL_INDEX = ROOT / "skills" / "skill_index.json"
 HANDOFF_LOG = SYSTEM_DIR / "HANDOFF_LOG.md"
@@ -653,6 +654,547 @@ def set_spend_remaining():
     return jsonify({"status": "saved", "data": payload}), 200
 
 
+@agent_os_bp.get("/agents")
+def agents_room():
+    """Agent Room — all registered agents with live status and callable metadata."""
+    # Live status checks
+    bot_alive = False
+    pid_lock = ROOT / "scripts" / "bucky_bot.pid"
+    if pid_lock.exists():
+        try:
+            int(pid_lock.read_text().strip())
+            bot_alive = True
+        except Exception:
+            pass
+
+    wishket_ok = False
+    if WISHKET_LOOP.exists():
+        wishket_ok = _file_age_min(WISHKET_LOOP) < 60
+
+    # System/operational agents with live status
+    system_agents = [
+        {
+            "id": "bucky",
+            "name": "Bucky",
+            "emoji": "🧠",
+            "role": "오케스트레이터",
+            "description": "중앙 조율, Context Pack 생성, 작업 분류 및 라우팅",
+            "domain": ["전략", "브리핑", "라우팅", "작업 분해"],
+            "model": "claude-sonnet-4-6",
+            "status": "online" if bot_alive else "offline",
+            "callable": True,
+            "call_endpoint": "/chat",
+        },
+        {
+            "id": "claude_code",
+            "name": "Claude Code",
+            "emoji": "⚡",
+            "role": "1번 구현자",
+            "description": "프론트엔드 / UI / HTML / CSS / 아키텍처 / 복잡한 구현",
+            "domain": ["프론트엔드", "UI", "HTML", "CSS"],
+            "model": "claude-sonnet-4-6",
+            "status": "online",
+            "callable": True,
+            "call_endpoint": "/intake",
+        },
+        {
+            "id": "codex",
+            "name": "Codex",
+            "emoji": "🔧",
+            "role": "2번 구현자",
+            "description": "백엔드 / 스크립트 / API / 자동화 / 테스트 / 버그 수정",
+            "domain": ["백엔드", "스크립트", "API", "자동화"],
+            "model": "claude-sonnet-4-6",
+            "status": "standby",
+            "callable": True,
+            "call_endpoint": "/intake",
+        },
+        {
+            "id": "wishket_agent",
+            "name": "Wishket Agent",
+            "emoji": "💼",
+            "role": "수주 자동화",
+            "description": "Wishket 프리랜서 프로젝트 탐색, 제안서 생성, 자동 매칭",
+            "domain": ["Wishket", "프리랜서", "제안서"],
+            "model": "claude-sonnet-4-6",
+            "status": "active" if wishket_ok else "idle",
+            "callable": True,
+            "call_endpoint": "/intake",
+        },
+    ]
+
+    # Domain agents from registry JSON
+    domain_agents: list[dict] = []
+    try:
+        reg_data = json.loads(AGENTS_REGISTRY.read_text(encoding="utf-8"))
+        for a in reg_data.get("agents", []):
+            domain_agents.append({
+                "id":            a.get("id", ""),
+                "name":          a.get("name", ""),
+                "emoji":         a.get("icon", "🤖"),
+                "role":          a.get("domain", ""),
+                "description":   a.get("description", ""),
+                "domain":        a.get("keywords", [])[:4],
+                "model":         a.get("model", "claude"),
+                "status":        a.get("status", "idle"),
+                "callable":      True,
+                "call_endpoint": f"/os/agents/{a.get('id', '')}/call",
+                "last_called":   a.get("last_called"),
+            })
+    except Exception:
+        pass
+
+    registry = system_agents + domain_agents
+
+    online = sum(1 for a in registry if a["status"] in ("online", "active"))
+    standby = sum(1 for a in registry if a["status"] == "standby")
+    pending = sum(1 for a in registry if a["status"] == "pending")
+    offline = sum(1 for a in registry if a["status"] == "offline")
+
+    return jsonify({
+        "agents": registry,
+        "summary": {
+            "total": len(registry),
+            "online": online,
+            "standby": standby,
+            "pending": pending,
+            "offline": offline,
+        },
+        "checked_at": _ts_now(),
+    })
+
+
+@agent_os_bp.get("/repo-priority")
+def repo_priority():
+    """레포지토리 수익성 우선순위 — 정의된 레포별 점수 반환.
+
+    점수 기준 (100점):
+      revenue_type (0~40): direct=40, potential=20, operational=5
+      open_tasks   (0~20): 태스크 큐 내 해당 도메인 pending 수 비례
+      last_activity(0~20): 최근 7일=20, 30일=10, 90일=5, 그 이상=0
+      deploy_status(0~10): deployed=10, staging=5, local=0
+      user_priority(0~10): BUCKY_CONTEXT 우선순위 반영 (수동)
+    """
+    import time as _time
+    now = _time.time()
+    SEVEN_DAYS = 7 * 86400
+    THIRTY_DAYS = 30 * 86400
+    NINETY_DAYS = 90 * 86400
+
+    REPOS = [
+        {
+            "id": "wishket",
+            "name": "Wishket 자동화",
+            "description": "Wishket 공고 스캔·제안서 자동생성·수주 추적",
+            "revenue_type": "direct",
+            "deploy_status": "local",
+            "user_priority": 10,
+            "path": ROOT / "scripts" / "bucky_wishket_agent.py",
+            "auto_ok": True,
+            "domain": "freelance",
+        },
+        {
+            "id": "sniper",
+            "name": "스나이퍼 구매대행 플랫폼",
+            "description": "iHerb/Amazon 소싱 → 마진율 → 통관 리스크 스코어",
+            "revenue_type": "direct",
+            "deploy_status": "deployed",
+            "user_priority": 9,
+            "path": ROOT / "docs" / "loashop.html",
+            "auto_ok": False,
+            "domain": "ecommerce",
+        },
+        {
+            "id": "bucky-os",
+            "name": "Bucky Agent OS",
+            "description": "에이전트 운영체제 · 대시보드 · Discord 봇",
+            "revenue_type": "operational",
+            "deploy_status": "deployed",
+            "user_priority": 8,
+            "path": ROOT / "scripts" / "bucky_chat_server.py",
+            "auto_ok": True,
+            "domain": "infrastructure",
+        },
+        {
+            "id": "daily-plus",
+            "name": "Daily Plus 큐레이터",
+            "description": "매일 진화 후보 수집·적용·리포트",
+            "revenue_type": "operational",
+            "deploy_status": "deployed",
+            "user_priority": 7,
+            "path": ROOT / "scripts" / "generate_daily_plus_dashboard.py",
+            "auto_ok": True,
+            "domain": "productivity",
+        },
+        {
+            "id": "content-studio",
+            "name": "ProSuTech 콘텐츠",
+            "description": "유튜브·블로그·SNS 자동 원고 생성",
+            "revenue_type": "potential",
+            "deploy_status": "local",
+            "user_priority": 6,
+            "path": None,
+            "auto_ok": False,
+            "domain": "content",
+        },
+    ]
+
+    REVENUE_SCORE = {"direct": 40, "potential": 20, "operational": 5}
+    DEPLOY_SCORE = {"deployed": 10, "staging": 5, "local": 0}
+
+    # pending tasks per domain from checklist
+    domain_pending: dict[str, int] = {}
+    try:
+        data = json.loads(CHECKLIST_JSON.read_text(encoding="utf-8"))
+        for t in data.get("tasks", []):
+            if t.get("status") not in ("done", "completed", "skipped"):
+                tags = t.get("tags", []) or []
+                for tag in tags:
+                    domain_pending[tag] = domain_pending.get(tag, 0) + 1
+    except Exception:
+        pass
+
+    results = []
+    for repo in REPOS:
+        # last activity: mtime of path file
+        activity_score = 0
+        p = repo["path"]
+        if p and Path(p).exists():
+            try:
+                age = now - Path(p).stat().st_mtime
+                if age <= SEVEN_DAYS:
+                    activity_score = 20
+                elif age <= THIRTY_DAYS:
+                    activity_score = 10
+                elif age <= NINETY_DAYS:
+                    activity_score = 5
+            except Exception:
+                pass
+
+        # open tasks score (max 20, pro-rata from 5 tasks)
+        pending_count = domain_pending.get(repo["domain"], 0)
+        task_score = min(20, pending_count * 4)
+
+        score = (
+            REVENUE_SCORE.get(repo["revenue_type"], 0)
+            + task_score
+            + activity_score
+            + DEPLOY_SCORE.get(repo["deploy_status"], 0)
+            + repo["user_priority"]
+        )
+
+        results.append({
+            "id": repo["id"],
+            "name": repo["name"],
+            "description": repo["description"],
+            "score": score,
+            "revenue_type": repo["revenue_type"],
+            "deploy_status": repo["deploy_status"],
+            "open_tasks": pending_count,
+            "auto_ok": repo["auto_ok"],
+            "domain": repo["domain"],
+        })
+
+    results.sort(key=lambda r: r["score"], reverse=True)
+    return jsonify({
+        "repos": results,
+        "top": results[0] if results else None,
+        "auto_eligible": [r for r in results if r["auto_ok"]],
+        "checked_at": _ts_now(),
+    })
+
+
+@agent_os_bp.post("/repo-priority/queue")
+def repo_priority_queue():
+    """Phase 2-1: auto_ok=true 레포를 태스크 큐에 자동 등록.
+
+    기존 태스크 중복 체크 후 신규만 추가.
+    Returns: queued (추가된 수), skipped (중복), tasks (추가된 태스크 목록)
+    """
+    # Load repo-priority to get auto_ok repos
+    import time as _time
+    now = _time.time()
+    SEVEN_DAYS = 7 * 86400
+    THIRTY_DAYS = 30 * 86400
+    NINETY_DAYS = 90 * 86400
+
+    REPOS = [
+        {"id": "wishket", "name": "Wishket 자동화", "auto_ok": True, "domain": "freelance",
+         "revenue_type": "direct", "deploy_status": "local", "user_priority": 10,
+         "path": ROOT / "scripts" / "bucky_wishket_agent.py",
+         "auto_task": "Wishket 공고 스캔 및 제안서 자동화 파이프라인 개선"},
+        {"id": "bucky-os", "name": "Bucky Agent OS", "auto_ok": True, "domain": "infrastructure",
+         "revenue_type": "operational", "deploy_status": "deployed", "user_priority": 8,
+         "path": ROOT / "scripts" / "bucky_chat_server.py",
+         "auto_task": "BuckyOS 대시보드 성능 및 안정성 개선"},
+        {"id": "daily-plus", "name": "Daily Plus", "auto_ok": True, "domain": "productivity",
+         "revenue_type": "operational", "deploy_status": "deployed", "user_priority": 7,
+         "path": ROOT / "scripts" / "generate_daily_plus_dashboard.py",
+         "auto_task": "Daily Plus 큐레이터 효율 개선 및 자동화"},
+    ]
+
+    try:
+        checklist = json.loads(CHECKLIST_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        checklist = {"meta": {}, "tasks": []}
+
+    existing_ids = {t.get("id", "") for t in checklist.get("tasks", [])}
+    queued = []
+    skipped = []
+
+    for repo in REPOS:
+        task_id = f"auto-{repo['id']}-{_time.strftime('%Y%m%d')}"
+        if task_id in existing_ids:
+            skipped.append(repo["id"])
+            continue
+        new_task = {
+            "id": task_id,
+            "title": repo["auto_task"],
+            "priority": "P2",
+            "status": "pending",
+            "tags": [repo["domain"], "auto-generated"],
+            "source": "repo-priority-auto",
+            "repo": repo["id"],
+            "created_at": _ts_now(),
+        }
+        checklist.setdefault("tasks", []).append(new_task)
+        queued.append(new_task)
+
+    if queued:
+        CHECKLIST_JSON.write_text(json.dumps(checklist, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return jsonify({"queued": len(queued), "skipped": len(skipped), "tasks": queued})
+
+
+@agent_os_bp.post("/agents/call")
+def agents_call():
+    """Phase 2-3: 에이전트 호출 기록 — last_called + status 갱신.
+
+    POST body: {"agent_id": "...", "task": "...", "caller": "user"}
+    agents_registry.json의 last_called + call_count 업데이트.
+    """
+    data = request.get_json(silent=True) or {}
+    agent_id = data.get("agent_id", "")
+    task = data.get("task", "")
+    if not agent_id:
+        return jsonify({"error": "agent_id required"}), 400
+
+    try:
+        reg = json.loads(AGENTS_REGISTRY.read_text(encoding="utf-8"))
+    except Exception:
+        reg = {"agents": []}
+
+    updated = False
+    for a in reg.get("agents", []):
+        if a.get("id") == agent_id:
+            a["last_called"] = _ts_now()
+            a["call_count"] = a.get("call_count", 0) + 1
+            a["status"] = "active"
+            a["last_task"] = task[:120] if task else ""
+            updated = True
+            break
+
+    if not updated:
+        reg.setdefault("agents", []).append({
+            "id": agent_id, "name": agent_id, "status": "active",
+            "last_called": _ts_now(), "call_count": 1, "last_task": task[:120],
+        })
+
+    AGENTS_REGISTRY.write_text(json.dumps(reg, ensure_ascii=False, indent=2), encoding="utf-8")
+    return jsonify({"ok": True, "agent_id": agent_id, "recorded_at": _ts_now()})
+
+
+@agent_os_bp.get("/spend/summary")
+def spend_summary():
+    """Phase 2-2: 총 AI 구독 비용 통합 뷰.
+
+    Claude Code + Codex + ChatGPT Plus + 기타 구독 합산.
+    수동 입력은 data/spend_remaining_override.json 에서 읽음.
+    """
+    REMAINING_OVERRIDE = ROOT / "data" / "spend_remaining_override.json"
+    manual: dict = {}
+    if REMAINING_OVERRIDE.exists():
+        try:
+            manual = json.loads(REMAINING_OVERRIDE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    # 기본 구독 비용 (하드코딩 기준값 — 수동 override 가능)
+    subscriptions = [
+        {"provider": "Claude Code (Anthropic)", "plan": "Max", "monthly_usd": 100,
+         "currency_krw": 138000, "status": "active", "icon": "⚡"},
+        {"provider": "Codex (OpenAI)", "plan": "Pro", "monthly_usd": 200,
+         "currency_krw": 276000, "status": manual.get("codex_status", "active"), "icon": "🔧"},
+        {"provider": "ChatGPT Plus (OpenAI)", "plan": "Plus", "monthly_usd": 20,
+         "currency_krw": 27600, "status": manual.get("chatgpt_status", "active"), "icon": "💬"},
+    ]
+
+    # 수동 추가 구독 반영
+    extra = manual.get("extra_subscriptions", [])
+    subscriptions.extend(extra)
+
+    total_usd = sum(s["monthly_usd"] for s in subscriptions if s.get("status") == "active")
+    total_krw = sum(s.get("currency_krw", 0) for s in subscriptions if s.get("status") == "active")
+
+    return jsonify({
+        "subscriptions": subscriptions,
+        "total_monthly_usd": total_usd,
+        "total_monthly_krw": total_krw,
+        "updated_at": manual.get("updated_at", _ts_now()),
+        "note": manual.get("note", ""),
+    })
+
+
+@agent_os_bp.post("/repo-priority/snapshot")
+def repo_priority_snapshot():
+    """Phase 3-3: 수익성 점수 주간 스냅샷 저장.
+
+    매주 월요일 09:00 KST 스케줄러 또는 수동 호출.
+    data/repo_priority_snapshots.json 에 타임스탬프별 기록.
+    """
+    SNAPSHOTS = ROOT / "data" / "repo_priority_snapshots.json"
+
+    # Inline score computation (repo-priority 로직 재사용)
+    import time as _time
+    now = _time.time()
+    REPOS = [
+        {"id": "wishket", "name": "Wishket 자동화", "revenue_type": "direct",
+         "deploy_status": "local", "user_priority": 10, "domain": "freelance",
+         "path": ROOT / "scripts" / "bucky_wishket_agent.py"},
+        {"id": "sniper", "name": "스나이퍼 구매대행", "revenue_type": "direct",
+         "deploy_status": "deployed", "user_priority": 9, "domain": "ecommerce",
+         "path": ROOT / "docs" / "loashop.html"},
+        {"id": "bucky-os", "name": "Bucky Agent OS", "revenue_type": "operational",
+         "deploy_status": "deployed", "user_priority": 8, "domain": "infrastructure",
+         "path": ROOT / "scripts" / "bucky_chat_server.py"},
+        {"id": "daily-plus", "name": "Daily Plus", "revenue_type": "operational",
+         "deploy_status": "deployed", "user_priority": 7, "domain": "productivity",
+         "path": ROOT / "scripts" / "generate_daily_plus_dashboard.py"},
+        {"id": "content-studio", "name": "ProSuTech 콘텐츠", "revenue_type": "potential",
+         "deploy_status": "local", "user_priority": 6, "domain": "content", "path": None},
+    ]
+    REVENUE_SCORE = {"direct": 40, "potential": 20, "operational": 5}
+    DEPLOY_SCORE = {"deployed": 10, "staging": 5, "local": 0}
+
+    domain_pending: dict[str, int] = {}
+    try:
+        data = json.loads(CHECKLIST_JSON.read_text(encoding="utf-8"))
+        for t in data.get("tasks", []):
+            if t.get("status") not in ("done", "completed", "skipped"):
+                for tag in (t.get("tags") or []):
+                    domain_pending[tag] = domain_pending.get(tag, 0) + 1
+    except Exception:
+        pass
+
+    snapshot_scores: dict[str, int] = {}
+    for repo in REPOS:
+        activity_score = 0
+        p = repo["path"]
+        if p and Path(p).exists():
+            try:
+                age = now - Path(p).stat().st_mtime
+                if age <= 7 * 86400:
+                    activity_score = 20
+                elif age <= 30 * 86400:
+                    activity_score = 10
+                elif age <= 90 * 86400:
+                    activity_score = 5
+            except Exception:
+                pass
+        task_score = min(20, domain_pending.get(repo["domain"], 0) * 4)
+        snapshot_scores[repo["id"]] = (
+            REVENUE_SCORE.get(repo["revenue_type"], 0) + task_score
+            + activity_score + DEPLOY_SCORE.get(repo["deploy_status"], 0)
+            + repo["user_priority"]
+        )
+
+    # Load existing snapshots
+    try:
+        snapshots = json.loads(SNAPSHOTS.read_text(encoding="utf-8"))
+    except Exception:
+        snapshots = {"history": []}
+
+    new_entry = {"timestamp": _ts_now(), "scores": snapshot_scores}
+    snapshots["history"].append(new_entry)
+    # Keep last 52 weeks
+    snapshots["history"] = snapshots["history"][-52:]
+
+    # Detect drops ≥ 20 from previous snapshot
+    alerts = []
+    if len(snapshots["history"]) >= 2:
+        prev = snapshots["history"][-2]["scores"]
+        for repo_id, score in snapshot_scores.items():
+            prev_score = prev.get(repo_id, score)
+            if prev_score - score >= 20:
+                alerts.append({"repo": repo_id, "drop": prev_score - score,
+                                "prev": prev_score, "now": score})
+
+    SNAPSHOTS.write_text(json.dumps(snapshots, ensure_ascii=False, indent=2), encoding="utf-8")
+    return jsonify({"saved": True, "snapshot": new_entry, "alerts": alerts})
+
+
+@agent_os_bp.get("/model-stats")
+def model_stats():
+    """Phase 3-2: 모델별 호출 통계 및 비용 최적화 리포트.
+
+    cli-tools.jsonl 에서 모델별 호출 수 집계.
+    Haiku/Sonnet/Opus 절감액 추정.
+    """
+    stats: dict[str, dict] = {}
+    try:
+        lines = CLI_TOOLS_LOG.read_text(encoding="utf-8").splitlines()
+        for line in lines[-2000:]:  # last 2000 entries only
+            try:
+                entry = json.loads(line)
+                model = entry.get("model", "unknown")
+                s = stats.setdefault(model, {"calls": 0, "success": 0, "fail": 0})
+                s["calls"] += 1
+                if entry.get("exit_code", 1) == 0 or entry.get("status") == "ok":
+                    s["success"] += 1
+                else:
+                    s["fail"] += 1
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # Cost estimates (per-call rough estimate based on typical token use)
+    COST_PER_CALL = {"haiku": 0.01, "sonnet": 0.05, "opus": 0.25, "codex-default": 0.04}
+    savings = []
+    total_estimated = 0.0
+    optimized_estimated = 0.0
+
+    for model, s in stats.items():
+        base_cost = COST_PER_CALL.get(model, 0.05)
+        actual = s["calls"] * base_cost
+        # If all calls were Haiku: min cost
+        haiku_cost = s["calls"] * COST_PER_CALL["haiku"]
+        total_estimated += actual
+        optimized_estimated += haiku_cost
+        if model not in ("haiku",):
+            savings.append({
+                "model": model,
+                "calls": s["calls"],
+                "estimated_usd": round(actual, 2),
+                "haiku_equivalent_usd": round(haiku_cost, 2),
+                "potential_saving_usd": round(actual - haiku_cost, 2),
+            })
+
+    savings.sort(key=lambda x: x["potential_saving_usd"], reverse=True)
+
+    return jsonify({
+        "by_model": stats,
+        "cost_estimate": {
+            "total_usd": round(total_estimated, 2),
+            "optimized_usd": round(optimized_estimated, 2),
+            "saving_potential_usd": round(total_estimated - optimized_estimated, 2),
+        },
+        "top_savings": savings[:3],
+        "recommendation": "상태 확인·분류·짧은 요약은 Haiku로, 구현·파일 편집은 Sonnet으로 라우팅하면 최대 절감 가능",
+        "checked_at": _ts_now(),
+    })
+
+
 @agent_os_bp.get("/overview")
 def overview():
     """Single-call overview combining health + task summary."""
@@ -690,3 +1232,5 @@ def overview():
         "tasks": {"pending": pending_count, "done": done_count},
         "knowledge": {"skills": skill_count, "context_packs": cp_count},
     })
+
+

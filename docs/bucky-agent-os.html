@@ -38,6 +38,7 @@
   --r:        10px;
   --gap:      14px;
   --topbar-h: 52px;
+  --tabbar-h: 44px;
 }
 
 /* ─────────────────────────────────────────
@@ -221,20 +222,101 @@ body::after {
 }
 
 /* ─────────────────────────────────────────
-   MAIN GRID
-   Cols: 300px 1fr 280px
-   Rows: auto auto auto 380px auto
+   TAB BAR
+───────────────────────────────────────── */
+#tabbar {
+  position: fixed;
+  top: var(--topbar-h); left: 0; right: 0;
+  height: var(--tabbar-h);
+  background: rgba(4,4,14,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 4px;
+  z-index: 190;
+}
+
+.tab-btn {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted); padding: 6px 16px;
+  border-radius: 6px; cursor: pointer;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: color .15s, background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  border-color: rgba(0,212,255,0.2);
+}
+.tab-btn.active {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+  text-shadow: 0 0 10px rgba(0,212,255,0.4);
+}
+.tab-btn-icon { margin-right: 5px; font-style: normal; }
+
+/* ─────────────────────────────────────────
+   MAIN CONTAINER
 ───────────────────────────────────────── */
 #main {
   position: relative; z-index: 1;
-  margin-top: var(--topbar-h);
-  padding: var(--gap);
-  display: grid;
-  grid-template-columns: 300px 1fr 280px;
-  grid-template-rows: auto auto auto 380px auto auto;
-  gap: var(--gap);
-  min-height: calc(100vh - var(--topbar-h));
+  margin-top: calc(var(--topbar-h) + var(--tabbar-h));
+  min-height: calc(100vh - var(--topbar-h) - var(--tabbar-h));
 }
+
+/* ─────────────────────────────────────────
+   TAB PANES
+───────────────────────────────────────── */
+.tab-pane {
+  display: none;
+  padding: var(--gap);
+}
+.tab-pane.active {
+  display: grid;
+  gap: var(--gap);
+}
+
+/* OPS tab: health | tasks | overview / dream | activity */
+#pane-ops {
+  grid-template-columns: 300px 1fr 280px;
+  grid-template-rows: auto auto auto;
+}
+#pane-ops #card-health   { grid-column: 1;   grid-row: 1; }
+#pane-ops #card-tasks    { grid-column: 2;   grid-row: 1 / 3; }
+#pane-ops #card-overview { grid-column: 3;   grid-row: 1; }
+#pane-ops #card-dream    { grid-column: 1;   grid-row: 2; }
+#pane-ops #card-activity { grid-column: 1/4; grid-row: 3; }
+
+/* AGENTS tab: agent room + skills */
+#pane-agents {
+  grid-template-columns: 1fr 280px;
+  grid-template-rows: auto auto;
+}
+#pane-agents #card-agents { grid-column: 1/3; grid-row: 1; }
+#pane-agents #card-skills { grid-column: 1/3; grid-row: 2; }
+
+/* BRAIN tab: graph big + memory */
+#pane-brain {
+  grid-template-columns: 1fr 280px;
+  grid-template-rows: 460px auto;
+}
+#pane-brain #card-graph  { grid-column: 1/3; grid-row: 1; }
+#pane-brain #card-memory { grid-column: 1/3; grid-row: 2; }
+
+/* METRICS tab: goals | spend / bench / repo */
+#pane-metrics {
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: auto auto auto;
+}
+#pane-metrics #card-goals         { grid-column: 1;   grid-row: 1 / 3; }
+#pane-metrics #card-spend         { grid-column: 2;   grid-row: 1; }
+#pane-metrics #card-bench         { grid-column: 2;   grid-row: 2; }
+#pane-metrics #card-repo-priority { grid-column: 1/3; grid-row: 3; }
 
 /* ─────────────────────────────────────────
    CARD: GLASS MORPHISM BASE
@@ -282,20 +364,7 @@ body::after {
 
 .card-body { padding: 14px; flex: 1; overflow-y: auto; }
 
-/* ─────────────────────────────────────────
-   GRID PLACEMENTS
-───────────────────────────────────────── */
-#card-health   { grid-column: 1;   grid-row: 1; }
-#card-tasks    { grid-column: 2;   grid-row: 1 / 3; }
-#card-skills   { grid-column: 3;   grid-row: 1 / 3; }
-#card-dream    { grid-column: 1;   grid-row: 2; }
-#card-memory   { grid-column: 1;   grid-row: 3; }
-#card-activity { grid-column: 2;   grid-row: 3; }
-#card-overview { grid-column: 3;   grid-row: 3; }
-#card-graph    { grid-column: 1/3; grid-row: 4; }
-#card-goals    { grid-column: 3;   grid-row: 4; }
-#card-spend    { grid-column: 1/4; grid-row: 5; }
-#card-bench    { grid-column: 1/4; grid-row: 6; }
+/* grid placements are now scoped per tab pane (see TAB PANES section above) */
 
 /* ─────────────────────────────────────────
    AGENT HEALTH
@@ -741,31 +810,161 @@ body::after {
    RESPONSIVE
 ───────────────────────────────────────── */
 @media (max-width: 1200px) {
-  #main {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-  }
-  #card-health   { grid-column:1;   grid-row:1; }
-  #card-dream    { grid-column:2;   grid-row:1; }
-  #card-tasks    { grid-column:1/3; grid-row:2; }
-  #card-skills   { grid-column:1/3; grid-row:3; }
-  #card-memory   { grid-column:1;   grid-row:4; }
-  #card-overview { grid-column:2;   grid-row:4; }
-  #card-activity { grid-column:1/3; grid-row:5; }
-  #card-graph    { grid-column:1/3; grid-row:6; height:360px; }
-  #card-goals    { grid-column:1/3; grid-row:7; }
-  #card-spend    { grid-column:1/3; grid-row:8; }
-  #card-bench    { grid-column:1/3; grid-row:9; }
+  #pane-ops     { grid-template-columns: 1fr 1fr; }
+  #pane-agents  { grid-template-columns: 1fr; }
+  #pane-brain   { grid-template-columns: 1fr; grid-template-rows: 360px auto; }
+  #pane-metrics { grid-template-columns: 1fr; }
+
+  #pane-ops #card-health   { grid-column:1; grid-row:1; }
+  #pane-ops #card-dream    { grid-column:2; grid-row:1; }
+  #pane-ops #card-tasks    { grid-column:1/3; grid-row:2; }
+  #pane-ops #card-overview { grid-column:1; grid-row:3; }
+  #pane-ops #card-activity { grid-column:2; grid-row:3; }
+
+  #pane-agents #card-agents { grid-column:1; }
+  #pane-agents #card-skills { grid-column:1; }
+
+  #pane-brain #card-graph  { grid-column:1; }
+  #pane-brain #card-memory { grid-column:1; }
+
+  #pane-metrics #card-goals         { grid-column:1; grid-row:auto; }
+  #pane-metrics #card-spend         { grid-column:1; grid-row:auto; }
+  #pane-metrics #card-bench         { grid-column:1; grid-row:auto; }
+  #pane-metrics #card-repo-priority { grid-column:1; grid-row:auto; }
 }
 
+/* ─────────────────────────────────────────
+   REPO PRIORITY
+───────────────────────────────────────── */
+.rp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.rp-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.rp-card.revenue-direct { border-left: 3px solid var(--green); }
+.rp-card.revenue-potential { border-left: 3px solid var(--amber); }
+.rp-card.revenue-operational { border-left: 3px solid rgba(255,255,255,0.2); }
+.rp-score {
+  position: absolute; top: 12px; right: 14px;
+  font-size: 20px; font-weight: 800;
+  font-family: var(--mono);
+  color: var(--cyan);
+}
+.rp-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.rp-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.rp-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.rp-tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-family: var(--mono); }
+.rp-tag.auto-ok { background: rgba(0,255,136,.12); color: var(--green); }
+.rp-tag.auto-no { background: rgba(255,71,87,.1); color: var(--red); }
+.rp-tag.deployed { background: rgba(0,212,255,.1); color: var(--cyan); }
+.rp-tag.local { background: rgba(255,255,255,.06); color: var(--muted); }
+.rp-auto-note { font-size: 11px; color: var(--amber); margin-top: 4px; }
+
+/* ─────────────────────────────────────────
+   AGENT ROOM
+───────────────────────────────────────── */
+.agent-room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.ar-card {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.ar-card:hover { transform: translateY(-1px); border-color: rgba(14,165,233,0.3); }
+.ar-card.s-online  { border-left-color: #22c55e; }
+.ar-card.s-active  { border-left-color: #22c55e; }
+.ar-card.s-standby { border-left-color: #f59e0b; }
+.ar-card.s-idle    { border-left-color: #6b7280; }
+.ar-card.s-pending { border-left-color: #374151; }
+.ar-card.s-offline { border-left-color: #ef4444; }
+.ar-header { display: flex; align-items: center; gap: 10px; }
+.ar-emoji  { font-size: 22px; line-height: 1; }
+.ar-name   { font-weight: 700; font-size: 14px; color: #e0e0e0; }
+.ar-role   { font-size: 10px; color: #0ea5e9; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.ar-status-badge {
+  margin-left: auto;
+  font-size: 10px; padding: 2px 7px; border-radius: 4px;
+  white-space: nowrap; font-weight: 600;
+}
+.ar-desc   { font-size: 12px; color: #888; line-height: 1.45; flex: 1; }
+.ar-tags   { display: flex; flex-wrap: wrap; gap: 4px; }
+.ar-tag    { font-size: 10px; background: rgba(14,165,233,0.1); color: #7dd3fc; border-radius: 4px; padding: 2px 6px; }
+.ar-call-btn {
+  margin-top: 4px;
+  padding: 6px 12px;
+  background: rgba(14,165,233,0.12);
+  border: 1px solid rgba(14,165,233,0.28);
+  border-radius: 6px;
+  color: #7dd3fc;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ar-call-btn:hover { background: rgba(14,165,233,0.28); }
+.ar-call-note { font-size: 11px; color: #4b5563; margin-top: 4px; }
+
+/* Agent Call Modal */
+#agent-call-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72); z-index: 9000;
+  align-items: center; justify-content: center;
+}
+#agent-call-modal.open { display: flex; }
+.acm-box {
+  background: #0f0f1e;
+  border: 1px solid rgba(14,165,233,0.25);
+  border-radius: 14px;
+  padding: 24px;
+  width: min(520px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.acm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.acm-title  { font-size: 16px; font-weight: 700; color: #e0e0e0; }
+.acm-close  { background: none; border: none; color: #666; cursor: pointer; font-size: 22px; line-height: 1; padding: 0; }
+.acm-close:hover { color: #e0e0e0; }
+.acm-desc   { font-size: 12px; color: #6b7280; margin: 0 0 14px; }
+.acm-textarea {
+  width: 100%; min-height: 110px;
+  background: #0a0a18; border: 1px solid #2a2a3e;
+  border-radius: 8px; padding: 10px; color: #d1d5db;
+  font-size: 13px; resize: vertical; box-sizing: border-box;
+  font-family: inherit;
+}
+.acm-textarea:focus { outline: none; border-color: rgba(14,165,233,0.5); }
+.acm-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.acm-cancel { padding: 8px 16px; background: #1f1f2e; border: 1px solid #333; border-radius: 6px; color: #9ca3af; cursor: pointer; font-size: 13px; }
+.acm-submit { padding: 8px 18px; background: #0ea5e9; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 13px; font-weight: 700; }
+.acm-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.acm-feedback { margin-top: 10px; font-size: 12px; min-height: 18px; }
+
 @media (max-width: 700px) {
-  #main {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-  }
-  #card-health, #card-dream, #card-tasks, #card-skills,
-  #card-memory, #card-overview, #card-activity,
-  #card-graph, #card-goals, #card-spend, #card-bench {
+  #tabbar { gap: 2px; padding: 0 10px; }
+  .tab-btn { padding: 5px 10px; font-size: 9px; }
+  .tab-btn-icon { display: none; }
+
+  .tab-pane.active { grid-template-columns: 1fr !important; }
+  .tab-pane .card {
     grid-column: 1 !important;
     grid-row: auto !important;
   }
@@ -811,141 +1010,231 @@ body::after {
 </div>
 
 <!-- ═══════════════════════════════════════
-     MAIN GRID
+     TAB BAR
+═══════════════════════════════════════ -->
+<div id="tabbar">
+  <button class="tab-btn active" onclick="switchTab('ops')" id="tab-btn-ops">
+    <i class="tab-btn-icon">⚙</i>운영
+  </button>
+  <button class="tab-btn" onclick="switchTab('agents')" id="tab-btn-agents">
+    <i class="tab-btn-icon">🤖</i>에이전트
+  </button>
+  <button class="tab-btn" onclick="switchTab('brain')" id="tab-btn-brain">
+    <i class="tab-btn-icon">🧠</i>지식
+  </button>
+  <button class="tab-btn" onclick="switchTab('metrics')" id="tab-btn-metrics">
+    <i class="tab-btn-icon">📊</i>성과
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTAINER
 ═══════════════════════════════════════ -->
 <div id="main">
 
-  <!-- ── AGENT HEALTH (col 1, row 1) ── -->
-  <div class="card" id="card-health">
-    <div class="card-header">
-      <span class="card-title">Agent Health</span>
-      <span class="card-badge badge-green" id="health-badge">—</span>
-    </div>
-    <div class="card-body" id="health-body">
-      <div class="loading-row"><div class="spinner"></div>Loading agents…</div>
-    </div>
-  </div>
+  <!-- ════════════════════════════════════
+       TAB: 운영 (OPS)
+  ════════════════════════════════════ -->
+  <div class="tab-pane active" id="pane-ops">
 
-  <!-- ── TASK BOARD (col 2, row 1-2) ── -->
-  <div class="card" id="card-tasks">
-    <div class="card-header">
-      <span class="card-title">Mission Control — Tasks</span>
-      <span class="card-badge badge-amber" id="tasks-badge">—</span>
+    <!-- Health -->
+    <div class="card" id="card-health">
+      <div class="card-header">
+        <span class="card-title">Agent Health</span>
+        <span class="card-badge badge-green" id="health-badge">—</span>
+      </div>
+      <div class="card-body" id="health-body">
+        <div class="loading-row"><div class="spinner"></div>Loading agents…</div>
+      </div>
     </div>
-    <div class="card-body" id="tasks-body">
-      <div class="loading-row"><div class="spinner"></div>Loading tasks…</div>
-    </div>
-  </div>
 
-  <!-- ── SKILL PANTHEON (col 3, row 1-2) ── -->
-  <div class="card" id="card-skills">
-    <div class="card-header">
-      <span class="card-title">Skill Pantheon</span>
-      <span class="card-badge badge-cyan" id="skills-badge">—</span>
+    <!-- Tasks (spans rows 1-2) -->
+    <div class="card" id="card-tasks">
+      <div class="card-header">
+        <span class="card-title">Mission Control — Tasks</span>
+        <span class="card-badge badge-amber" id="tasks-badge">—</span>
+      </div>
+      <div class="card-body" id="tasks-body">
+        <div class="loading-row"><div class="spinner"></div>Loading tasks…</div>
+      </div>
     </div>
-    <div class="card-body" id="skills-body">
-      <div class="loading-row"><div class="spinner"></div>Loading skills…</div>
-    </div>
-  </div>
 
-  <!-- ── DREAM REPORT (col 1, row 2) ── -->
-  <div class="card" id="card-dream">
-    <div class="card-header">
-      <span class="card-title">Dream Report</span>
-      <span class="card-badge badge-amber" id="dream-badge">HANDOFF</span>
+    <!-- Overview -->
+    <div class="card" id="card-overview">
+      <div class="card-header">
+        <span class="card-title">System Overview</span>
+        <span class="card-badge badge-amber" id="overview-badge">v2.0</span>
+      </div>
+      <div class="card-body" id="overview-body">
+        <div class="loading-row"><div class="spinner"></div>Loading…</div>
+      </div>
     </div>
-    <div class="card-body" id="dream-body">
-      <div class="loading-row"><div class="spinner"></div>Loading sessions…</div>
-    </div>
-  </div>
 
-  <!-- ── MEMORY STACK (col 1, row 3) ── -->
-  <div class="card" id="card-memory">
-    <div class="card-header">
-      <span class="card-title">Memory Stack</span>
-      <span class="card-badge badge-purple" id="memory-badge">LOCAL</span>
+    <!-- Dream -->
+    <div class="card" id="card-dream">
+      <div class="card-header">
+        <span class="card-title">Dream Report</span>
+        <span class="card-badge badge-amber" id="dream-badge">HANDOFF</span>
+      </div>
+      <div class="card-body" id="dream-body">
+        <div class="loading-row"><div class="spinner"></div>Loading sessions…</div>
+      </div>
     </div>
-    <div class="card-body" id="memory-body">
-      <div class="loading-row"><div class="spinner"></div>Loading memory…</div>
-    </div>
-  </div>
 
-  <!-- ── ACTIVITY FEED (col 2, row 3) ── -->
-  <div class="card" id="card-activity">
-    <div class="card-header">
-      <span class="card-title">Activity Feed</span>
-      <span class="card-badge badge-green" id="activity-badge">LIVE</span>
+    <!-- Activity (full width row 3) -->
+    <div class="card" id="card-activity">
+      <div class="card-header">
+        <span class="card-title">Activity Feed</span>
+        <span class="card-badge badge-green" id="activity-badge">LIVE</span>
+      </div>
+      <div class="card-body" id="activity-body">
+        <div class="loading-row"><div class="spinner"></div>Loading activity…</div>
+      </div>
     </div>
-    <div class="card-body" id="activity-body">
-      <div class="loading-row"><div class="spinner"></div>Loading activity…</div>
-    </div>
-  </div>
 
-  <!-- ── SYSTEM OVERVIEW (col 3, row 3) ── -->
-  <div class="card" id="card-overview">
-    <div class="card-header">
-      <span class="card-title">System Overview</span>
-      <span class="card-badge badge-amber" id="overview-badge">v2.0</span>
-    </div>
-    <div class="card-body" id="overview-body">
-      <div class="loading-row"><div class="spinner"></div>Loading…</div>
-    </div>
-  </div>
+  </div><!-- /#pane-ops -->
 
-  <!-- ── PROJECT GRAPH (col 1-2, row 4) ── -->
-  <div class="card" id="card-graph">
-    <div class="card-header">
-      <span class="card-title">Obsidian Project Graph</span>
-      <span class="card-badge badge-cyan">LIVE</span>
-    </div>
-    <div class="card-body" style="padding:0;overflow:hidden">
-      <iframe class="graph-frame" src="project-graph.html" title="Obsidian project graph"></iframe>
-    </div>
-  </div>
+  <!-- ════════════════════════════════════
+       TAB: 에이전트 (AGENTS)
+  ════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-agents">
 
-  <!-- ── MISSION GOALS (col 3, row 4) ── -->
-  <div class="card" id="card-goals">
-    <div class="card-header">
-      <span class="card-title">Mission Goals</span>
-      <span class="card-badge badge-amber" id="goals-badge">GOAL MODE</span>
+    <!-- Agent Room (full width) -->
+    <div class="card" id="card-agents">
+      <div class="card-header">
+        <span class="card-title">Agent Room</span>
+        <span class="card-badge badge-cyan" id="agents-badge">—</span>
+      </div>
+      <div class="card-body" id="agents-body">
+        <div class="loading-row"><div class="spinner"></div>Loading agents…</div>
+      </div>
     </div>
-    <div class="card-body" id="goals-body">
-      <div class="loading-row"><div class="spinner"></div>Loading goals…</div>
-    </div>
-  </div>
 
-  <!-- ── AI SPEND (col 1-3, row 5) ── -->
-  <div class="card" id="card-spend">
-    <div class="card-header">
-      <span class="card-title">AI Spend — Usage Analytics</span>
-      <span class="card-badge badge-green" id="spend-badge">USAGE</span>
+    <!-- Skills -->
+    <div class="card" id="card-skills">
+      <div class="card-header">
+        <span class="card-title">Skill Pantheon</span>
+        <span class="card-badge badge-cyan" id="skills-badge">—</span>
+      </div>
+      <div class="card-body" id="skills-body">
+        <div class="loading-row"><div class="spinner"></div>Loading skills…</div>
+      </div>
     </div>
-    <div class="card-body" id="spend-body">
-      <div class="loading-row"><div class="spinner"></div>Loading usage…</div>
-    </div>
-  </div>
 
+  </div><!-- /#pane-agents -->
 
-  <!-- ── SYSTEM BENCHMARK (col 1-3, row 6) ── -->
-  <div class="card" id="card-bench">
-    <div class="card-header">
-      <span class="card-title">System Benchmark</span>
-      <span class="card-badge badge-cyan" id="bench-badge">READY</span>
+  <!-- ════════════════════════════════════
+       TAB: 지식 (BRAIN)
+  ════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-brain">
+
+    <!-- Graph (full width, tall) -->
+    <div class="card" id="card-graph">
+      <div class="card-header">
+        <span class="card-title">Obsidian Project Graph</span>
+        <span class="card-badge badge-cyan">LIVE</span>
+      </div>
+      <div class="card-body" style="padding:0;overflow:hidden">
+        <iframe class="graph-frame" src="project-graph.html" title="Obsidian project graph"></iframe>
+      </div>
     </div>
-    <div class="card-body" id="bench-body">
-      <div class="loading-row"><div class="spinner"></div>초기화 중…</div>
+
+    <!-- Memory Stack -->
+    <div class="card" id="card-memory">
+      <div class="card-header">
+        <span class="card-title">Memory Stack</span>
+        <span class="card-badge badge-purple" id="memory-badge">LOCAL</span>
+      </div>
+      <div class="card-body" id="memory-body">
+        <div class="loading-row"><div class="spinner"></div>Loading memory…</div>
+      </div>
     </div>
-  </div>
+
+  </div><!-- /#pane-brain -->
+
+  <!-- ════════════════════════════════════
+       TAB: 성과 (METRICS)
+  ════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-metrics">
+
+    <!-- Goals (col 1, spans rows 1-2) -->
+    <div class="card" id="card-goals">
+      <div class="card-header">
+        <span class="card-title">Mission Goals</span>
+        <span class="card-badge badge-amber" id="goals-badge">GOAL MODE</span>
+      </div>
+      <div class="card-body" id="goals-body">
+        <div class="loading-row"><div class="spinner"></div>Loading goals…</div>
+      </div>
+    </div>
+
+    <!-- AI Spend (col 2, row 1) -->
+    <div class="card" id="card-spend">
+      <div class="card-header">
+        <span class="card-title">AI Spend — Usage Analytics</span>
+        <span class="card-badge badge-green" id="spend-badge">USAGE</span>
+      </div>
+      <div class="card-body" id="spend-body">
+        <div class="loading-row"><div class="spinner"></div>Loading usage…</div>
+      </div>
+    </div>
+
+    <!-- Benchmark (col 2, row 2) -->
+    <div class="card" id="card-bench">
+      <div class="card-header">
+        <span class="card-title">System Benchmark</span>
+        <span class="card-badge badge-cyan" id="bench-badge">READY</span>
+      </div>
+      <div class="card-body" id="bench-body">
+        <div class="loading-row"><div class="spinner"></div>초기화 중…</div>
+      </div>
+    </div>
+
+    <!-- Repo Priority (full width, row 3) -->
+    <div class="card" id="card-repo-priority">
+      <div class="card-header">
+        <span class="card-title">Repo 수익성 우선순위</span>
+        <span class="card-badge badge-cyan" id="repo-priority-badge">—</span>
+      </div>
+      <div class="card-body" id="repo-priority-body">
+        <div class="loading-row"><div class="spinner"></div>Loading repos…</div>
+      </div>
+    </div>
+
+  </div><!-- /#pane-metrics -->
 
 </div><!-- /#main -->
+
+<!-- ── AGENT CALL MODAL ── -->
+<div id="agent-call-modal">
+  <div class="acm-box">
+    <div class="acm-header">
+      <span class="acm-title" id="acm-title">에이전트 호출</span>
+      <button class="acm-close" onclick="closeAgentModal()">✕</button>
+    </div>
+    <p class="acm-desc" id="acm-desc"></p>
+    <textarea class="acm-textarea" id="acm-input"
+      placeholder="이 에이전트에게 전달할 작업을 입력하세요…"></textarea>
+    <div class="acm-footer">
+      <button class="acm-cancel" onclick="closeAgentModal()">취소</button>
+      <button class="acm-submit" id="acm-submit" onclick="submitAgentCall()">호출</button>
+    </div>
+    <div class="acm-feedback" id="acm-feedback"></div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
    CLOCK
 ═══════════════════════════════════════════════════════════════ */
+function fmtHMS(d) {
+  return String(d.getHours()).padStart(2,'0') + ':' +
+         String(d.getMinutes()).padStart(2,'0') + ':' +
+         String(d.getSeconds()).padStart(2,'0');
+}
 (function tickClock() {
   const el = document.getElementById('clock');
-  function upd() { el.textContent = new Date().toTimeString().slice(0,8); }
+  function upd() { el.textContent = fmtHMS(new Date()); }
   upd(); setInterval(upd, 1000);
 })();
 
@@ -1084,6 +1373,19 @@ const DEMO = {
     tasks:  { pending:2, done:7 },
     knowledge: { skills:12, context_packs:5 },
     checked_at: '2026-06-11T09:21:00'
+  },
+  agents: {
+    summary: { total: 8, online: 2, standby: 1, pending: 4, offline: 0 },
+    agents: [
+      { id:'bucky',            name:'Bucky',            emoji:'🧠', role:'오케스트레이터',     description:'중앙 조율, Context Pack 생성, 작업 분류 및 라우팅',       domain:['전략','브리핑','라우팅','작업 분해'],  status:'online',  callable:true,  call_endpoint:'/chat' },
+      { id:'claude_code',      name:'Claude Code',      emoji:'⚡', role:'1번 구현자',         description:'프론트엔드 / UI / HTML / CSS / 아키텍처 / 복잡한 구현',  domain:['프론트엔드','UI','아키텍처'],          status:'online',  callable:true,  call_endpoint:'/intake' },
+      { id:'codex',            name:'Codex',            emoji:'🔧', role:'2번 구현자',         description:'백엔드 / 스크립트 / API / 자동화 / 테스트 / 버그 수정',  domain:['백엔드','스크립트','API','자동화'],    status:'standby', callable:true,  call_endpoint:'/intake' },
+      { id:'wishket_agent',    name:'Wishket Agent',    emoji:'💼', role:'수주 자동화',        description:'Wishket 프리랜서 프로젝트 탐색, 제안서 생성, 자동 매칭',  domain:['Wishket','프리랜서','제안서'],        status:'idle',    callable:true,  call_endpoint:'/intake' },
+      { id:'gemini_research',  name:'Gemini Research',  emoji:'🔍', role:'리서치 에이전트',   description:'웹 / 시장 / 기술 리서치, 출처 기반 요약',                 domain:['리서치','검색','트렌드'],             status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+      { id:'gemini_multimodal',name:'Gemini Multimodal',emoji:'🏗️',role:'이미지 / 도면 분석', description:'AutoCAD 도면, 현장사진, 자재 이미지 분석',               domain:['도면','이미지','현장사진'],           status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+      { id:'gemini_content',   name:'Gemini Content',   emoji:'✍️', role:'콘텐츠 생성',       description:'블로그, 유튜브 쇼츠, SNS 광고문구, 영상 프롬프트 생성',  domain:['블로그','유튜브','SNS'],              status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+      { id:'gemini_validator', name:'Gemini Validator', emoji:'✅', role:'교차 검증',          description:'Claude / Codex 산출물 독립 교차검증',                    domain:['검증','리뷰','QA'],                   status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+    ]
   }
 };
 
@@ -1573,20 +1875,199 @@ function rSpend(d, demo) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   AGENT ROOM
+═══════════════════════════════════════════════════════════════ */
+const _STATUS_COLOR = {
+  online:'#22c55e', active:'#22c55e', standby:'#f59e0b',
+  idle:'#6b7280', pending:'#374151', offline:'#ef4444'
+};
+const _STATUS_LABEL = {
+  online:'ONLINE', active:'ACTIVE', standby:'STANDBY',
+  idle:'IDLE', pending:'보류중', offline:'OFFLINE'
+};
+let _agentRegistry = [];
+
+function rAgents(d) {
+  const body  = document.getElementById('agents-body');
+  const badge = document.getElementById('agents-badge');
+  const { agents = [], summary = {} } = d;
+  _agentRegistry = agents;
+
+  const onlineCount = summary.online ?? agents.filter(a => ['online','active'].includes(a.status)).length;
+  badge.textContent = `${onlineCount}/${agents.length} ACTIVE`;
+  badge.className = `card-badge ${onlineCount > 0 ? 'badge-green' : 'badge-amber'}`;
+
+  body.innerHTML = `<div class="agent-room-grid">${agents.map(a => {
+    const sc = _STATUS_COLOR[a.status] || '#6b7280';
+    const sl = _STATUS_LABEL[a.status] || a.status.toUpperCase();
+    const tags = (a.domain || []).slice(0,4).map(d => `<span class="ar-tag">${esc(d)}</span>`).join('');
+    const action = a.callable
+      ? `<button class="ar-call-btn" data-agent-id="${esc(a.id)}" onclick="openAgentModal(this.dataset.agentId)">호출하기</button>`
+      : `<div class="ar-call-note">${esc(a.call_note || '비활성')}</div>`;
+    return `
+      <div class="ar-card s-${esc(a.status)}">
+        <div class="ar-header">
+          <span class="ar-emoji">${esc(a.emoji)}</span>
+          <div><div class="ar-name">${esc(a.name)}</div><div class="ar-role">${esc(a.role)}</div></div>
+          <span class="ar-status-badge" style="background:${sc}22;color:${sc}">${sl}</span>
+        </div>
+        <div class="ar-desc">${esc(a.description)}</div>
+        <div class="ar-tags">${tags}</div>
+        ${a.last_called ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">최근 호출: ${esc(a.last_called.slice(0,16))}${a.call_count ? ` · ${a.call_count}회` : ''}</div>` : ''}
+        ${action}
+      </div>`;
+  }).join('')}</div>`;
+}
+
+/* ── Agent Modal ── */
+let _acmAgent = null;
+
+function openAgentModal(agentId) {
+  _acmAgent = _agentRegistry.find(a => a.id === agentId);
+  if (!_acmAgent) return;
+  document.getElementById('acm-title').textContent = `${_acmAgent.emoji} ${_acmAgent.name} 호출`;
+  document.getElementById('acm-desc').textContent  = `역할: ${_acmAgent.role} — ${_acmAgent.description}`;
+  document.getElementById('acm-input').value    = '';
+  document.getElementById('acm-feedback').textContent = '';
+  document.getElementById('acm-feedback').style.color = '';
+  const btn = document.getElementById('acm-submit');
+  btn.disabled = false; btn.textContent = '호출';
+  const modal = document.getElementById('agent-call-modal');
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('acm-input').focus(), 80);
+}
+
+function closeAgentModal() {
+  document.getElementById('agent-call-modal').classList.remove('open');
+  _acmAgent = null;
+}
+
+async function submitAgentCall() {
+  if (!_acmAgent) return;
+  const task = document.getElementById('acm-input').value.trim();
+  if (!task) {
+    document.getElementById('acm-feedback').textContent = '작업 내용을 입력해주세요.';
+    document.getElementById('acm-feedback').style.color = '#f59e0b';
+    return;
+  }
+  const btn = document.getElementById('acm-submit');
+  btn.disabled = true; btn.textContent = '전송 중…';
+  const fb = document.getElementById('acm-feedback');
+
+  try {
+    const endpoint = _acmAgent.call_endpoint || '/intake';
+    let body;
+    if (endpoint === '/chat') {
+      body = { message: `[Agent Room → ${_acmAgent.name}] ${task}` };
+    } else {
+      body = { type: 'agent_call', agent: _acmAgent.id, task, source: 'agent-room' };
+    }
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // Phase 2-3: last_called 기록
+    fetch('/agent-os/agents/call', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent_id: _acmAgent.id, task, caller: 'agent-room' }),
+    }).catch(() => {});
+    fb.style.color = '#22c55e';
+    fb.textContent = `${_acmAgent.name}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
+    btn.textContent = '완료 ✓';
+    setTimeout(closeAgentModal, 2200);
+  } catch (e) {
+    fb.style.color = '#ef4444';
+    fb.textContent = `전송 실패: ${e.message}`;
+    btn.disabled = false; btn.textContent = '다시 호출';
+  }
+}
+
+// Close on backdrop click
+document.getElementById('agent-call-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAgentModal();
+});
+
+/* ═══════════════════════════════════════════════════════════════
    LOAD ALL
 ═══════════════════════════════════════════════════════════════ */
 async function loadAll() {
   await Promise.allSettled([
-    withFallback('/agent-os/health',   DEMO.health,   rHealth),
-    withFallback('/agent-os/tasks',    DEMO.tasks,    rTasks),
-    withFallback('/agent-os/skills',   DEMO.skills,   rSkills),
-    withFallback('/agent-os/dream',    DEMO.dream,    rDream),
-    withFallback('/agent-os/memory',   DEMO.memory,   rMemory),
-    withFallback('/os/activity',       DEMO.activity, rActivity),
-    withFallback('/agent-os/overview', DEMO.overview, rOverview),
-    withFallback('/agent-os/goals',    DEMO.goals,    rGoals),
-    withFallback('/agent-os/spend',    DEMO.spend,    rSpend),
+    withFallback('/agent-os/health',         DEMO.health,   rHealth),
+    withFallback('/agent-os/tasks',          DEMO.tasks,    rTasks),
+    withFallback('/agent-os/skills',         DEMO.skills,   rSkills),
+    withFallback('/agent-os/dream',          DEMO.dream,    rDream),
+    withFallback('/agent-os/memory',         DEMO.memory,   rMemory),
+    withFallback('/os/activity',             DEMO.activity, rActivity),
+    withFallback('/agent-os/overview',       DEMO.overview, rOverview),
+    withFallback('/agent-os/goals',          DEMO.goals,    rGoals),
+    withFallback('/agent-os/spend',          DEMO.spend,    rSpend),
+    withFallback('/agent-os/agents',         DEMO.agents,   rAgents),
+    withFallback('/agent-os/repo-priority',  null,          rRepoPriority),
   ]);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPO PRIORITY
+═══════════════════════════════════════════════════════════════ */
+function rRepoPriority(d) {
+  const body  = document.getElementById('repo-priority-body');
+  const badge = document.getElementById('repo-priority-badge');
+  if (!d || !d.repos) { body.innerHTML = '<div class="loading-row">데이터 없음</div>'; return; }
+
+  const repos = d.repos || [];
+  const top = d.top;
+  const autoCount = (d.auto_eligible || []).length;
+  badge.textContent = top ? `TOP: ${top.name}` : `${repos.length}개 레포`;
+  badge.className = 'card-badge badge-green';
+
+  const REVENUE_LABEL = { direct: '직접수익', potential: '수익잠재', operational: '운영' };
+
+  function queueAutoRepos() {
+    const btn = document.getElementById('btn-queue-auto');
+    if (btn) { btn.disabled = true; btn.textContent = '등록 중…'; }
+    fetch('/agent-os/repo-priority/queue', { method: 'POST', credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(res => {
+        if (btn) btn.textContent = `✅ ${res.queued}개 등록 완료`;
+        setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = `자동 큐 등록 (${autoCount}개)`; } }, 3000);
+      })
+      .catch(() => { if (btn) { btn.disabled = false; btn.textContent = '등록 실패 — 재시도'; } });
+  }
+
+  function saveSnapshot() {
+    const btn = document.getElementById('btn-snapshot');
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중…'; }
+    fetch('/agent-os/repo-priority/snapshot', { method: 'POST', credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(res => {
+        const alerts = res.alerts || [];
+        if (btn) btn.textContent = alerts.length ? `⚠️ ${alerts.length}개 하락 감지` : '✅ 스냅샷 저장';
+        setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = '주간 스냅샷 저장'; } }, 3000);
+      })
+      .catch(() => { if (btn) { btn.disabled = false; btn.textContent = '저장 실패'; } });
+  }
+
+  body.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button id="btn-queue-auto" onclick="document.getElementById('btn-queue-auto').onclick=null;(${queueAutoRepos.toString()})()" style="padding:7px 14px;border:1px solid #22c55e;background:#f0fdf4;color:#15803d;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">자동 큐 등록 (${autoCount}개)</button>
+      <button id="btn-snapshot" onclick="document.getElementById('btn-snapshot').onclick=null;(${saveSnapshot.toString()})()" style="padding:7px 14px;border:1px solid #60a5fa;background:#eff6ff;color:#1d4ed8;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">주간 스냅샷 저장</button>
+    </div>
+    <div class="rp-grid">${repos.map(r => `
+      <div class="rp-card revenue-${r.revenue_type}">
+        <span class="rp-score">${r.score}</span>
+        <div class="rp-name">${esc(r.name)}</div>
+        <div class="rp-desc">${esc(r.description)}</div>
+        <div class="rp-tags">
+          <span class="rp-tag ${r.auto_ok ? 'auto-ok' : 'auto-no'}">${r.auto_ok ? '자동개발 가능' : '승인필요'}</span>
+          <span class="rp-tag ${r.deploy_status === 'deployed' ? 'deployed' : 'local'}">${esc(r.deploy_status)}</span>
+          <span class="rp-tag" style="background:rgba(255,255,255,.06);color:var(--muted)">${REVENUE_LABEL[r.revenue_type] || r.revenue_type}</span>
+        </div>
+        ${r.open_tasks ? `<div class="rp-auto-note">미완료 태스크 ${r.open_tasks}개</div>` : ''}
+      </div>`).join('')}
+    </div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1602,6 +2083,8 @@ const BENCH_ENDPOINTS = [
   { path: '/agent-os/overview', name: 'agent-os/overview' },
   { path: '/agent-os/goals',    name: 'agent-os/goals' },
   { path: '/agent-os/spend',    name: 'agent-os/spend' },
+  { path: '/agent-os/agents',        name: 'agent-os/agents' },
+  { path: '/agent-os/repo-priority', name: 'agent-os/repo-priority' },
 ];
 const BENCH_TIMEOUT = 5000;
 
@@ -1690,7 +2173,7 @@ function _renderBench(results, running) {
     </div>
     <div style="font-size:11px;color:var(--text-d);line-height:1.7">
       ${avgMs<300?'API 응답 우수':avgMs<600?'API 응답 양호':'API 응답 지연'}<br>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">${done.length}/${results.length} endpoints · ${new Date().toTimeString().slice(0,8)}</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">${done.length}/${results.length} endpoints · ${fmtHMS(new Date())}</span>
     </div>
   </div>` : '';
 
@@ -1737,7 +2220,7 @@ function startAutoRefresh() {
     if (dot) dot.classList.add('pulse');
     loadAll().then(() => {
       if (dot)  dot.classList.remove('pulse');
-      if (ts)   ts.textContent = 'Updated ' + new Date().toTimeString().slice(0,8);
+      if (ts)   ts.textContent = 'Updated ' + fmtHMS(new Date());
     });
   }, 30_000);
 
@@ -1746,6 +2229,31 @@ function startAutoRefresh() {
     withFallback('/os/activity', DEMO.activity, rActivity);
   }, 12_000);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════════════════════ */
+const TAB_IDS = ['ops', 'agents', 'brain', 'metrics'];
+
+function switchTab(name) {
+  if (!TAB_IDS.includes(name)) return;
+  TAB_IDS.forEach(t => {
+    const pane = document.getElementById('pane-' + t);
+    const btn  = document.getElementById('tab-btn-' + t);
+    if (pane) pane.classList.toggle('active', t === name);
+    if (btn)  btn.classList.toggle('active', t === name);
+  });
+  try { localStorage.setItem('bucky-active-tab', name); } catch(e) {}
+  // lazy-init bench and 3d graph when their tabs become visible
+  if (name === 'metrics') initBench();
+}
+
+(function restoreTab() {
+  try {
+    const saved = localStorage.getItem('bucky-active-tab');
+    if (saved && TAB_IDS.includes(saved)) switchTab(saved);
+  } catch(e) {}
+})();
 
 /* ── Init ── */
 loadAll();

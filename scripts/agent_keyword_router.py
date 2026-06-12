@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-키워드 기반 에이전트 자동 라우팅 레이어 v1.
+키워드 기반 에이전트 자동 라우팅 레이어 v2.
 
 Discord 봇 + Agent Dispatcher 양쪽에서 import하여 사용.
 기존 라우팅 유지 원칙: 이 모듈의 결과는 힌트(hint)이며
@@ -9,8 +9,8 @@ Discord 봇 + Agent Dispatcher 양쪽에서 import하여 사용.
 에이전트 역할:
   gemini     — 리서치, 최신 정보, 멀티모달 (GEMINI_API_KEY 필요)
   chris      — Graphify 기반 지식 구조 분석, 브레인 성능 개선 제안
-  codex      — 설계 검토, 버그 분석, 리뷰, 리팩토링
-  claude     — 구현, 코드 작성, 수정 (Claude Code CLI)
+  codex      — 2번 구현자: 백엔드·스크립트·API·테스트·자동화·DB·버그수정·리팩토링
+  claude     — 1번 구현자: 프론트엔드·UI·복잡한 멀티파일·아키텍처 결정·전략
   bucky      — 일반 대화, 분류 불가 폴백
 """
 
@@ -27,19 +27,37 @@ _GEMINI_KEYWORDS: tuple[str, ...] = (
     "트렌드", "뉴스", "동향",
 )
 
-# Codex: 설계 검토, 버그 분석, 코드 리뷰, 리팩토링
+# Codex: 2번 구현자 — 백엔드·스크립트·API·테스트·자동화·DB·버그수정·리팩토링
 _CODEX_KEYWORDS: tuple[str, ...] = (
-    "설계", "아키텍처", "오류", "버그", "디버깅", "리팩토링",
-    "검토", "리뷰", "위험",
-    "architecture", "debug", "error", "refactor", "review", "risk",
-    "code review", "코드 리뷰", "검수",
+    # 백엔드 / 서버
+    "백엔드", "backend", "서버", "server", "api", "endpoint", "라우터", "router",
+    # 스크립트 / 자동화
+    "스크립트", "script", "자동화", "automation", "배치", "batch", "크론", "cron",
+    "파이썬", "python", "shell", "셸",
+    # 데이터베이스
+    "데이터베이스", "database", "db", "쿼리", "query", "마이그레이션", "migration", "seed",
+    # 테스트
+    "테스트", "test", "pytest", "unittest", "테스트 작성", "단위테스트", "unit test",
+    # 버그 / 디버깅 / 리팩토링
+    "버그", "bug", "오류", "error", "디버깅", "debug", "리팩토링", "refactor",
+    "버그수정", "fix", "수정해",
+    # 데이터 처리
+    "데이터 처리", "data processing", "파싱", "parsing", "크롤링", "crawl",
+    # 검수 (명시적 요청만)
+    "검수", "코드 리뷰", "code review",
 )
 
-# Claude Code: 구현, 코드 작성, 수정
+# Claude Code: 1번 구현자 — 프론트엔드·UI·복잡한 멀티파일·아키텍처 결정·전략
 _CLAUDE_CODE_KEYWORDS: tuple[str, ...] = (
-    "구현", "만들어", "수정", "코드 써", "작성해",
-    "implement", "create", "build", "write code", "modify",
-    "추가해", "개발해",
+    # 프론트엔드 / UI
+    "프론트엔드", "frontend", "html", "css", "javascript", "js", "react", "vue",
+    "ui", "ux", "디자인", "레이아웃", "layout", "컴포넌트", "component",
+    "페이지", "page", "대시보드", "dashboard", "차트", "chart",
+    # 복잡한 구현
+    "구현", "만들어", "개발해", "implement", "create", "build", "추가해",
+    # 아키텍처 / 전략
+    "아키텍처", "architecture", "설계", "시스템", "system design", "전략", "strategy",
+    "복잡한", "complex", "전체적", "overall",
 )
 
 # Chris: Graphify 전담 지식 지도 에이전트

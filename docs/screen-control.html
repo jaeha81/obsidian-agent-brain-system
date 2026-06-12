@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PC 원격 제어 — BuckyOS</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --text: #e2e2f0;
+    --muted: #6b7280;
+    --red: #ef4444;
+    --green: #22c55e;
+    --yellow: #eab308;
+  }
+  html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: 'Pretendard', 'Inter', sans-serif; overflow: hidden; }
+
+  /* ── Layout ── */
+  #app { display: flex; flex-direction: column; height: 100vh; }
+
+  /* ── Topbar ── */
+  #topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    user-select: none;
+  }
+  #topbar h1 { font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: var(--accent2); flex: 1; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  }
+  .badge.live { border-color: var(--green); color: var(--green); }
+  .badge.err  { border-color: var(--red);   color: var(--red); }
+  .badge.idle { border-color: var(--yellow); color: var(--yellow); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .dot.pulse { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── Controls strip ── */
+  #controls {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  label { display: flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+  input[type=range] { width: 80px; accent-color: var(--accent); cursor: pointer; }
+  select, button {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .sep { width: 1px; height: 18px; background: var(--border); }
+
+  /* ── Viewport ── */
+  #viewport {
+    flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: #000;
+    cursor: crosshair;
+    position: relative;
+  }
+  #viewport:focus { outline: none; }
+  #screen-img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    display: block;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  #overlay {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #overlay-msg {
+    background: rgba(0,0,0,0.7); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 32px; text-align: center;
+    font-size: 14px; color: var(--muted);
+  }
+  #overlay-msg h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; }
+
+  /* ── Status bar ── */
+  #statusbar {
+    display: flex; gap: 16px; padding: 4px 16px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--muted);
+    flex-shrink: 0;
+  }
+  #statusbar span b { color: var(--text); }
+
+  /* ── Keyboard panel ── */
+  #kbd-panel {
+    display: none;
+    padding: 8px 16px; background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #kbd-panel.show { display: flex; align-items: center; gap: 8px; }
+  #type-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 6px 10px; font-size: 13px;
+  }
+  #type-input:focus { outline: none; border-color: var(--accent); }
+
+  .hotkey-btn {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+  }
+  .hotkey-btn:hover { border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <h1>🖥 PC 원격 제어</h1>
+    <span id="conn-badge" class="badge idle"><span class="dot"></span><span id="conn-text">연결 중…</span></span>
+    <span id="fps-badge" class="badge">FPS <b id="fps-val">—</b></span>
+    <span id="lat-badge" class="badge">지연 <b id="lat-val">—</b>ms</span>
+  </div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <label>품질
+      <input type="range" id="quality" min="10" max="90" value="55">
+      <span id="quality-val">55</span>
+    </label>
+    <label>배율
+      <input type="range" id="scale" min="10" max="100" step="5" value="55">
+      <span id="scale-val">55</span>%
+    </label>
+    <label>FPS
+      <select id="fps">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+      </select>
+    </label>
+    <div class="sep"></div>
+    <button id="btn-ctrl" onclick="toggleControl()">제어 OFF</button>
+    <button id="btn-kbd" onclick="toggleKbd()">키보드</button>
+    <button onclick="sendFullscreenKey()">전체화면</button>
+    <button onclick="sendKey('ctrl+alt+delete')">Ctrl+Alt+Del</button>
+    <div class="sep"></div>
+    <button id="btn-fullvp" onclick="toggleFullViewport()">뷰 확대</button>
+  </div>
+
+  <!-- Viewport -->
+  <div id="viewport" tabindex="0"
+    onmousedown="onMouseDown(event)"
+    onmouseup="onMouseUp(event)"
+    onmousemove="onMouseMove(event)"
+    ondblclick="onDblClick(event)"
+    oncontextmenu="onContextMenu(event)"
+    onwheel="onWheel(event)"
+    onkeydown="onKeyDown(event)"
+    onkeyup="onKeyUp(event)">
+    <img id="screen-img" src="" alt="화면" draggable="false">
+    <div id="overlay">
+      <div id="overlay-msg">
+        <h2>연결 중…</h2>
+        <p>BuckyOS 서버에 화면을 요청하고 있습니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard panel -->
+  <div id="kbd-panel">
+    <input id="type-input" type="text" placeholder="텍스트 입력 후 Enter — PC에 그대로 타이핑됩니다"
+      onkeydown="onTypeInput(event)">
+    <button class="hotkey-btn" onclick="sendHotkey(['ctrl','c'])">Copy</button>
+    <button class="hotkey-btn" onclick="sendHotkey(['ctrl','v'])">Paste</button>
+    <button class="hotkey-btn" onclick="sendHotkey(['ctrl','z'])">Undo</button>
+    <button class="hotkey-btn" onclick="sendHotkey(['alt','tab'])">Alt+Tab</button>
+    <button class="hotkey-btn" onclick="sendHotkey(['win'])">Win</button>
+    <button class="hotkey-btn" onclick="sendKey('esc')">Esc</button>
+    <button class="hotkey-btn" onclick="sendKey('enter')">Enter</button>
+  </div>
+
+  <!-- Statusbar -->
+  <div id="statusbar">
+    <span>해상도: <b id="st-res">—</b></span>
+    <span>표시: <b id="st-disp">—</b></span>
+    <span>마우스: <b id="st-mouse">—</b></span>
+    <span>마지막: <b id="st-last">—</b></span>
+    <span id="st-ctrl-state">제어: <b>OFF</b></span>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+const BASE = window.location.origin;
+let screenW = 1920, screenH = 1080;
+let controlEnabled = false;
+let streaming = false;
+let pollTimer = null;
+let frameCount = 0, lastFpsTime = Date.now();
+let lastMoveTime = 0;
+const MOVE_THROTTLE_MS = 50;
+
+// ── Init ──────────────────────────────────────────────────────────
+(async function init() {
+  await fetchScreenInfo();
+  applySettings();
+  startPolling();
+  document.getElementById('viewport').focus();
+})();
+
+async function fetchScreenInfo() {
+  try {
+    const r = await fetch(BASE + '/os/screen/info');
+    if (!r.ok) return;
+    const d = await r.json();
+    screenW = d.width; screenH = d.height;
+    document.getElementById('st-res').textContent = `${screenW}×${screenH}`;
+  } catch(e) {}
+}
+
+// ── Settings ──────────────────────────────────────────────────────
+const qSlider = document.getElementById('quality');
+const sSlider = document.getElementById('scale');
+const fpsSelect = document.getElementById('fps');
+const qVal = document.getElementById('quality-val');
+const sVal = document.getElementById('scale-val');
+
+qSlider.addEventListener('input', () => { qVal.textContent = qSlider.value; applySettings(); });
+sSlider.addEventListener('input', () => { sVal.textContent = sSlider.value; updateDisplaySize(); applySettings(); });
+fpsSelect.addEventListener('change', applySettings);
+
+function applySettings() {
+  stopPolling();
+  startPolling();
+}
+
+function getSettings() {
+  return {
+    quality: parseInt(qSlider.value),
+    scale: parseInt(sSlider.value) / 100,
+    fps: parseInt(fpsSelect.value),
+  };
+}
+
+// ── Polling ───────────────────────────────────────────────────────
+function startPolling() {
+  const { fps } = getSettings();
+  streaming = true;
+  pollTimer = setInterval(fetchFrame, Math.round(1000 / fps));
+}
+
+function stopPolling() {
+  streaming = false;
+  clearInterval(pollTimer);
+}
+
+const img = document.getElementById('screen-img');
+const overlay = document.getElementById('overlay');
+let firstFrame = true;
+
+async function fetchFrame() {
+  const { quality, scale } = getSettings();
+  const url = `${BASE}/os/screen/snapshot?quality=${quality}&scale=${scale}&_t=${Date.now()}`;
+  const t0 = Date.now();
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const blob = await r.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const oldSrc = img.src;
+    img.src = objUrl;
+    if (oldSrc.startsWith('blob:')) URL.revokeObjectURL(oldSrc);
+
+    if (firstFrame) {
+      overlay.style.display = 'none';
+      firstFrame = false;
+    }
+    setConnected(true, Date.now() - t0);
+
+    // FPS counter
+    frameCount++;
+    const now = Date.now();
+    if (now - lastFpsTime >= 1000) {
+      document.getElementById('fps-val').textContent = frameCount;
+      frameCount = 0; lastFpsTime = now;
+    }
+
+    const dispW = Math.round(screenW * scale);
+    const dispH = Math.round(screenH * scale);
+    document.getElementById('st-disp').textContent = `${dispW}×${dispH}`;
+    document.getElementById('st-last').textContent = new Date().toLocaleTimeString();
+
+  } catch(e) {
+    setConnected(false, null);
+  }
+}
+
+function setConnected(ok, lat) {
+  const badge = document.getElementById('conn-badge');
+  const dot = badge.querySelector('.dot');
+  const txt = document.getElementById('conn-text');
+  if (ok) {
+    badge.className = 'badge live';
+    dot.className = 'dot pulse';
+    txt.textContent = '연결됨';
+    if (lat !== null) document.getElementById('lat-val').textContent = lat;
+  } else {
+    badge.className = 'badge err';
+    dot.className = 'dot';
+    txt.textContent = '오류';
+  }
+}
+
+// ── Coordinate mapping ────────────────────────────────────────────
+function toScreenCoords(e) {
+  const rect = img.getBoundingClientRect();
+  const rx = (e.clientX - rect.left) / rect.width;
+  const ry = (e.clientY - rect.top) / rect.height;
+  return {
+    x: Math.round(rx * screenW),
+    y: Math.round(ry * screenH),
+  };
+}
+
+// ── Mouse events ──────────────────────────────────────────────────
+function onMouseMove(e) {
+  if (!controlEnabled) return;
+  const now = Date.now();
+  if (now - lastMoveTime < MOVE_THROTTLE_MS) return;
+  lastMoveTime = now;
+  const { x, y } = toScreenCoords(e);
+  document.getElementById('st-mouse').textContent = `${x}, ${y}`;
+  sendInput({ type: 'move', x, y });
+}
+
+function onMouseDown(e) {
+  document.getElementById('viewport').focus();
+  if (!controlEnabled) return;
+  const { x, y } = toScreenCoords(e);
+  const btn = e.button === 2 ? 'right' : e.button === 1 ? 'middle' : 'left';
+  sendInput({ type: 'mousedown', x, y, button: btn });
+}
+
+function onMouseUp(e) {
+  if (!controlEnabled) return;
+  const { x, y } = toScreenCoords(e);
+  const btn = e.button === 2 ? 'right' : e.button === 1 ? 'middle' : 'left';
+  sendInput({ type: 'mouseup', x, y, button: btn });
+}
+
+function onDblClick(e) {
+  if (!controlEnabled) return;
+  const { x, y } = toScreenCoords(e);
+  sendInput({ type: 'click', x, y, double: true });
+}
+
+function onContextMenu(e) {
+  e.preventDefault();
+  if (!controlEnabled) return;
+  const { x, y } = toScreenCoords(e);
+  sendInput({ type: 'click', x, y, button: 'right' });
+}
+
+function onWheel(e) {
+  e.preventDefault();
+  if (!controlEnabled) return;
+  const { x, y } = toScreenCoords(e);
+  const dy = e.deltaY > 0 ? -3 : 3;
+  sendInput({ type: 'scroll', x, y, dy });
+}
+
+// ── Keyboard events ───────────────────────────────────────────────
+const KEY_MAP = {
+  'Enter': 'enter', 'Escape': 'esc', 'Backspace': 'backspace',
+  'Delete': 'delete', 'Tab': 'tab', 'Space': 'space', ' ': 'space',
+  'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right',
+  'Home': 'home', 'End': 'end', 'PageUp': 'pageup', 'PageDown': 'pagedown',
+  'Insert': 'insert', 'F1': 'f1', 'F2': 'f2', 'F3': 'f3', 'F4': 'f4',
+  'F5': 'f5', 'F6': 'f6', 'F7': 'f7', 'F8': 'f8', 'F9': 'f9',
+  'F10': 'f10', 'F11': 'f11', 'F12': 'f12',
+};
+
+function onKeyDown(e) {
+  if (!controlEnabled) return;
+  if (document.getElementById('type-input') === document.activeElement) return;
+  e.preventDefault();
+
+  const modifiers = [];
+  if (e.ctrlKey)  modifiers.push('ctrl');
+  if (e.altKey)   modifiers.push('alt');
+  if (e.shiftKey) modifiers.push('shift');
+  if (e.metaKey)  modifiers.push('win');
+
+  const mapped = KEY_MAP[e.key];
+  const isModOnly = ['Control','Alt','Shift','Meta'].includes(e.key);
+
+  if (isModOnly) return;
+
+  if (modifiers.length > 0) {
+    const k = mapped || e.key.toLowerCase();
+    sendInput({ type: 'hotkey', keys: [...modifiers, k] });
+  } else if (mapped) {
+    sendInput({ type: 'key', key: mapped });
+  } else if (e.key.length === 1) {
+    sendInput({ type: 'type', text: e.key });
+  }
+}
+
+function onKeyUp(e) {
+  // reserved for future drag tracking
+}
+
+// ── Type input ────────────────────────────────────────────────────
+function onTypeInput(e) {
+  if (e.key === 'Enter') {
+    const inp = document.getElementById('type-input');
+    const text = inp.value;
+    if (text) {
+      sendInput({ type: 'type', text });
+      inp.value = '';
+    }
+  }
+}
+
+// ── Send helpers ──────────────────────────────────────────────────
+function sendInput(payload) {
+  fetch(BASE + '/os/screen/input', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  }).catch(() => {});
+}
+
+function sendKey(k) {
+  sendInput({ type: 'key', key: k });
+}
+
+function sendHotkey(keys) {
+  sendInput({ type: 'hotkey', keys });
+}
+
+function sendFullscreenKey() {
+  sendInput({ type: 'key', key: 'f11' });
+}
+
+// ── Toggle control ────────────────────────────────────────────────
+function toggleControl() {
+  controlEnabled = !controlEnabled;
+  const btn = document.getElementById('btn-ctrl');
+  const st = document.getElementById('st-ctrl-state');
+  if (controlEnabled) {
+    btn.className = 'active';
+    btn.textContent = '제어 ON';
+    st.innerHTML = '제어: <b style="color:var(--green)">ON</b>';
+    document.getElementById('viewport').style.cursor = 'crosshair';
+  } else {
+    btn.className = '';
+    btn.textContent = '제어 OFF';
+    st.innerHTML = '제어: <b>OFF</b>';
+    document.getElementById('viewport').style.cursor = 'default';
+  }
+}
+
+// ── Toggle keyboard panel ─────────────────────────────────────────
+function toggleKbd() {
+  const panel = document.getElementById('kbd-panel');
+  const btn = document.getElementById('btn-kbd');
+  const show = !panel.classList.contains('show');
+  panel.classList.toggle('show', show);
+  btn.className = show ? 'active' : '';
+  if (show) document.getElementById('type-input').focus();
+}
+
+// ── Toggle full viewport ──────────────────────────────────────────
+function toggleFullViewport() {
+  const controls = document.getElementById('controls');
+  const kbd = document.getElementById('kbd-panel');
+  const statusbar = document.getElementById('statusbar');
+  const btn = document.getElementById('btn-fullvp');
+  const hiding = controls.style.display !== 'none';
+  controls.style.display = hiding ? 'none' : '';
+  kbd.style.display = hiding ? 'none' : '';
+  statusbar.style.display = hiding ? 'none' : '';
+  btn.className = hiding ? 'active' : '';
+  btn.textContent = hiding ? '뷰 축소' : '뷰 확대';
+}
+
+function updateDisplaySize() {
+  // nothing needed — CSS handles it
+}
+</script>
+</body>
+</html>

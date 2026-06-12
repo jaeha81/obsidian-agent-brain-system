@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-11",
+    "last_updated": "2026-06-12",
     "last_completed": "CL-041"
   },
   "tasks": [
@@ -589,6 +589,50 @@
       "category": "자동감지",
       "status": "pending",
       "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-046",
+      "title": "봇 재시작 (변경사항 적용을 위해 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-047",
+      "title": "봇 서버 재시작 (사용자 수행 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-048",
+      "title": "봇 서버 재시작 필요 (사용자 수행)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-049",
+      "title": "서버는 사용자가 재시작해야 합니다 (`start_bucky_server.bat` 또는 Discord에서 재시작 명령).",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
       "source": "discord-auto",
       "refs": []
     }

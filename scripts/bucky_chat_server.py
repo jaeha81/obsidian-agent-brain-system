@@ -74,6 +74,10 @@ PROTECTED_API_PATHS = {
     "/tablet-intake",
     "/update-wishket",
     "/update-profile",
+    "/os/screen/input",
+    "/os/screen/snapshot",
+    "/os/screen/stream",
+    "/os/screen/info",
 }
 
 try:
@@ -110,7 +114,60 @@ def _preflight():
     return "", 204
 
 MAX_HISTORY = 20
+TURN_THRESHOLD = 20  # Phase 3-1: 자동 핸드오프 턴 임계값
 _sessions: dict[str, list[dict]] = defaultdict(list)
+_session_turns: dict[str, int] = defaultdict(int)  # 세션별 턴 카운터
+
+
+def _auto_handoff(session_id: str, history: list[dict]) -> None:
+    """Phase 3-1: 턴 임계값 도달 시 핸드오프 자동 저장."""
+    try:
+        handoff_dir = ROOT / "ObsidianVault" / "00_System"
+        handoff_dir.mkdir(parents=True, exist_ok=True)
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        handoff_path = handoff_dir / f"auto_handoff_{ts}.md"
+
+        last_msgs = history[-10:]  # 최근 10개 메시지
+        body_lines = [
+            f"---",
+            f"type: auto-handoff",
+            f"session_id: {session_id}",
+            f"turns: {_session_turns[session_id]}",
+            f"created: {time.strftime('%Y-%m-%dT%H:%M:%S')}",
+            f"trigger: turn-threshold-{TURN_THRESHOLD}",
+            f"---",
+            "",
+            f"# 자동 핸드오프 — 세션 {session_id[:8]}",
+            "",
+            f"> 대화 턴이 {TURN_THRESHOLD}턴에 도달해 자동 저장된 핸드오프입니다.",
+            "",
+            "## 최근 대화 요약 (마지막 10턴)",
+            "",
+        ]
+        for msg in last_msgs:
+            role = "사용자" if msg.get("role") == "user" else "Bucky"
+            content = (msg.get("content") or "")[:300]
+            body_lines.append(f"**{role}**: {content}")
+            body_lines.append("")
+
+        body_lines += [
+            "## 다음 세션 재개",
+            "",
+            "이 파일을 다음 세션 시작 시 참조해 맥락을 이어갑니다.",
+        ]
+
+        handoff_path.write_text("\n".join(body_lines), encoding="utf-8")
+
+        # HANDOFF_LOG.md 에도 간략 기록
+        handoff_log = ROOT / "ObsidianVault" / "00_System" / "HANDOFF_LOG.md"
+        try:
+            existing = handoff_log.read_text(encoding="utf-8") if handoff_log.exists() else ""
+            entry = f"\n## 자동 핸드오프 {ts}\n- 세션: {session_id[:8]}\n- 턴: {_session_turns[session_id]}\n- 저장: {handoff_path.name}\n"
+            handoff_log.write_text(existing + entry, encoding="utf-8")
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 
 def _auth_secret() -> str:
@@ -209,7 +266,19 @@ def chat():
     if len(history) > MAX_HISTORY * 2:
         _sessions[session_id] = history[-(MAX_HISTORY * 2):]
 
-    return jsonify({"reply": reply, "session_id": session_id})
+    # Phase 3-1: 턴 카운터 증가 + 임계값 도달 시 자동 핸드오프
+    _session_turns[session_id] += 1
+    handoff_triggered = False
+    if _session_turns[session_id] >= TURN_THRESHOLD and _session_turns[session_id] % TURN_THRESHOLD == 0:
+        _auto_handoff(session_id, _sessions[session_id])
+        handoff_triggered = True
+
+    resp: dict = {"reply": reply, "session_id": session_id, "turn": _session_turns[session_id]}
+    if handoff_triggered:
+        resp["handoff_saved"] = True
+        resp["handoff_note"] = f"대화 {_session_turns[session_id]}턴 도달 — 핸드오프가 자동 저장됐습니다."
+
+    return jsonify(resp)
 
 
 @app.post("/")
