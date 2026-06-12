@@ -128,7 +128,7 @@
 </div>
 
 <footer>
-  Agent Room · Bucky Agent OS · localhost:8765 연결 시 실시간 상태 · 미연결 시 데모 데이터 표시
+  Agent Room · Bucky Agent OS · Tailscale(ts.net:8443) 또는 localhost:8765 연결 시 실시간 상태 · 미연결 시 데모 데이터 표시
 </footer>
 
 <!-- Agent Call Modal -->
@@ -149,7 +149,8 @@
 </div>
 
 <script>
-const _AR_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? '' : 'http://localhost:8765';
+const _AR_API = (window.location.protocol === 'file:' || /\.pages\.dev$|\.github\.io$|\.vercel\.app$/i.test(window.location.hostname))
+  ? 'http://localhost:8765' : '';
 const _DEMO_AGENTS = { agents: [
   { id:'bucky',            name:'Bucky',            emoji:'🧠', role:'오케스트레이터',     description:'중앙 조율, Context Pack 생성, 작업 분류 및 라우팅',       domain:['전략','브리핑','라우팅'],  status:'online',  callable:true,  call_endpoint:'/chat' },
   { id:'claude_code',      name:'Claude Code',      emoji:'⚡', role:'1번 구현자',         description:'프론트엔드 / UI / HTML / CSS / 아키텍처 구현',            domain:['프론트엔드','UI','HTML'],  status:'online',  callable:true,  call_endpoint:'/intake' },
