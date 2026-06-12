@@ -66,6 +66,16 @@ $governanceTriggers = @(
     "graphify"
 )
 
+$implementationTriggers = @(
+    "implement",
+    "implementation",
+    "build",
+    "change",
+    "feature",
+    "fix",
+    "code"
+)
+
 if (Test-AnyTrigger -Text $request -Triggers $governanceTriggers) {
     $key = "instruction_governance"
     $agent = "Bucky Instruction Auditor"
@@ -74,6 +84,18 @@ if (Test-AnyTrigger -Text $request -Triggers $governanceTriggers) {
     $notes = @(
         "Use for diagnosing excessive instructions, role conflicts, context waste, and Bucky/Codex/Claude operating rules.",
         "Prefer a short root-cause finding and a minimal rule/script patch over broad Vault exploration."
+    )
+} elseif (Test-AnyTrigger -Text $request -Triggers $implementationTriggers) {
+    $key = "implementation"
+    $agent = "Claude/Codex Micro Planner"
+    $role = "micro-plan / user confirmation before implementation"
+    $packs = $directPacks + @(
+        "ObsidianVault/06_Context_Packs/bucky-development-workflow-policy.md"
+    )
+    $notes = @(
+        "Use for ordinary implementation requests that lack exact execution steps.",
+        "Draft a short micro-plan and get user confirmation before implementation.",
+        "Request Bucky/context only for specific missing project policy or knowledge after confirmation."
     )
 } else {
     $key = "direct_execution"

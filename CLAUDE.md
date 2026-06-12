@@ -98,6 +98,14 @@ powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 
 
 Do not reuse packets from another repo or folder unless Bucky confirms they apply.
 
+## Three-Tier Routing
+
+Claude Code should not treat Bucky as mandatory prework for every task.
+
+1. **Explicit command path:** If the user provides exact files, commands, execution order, or forbidden actions, execute the first requested command immediately. Do not run selector, read Context Packs, inspect broad diffs, or write a plan first.
+2. **Normal implementation path:** If the user requests a change but the steps are not exact, write a short micro-plan and ask the user to confirm. After confirmation, use Bucky/context only for the specific missing policy or project knowledge.
+3. **Bucky-first path:** Ask Bucky or use a selector before planning only for new projects, unclear instruction authority, security/auth/payment/deploy/customer-data risk, destructive actions, broad migrations, role/instruction changes, or when the user explicitly asks for Bucky confirmation.
+
 ## Bucky Packet Format
 
 When Bucky provides instructions to Claude Code, expect a compact packet with:

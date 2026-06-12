@@ -120,16 +120,17 @@ RULES: tuple[PackRule, ...] = (
     ),
     PackRule(
         key="implementation",
-        primary_worker="Claude Code Builder",
-        role="implementation / operation",
-        packs=CORE_PACKS
+        primary_worker="Claude/Codex Micro Planner",
+        role="micro-plan / user confirmation before implementation",
+        packs=DIRECT_EXECUTION_PACKS
         + (
             "ObsidianVault/06_Context_Packs/bucky-development-workflow-policy.md",
-            RUNBOOK_PACK,
-            "CLAUDE.md",
-            "ObsidianVault/03_Projects/agents/bucky.md",
         ),
-        notes=("Use for code/file implementation after Bucky defines scope and done_when.",),
+        notes=(
+            "Use for ordinary implementation requests that lack exact execution steps.",
+            "Draft a short micro-plan and get user confirmation before implementation.",
+            "Request Bucky/context only for specific missing project policy or knowledge after confirmation.",
+        ),
         triggers=("implementation", "implement", "build", "수정", "구현", "개발", "claude", "code"),
     ),
     PackRule(

@@ -54,6 +54,8 @@ Required PASS checks:
 
 If the user already provided exact files, commands, execution order, or forbidden actions, do not run selector first. Treat the user request as the active packet for the first step and run the first requested command before selector, plan, broad diff, or whole-file reads.
 
+For ordinary implementation requests without exact steps, the assigned agent should produce a short micro-plan and get user confirmation before requesting Bucky/context. Bucky-first routing is reserved for new projects, unclear authority, security/auth/payment/deploy/customer-data risk, destructive actions, broad migrations, role/instruction changes, or explicit Bucky-confirmation requests.
+
 Use the no-Python fast selector only when packet selection is actually needed for an unclear or new-project task. It avoids Python startup, but script-file execution itself may still be delayed by the host runtime, so it is not a hot-path requirement.
 
 ```powershell

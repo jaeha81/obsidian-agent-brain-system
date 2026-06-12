@@ -25,3 +25,9 @@ Do not call selector scripts on the hot path for explicit tasks.
 Use `scripts/context_pack_selector_fast.ps1` only when packet selection is actually needed for an unclear or new-project task. Use the Python selector only when deeper routing is explicitly needed.
 
 Observed evidence: in this Windows/Google Drive runtime, Python startup and script-file execution can be delayed enough to waste a full turn. The operational fix is no-selector direct execution when the user's request is already specific.
+
+## Three-tier routing
+
+1. Explicit command path: exact user files/commands/order/forbidden actions are the active packet for the first step.
+2. Normal implementation path: Claude Code drafts a short micro-plan, gets user confirmation, then requests only the missing Bucky/context knowledge needed for the approved plan.
+3. Bucky-first path: use Bucky before planning only for new projects, unclear authority, security/auth/payment/deploy/customer-data risk, destructive actions, broad migrations, role/instruction changes, or explicit Bucky-confirmation requests.

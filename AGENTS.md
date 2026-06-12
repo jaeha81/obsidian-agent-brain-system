@@ -36,6 +36,14 @@ If the user gives explicit files, commands, or an execution order, treat that re
 5. Do not run `context_pack_selector.py`, read Context Packs, or apply Superpowers plan/review workflows before the first requested command unless the user asks for planning/review or the project packet is genuinely missing. If packet selection is unavoidable, use `scripts/context_pack_selector_fast.ps1` first.
 6. Commands likely to exceed 30 seconds require a short reason before execution.
 
+## Three-Tier Routing
+
+Use Bucky as a knowledge/policy router, not as a mandatory prework step for every task.
+
+1. **Explicit command path:** If the user provides exact files, commands, execution order, or forbidden actions, execute the first requested command immediately. No selector, plan, broad diff, or Context Pack read first.
+2. **Normal implementation path:** If the user asks for a change but does not provide exact execution steps, Claude Code or Codex first writes a short micro-plan for the user to confirm. After approval, request Bucky/context only for the specific missing policy or project knowledge.
+3. **Bucky-first path:** Ask Bucky or use a selector before planning only for new projects, unclear authority, security/auth/payment/deploy/customer-data risk, destructive actions, broad migrations, role/instruction changes, or when the user explicitly asks for Bucky confirmation.
+
 ## Review Priorities
 
 - P1: security vulnerabilities, hardcoded secrets/API keys, data loss risks, infinite loops, memory leaks
