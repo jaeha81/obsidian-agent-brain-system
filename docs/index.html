@@ -300,43 +300,6 @@
     .intake-grid { grid-template-columns: 1fr; }
   }
 
-  /* ── Agent Room ── */
-  .agent-room-section { border-top: 1px solid var(--border); margin-top: 8px; }
-  .agent-room-section h2 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 16px 32px 12px; display: flex; align-items: center; gap: 10px; }
-  .agent-room-frame { width: 100%; height: 80vh; border: none; display: block; }
-  .ar-card { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.07); border-left: 3px solid transparent; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s, transform 0.15s; }
-  .ar-card:hover { transform: translateY(-1px); border-color: rgba(14,165,233,0.3); }
-  .ar-card.s-online, .ar-card.s-active  { border-left-color: #22c55e; }
-  .ar-card.s-standby { border-left-color: #f59e0b; }
-  .ar-card.s-idle    { border-left-color: #6b7280; }
-  .ar-card.s-pending { border-left-color: #374151; }
-  .ar-card.s-offline { border-left-color: #ef4444; }
-  .ar-header { display: flex; align-items: center; gap: 10px; }
-  .ar-emoji  { font-size: 22px; line-height: 1; }
-  .ar-name   { font-weight: 700; font-size: 14px; color: #e0e0e0; }
-  .ar-role   { font-size: 10px; color: #0ea5e9; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-  .ar-status-badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 4px; white-space: nowrap; font-weight: 600; }
-  .ar-desc   { font-size: 12px; color: #888; line-height: 1.45; flex: 1; }
-  .ar-tags   { display: flex; flex-wrap: wrap; gap: 4px; }
-  .ar-tag    { font-size: 10px; background: rgba(14,165,233,0.1); color: #7dd3fc; border-radius: 4px; padding: 2px 6px; }
-  .ar-call-btn { margin-top: 4px; padding: 6px 12px; background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.28); border-radius: 6px; color: #7dd3fc; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-  .ar-call-btn:hover { background: rgba(14,165,233,0.28); }
-  .ar-call-note { font-size: 11px; color: #4b5563; margin-top: 4px; }
-  #agent-call-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 9000; align-items: center; justify-content: center; }
-  #agent-call-modal.open { display: flex; }
-  .acm-box { background: #0f0f1e; border: 1px solid rgba(14,165,233,0.25); border-radius: 14px; padding: 24px; width: min(520px, 92vw); max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-  .acm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .acm-title  { font-size: 16px; font-weight: 700; color: #e0e0e0; }
-  .acm-close  { background: none; border: none; color: #666; cursor: pointer; font-size: 22px; line-height: 1; padding: 0; }
-  .acm-close:hover { color: #e0e0e0; }
-  .acm-desc   { font-size: 12px; color: #6b7280; margin: 0 0 14px; }
-  .acm-textarea { width: 100%; min-height: 110px; background: #0a0a18; border: 1px solid #2a2a3e; border-radius: 8px; padding: 10px; color: #d1d5db; font-size: 13px; resize: vertical; box-sizing: border-box; font-family: inherit; }
-  .acm-textarea:focus { outline: none; border-color: rgba(14,165,233,0.5); }
-  .acm-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
-  .acm-cancel { padding: 8px 16px; background: #1f1f2e; border: 1px solid #333; border-radius: 6px; color: #9ca3af; cursor: pointer; font-size: 13px; }
-  .acm-submit { padding: 8px 18px; background: #0ea5e9; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 13px; font-weight: 700; }
-  .acm-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-  .acm-feedback { margin-top: 10px; font-size: 12px; min-height: 18px; }
 </style>
 </head>
 <body>
@@ -354,6 +317,7 @@
     <a href="wishket.html">위시켓</a>
     <a href="daily-plus.html">오늘의플러스</a>
     <a href="task-board.html">태스크보드</a>
+    <a href="agent-room.html">에이전트룸</a>
     <a href="checklist.html">체크리스트</a>
     <a href="ai-usage.html">AI사용량</a>
     <a href="project-graph.html">프로젝트그래프</a>
@@ -465,12 +429,6 @@
 </section>
 
 <div class="grid" id="grid"></div>
-
-<!-- Agent Room -->
-<section class="agent-room-section">
-  <h2>🤖 Agent Room</h2>
-  <iframe class="agent-room-frame" src="/bucky-agent-os.html?tab=agents" title="Agent Room" loading="lazy"></iframe>
-</section>
 
 <footer>
   Bucky Agent 상품화 분석 v2 · 완성도 × 시장성 점수 기반 · 체크 상태는 브라우저에 저장됩니다<br>
@@ -1674,110 +1632,6 @@ async function init() {
 
 init();
 
-/* ── Agent Room ── */
-const _AR_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? '' : 'http://localhost:8765';
-const _DEMO_AGENTS = { agents: [
-  { id:'bucky',            name:'Bucky',            emoji:'🧠', role:'오케스트레이터',     description:'중앙 조율, Context Pack 생성, 작업 분류 및 라우팅',       domain:['전략','브리핑','라우팅'],  status:'online',  callable:true,  call_endpoint:'/chat' },
-  { id:'claude_code',      name:'Claude Code',      emoji:'⚡', role:'1번 구현자',         description:'프론트엔드 / UI / HTML / CSS / 아키텍처 구현',            domain:['프론트엔드','UI','HTML'],  status:'online',  callable:true,  call_endpoint:'/intake' },
-  { id:'codex',            name:'Codex',            emoji:'🔧', role:'2번 구현자',         description:'백엔드 / 스크립트 / API / 자동화 / 버그 수정',            domain:['백엔드','스크립트','API'], status:'standby', callable:true,  call_endpoint:'/intake' },
-  { id:'wishket_agent',    name:'Wishket Agent',    emoji:'💼', role:'수주 자동화',        description:'Wishket 프리랜서 프로젝트 탐색, 제안서 생성, 자동 매칭',  domain:['Wishket','프리랜서'],     status:'idle',    callable:true,  call_endpoint:'/intake' },
-  { id:'gemini_research',  name:'Gemini Research',  emoji:'🔍', role:'리서치 에이전트',   description:'웹 / 시장 / 기술 리서치, 출처 기반 요약',                 domain:['리서치','검색','트렌드'], status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
-  { id:'gemini_multimodal',name:'Gemini Multimodal',emoji:'🏗️', role:'이미지 / 도면 분석',description:'AutoCAD 도면, 현장사진, 자재 이미지 분석',               domain:['도면','이미지'],          status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
-  { id:'gemini_content',   name:'Gemini Content',   emoji:'✍️', role:'콘텐츠 생성',       description:'블로그, 유튜브 쇼츠, SNS 광고문구, 영상 프롬프트 생성',  domain:['블로그','유튜브','SNS'],  status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
-  { id:'gemini_validator', name:'Gemini Validator', emoji:'✅', role:'교차 검증',           description:'Claude / Codex 산출물 독립 교차검증',                    domain:['검증','리뷰','QA'],        status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
-]};
-const _AR_SC = { online:'#22c55e', active:'#22c55e', standby:'#f59e0b', idle:'#9ca3af', pending:'#374151', offline:'#ef4444' };
-const _AR_SL = { online:'ONLINE', active:'ACTIVE', standby:'STANDBY', idle:'IDLE', pending:'보류중', offline:'OFFLINE' };
-let _arReg = [];
-let _arAgent = null;
-function arEsc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function renderAgents(d) {
-  const body = document.getElementById('agents-body');
-  const badge = document.getElementById('agents-badge');
-  const agents = d.agents || [];
-  _arReg = agents;
-  const onCnt = agents.filter(a => ['online','active'].includes(a.status)).length;
-  badge.textContent = `${onCnt}/${agents.length} ACTIVE`;
-  if (onCnt > 0) { badge.style.background='rgba(34,197,94,0.15)'; badge.style.color='#22c55e'; badge.style.borderColor='rgba(34,197,94,0.35)'; }
-  body.innerHTML = `<div class="agent-room-grid">${agents.map(a => {
-    const sc = _AR_SC[a.status]||'#6b7280', sl = _AR_SL[a.status]||a.status.toUpperCase();
-    const tags = (a.domain||[]).slice(0,4).map(t=>`<span class="ar-tag">${arEsc(t)}</span>`).join('');
-    const action = a.callable
-      ? `<button class="ar-call-btn" onclick="openAgentModal('${arEsc(a.id)}')">호출하기</button>`
-      : `<div class="ar-call-note">${arEsc(a.call_note||'비활성')}</div>`;
-    return `<div class="ar-card s-${arEsc(a.status)}">
-      <div class="ar-header"><span class="ar-emoji">${arEsc(a.emoji)}</span>
-        <div><div class="ar-name">${arEsc(a.name)}</div><div class="ar-role">${arEsc(a.role)}</div></div>
-        <span class="ar-status-badge" style="background:${sc}22;color:${sc}">${sl}</span></div>
-      <div class="ar-desc">${arEsc(a.description)}</div>
-      <div class="ar-tags">${tags}</div>${action}</div>`;
-  }).join('')}</div>`;
-}
-
-function openAgentModal(id) {
-  _arAgent = _arReg.find(a => a.id === id);
-  if (!_arAgent) return;
-  document.getElementById('acm-title').textContent = `${_arAgent.emoji} ${_arAgent.name} 호출`;
-  document.getElementById('acm-desc').textContent  = `역할: ${_arAgent.role} — ${_arAgent.description}`;
-  document.getElementById('acm-input').value = '';
-  document.getElementById('acm-feedback').textContent = '';
-  const btn = document.getElementById('acm-submit');
-  btn.disabled = false; btn.textContent = '호출';
-  document.getElementById('agent-call-modal').classList.add('open');
-}
-function closeAgentModal() { document.getElementById('agent-call-modal').classList.remove('open'); }
-
-async function submitAgentCall() {
-  if (!_arAgent) return;
-  const task = document.getElementById('acm-input').value.trim();
-  if (!task) { document.getElementById('acm-input').focus(); return; }
-  const fb = document.getElementById('acm-feedback');
-  const btn = document.getElementById('acm-submit');
-  btn.disabled = true; btn.textContent = '전송 중…';
-  try {
-    const ep = _AR_API + (_arAgent.call_endpoint || '/intake');
-    const body = _arAgent.call_endpoint === '/chat'
-      ? { message: `[Agent Room → ${_arAgent.name}] ${task}` }
-      : { type:'agent_call', agent:_arAgent.id, task, source:'agent-room' };
-    const res = await fetch(ep, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    fb.style.color='#22c55e'; fb.textContent=`${_arAgent.name}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
-    btn.textContent='완료 ✓'; setTimeout(closeAgentModal, 2200);
-  } catch(e) {
-    fb.style.color='#ef4444'; fb.textContent=`전송 실패: ${e.message}`;
-    btn.disabled=false; btn.textContent='다시 호출';
-  }
-}
-document.getElementById('agent-call-modal').addEventListener('click', function(e){ if(e.target===this) closeAgentModal(); });
-
-async function loadAgentRoom() {
-  renderAgents(_DEMO_AGENTS);
-  try {
-    const res = await fetch(_AR_API+'/agent-os/agents', { signal:AbortSignal.timeout(3500) });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    renderAgents(await res.json());
-  } catch(_) {}
-}
-loadAgentRoom();
-</script>
-
-<!-- Agent Call Modal -->
-<div id="agent-call-modal">
-  <div class="acm-box">
-    <div class="acm-header">
-      <span class="acm-title" id="acm-title">에이전트 호출</span>
-      <button class="acm-close" onclick="closeAgentModal()">✕</button>
-    </div>
-    <p class="acm-desc" id="acm-desc"></p>
-    <textarea class="acm-textarea" id="acm-input" placeholder="이 에이전트에게 전달할 작업을 입력하세요…"></textarea>
-    <div class="acm-footer">
-      <button class="acm-cancel" onclick="closeAgentModal()">취소</button>
-      <button class="acm-submit" id="acm-submit" onclick="submitAgentCall()">호출</button>
-    </div>
-    <div class="acm-feedback" id="acm-feedback"></div>
-  </div>
-</div>
 <script src="/auth-ui.js"></script>
 </body>
 </html>
