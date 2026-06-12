@@ -48,6 +48,23 @@ def load_inbox_projects() -> list[dict]:
                     "priority": item.get("priority", "P4"),
                 }
     result = list(projects.values())
+    # 근무/직원 공고 제외 (채용형 공고 필터)
+    EXCLUDE_KEYWORDS = ["근무지", "직원 모집", "직원 채용", "정규직", "계약직", "아르바이트"]
+    EXCLUDE_TITLE_ONLY = ["직원"]
+    def _is_employment(p: dict) -> bool:
+        text = (p.get("title", "") + " " + p.get("description", "")).lower()
+        if any(kw in text for kw in EXCLUDE_KEYWORDS):
+            return True
+        title = p.get("title", "")
+        if any(kw in title for kw in EXCLUDE_TITLE_ONLY):
+            return True
+        return False
+    before = len(result)
+    result = [p for p in result if not _is_employment(p)]
+    excluded = before - len(result)
+    if excluded:
+        print(f"근무/직원 공고 제외: {excluded}개")
+
     # 점수 없는 구 항목 동적 채점
     try:
         sys.path.insert(0, os.path.dirname(__file__))

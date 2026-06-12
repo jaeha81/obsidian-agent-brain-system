@@ -555,9 +555,18 @@ function renderProjects(projects) {
   }).join('');
 }
 
+const EMPLOYMENT_KEYWORDS = ['근무지','직원 모집','직원 채용','정규직','계약직','아르바이트'];
+function isEmployment(p) {
+  const text = (p.title + ' ' + (p.description||'')).toLowerCase();
+  if (EMPLOYMENT_KEYWORDS.some(kw => text.includes(kw))) return true;
+  if (p.title.includes('직원')) return true;
+  return false;
+}
+
 function getFiltered() {
   const q = (document.getElementById('search-input').value || '').toLowerCase();
   return PROJECTS.filter(p => {
+    if (isEmployment(p)) return false;
     const matchPriority = currentFilter === 'all' || p.priority === currentFilter;
     const matchSearch = !q || p.title.toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q);
     return matchPriority && matchSearch;
@@ -588,10 +597,11 @@ document.getElementById('proposal-overlay').addEventListener('click', function(e
 });
 
 function updateStats() {
-  const total = PROJECTS.length;
-  const p1 = PROJECTS.filter(p => p.priority === 'P1').length;
-  const p2 = PROJECTS.filter(p => p.priority === 'P2').length;
-  const avgScore = total ? Math.round(PROJECTS.reduce((s,p) => s + (p.score||0), 0) / total) : 0;
+  const visible = PROJECTS.filter(p => !isEmployment(p));
+  const total = visible.length;
+  const p1 = visible.filter(p => p.priority === 'P1').length;
+  const p2 = visible.filter(p => p.priority === 'P2').length;
+  const avgScore = total ? Math.round(visible.reduce((s,p) => s + (p.score||0), 0) / total) : 0;
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-p1').textContent = p1;
   document.getElementById('stat-p2').textContent = p2;
