@@ -220,27 +220,39 @@ let frameCount = 0, lastFpsTime = Date.now();
 let lastMoveTime = 0;
 const MOVE_THROTTLE_MS = 50;
 
-// View zoom (local CSS scale, independent of server capture scale)
+// View zoom + pan (local CSS transform, independent of server capture scale)
 let viewZoom = 1.0;
+let panX = 0, panY = 0;
 const MIN_ZOOM = 0.5, MAX_ZOOM = 5.0;
 
 function applyViewTransform() {
-  img.style.transform = `scale(${viewZoom})`;
+  img.style.transform = `translate(${panX}px, ${panY}px) scale(${viewZoom})`;
   const pct = Math.round(viewZoom * 100);
-  const isZoomed = viewZoom !== 1.0;
+  const isZoomed = viewZoom !== 1.0 || panX !== 0 || panY !== 0;
   document.getElementById('zoom-val').textContent = pct;
   document.getElementById('st-zoom-state').style.display = isZoomed ? '' : 'none';
   document.getElementById('btn-zoom-reset').style.display = isZoomed ? '' : 'none';
 }
 
+function clampPan() {
+  if (viewZoom <= 1.0) { panX = 0; panY = 0; return; }
+  const vp = document.getElementById('viewport');
+  const maxX = vp.clientWidth  * (viewZoom - 1) / 2;
+  const maxY = vp.clientHeight * (viewZoom - 1) / 2;
+  panX = Math.max(-maxX, Math.min(maxX, panX));
+  panY = Math.max(-maxY, Math.min(maxY, panY));
+}
+
 function resetZoom() {
   viewZoom = 1.0;
+  panX = 0;
+  panY = 0;
   applyViewTransform();
 }
 
 // Touch state
 const touch = { startX: 0, startY: 0, lastTapTime: 0, longTimer: null, moved: false, count: 0,
-                twoFingerY: 0, pinchDist: 0, pinchMode: null };
+                twoFingerY: 0, pinchDist: 0, pinchMode: null, prevX: 0, prevY: 0 };
 
 // ── Init ──────────────────────────────────────────────────────────
 (async function init() {
@@ -380,6 +392,7 @@ function onTouchStart(e) {
   if (e.touches.length === 1) {
     const t = e.touches[0];
     touch.startX = t.clientX; touch.startY = t.clientY;
+    touch.prevX = t.clientX; touch.prevY = t.clientY;
     if (controlEnabled) {
       const { x, y } = coordsFromPoint(t.clientX, t.clientY);
       touch.longTimer = setTimeout(() => {
@@ -404,6 +417,16 @@ function onTouchMove(e) {
     if (Math.abs(t.clientX - touch.startX) > 5 || Math.abs(t.clientY - touch.startY) > 5) {
       touch.moved = true;
       clearTimeout(touch.longTimer);
+    }
+    if (!controlEnabled) {
+      // Pan the zoomed view
+      panX += t.clientX - touch.prevX;
+      panY += t.clientY - touch.prevY;
+      touch.prevX = t.clientX;
+      touch.prevY = t.clientY;
+      clampPan();
+      applyViewTransform();
+      return;
     }
     const now = Date.now();
     if (now - lastMoveTime < MOVE_THROTTLE_MS) return;
