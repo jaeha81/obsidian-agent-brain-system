@@ -377,7 +377,10 @@ const PROPOSALS = {
 
 const DEFAULT_WEBHOOK = '';
 
-// ── 상태 관리 (localStorage) ──
+// ── 응찰 상태 (빌더가 tracker.json에서 주입) ──
+const TRACKER_STATES = {};
+
+// ── 상태 관리 (localStorage + Bucky 서버 동기) ──
 const WK_STATE_KEY = 'wk-project-state-v1';
 const WK_BUCKY_URL_KEY = 'wk-bucky-url';
 const WK_WH_URL_KEY = 'wk-wh-url';
@@ -389,8 +392,22 @@ function saveState(id, state) {
   const all = loadStates();
   all[id] = { ...all[id], state, updatedAt: new Date().toISOString() };
   localStorage.setItem(WK_STATE_KEY, JSON.stringify(all));
+  // Bucky 서버에도 동기 — tracker.json 영구 저장
+  const bucky = getWkBuckyEndpoint();
+  if (bucky) {
+    const p = PROJECTS.find(x => x.id === id) || {};
+    fetch(bucky + '/wishket/bid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, link: p.link || '', title: p.title || id, state, budget: p.budget || '' })
+    }).catch(() => {});
+  }
 }
 function getProjectState(id) {
+  // tracker.json 주입 상태 우선, 없으면 localStorage fallback
+  const p = PROJECTS.find(x => x.id === id);
+  const link = p ? (p.link || '').replace(/\/$/, '') : '';
+  if (link && TRACKER_STATES[link]) return TRACKER_STATES[link];
   return (loadStates()[id] || {}).state || 'new';
 }
 function markBid(id) { saveState(id, 'bid'); renderProjects(getFiltered()); }

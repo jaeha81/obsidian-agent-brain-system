@@ -442,6 +442,42 @@ def tablet_intake():
     }), 202
 
 
+@app.post("/wishket/bid")
+def wishket_bid():
+    """응찰 상태 업데이트 — 대시보드 버튼에서 호출."""
+    data = request.get_json(silent=True) or {}
+    link = (data.get("link") or "").rstrip("/")
+    title = data.get("title", "")
+    state = data.get("state", "")  # bid | won | lost | new
+    budget = data.get("budget", "")
+
+    if not link or state not in ("bid", "won", "lost", "new"):
+        return jsonify({"ok": False, "msg": "link와 state(bid/won/lost/new) 필수"}), 400
+
+    try:
+        sys.path.insert(0, str(SCRIPTS))
+        import bucky_wishket_agent as wka
+        tracker = wka.load_tracker()
+        bids = tracker.setdefault("bids", [])
+        existing = next((b for b in bids if b.get("link", "").rstrip("/") == link), None)
+        if existing:
+            existing["status"] = "submitted" if state == "bid" else state
+            existing["updated_at"] = __import__("datetime").datetime.now().isoformat()
+        elif state != "new":
+            bids.append({
+                "title": title,
+                "link": link,
+                "budget": budget,
+                "status": "submitted" if state == "bid" else state,
+                "bid_at": __import__("datetime").datetime.now().isoformat(),
+                "updated_at": __import__("datetime").datetime.now().isoformat(),
+            })
+        wka.save_tracker(tracker)
+        return jsonify({"ok": True, "state": state, "link": link}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
 @app.post("/update-wishket")
 def update_wishket():
     """Trigger wishket scraper → dashboard generator → git push.

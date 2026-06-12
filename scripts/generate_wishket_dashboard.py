@@ -154,6 +154,21 @@ def update_dashboard(projects: list[dict]) -> bool:
         else:
             print(f"제안서 주입: {len(proposals)}개")
 
+    # 4) TRACKER_STATES 주입 — wishket_tracker.json의 응찰 상태를 HTML에 반영
+    try:
+        tracker_data = json.loads(TRACKER_PATH.read_text(encoding="utf-8")) if TRACKER_PATH.exists() else {}
+        states = {}
+        for bid in tracker_data.get("bids", []):
+            link = bid.get("link", "").rstrip("/")
+            status = bid.get("status", "submitted")
+            if link:
+                states[link] = "bid" if status == "submitted" else status
+        states_js = json.dumps(states, ensure_ascii=False)
+        updated = re.sub(r"const TRACKER_STATES = \{[^}]*\};", f"const TRACKER_STATES = {states_js};", updated)
+        print(f"응찰 상태 주입: {len(states)}건")
+    except Exception as e:
+        print(f"WARNING: TRACKER_STATES 주입 실패: {e}")
+
     DASHBOARD_PATH.write_text(updated, encoding="utf-8")
     return True
 
