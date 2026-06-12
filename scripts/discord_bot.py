@@ -2000,7 +2000,8 @@ def _classify_intent_sync(user_message: str, recent_history: list[dict]) -> dict
         '출력 형식 (반드시 이 JSON 한 줄만):\n'
         '{"intent":"COMMAND|QUESTION|AMBIGUOUS|SMALL_TALK|EMOTIONAL",'
         '"context_need":"HIGH|MEDIUM|LOW","tone":"FORMAL|CASUAL",'
-        '"topic":["project"|"system"|"general"|"code"|"deploy"],'
+        '"topic":["project"|"system"|"general"|"code"|"deploy"|"architecture"|"strategy"],'
+        '"difficulty":"simple|medium|complex",'
         '"quick_answer":""}\n\n'
         "분류 기준:\n"
         "- COMMAND: 구체적 실행 요청 (만들어/수정/배포/고쳐 등)\n"
@@ -2011,6 +2012,9 @@ def _classify_intent_sync(user_message: str, recent_history: list[dict]) -> dict
         "- context_need HIGH: 시스템 상태·프로젝트 지식 필수\n"
         "- context_need MEDIUM: 일부 프로젝트 배경 있으면 좋음\n"
         "- context_need LOW: 일반 지식으로 답변 가능\n"
+        "- difficulty simple: 짧은 답변, 상태 확인, yes/no, 간단한 설명\n"
+        "- difficulty medium: 일반 코딩·편집·대화·문서 작성\n"
+        "- difficulty complex: 아키텍처 설계·디버깅·전략·멀티스텝 추론·보안 분석\n"
         "- quick_answer: LOW일 때 짧게 답변 가능하면 채움, 아니면 빈 문자열"
     )
     try:
@@ -2023,11 +2027,12 @@ def _classify_intent_sync(user_message: str, recent_history: list[dict]) -> dict
             parsed.setdefault("context_need", "HIGH")
             parsed.setdefault("tone", "CASUAL")
             parsed.setdefault("topic", [])
+            parsed.setdefault("difficulty", "medium")
             parsed.setdefault("quick_answer", "")
             return parsed
     except Exception as _e:
         print(f"[2-pass] 분류 실패: {_e}", flush=True)
-    return {"intent": "AMBIGUOUS", "context_need": "HIGH", "tone": "CASUAL", "topic": [], "quick_answer": ""}
+    return {"intent": "AMBIGUOUS", "context_need": "HIGH", "tone": "CASUAL", "topic": [], "difficulty": "medium", "quick_answer": ""}
 
 
 def _trim_context_for_medium(full_context: str, max_chars: int = 4000) -> str:
@@ -2082,9 +2087,24 @@ async def ask_bucky(
     intent = intent_result.get("intent", "AMBIGUOUS")
     context_need = intent_result.get("context_need", "HIGH")
     tone = intent_result.get("tone", "CASUAL")
+    difficulty = intent_result.get("difficulty", "medium")
+    topic = intent_result.get("topic", [])
     quick_answer = intent_result.get("quick_answer", "").strip()
 
-    print(f"[2-pass] intent={intent} context={context_need} tone={tone}", flush=True)
+    # Pass 2 task_type 결정: intent + difficulty + topic → 모델 라우팅
+    _topic_set = set(topic) if isinstance(topic, list) else set()
+    if intent in ("SMALL_TALK",) or (context_need == "LOW" and difficulty == "simple"):
+        _p2_task_type = "status"           # Haiku
+    elif difficulty == "complex" or "architecture" in _topic_set or "strategy" in _topic_set:
+        _p2_task_type = "reasoning"        # Opus
+    elif intent == "COMMAND" and "deploy" in _topic_set:
+        _p2_task_type = "implementation"   # Sonnet
+    elif intent == "COMMAND" or "code" in _topic_set:
+        _p2_task_type = "code"             # Sonnet
+    else:
+        _p2_task_type = "chat"             # Sonnet
+
+    print(f"[2-pass] intent={intent} context={context_need} tone={tone} difficulty={difficulty} → task={_p2_task_type}", flush=True)
 
     # NLP 전처리 (기존 COMMAND 감지 — 보완적으로 유지)
     nlp_hint = ""
@@ -2181,8 +2201,8 @@ async def ask_bucky(
         f"{rag_block}\n\n"
         f"{transcript}"
     )
-    # task_type='chat' → Sonnet (기본). 한도 초과 시 자동 Haiku→Opus 폴백
-    reply = await asyncio.to_thread(run_bucky, prompt, task_type="chat")
+    # task_type은 Pass 1 분류 결과로 결정. 한도 초과 시 자동 폴백 체인 작동
+    reply = await asyncio.to_thread(run_bucky, prompt, task_type=_p2_task_type)
 
     if _use_mem:
         await asyncio.to_thread(_mem.save_message, channel_id, "assistant", reply)
