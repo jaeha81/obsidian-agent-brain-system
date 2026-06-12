@@ -101,6 +101,41 @@
   /* Empty state */
   .empty-state { padding:40px; text-align:center; color:var(--muted); font-size:14px; }
 
+  /* Action buttons */
+  .action-btn { display:inline-block; border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:5px 11px; font-size:12px; font-weight:600; cursor:pointer; color:var(--muted); text-decoration:none; }
+  .action-btn:hover { border-color:var(--blue); color:var(--blue); }
+  .bucky-btn { border-color:rgba(124,58,237,.4); color:#7c3aed; }
+  .bucky-btn:hover { border-color:#7c3aed; background:#f5f3ff; }
+  .devreq-btn { border-color:rgba(37,99,235,.4); color:var(--blue); }
+  .devreq-btn:hover { border-color:var(--blue); background:#eff6ff; }
+  .bid-btn { border-color:rgba(21,128,61,.4); color:var(--green); }
+  .bid-btn:hover { border-color:var(--green); background:#f0fdf4; }
+  .won-btn { border-color:rgba(37,99,235,.6); color:var(--blue); background:#eff6ff; }
+  .lost-btn { border-color:rgba(185,28,28,.4); color:var(--red); }
+  .lost-btn:hover { border-color:var(--red); background:#fef2f2; }
+  .state-badge { display:inline-block; border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; }
+  .state-bid { background:#dcfce7; color:#15803d; }
+  .state-won { background:#dbeafe; color:#1d4ed8; }
+  .state-lost { background:#f1f5f9; color:#64748b; }
+
+  /* Toast */
+  #wk-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:#f8fafc; border-radius:8px; padding:12px 20px; font-size:13px; z-index:999; opacity:0; transition:all .25s; pointer-events:none; min-width:200px; text-align:center; }
+  #wk-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  #wk-toast strong { display:block; font-size:14px; margin-bottom:2px; }
+
+  /* Settings modal */
+  #wk-settings-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; align-items:center; justify-content:center; }
+  #wk-settings-overlay.open { display:flex; }
+  #wk-settings-modal { background:var(--surface); border-radius:10px; padding:24px; max-width:480px; width:90%; position:relative; }
+  #wk-settings-modal h3 { margin:0 0 16px; font-size:16px; }
+  .settings-field { margin-bottom:12px; }
+  .settings-field label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:4px; }
+  .settings-field input { width:100%; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:13px; }
+  .settings-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  .settings-btn { border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:7px 14px; font-size:13px; cursor:pointer; }
+  .settings-btn.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .settings-btn.primary:hover { background:#1d4ed8; }
+
   footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
   @media (max-width:700px) { .stat-row { grid-template-columns:repeat(2,1fr); } .project-grid { grid-template-columns:1fr; } }
 </style>
@@ -171,7 +206,30 @@
   </div>
 </div>
 
-<footer>Bucky Agent OS — 위시켓 자동화 파이프라인 · <a href="bucky-agent-os.html" style="color:var(--blue)">OS 대시보드</a></footer>
+<!-- 설정 모달 -->
+<div id="wk-settings-overlay">
+  <div id="wk-settings-modal">
+    <h3>Bucky 연동 설정</h3>
+    <div class="settings-field">
+      <label>Discord Webhook URL</label>
+      <input type="url" id="wk-wh-url" placeholder="https://discord.com/api/webhooks/...">
+    </div>
+    <div class="settings-field">
+      <label>Bucky OS 서버 (로컬/Tailscale)</label>
+      <input type="url" id="wk-bucky-url" placeholder="http://localhost:8765">
+    </div>
+    <div class="settings-actions">
+      <button class="settings-btn" onclick="closeWkSettings()">취소</button>
+      <button class="settings-btn" onclick="testWkWebhook()">테스트</button>
+      <button class="settings-btn primary" onclick="saveWkSettings()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="wk-toast"><strong id="wk-toast-title"></strong><span id="wk-toast-msg"></span></div>
+
+<footer>Bucky Agent OS — 위시켓 자동화 파이프라인 · <a href="bucky-agent-os.html" style="color:var(--blue)">OS 대시보드</a> · <button style="border:none;background:none;color:var(--blue);cursor:pointer;font-size:13px;padding:0" onclick="openWkSettings()">Bucky 연동 설정</button></footer>
 
 <script>
 // ── 공고 데이터 ──
@@ -319,6 +377,122 @@ const PROPOSALS = {
 
 const DEFAULT_WEBHOOK = '';
 
+// ── 상태 관리 (localStorage) ──
+const WK_STATE_KEY = 'wk-project-state-v1';
+const WK_BUCKY_URL_KEY = 'wk-bucky-url';
+const WK_WH_URL_KEY = 'wk-wh-url';
+
+function loadStates() {
+  try { return JSON.parse(localStorage.getItem(WK_STATE_KEY) || '{}'); } catch { return {}; }
+}
+function saveState(id, state) {
+  const all = loadStates();
+  all[id] = { ...all[id], state, updatedAt: new Date().toISOString() };
+  localStorage.setItem(WK_STATE_KEY, JSON.stringify(all));
+}
+function getProjectState(id) {
+  return (loadStates()[id] || {}).state || 'new';
+}
+function markBid(id) { saveState(id, 'bid'); renderProjects(getFiltered()); }
+function markWon(id) { saveState(id, 'won'); renderProjects(getFiltered()); }
+function markLost(id) { saveState(id, 'lost'); renderProjects(getFiltered()); }
+function markNew(id) { saveState(id, 'new'); renderProjects(getFiltered()); }
+
+function getWkBuckyEndpoint() {
+  const stored = localStorage.getItem(WK_BUCKY_URL_KEY) || '';
+  if (stored) return stored.replace(/\/$/, '');
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.ts.net')) return '';
+  return '';
+}
+function getWkWebhookUrl() {
+  return localStorage.getItem(WK_WH_URL_KEY) || localStorage.getItem('bucky-webhook') || localStorage.getItem('wh_url') || '';
+}
+
+async function postToIntake(payload) {
+  const base = getWkBuckyEndpoint();
+  const url = base ? base + '/intake' : '/intake';
+  const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function sendWkWebhook(url, content) {
+  const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username:'Wishket Dashboard', content }) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+}
+
+function formatProjectMsg(p, state) {
+  const stateLabel = { new:'새 공고', bid:'응찰 중', won:'낙찰', lost:'탈락' }[state] || state;
+  return ['**위시켓 공고 브리핑**', `**제목:** ${p.title}`, `**예산:** ${p.budget || '미정'}`, `**상태:** ${stateLabel}`, p.link ? `**링크:** ${p.link}` : '', p.description ? `**설명:** ${(p.description||'').slice(0,120)}` : ''].filter(Boolean).join('\n');
+}
+
+async function sendOneToBucky(id) {
+  const p = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+  const state = getProjectState(id);
+  const content = formatProjectMsg(p, state);
+  try {
+    await postToIntake({ type:'wishket_briefing', target_channel:'jh-위시켓', project_title:p.title, summary:p.description||'', budget:p.budget||'', url:p.link||'', state, created_at:new Date().toISOString() });
+    showWkToast('Discord 전송', p.title.slice(0,30) + ' → jh-위시켓');
+    return;
+  } catch (_) {}
+  const wh = getWkWebhookUrl();
+  if (!wh) { openWkSettings(); return; }
+  try { await sendWkWebhook(wh, content); showWkToast('Discord 전송', '웹훅으로 전송했습니다.'); }
+  catch (e) { showWkToast('전송 실패', e.message); }
+}
+
+async function sendDevelopmentRequest(id) {
+  const p = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+  const linkId = ((p.link||'').match(/\/project\/(\d+)\/?/)||[])[1] || id;
+  const payload = { type:'wishket_development_request', dashboard_type:'wishket', target_channel:'jh-위시켓', action:'start', source:'wishket_dashboard', project_title:p.title, title:p.title, request_id:`wishket-${linkId}-start`, summary:p.description||'', budget:p.budget||'', url:p.link||'', requested_actions:['generate_development_plan','route_to_claude_for_implementation','route_to_codex_for_review'], approval_required:false, created_at:new Date().toISOString() };
+  try {
+    await postToIntake(payload);
+    showWkToast('개발요청 접수', p.title.slice(0,30) + ' → jh-위시켓');
+    return;
+  } catch (_) {}
+  const wh = getWkWebhookUrl();
+  if (!wh) { openWkSettings(); return; }
+  try { await sendWkWebhook(wh, `**개발요청**\n\`\`\`json\n${JSON.stringify(payload,null,2).slice(0,1500)}\`\`\``); showWkToast('개발요청 전송', '웹훅으로 전송했습니다.'); }
+  catch (e) { showWkToast('전송 실패', e.message); }
+}
+
+// ── Toast ──
+let wkToastTimer = null;
+function showWkToast(title, msg) {
+  document.getElementById('wk-toast-title').textContent = title;
+  document.getElementById('wk-toast-msg').textContent = msg;
+  const t = document.getElementById('wk-toast');
+  t.classList.add('show');
+  clearTimeout(wkToastTimer);
+  wkToastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── 설정 모달 ──
+function openWkSettings() {
+  document.getElementById('wk-wh-url').value = localStorage.getItem(WK_WH_URL_KEY) || '';
+  document.getElementById('wk-bucky-url').value = localStorage.getItem(WK_BUCKY_URL_KEY) || '';
+  document.getElementById('wk-settings-overlay').classList.add('open');
+}
+function closeWkSettings() { document.getElementById('wk-settings-overlay').classList.remove('open'); }
+function saveWkSettings() {
+  const wh = document.getElementById('wk-wh-url').value.trim();
+  const bucky = document.getElementById('wk-bucky-url').value.trim();
+  if (wh) localStorage.setItem(WK_WH_URL_KEY, wh); else localStorage.removeItem(WK_WH_URL_KEY);
+  if (bucky) localStorage.setItem(WK_BUCKY_URL_KEY, bucky); else localStorage.removeItem(WK_BUCKY_URL_KEY);
+  closeWkSettings();
+  showWkToast('저장 완료', 'Bucky 연동 설정이 저장됐습니다.');
+}
+async function testWkWebhook() {
+  const url = document.getElementById('wk-wh-url').value.trim();
+  if (!url) { showWkToast('URL 없음', 'Webhook URL을 먼저 입력하세요.'); return; }
+  try { await sendWkWebhook(url, '위시켓 대시보드 연결 테스트'); showWkToast('테스트 성공', 'Discord 메시지가 전송됐습니다.'); }
+  catch (e) { showWkToast('테스트 실패', e.message); }
+}
+document.getElementById('wk-settings-overlay').addEventListener('click', function(e) { if (e.target === this) closeWkSettings(); });
+
 let currentFilter = 'all';
 
 function priorityClass(p) {
@@ -347,6 +521,7 @@ function renderProjects(projects) {
     const score = p.score || 0;
     const barColor = scoreColor(score);
     const hasProposal = !!PROPOSALS[p.id];
+    const state = getProjectState(p.id);
     return `
       <div class="project-card ${pClass}">
         <div class="project-head">
@@ -365,22 +540,32 @@ function renderProjects(projects) {
           <span class="score-label" style="color:${barColor}">${score}점</span>
         </div>
         ${p.description ? `<div class="project-desc">${p.description}</div>` : ''}
-        <div class="btn-row">
-          ${p.link ? `<a class="apply-btn" href="${p.link}" target="_blank" rel="noreferrer">공고 보기</a>` : ''}
-          ${hasProposal ? `<button class="proposal-btn" onclick="showProposal('${p.id}','${p.title.replace(/'/g,"\\'")}')">제안서 확인</button>` : ''}
+        <div class="btn-row" style="margin-top:4px">
+          ${p.link ? `<a class="action-btn" href="${p.link}" target="_blank" rel="noreferrer">공고 보기</a>` : ''}
+          ${hasProposal ? `<button class="action-btn" onclick="showProposal('${p.id}','${p.title.replace(/'/g,"\\'")}')">제안서 확인</button>` : ''}
+          ${state === 'new' ? `<button class="action-btn bid-btn" onclick="markBid('${p.id}')">응찰 기록</button>` : ''}
+          ${state === 'bid' ? `<button class="action-btn won-btn" onclick="markWon('${p.id}')">낙찰</button>` : ''}
+          ${(state === 'new' || state === 'bid') ? `<button class="action-btn lost-btn" onclick="markLost('${p.id}')">탈락</button>` : ''}
+          ${(state === 'won' || state === 'lost') ? `<button class="action-btn" onclick="markNew('${p.id}')">초기화</button>` : ''}
+          <button class="action-btn bucky-btn" onclick="sendOneToBucky('${p.id}')">Discord</button>
+          <button class="action-btn devreq-btn" onclick="sendDevelopmentRequest('${p.id}')">개발요청</button>
         </div>
+        ${state !== 'new' ? `<div style="margin-top:6px"><span class="state-badge state-${state}">${{bid:'응찰 중',won:'낙찰',lost:'탈락'}[state]||state}</span></div>` : ''}
       </div>`;
   }).join('');
 }
 
-function applyFilter() {
+function getFiltered() {
   const q = (document.getElementById('search-input').value || '').toLowerCase();
-  const filtered = PROJECTS.filter(p => {
+  return PROJECTS.filter(p => {
     const matchPriority = currentFilter === 'all' || p.priority === currentFilter;
     const matchSearch = !q || p.title.toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q);
     return matchPriority && matchSearch;
   });
-  renderProjects(filtered);
+}
+
+function applyFilter() {
+  renderProjects(getFiltered());
 }
 
 function filterPriority(priority, btn) {
