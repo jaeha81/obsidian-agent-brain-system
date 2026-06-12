@@ -49,6 +49,8 @@ ObsidianVault/00_System/*
 !ObsidianVault/00_System/TAG_STANDARD.md
 !ObsidianVault/00_System/ROUTING_RULES.md
 !ObsidianVault/00_System/folder-registry.md
+!ObsidianVault/00_System/VAULT_BOUNDARY.md
+!ObsidianVault/00_System/PRIVATE_BOUNDARY.md
 !ObsidianVault/00_System/plugin-stack/
 !ObsidianVault/00_System/plugin-stack/**
 !ObsidianVault/00_Dashboard/
@@ -166,3 +168,10 @@ scripts/.codex_collector_state.json
 
 # Local Netlify folder
 .netlify
+
+# Private content boundary — MUST stay last to override any allowlist above.
+# See ObsidianVault/00_System/PRIVATE_BOUNDARY.md
+_Private/
+**/_Private/
+.private/
+**/.private/
