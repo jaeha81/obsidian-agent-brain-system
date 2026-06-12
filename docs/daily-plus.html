@@ -772,7 +772,8 @@
 
 <script>
 (function () {
-  var DEFAULT_BUCKY_ENDPOINT = "http://localhost:8765";
+  // Same-origin when served by Flask (local or via tailscale); explicit only for direct-file open
+  var DEFAULT_BUCKY_ENDPOINT = (window.location.protocol === "file:") ? "http://localhost:8765" : "";
   var ENDPOINT_KEY = "dailyPlusBuckyOsIntakeUrl";
   var DISCORD_WEBHOOK_KEY = "bucky-webhook";
   var DISCORD_WEBHOOK_NAME_KEY = "bucky-wh-name";
@@ -856,31 +857,47 @@
 
   async function postToBucky(body, action) {
     var base = endpointValue().replace(/\/$/, "");
-    if (!base) throw new Error("Bucky OS 수신 URL이 필요합니다.");
-    var intakeUrl = base + "/intake";
+    var intakeUrl = base ? base + "/intake" : "/intake";
+
+    var h = window.location.hostname;
+    var isLocal = !!base || h === "localhost" || h === "127.0.0.1" || h.endsWith(".ts.net") || h.endsWith(".tail3b2b6d.ts.net");
 
     var payload = payloadForBuckyOS(body, action || "message");
     var json = JSON.stringify(payload);
 
-    try {
-      var response = await fetch(intakeUrl, {
+    // Try /intake when on local/Tailscale
+    if (isLocal) {
+      try {
+        var response = await fetch(intakeUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: json
+        });
+        var data = {};
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
+        return { method: "fetch", request_id: data.request_id };
+      } catch (intakeErr) {
+        // Fall through to Discord webhook fallback
+      }
+    }
+
+    // Discord webhook fallback (works from GitHub Pages and any environment)
+    var webhookUrl = localStorage.getItem(DISCORD_WEBHOOK_KEY) || "";
+    if (webhookUrl) {
+      var username = localStorage.getItem(DISCORD_WEBHOOK_NAME_KEY) || "JH Daily Plus";
+      var act = action || "message";
+      var content = "[오늘의 플러스 → Bucky]\naction: " + act + "\nsource: daily-plus-dashboard\ntarget_channel: jh-오늘의플러스\n\n" + String(body).slice(0, 1800);
+      var wRes = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: json
+        body: JSON.stringify({ content: content, username: username })
       });
-      var data = {};
-      try { data = await response.json(); } catch (_) {}
-      if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
-      return { method: "fetch", request_id: data.request_id };
-    } catch (error) {
-      if (navigator.sendBeacon) {
-        var blob = new Blob([json], { type: "text/plain;charset=UTF-8" });
-        if (navigator.sendBeacon(intakeUrl, blob)) {
-          return { method: "beacon" };
-        }
-      }
-      throw error;
+      if (!wRes.ok) throw new Error("Discord webhook HTTP " + wRes.status);
+      return { method: "webhook" };
     }
+
+    throw new Error("BuckyOS 서버에 연결할 수 없습니다. Tailscale(ts.net:8443)로 접속하거나 설정에서 Discord webhook URL을 입력하세요.");
   }
 
   async function postDiscordWebhookWithFiles(content, files) {
@@ -1048,6 +1065,13 @@
     });
   });
 
+  // Migrate old localhost endpoint stored in localStorage to same-origin empty string
+  (function migrateEndpoint() {
+    var stored = localStorage.getItem(ENDPOINT_KEY) || "";
+    if (stored === "http://localhost:8765" && window.location.protocol !== "file:") {
+      localStorage.setItem(ENDPOINT_KEY, "");
+    }
+  })();
   var endpointInput = document.getElementById("buckyEndpoint");
   if (endpointInput) endpointInput.value = localStorage.getItem(ENDPOINT_KEY) || DEFAULT_BUCKY_ENDPOINT;
 

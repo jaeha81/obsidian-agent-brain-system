@@ -685,6 +685,17 @@
       "added": "2026-06-12",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-051",
+      "title": "push 미진행 (별도 승인 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

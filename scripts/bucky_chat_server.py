@@ -104,6 +104,11 @@ def _cors(response):
         response.headers["Access-Control-Allow-Origin"] = "same-origin"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    # Prevent browsers from caching HTML pages so phones always get the latest version
+    if request.path.endswith(".html") or request.path in ("/", "/launch"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
 
 

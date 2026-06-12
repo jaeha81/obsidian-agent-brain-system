@@ -473,6 +473,17 @@ async function loadTasksFromJson() {
 const LS_KEY = "bucky_checklist_v1";
 const ENDPOINT_KEY = "buckyChecklistEndpoint";
 let state = {};
+
+// Migrate old hardcoded localhost URLs to same-origin
+(function() {
+  try {
+    if (window.location.protocol === "file:") return;
+    ["buckyChecklistEndpoint", "dailyPlusBuckyOsIntakeUrl"].forEach(function(key) {
+      const v = localStorage.getItem(key) || "";
+      if (/^http:\/\/(localhost|127\.0\.0\.1):\d+/.test(v)) localStorage.removeItem(key);
+    });
+  } catch (_) {}
+})();
 let showDeleted = false;
 let currentFilter = "all";
 
@@ -492,7 +503,14 @@ function getTaskState(id) {
 function getEndpoint() {
   const input = document.getElementById("bucky-endpoint");
   const typed = input ? input.value.trim() : "";
-  return typed || localStorage.getItem(ENDPOINT_KEY) || localStorage.getItem("dailyPlusBuckyOsIntakeUrl") || localStorage.getItem("bucky-webhook") || "";
+  const stored = typed || localStorage.getItem(ENDPOINT_KEY) || localStorage.getItem("dailyPlusBuckyOsIntakeUrl") || localStorage.getItem("bucky-webhook") || "";
+  if (stored) return stored;
+  // Same-origin /intake when served by Flask (localhost/Tailscale)
+  try {
+    const h = window.location.hostname;
+    if (h === "localhost" || h === "127.0.0.1" || h.endsWith(".ts.net") || h.endsWith(".tail3b2b6d.ts.net")) return "/intake";
+  } catch (_) {}
+  return "";
 }
 
 function loadEndpoint() {

@@ -1945,6 +1945,10 @@ function openAgentModal(agentId) {
 function closeAgentModal() {
   document.getElementById('agent-call-modal').classList.remove('open');
   _acmAgent = null;
+  const replyEl = document.getElementById('acm-reply');
+  if (replyEl) replyEl.remove();
+  document.getElementById('acm-feedback').textContent = '';
+  document.getElementById('acm-feedback').style.color = '';
 }
 
 async function submitAgentCall() {
@@ -1958,14 +1962,18 @@ async function submitAgentCall() {
   const btn = document.getElementById('acm-submit');
   btn.disabled = true; btn.textContent = '전송 중…';
   const fb = document.getElementById('acm-feedback');
+  const agentName = _acmAgent.name;
+  const agentId   = _acmAgent.id;
 
   try {
     const endpoint = _acmAgent.call_endpoint || '/intake';
     let body;
     if (endpoint === '/chat') {
-      body = { message: `[Agent Room → ${_acmAgent.name}] ${task}` };
+      body = { message: `[Agent Room → ${agentName}] ${task}` };
+      fb.style.color = '#6b7280';
+      fb.textContent = 'Bucky 처리 중… 최대 30초 소요됩니다';
     } else {
-      body = { type: 'agent_call', agent: _acmAgent.id, task, source: 'agent-room' };
+      body = { type: 'agent_call', agent: agentId, task, source: 'agent-room' };
     }
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -1977,12 +1985,34 @@ async function submitAgentCall() {
     fetch('/agent-os/agents/call', {
       method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent_id: _acmAgent.id, task, caller: 'agent-room' }),
+      body: JSON.stringify({ agent_id: agentId, task, caller: 'agent-room' }),
     }).catch(() => {});
-    fb.style.color = '#22c55e';
-    fb.textContent = `${_acmAgent.name}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
-    btn.textContent = '완료 ✓';
-    setTimeout(closeAgentModal, 2200);
+    const data = await res.json();
+    if (endpoint === '/chat' && data.reply) {
+      // Bucky replied inline — show the reply in the modal (modal may have been closed)
+      const modal = document.getElementById('agent-call-modal');
+      if (!modal.classList.contains('open')) {
+        // Modal was closed while waiting — reopen to show reply
+        modal.classList.add('open');
+      }
+      fb.style.color = '#22c55e';
+      btn.textContent = '완료 ✓';
+      btn.disabled = false;
+      let replyEl = document.getElementById('acm-reply');
+      if (!replyEl) {
+        replyEl = document.createElement('div');
+        replyEl.id = 'acm-reply';
+        replyEl.style.cssText = 'margin-top:12px;padding:12px;background:#0f1923;border:1px solid #1e3a5f;border-radius:8px;font-size:13px;color:#cbd5e1;white-space:pre-wrap;max-height:260px;overflow-y:auto;text-align:left;';
+        fb.parentNode.insertBefore(replyEl, fb.nextSibling);
+      }
+      replyEl.textContent = data.reply;
+      fb.textContent = `${agentName} 응답 완료`;
+    } else {
+      fb.style.color = '#22c55e';
+      fb.textContent = `${agentName}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
+      btn.textContent = '완료 ✓';
+      setTimeout(closeAgentModal, 2200);
+    }
   } catch (e) {
     fb.style.color = '#ef4444';
     fb.textContent = `전송 실패: ${e.message}`;
