@@ -1,14 +1,16 @@
 ---
 type: dev
-source: claude
-project: 
-system: JH-Brain
 status: inbox
-priority: P2
+created: {{date:YYYY-MM-DD}}
+source: manual
+department: []
+project: 
 owner: user
-date: {{date:YYYY-MM-DD}}
-tags: []
-  - #status/inbox
+priority: P2
+tags:
+  - "#status/inbox"
+  # - "#department/ai_automation"  # 해당 부문 태그 추가 (TAG_STANDARD §6 참조)
+  # - "#source/discord"            # 출처 태그 추가 (TAG_STANDARD §5 참조)
 summary: ""
 next_action: ""
 ---

@@ -89,6 +89,22 @@ art-1/art-2 기반으로 설계된 계층형 태그 체계. 기존 YAML_STANDARD
 | `#source/client` | 클라이언트 |
 | `#source/field` | 현장 |
 | `#source/idea` | 아이디어 |
+| `#source/discord` | Discord 채널 |
+| `#source/voice` | 음성 노트 |
+| `#source/api` | API/자동화 유입 |
+
+### 6. department 태그 — 담당 부문
+
+> `YAML_STANDARD.md`의 `department` 필드와 1:1 대응. 노트가 복수 부문에 속하면 태그도 복수 부여.
+
+| 태그 | 의미 |
+|------|------|
+| `#department/ai_automation` | AI·자동화 시스템 |
+| `#department/interior` | 인테리어 사업 |
+| `#department/consulting` | 클라이언트 컨설팅 |
+| `#department/content` | 콘텐츠 제작 |
+| `#department/business_dev` | 사업 개발·제안 |
+| `#department/system` | 시스템·인프라·에이전트 운영 |
 
 ---
 
@@ -118,6 +134,7 @@ art-1/art-2 기반으로 설계된 계층형 태그 체계. 기존 YAML_STANDARD
 ## 적용 규칙
 
 - 신규 노트 작성 시 `area` + `type` + `status` 태그 최소 1개씩 부여
+- `department` 태그는 복수 부문 소속 시 복수 부여 (YAML `department` 리스트와 동기화)
 - `priority/p1` 태그는 즉시 실행 가능한 항목에만 사용
 - 기존 태그는 제거하지 않고 병존 (기존 노트 소급 적용 금지)
 - Dataview 쿼리는 태그 기반으로 작성 (폴더 기반 병용 가능)

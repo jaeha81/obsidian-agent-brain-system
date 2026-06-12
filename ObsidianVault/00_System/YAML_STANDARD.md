@@ -29,7 +29,8 @@ Bucky 에이전트가 생성·검증하는 모든 Obsidian 노트의 frontmatter
 |------|------|------|------|
 | `project` | string | 연관 프로젝트명 | `wishket-automation` |
 | `client` | string | 고객명 (없으면 `-`) | `홍길동`, `-` |
-| `source` | string | 입력 출처 | `discord`, `voice`, `manual`, `api` |
+| `source` | string | 입력 출처 | `discord`, `voice`, `manual`, `api`, `web`, `file`, `chatgpt`, `today_plus`, `meeting`, `youtube`, `client`, `field`, `idea` |
+| `department` | list | 담당 부문 (다중값 허용) | `[ai_automation, interior]` |
 | `agent` | string | 작성 에이전트 | `Bucky`, `ClaudeCode`, `Codex` |
 | `next_action` | string | 다음 행동 | `"Codex 검수 요청"` |
 | `owner` | string | 담당자 | `Bucky`, `jaeha` |
@@ -81,6 +82,21 @@ Bucky 에이전트가 생성·검증하는 모든 Obsidian 노트의 frontmatter
 | `business_value` | string | 사업화 가치 | `high`, `medium`, `low` |
 | `automation_value` | string | 자동화 가치 | `high`, `medium`, `low` |
 | `confidence` | string | 신뢰도 | `high`, `medium`, `low` |
+
+### `department` 유효값
+
+| 값 | 설명 |
+|----|------|
+| `ai_automation` | AI·자동화 시스템 |
+| `interior` | 인테리어 사업 |
+| `consulting` | 클라이언트 컨설팅 |
+| `content` | 콘텐츠 제작 |
+| `business_dev` | 사업 개발·제안 |
+| `system` | 시스템·인프라·에이전트 운영 |
+
+다중 부문 소속 노트는 리스트로 기재: `department: [ai_automation, system]`
+
+---
 
 ## 금지 패턴
 
