@@ -128,7 +128,7 @@
 </div>
 
 <footer>
-  Agent Room · Bucky Agent OS · Tailscale(ts.net:8443) 또는 localhost:8765 연결 시 실시간 상태 · 미연결 시 데모 데이터 표시
+  Agent Room · 호출은 Discord Webhook으로 전달됩니다 · <a href="index.html" style="color:inherit">대시보드</a>에서 Webhook 설정
 </footer>
 
 <!-- Agent Call Modal -->
@@ -210,19 +210,42 @@ async function submitAgentCall() {
   const fb = document.getElementById('acm-feedback');
   const btn = document.getElementById('acm-submit');
   btn.disabled = true; btn.textContent = '전송 중…';
-  try {
-    const ep = _AR_API + (_arAgent.call_endpoint || '/intake');
-    const body = _arAgent.call_endpoint === '/chat'
-      ? { message: `[Agent Room → ${_arAgent.name}] ${task}` }
-      : { type:'agent_call', agent:_arAgent.id, task, source:'agent-room' };
-    const res = await fetch(ep, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    fb.style.color='#22c55e'; fb.textContent=`${_arAgent.name}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
-    btn.textContent='완료 ✓'; setTimeout(closeAgentModal, 2200);
-  } catch(e) {
-    fb.style.color='#ef4444'; fb.textContent=`전송 실패: ${e.message}`;
-    btn.disabled=false; btn.textContent='다시 호출';
+
+  // 1) same-origin(PC/Tailscale) 시도
+  let sent = false;
+  if (_AR_API === '') {
+    try {
+      const ep = _arAgent.call_endpoint || '/intake';
+      const body = ep === '/chat'
+        ? { message: `[에이전트룸 → ${_arAgent.name}] ${task}` }
+        : { type:'agent_call', agent:_arAgent.id, task, source:'agent-room' };
+      const res = await fetch(ep, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:AbortSignal.timeout(3000) });
+      if (res.ok) sent = true;
+    } catch(_) {}
   }
+
+  // 2) Discord webhook 전송
+  if (!sent) {
+    const webhookUrl = localStorage.getItem('bucky-webhook');
+    if (!webhookUrl) {
+      fb.style.color='#f59e0b';
+      fb.innerHTML='Discord Webhook이 설정되지 않았습니다. <a href="index.html" style="color:#7dd3fc">대시보드 설정</a>에서 Webhook URL을 입력하세요.';
+      btn.disabled=false; btn.textContent='호출'; return;
+    }
+    const name = localStorage.getItem('bucky-wh-name') || 'Agent Room';
+    const content = `[에이전트룸 → **${_arAgent.name}**] ${task}`;
+    try {
+      const res = await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username:name, content }) });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      sent = true;
+    } catch(e) {
+      fb.style.color='#ef4444'; fb.textContent=`Discord 전송 실패: ${e.message}`;
+      btn.disabled=false; btn.textContent='다시 호출'; return;
+    }
+  }
+
+  fb.style.color='#22c55e'; fb.textContent=`${_arAgent.name}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
+  btn.textContent='완료 ✓'; setTimeout(closeAgentModal, 2200);
 }
 document.getElementById('agent-call-modal').addEventListener('click', function(e){ if(e.target===this) closeAgentModal(); });
 
