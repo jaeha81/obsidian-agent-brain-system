@@ -75,11 +75,28 @@ def _split_env_args(value: str) -> list[str]:
     return shlex.split(value, posix=False)
 
 
+# Claude Code CLI 실행 파일 후보.
+# npm 설치는 'claude.cmd'(Windows shim)를, 네이티브 인스톨러는 'claude'/'claude.exe'를 만든다.
+# 설치 방식이 바뀌면 한쪽 이름이 사라지므로 PATH에서 대체 이름까지 탐색한다.
+_CLAUDE_COMMAND_FALLBACKS = ("claude", "claude.exe", "claude.cmd", "claude.ps1")
+
+
 def bucky_command() -> str:
     command = os.getenv("CLAUDE_COMMAND", "claude").strip() or "claude"
     if any(sep in command for sep in ("\\", "/", ":")):
         return command
-    return shutil.which(command) or command
+    found = shutil.which(command)
+    if found:
+        return found
+    # 설정된 이름을 PATH에서 못 찾으면 대체 실행 파일명으로 재탐색
+    # (npm↔네이티브 설치 전환으로 claude.cmd → claude.exe 가 되는 회귀 대응)
+    for alt in _CLAUDE_COMMAND_FALLBACKS:
+        if alt == command:
+            continue
+        found = shutil.which(alt)
+        if found:
+            return found
+    return command
 
 
 def agent_runtime() -> str:
