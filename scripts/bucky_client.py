@@ -81,6 +81,23 @@ def _split_env_args(value: str) -> list[str]:
 _CLAUDE_COMMAND_FALLBACKS = ("claude", "claude.exe", "claude.cmd", "claude.ps1")
 
 
+def _known_claude_paths() -> list[Path]:
+    """표준 설치 위치(절대경로) 후보.
+
+    봇이 자동시작(작업 스케줄러 등)으로 기동돼 USER PATH 없이 SYSTEM PATH만
+    상속받으면 shutil.which가 npm 전역 bin을 못 찾는다. 그 경우를 대비해
+    알려진 설치 경로를 직접 탐색한다.
+    """
+    cands: list[Path] = []
+    appdata = os.getenv("APPDATA", "").strip()
+    if appdata:
+        cands.append(Path(appdata) / "npm" / "claude.cmd")  # npm 전역 설치 (Windows)
+    home = Path.home()
+    cands.append(home / ".local" / "bin" / "claude.exe")     # 네이티브 설치 (Windows)
+    cands.append(home / ".local" / "bin" / "claude")         # 네이티브 설치 (Unix)
+    return cands
+
+
 def bucky_command() -> str:
     command = os.getenv("CLAUDE_COMMAND", "claude").strip() or "claude"
     if any(sep in command for sep in ("\\", "/", ":")):
@@ -96,6 +113,11 @@ def bucky_command() -> str:
         found = shutil.which(alt)
         if found:
             return found
+    # PATH에 전혀 없으면 알려진 절대경로를 직접 확인
+    # (USER PATH 누락된 자동시작 컨텍스트 대응)
+    for cand in _known_claude_paths():
+        if cand.exists():
+            return str(cand)
     return command
 
 
