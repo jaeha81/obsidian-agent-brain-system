@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlie 시스템 감사</title>
+<style>
+:root {
+  --bg: #101214;
+  --panel: #181b1f;
+  --panel-2: #20242a;
+  --line: #303741;
+  --text: #eef2f7;
+  --muted: #9aa6b2;
+  --good: #45c46f;
+  --warn: #e6b450;
+  --bad: #ff6262;
+  --info: #63a8ff;
+  --violet: #b68cff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+body.locked header,
+body.locked main {
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+}
+header {
+  padding: 24px clamp(16px, 4vw, 44px);
+  border-bottom: 1px solid var(--line);
+  background: #111419;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+}
+h1 { margin: 0; font-size: clamp(24px, 3vw, 36px); letter-spacing: 0; }
+.subtitle { color: var(--muted); margin-top: 6px; line-height: 1.5; max-width: 900px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  font-weight: 700;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.PASS .dot { background: var(--good); }
+.WARNING .dot { background: var(--warn); }
+.FAIL .dot { background: var(--bad); }
+main { padding: 22px clamp(16px, 4vw, 44px) 40px; }
+.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+}
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; }
+.span-8 { grid-column: span 8; }
+.span-12 { grid-column: span 12; }
+h2 { margin: 0 0 12px; font-size: 17px; }
+h3 { margin: 0 0 6px; font-size: 14px; color: var(--muted); font-weight: 600; }
+.metric { font-size: 34px; font-weight: 800; line-height: 1; }
+.metric.good { color: var(--good); }
+.metric.warn { color: var(--warn); }
+.metric.bad { color: var(--bad); }
+.small { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.principle {
+  border-left: 4px solid var(--violet);
+  background: rgba(182, 140, 255, 0.08);
+  padding: 12px;
+  border-radius: 6px;
+  color: #ddd3ff;
+  line-height: 1.5;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 700; background: var(--panel-2); }
+.sev { font-weight: 800; white-space: nowrap; }
+.sev.P1, .sev.FAIL { color: var(--bad); }
+.sev.P2, .sev.WARNING, .sev.USER_APPROVAL { color: var(--warn); }
+.sev.P3, .sev.PASS { color: var(--info); }
+.pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  margin: 2px 4px 2px 0;
+  color: var(--muted);
+  background: var(--panel-2);
+  font-size: 12px;
+}
+.empty { color: var(--muted); padding: 12px; border: 1px dashed var(--line); border-radius: 8px; }
+.footer { color: var(--muted); margin-top: 18px; font-size: 12px; }
+.toolbar { display: flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 8px 11px;
+  font: inherit;
+  cursor: pointer;
+}
+button.primary { background: var(--info); border-color: var(--info); color: #07111f; font-weight: 800; }
+button:hover { border-color: var(--info); }
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 10, 12, 0.78);
+}
+body:not(.locked) .login-overlay { display: none; }
+.login-box {
+  width: min(420px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+.login-box h2 { font-size: 21px; margin-bottom: 6px; }
+.login-box p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
+.login-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.login-row input {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f1216;
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+}
+.login-error { min-height: 20px; margin-top: 10px; color: var(--bad); font-size: 13px; }
+@media (max-width: 900px) {
+  header { grid-template-columns: 1fr; }
+  .toolbar { justify-content: flex-start; }
+  .span-3, .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; }
+}
+</style>
+</head>
+<body class="locked">
+<div class="login-overlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <form class="login-box" id="loginForm">
+    <h2 id="loginTitle">Charlie 대시보드 로그인</h2>
+    <p>접속 비밀번호를 입력하면 이 브라우저 세션에서 대시보드를 볼 수 있습니다.</p>
+    <div class="login-row">
+      <input id="passwordInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호">
+      <button class="primary" type="submit">접속</button>
+    </div>
+    <div class="login-error" id="loginError" aria-live="polite"></div>
+  </form>
+</div>
+
+<header>
+  <div>
+    <h1>Charlie 시스템 감사</h1>
+    <div class="subtitle">Bucky, Codex, Claude Code, Discord, Daily Plus, 대시보드, 프로젝트 지침을 낮은 토큰 비용으로 감시합니다. Charlie는 운영 이상을 보고하지만 자동 수정하지 않습니다.</div>
+  </div>
+  <div class="toolbar">
+    <div id="stateBadge" class="badge"><span class="dot"></span><span>잠김</span></div>
+    <button type="button" id="logoutButton">잠금</button>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card span-12">
+      <h2>사용자 운영 의도</h2>
+      <div id="intent" class="principle"></div>
+      <div id="corePurpose" class="small" style="margin-top:10px"></div>
+      <div id="critical" class="small" style="margin-top:10px"></div>
+      <div id="knowledgeLoop" class="small" style="margin-top:8px"></div>
+      <div id="sessionContinuity" class="small" style="margin-top:8px"></div>
+    </section>
+
+    <section class="card span-3">
+      <h3>P1 치명</h3>
+      <div id="p1" class="metric bad">0</div>
+      <div class="small">보안, 데이터 손실, 통제 불능 루프.</div>
+    </section>
+    <section class="card span-3">
+      <h3>P2 주의</h3>
+      <div id="p2" class="metric warn">0</div>
+      <div class="small">권한 충돌, 역할 침범, 오래된 상태.</div>
+    </section>
+    <section class="card span-3">
+      <h3>P3 참고</h3>
+      <div id="p3" class="metric">0</div>
+      <div class="small">낮은 위험의 명확성, 정리 필요 항목.</div>
+    </section>
+    <section class="card span-3">
+      <h3>미정리 작업트리</h3>
+      <div id="dirty" class="metric">0</div>
+      <div class="small">변경 파일과 미추적 파일 수.</div>
+    </section>
+
+    <section class="card span-12">
+      <h2>사용자 확인 기준</h2>
+      <div id="operationalChecks"></div>
+    </section>
+
+    <section class="card span-12">
+      <h2>런타임 상태</h2>
+      <div id="runtimeStatus"></div>
+    </section>
+
+    <section class="card span-8">
+      <h2>시스템 무결성 발견사항</h2>
+      <div id="findings"></div>
+    </section>
+
+    <section class="card span-4">
+      <h2>에이전트 감시</h2>
+      <table><tbody id="agents"></tbody></table>
+    </section>
+
+    <section class="card span-6">
+      <h2>2026-06-05 이후 변경 흐름</h2>
+      <div id="timeline"></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>위험 영역</h2>
+      <div id="areas"></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>지침 등록부</h2>
+      <div id="authority"></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>오류 등록부</h2>
+      <div id="registries"></div>
+    </section>
+  </div>
+  <div class="footer" id="generated"></div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const ACCESS_KEY = "charlieAuditAccess";
+const PASSWORD_HASH = "c46e21f13326eee9c3fee095c924d7fb4e7872d4b6185d5e667c2c730757fd3d";
+let refreshTimer = 0;
+
+const BOOTSTRAP_STATUS = {
+  generated_at: "2026-06-16 기본 화면",
+  agent: "Charlie",
+  state: "WARNING",
+  principle: "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
+  summary: { p1: 0, p2: 1, p3: 0, findings: 1 },
+  user_intent: {
+    top_level_goal: "2026-06-05 이후 드리프트를 복구하고 Obsidian Brain System을 안정화합니다.",
+    core_purpose: "효율적인 AI 사용, 강한 세션 기억, 효율적인 컨텍스트 관리, 사용자 피드백 기반 진화.",
+    critical_failure_mode: "Bucky, Codex, Claude Code가 함께 덜 유용해지는 공유 성능 저하.",
+    knowledge_loop: "Daily Plus와 GPT 대화가 Obsidian 지식 라이브러리를 강화하고, LLM Wiki, Graphify, Context Packs가 필요한 지식만 찾아 연결합니다.",
+    session_continuity: "컨텍스트가 비대해지면 변경점, 보존 파일, 다음 세션 읽기 순서, 반복 금지 항목을 남깁니다.",
+    bucky_role: "작업 운영 조율자",
+    charlie_role: "독립 시스템 감사자"
+  },
+  findings: [
+    {
+      severity: "P2",
+      area: "worktree",
+      title: "Large dirty worktree",
+      detail: "많은 변경 파일과 미추적 파일이 있습니다. Charlie 출력의 git_status.by_area 기준으로 보존, 검증, 승인 필요, 노이즈 후보를 분류해야 합니다.",
+      evidence: "git_status.by_area"
+    }
+  ],
+  authority_files: [
+    { path: "AGENTS.md", exists: true, updated: "" },
+    { path: "CLAUDE.md", exists: true, updated: "" },
+    { path: "OPERATING_INTENT.md", exists: true, updated: "" },
+    { path: "ObsidianVault/00_System/USER_OPERATING_INTENT.md", exists: true, updated: "" },
+    { path: "ObsidianVault/03_Projects/agents/charlie.md", exists: true, updated: "" }
+  ],
+  change_timeline: {
+    commits: [],
+    by_area: {
+      "bucky-discord-daily-plus": 58,
+      "support-tooling": 17,
+      "charlie": 15,
+      "knowledge-vault": 14,
+      "google-revenue-dashboard": 8,
+      "kmong": 6
+    }
+  },
+  git_status: { changed_count: 120 },
+  runtime_status: {},
+  operational_checks: [
+    {
+      id: "charlie-dashboard-access",
+      label: "대시보드 접속 비밀번호",
+      status: "USER_APPROVAL",
+      evidence: "정적 HTML 내부 비밀번호 게이트 적용",
+      next: "공개 배포 후 모바일에서 비밀번호 입력 확인"
+    }
+  ],
+  registries: {
+    error_registry: { path: "ObsidianVault/00_System/CHARLIE_ERROR_REGISTRY.md", exists: true },
+    change_log: { path: "ObsidianVault/00_System/CHARLIE_CHANGE_LOG.md", exists: true },
+    instruction_registry: { path: "ObsidianVault/00_System/PROJECT_INSTRUCTION_REGISTRY.md", exists: true }
+  }
+};
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+function areaLabel(value) {
+  return {
+    worktree: "작업트리",
+    filesystem: "파일시스템",
+    authority: "권한",
+    "bucky-discord-daily-plus": "Bucky/Discord/Daily Plus",
+    "support-tooling": "지원 도구",
+    charlie: "Charlie",
+    "knowledge-vault": "Knowledge Vault",
+    "google-revenue-dashboard": "Google Revenue",
+    kmong: "Kmong",
+    dashboard: "대시보드",
+    authentication: "인증",
+    "daily-plus": "Daily Plus",
+    "discord-runtime": "Discord 런타임",
+    "workflow-expansion": "워크플로 확장",
+    "memory-context": "기억/컨텍스트",
+    "instruction-authority": "지침 권한",
+    other: "기타"
+  }[value] || value;
+}
+
+function statusLabel(value) {
+  return {
+    PASS: "정상",
+    WARNING: "주의",
+    FAIL: "실패",
+    USER_APPROVAL: "사용자 승인 필요"
+  }[value] || value || "알 수 없음";
+}
+
+async function sha256(text) {
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error("이 브라우저에서 보안 해시 기능을 사용할 수 없습니다.");
+  }
+  const bytes = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function unlock() {
+  document.body.classList.remove("locked");
+  $("stateBadge").querySelector("span:last-child").textContent = "불러오는 중";
+  load();
+  refreshTimer = window.setInterval(load, 30000);
+}
+
+function lock() {
+  window.clearInterval(refreshTimer);
+  sessionStorage.removeItem(ACCESS_KEY);
+  document.body.classList.add("locked");
+  $("stateBadge").className = "badge";
+  $("stateBadge").querySelector("span:last-child").textContent = "잠김";
+  setTimeout(() => $("passwordInput").focus(), 0);
+}
+
+async function submitLogin(event) {
+  event.preventDefault();
+  const input = $("passwordInput");
+  const error = $("loginError");
+  error.textContent = "";
+  try {
+    const hash = await sha256("charlie:" + input.value);
+    if (hash !== PASSWORD_HASH) {
+      error.textContent = "비밀번호가 맞지 않습니다.";
+      input.select();
+      return;
+    }
+    sessionStorage.setItem(ACCESS_KEY, "ok");
+    input.value = "";
+    unlock();
+  } catch (err) {
+    error.textContent = err.message || "로그인 처리에 실패했습니다.";
+  }
+}
+
+function setState(data) {
+  const state = data.state || "UNKNOWN";
+  const badge = $("stateBadge");
+  badge.className = "badge " + state;
+  badge.querySelector("span:last-child").textContent = statusLabel(state);
+}
+
+function renderFindings(findings) {
+  if (!findings || findings.length === 0) {
+    $("findings").innerHTML = '<div class="empty">현재 발견사항이 없습니다.</div>';
+    return;
+  }
+  $("findings").innerHTML = `<table><thead><tr><th>등급</th><th>영역</th><th>문제</th><th>근거</th></tr></thead><tbody>${
+    findings.map((f) => `<tr>
+      <td class="sev ${esc(f.severity)}">${esc(f.severity)}</td>
+      <td>${esc(areaLabel(f.area))}</td>
+      <td><strong>${esc(f.title)}</strong><div class="small">${esc(f.detail)}</div></td>
+      <td><code>${esc(f.evidence)}</code></td>
+    </tr>`).join("")
+  }</tbody></table>`;
+}
+
+function renderAgents(data) {
+  const intent = data.user_intent || {};
+  const rows = [
+    ["Bucky", intent.bucky_role || "작업 운영 조율자"],
+    ["Charlie", intent.charlie_role || "독립 시스템 감사자"],
+    ["Codex", "독립 검수와 명시 요청 시 구현"],
+    ["Claude Code", "승인된 범위 안의 구현"],
+    ["Discord / Daily Plus", "런타임과 지식 성장 루프 감시 대상"]
+  ];
+  $("agents").innerHTML = rows.map(([name, role]) => `<tr><th>${esc(name)}</th><td>${esc(role)}</td></tr>`).join("");
+}
+
+function renderTimeline(changeTimeline) {
+  const commits = (changeTimeline && changeTimeline.commits) || [];
+  if (!commits.length) {
+    $("timeline").innerHTML = '<div class="empty">현재 공개용 요약 화면입니다. 자세한 커밋 흐름은 Charlie JSON이 배포되면 표시됩니다.</div>';
+    return;
+  }
+  $("timeline").innerHTML = `<table><thead><tr><th>일자</th><th>영역</th><th>커밋</th></tr></thead><tbody>${
+    commits.slice(0, 18).map((c) => `<tr>
+      <td>${esc(c.date)}</td>
+      <td>${(c.areas || []).map((a) => `<span class="pill">${esc(areaLabel(a))}</span>`).join("")}</td>
+      <td>${esc(c.subject || c.commit || "")}</td>
+    </tr>`).join("")
+  }</tbody></table>`;
+}
+
+function renderAreas(changeTimeline) {
+  const areas = (changeTimeline && changeTimeline.by_area) || {};
+  const entries = Object.entries(areas).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) {
+    $("areas").innerHTML = '<div class="empty">위험 영역 집계가 없습니다.</div>';
+    return;
+  }
+  $("areas").innerHTML = entries.map(([area, count]) => `<span class="pill">${esc(areaLabel(area))}: ${esc(count)}</span>`).join("");
+}
+
+function renderAuthority(files) {
+  if (!files || !files.length) {
+    $("authority").innerHTML = '<div class="empty">권한 파일 데이터가 없습니다.</div>';
+    return;
+  }
+  $("authority").innerHTML = `<table><thead><tr><th>파일</th><th>상태</th><th>갱신</th></tr></thead><tbody>${
+    files.map((f) => `<tr>
+      <td>${esc(f.path)}</td>
+      <td>${f.exists ? "있음" : "없음"}</td>
+      <td>${esc(f.updated || f.mtime || "")}</td>
+    </tr>`).join("")
+  }</tbody></table>`;
+}
+
+function renderRegistries(registries) {
+  const entries = Object.entries(registries || {});
+  if (!entries.length) {
+    $("registries").innerHTML = '<div class="empty">등록부 데이터가 없습니다.</div>';
+    return;
+  }
+  $("registries").innerHTML = `<table><tbody>${
+    entries.map(([name, r]) => `<tr><th>${esc(name)}</th><td>${esc(r.path)}<div class="small">${r.exists ? "있음" : "없음"} ${esc(r.mtime || "")}</div></td></tr>`).join("")
+  }</tbody></table>`;
+}
+
+function renderOperationalChecks(checks) {
+  if (!checks || !checks.length) {
+    $("operationalChecks").innerHTML = '<div class="empty">운영 확인 기준 데이터가 없습니다.</div>';
+    return;
+  }
+  $("operationalChecks").innerHTML = `<table><thead><tr><th>상태</th><th>기준</th><th>근거</th><th>다음 조치</th></tr></thead><tbody>${
+    checks.map((check) => `<tr>
+      <td class="sev ${esc(check.status)}">${esc(statusLabel(check.status))}</td>
+      <td><strong>${esc(check.label)}</strong><div class="small"><code>${esc(check.id)}</code></div></td>
+      <td>${esc(check.evidence || "")}</td>
+      <td>${esc(check.next || "")}</td>
+    </tr>`).join("")
+  }</tbody></table>`;
+}
+
+function renderRuntimeStatus(runtimeStatus) {
+  const status = runtimeStatus || {};
+  const rows = [
+    ["Bucky health", status.bucky_health?.ok ? "ok" : (status.bucky_health?.error || "not verified")],
+    ["Bot PID file", status.bot_pid_file?.valid ? String(status.bot_pid_file.pid) : (status.bot_pid_file?.raw_preview || "missing/invalid")],
+    ["Supervisor PID file", status.supervisor_pid_file?.valid ? String(status.supervisor_pid_file.pid) : (status.supervisor_pid_file?.raw_preview || "missing/invalid")],
+    ["Python processes", (status.process_ids?.python_pids || []).join(", ") || status.process_ids?.error || "not visible"],
+    ["Discord log", `${status.discord_log?.mtime || "missing"} / Bot ready=${!!status.discord_log?.markers?.["Bot ready"]}`],
+    ["Daily Plus bridge", `latest_outbox=${status.daily_plus_bridge?.latest_outbox || ""}; latest_sent=${status.daily_plus_bridge?.latest_sent || ""}`],
+    ["Daily Plus dashboard", `date=${status.daily_plus_dashboard?.latest_date || ""}; mtime=${status.daily_plus_dashboard?.mtime || ""}`]
+  ];
+  $("runtimeStatus").innerHTML = `<table><tbody>${
+    rows.map(([name, value]) => `<tr><th>${esc(name)}</th><td>${esc(value)}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+
+function render(data, bootstrap) {
+  setState(data);
+  $("intent").textContent = data.user_intent?.top_level_goal || data.principle || "";
+  $("corePurpose").textContent = "핵심 목적: " + (data.user_intent?.core_purpose || "");
+  $("critical").textContent = "치명적 실패 모드: " + (data.user_intent?.critical_failure_mode || "");
+  $("knowledgeLoop").textContent = "지식 순환: " + (data.user_intent?.knowledge_loop || "");
+  $("sessionContinuity").textContent = "세션 연속성: " + (data.user_intent?.session_continuity || "");
+  $("p1").textContent = data.summary?.p1 ?? 0;
+  $("p2").textContent = data.summary?.p2 ?? 0;
+  $("p3").textContent = data.summary?.p3 ?? 0;
+  $("dirty").textContent = data.git_status?.changed_count ?? 0;
+  renderFindings(data.findings);
+  renderAgents(data);
+  renderTimeline(data.change_timeline);
+  renderAreas(data.change_timeline);
+  renderAuthority(data.authority_files);
+  renderRegistries(data.registries);
+  renderOperationalChecks(data.operational_checks);
+  renderRuntimeStatus(data.runtime_status);
+  $("generated").textContent = (bootstrap ? "기본 화면입니다. " : "") + "생성 시각: " + (data.generated_at || "") + ". Charlie는 사용자 승인 전 보고만 수행합니다.";
+}
+
+async function load() {
+  try {
+    const res = await fetch("data/charlie_status.json?ts=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (!data || (!data.state && !data.summary && !data.user_intent)) {
+      throw new Error("empty Charlie status");
+    }
+    render(data, false);
+  } catch (err) {
+    render(BOOTSTRAP_STATUS, true);
+  }
+}
+
+$("loginForm").addEventListener("submit", submitLogin);
+$("logoutButton").addEventListener("click", lock);
+
+if (sessionStorage.getItem(ACCESS_KEY) === "ok") {
+  unlock();
+} else {
+  render(BOOTSTRAP_STATUS, true);
+  setTimeout(() => $("passwordInput").focus(), 0);
+}
+</script>
+</body>
+</html>
