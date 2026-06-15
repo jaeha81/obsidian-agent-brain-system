@@ -8,6 +8,7 @@ Register in bucky_chat_server.py:
 
 from __future__ import annotations
 
+import ctypes
 import io
 import json
 import sqlite3
@@ -31,6 +32,64 @@ AGENTS_REGISTRY = ROOT / "data" / "agents_registry.json"
 os_bp = Blueprint("os", __name__, url_prefix="/os")
 
 _graph_cache: dict = {"data": None, "mtime": 0.0}
+
+
+def _set_windows_clipboard_text(text: str) -> None:
+    """Set Unicode text on the Windows clipboard without extra dependencies."""
+    user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
+
+    user32.OpenClipboard.argtypes = [ctypes.c_void_p]
+    user32.OpenClipboard.restype = ctypes.c_int
+    user32.EmptyClipboard.restype = ctypes.c_int
+    user32.SetClipboardData.argtypes = [ctypes.c_uint, ctypes.c_void_p]
+    user32.SetClipboardData.restype = ctypes.c_void_p
+    user32.CloseClipboard.restype = ctypes.c_int
+    kernel32.GlobalAlloc.argtypes = [ctypes.c_uint, ctypes.c_size_t]
+    kernel32.GlobalAlloc.restype = ctypes.c_void_p
+    kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalLock.restype = ctypes.c_void_p
+    kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalUnlock.restype = ctypes.c_int
+    kernel32.GlobalFree.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalFree.restype = ctypes.c_void_p
+
+    data = (text + "\0").encode("utf-16-le")
+    h_global = kernel32.GlobalAlloc(0x0002, len(data))
+    if not h_global:
+        raise RuntimeError("clipboard allocation failed")
+
+    locked = kernel32.GlobalLock(h_global)
+    if not locked:
+        kernel32.GlobalFree(h_global)
+        raise RuntimeError("clipboard lock failed")
+
+    try:
+        ctypes.memmove(locked, data, len(data))
+    finally:
+        kernel32.GlobalUnlock(h_global)
+
+    opened = False
+    for _ in range(10):
+        if user32.OpenClipboard(None):
+            opened = True
+            break
+        time.sleep(0.02)
+
+    if not opened:
+        kernel32.GlobalFree(h_global)
+        raise RuntimeError("clipboard unavailable")
+
+    try:
+        if not user32.EmptyClipboard():
+            raise RuntimeError("clipboard clear failed")
+        if not user32.SetClipboardData(13, h_global):
+            raise RuntimeError("clipboard set failed")
+        h_global = None
+    finally:
+        user32.CloseClipboard()
+        if h_global:
+            kernel32.GlobalFree(h_global)
 
 
 def _load_graph() -> dict:
@@ -445,17 +504,25 @@ def screen_input():
             if dx:
                 pyautogui.hscroll(dx)
         elif ev == "key":
-            key = str(data.get("key", ""))
+            key = str(data.get("key", "")).strip()
             if key:
-                pyautogui.press(key)
+                if "+" in key:
+                    keys = [part.strip() for part in key.split("+") if part.strip()]
+                    pyautogui.hotkey(*keys)
+                else:
+                    pyautogui.press(key)
         elif ev == "type":
             text = str(data.get("text", ""))
             if text:
-                pyautogui.typewrite(text, interval=0.03)
+                try:
+                    _set_windows_clipboard_text(text)
+                    pyautogui.hotkey("ctrl", "v")
+                except Exception:
+                    pyautogui.typewrite(text, interval=0.03)
         elif ev == "hotkey":
             keys = data.get("keys", [])
             if keys:
-                pyautogui.hotkey(*keys)
+                pyautogui.hotkey(*[str(k).strip() for k in keys if str(k).strip()])
         else:
             return jsonify({"error": f"unknown type: {ev}"}), 400
 
