@@ -38,7 +38,7 @@ FROM ""
 WHERE (status = "inbox" OR status = "review_needed") AND summary
   AND !contains(file.path, "10_AgentBus/inbox") AND !contains(file.path, "10_AgentBus/outbox")
   AND !contains(file.path, "10_AgentBus/completed") AND !contains(file.path, "10_AgentBus/failed")
-  AND !contains(file.path, "Inbox/DiscordCaptures")
+  AND !contains(file.path, "00_Inbox/DiscordCaptures")
 SORT file.mtime DESC
 LIMIT 20
 ```

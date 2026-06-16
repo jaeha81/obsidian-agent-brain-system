@@ -2,7 +2,7 @@
 type: bucky-morning-report
 scope: daily-plus-dashboard
 date: 2026-06-12
-created_at: 2026-06-12T09:00:02+0900
+created_at: 2026-06-13T09:00:02+0900
 owner: Bucky
 status: needs-attention
 dashboard: docs/daily-plus.html

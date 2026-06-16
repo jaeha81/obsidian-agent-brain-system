@@ -2,7 +2,7 @@
 type: runbook
 status: active
 owner: Bucky
-updated: 2026-05-30
+updated: 2026-06-13
 tags:
   - #status/active
 ---
@@ -69,6 +69,42 @@ python -X utf8 scripts/context_pack_selector.py --packet --project "<repo-or-fol
 ```
 
 New projects start with no project-specific instructions unless a local packet exists. Do not reuse another repo/folder packet automatically.
+
+## Discord Bucky Bot Restart
+
+Canonical runtime:
+
+```powershell
+start_discord_bot.bat
+```
+
+Alternative manual start:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/start_discord_bot.ps1
+```
+
+Do not start `scripts/discord_bot.py` directly for normal operation. The canonical path starts `scripts/bucky_bot_supervisor.py`, which loads `.env`, writes `ObsidianVault/10_AgentBus/signals/bucky_bot.pid`, watches `bot_restart.signal`, and restarts the Discord bot if the child process exits.
+
+Manual restart signal:
+
+```powershell
+python -X utf8 scripts/send_bot_restart.py manual
+```
+
+Verification after a restart:
+
+```powershell
+Get-Content ObsidianVault/10_AgentBus/signals/bucky_bot.pid
+Get-Content discord_bot.err -Tail 80
+```
+
+Required evidence:
+
+- `discord.gateway: ... has connected to Gateway`
+- `Bot ready: ObsidianAgentBot#3738`
+- `IntakeConsumer` started
+- the PID file matches the live `discord_bot.py` child process
 
 ## Legacy Migration Rule
 

@@ -9,7 +9,7 @@ created: "2026-05-25"
 updated: "2026-05-25"
 github_user: jaeha81
 total_repos: 39
-data_source: "[[06_Knowledge/github-catalog]]"
+data_source: "[[03_Knowledge/github-catalog]]"
 overview_source: "[[03_Projects/github-overview]]"
 cataloger_script: "scripts/github_repo_cataloger.py"
 summary: "**목적**: 에이전트가 jaeha81의 GitHub 레포 현황을 빠르게 파악하고, 작업을 올바른 레포로 라우팅하기 위한 구조화 지식 노트."
@@ -21,7 +21,7 @@ next_action: review
 # GitHub 레포 카탈로그 — 에이전트 참조 노트
 
 > **목적**: 에이전트가 jaeha81의 GitHub 레포 현황을 빠르게 파악하고, 작업을 올바른 레포로 라우팅하기 위한 구조화 지식 노트.
-> **실 데이터**: [[06_Knowledge/github-catalog]] (39개 레포, 2026-05-25 기준)
+> **실 데이터**: [[03_Knowledge/github-catalog]] (39개 레포, 2026-05-25 기준)
 > **대시보드**: [[03_Projects/github-overview]]
 
 ---
@@ -49,7 +49,7 @@ next_action: review
 | [jh-outsource-system](https://github.com/jaeha81/jh-outsource-system) | 외주 관리 시스템 | TypeScript | 🟢 active |
 | [bitmex-ai-bot](https://github.com/jaeha81/bitmex-ai-bot) | Bitmex AI 트레이딩 봇 | JavaScript | 🟢 active |
 
-> 전체 목록 → [[06_Knowledge/github-catalog#프로젝트성 레포]]
+> 전체 목록 → [[03_Knowledge/github-catalog#프로젝트성 레포]]
 
 ---
 
@@ -155,7 +155,7 @@ python scripts/github_repo_cataloger.py --dry-run
 **출력 파일**:
 - `ObsidianVault/03_Projects/github-overview.md` — 전체 대시보드
 - `ObsidianVault/03_Projects/github-repos/*.md` — 개별 레포 노트
-- `ObsidianVault/06_Knowledge/github-catalog.md` — 카탈로그 원본 (수동 또는 다른 에이전트가 생성)
+- `ObsidianVault/03_Knowledge/github-catalog.md` — 카탈로그 원본 (수동 또는 다른 에이전트가 생성)
 
 ### 이 파일 수동 갱신 시점
 
