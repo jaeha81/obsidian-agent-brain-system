@@ -51,6 +51,15 @@ ObsidianVault/00_System/*
 !ObsidianVault/00_System/folder-registry.md
 !ObsidianVault/00_System/VAULT_BOUNDARY.md
 !ObsidianVault/00_System/PRIVATE_BOUNDARY.md
+!ObsidianVault/00_System/USER_OPERATING_INTENT.md
+!ObsidianVault/00_System/CHARLIE_ERROR_REGISTRY.md
+!ObsidianVault/00_System/CHARLIE_CHANGE_LOG.md
+!ObsidianVault/00_System/PROJECT_INSTRUCTION_REGISTRY.md
+!ObsidianVault/00_System/CHARLIE_AGENT_COORDINATION.md
+!ObsidianVault/00_System/CHARLIE_NEXT_SESSION_HANDOFF.md
+!ObsidianVault/00_System/CHARLIE_SESSION_HANDOFF_TEMPLATE.md
+!ObsidianVault/00_System/CHARLIE_EXPERT_AGENT_ROSTER.md
+!ObsidianVault/00_System/CHARLIE_HERMES_LEVEL_ROADMAP.md
 !ObsidianVault/00_System/plugin-stack/
 !ObsidianVault/00_System/plugin-stack/**
 !ObsidianVault/00_Dashboard/
@@ -91,12 +100,15 @@ ObsidianVault/03_Projects/*
 .smart-env/
 .agents/
 .cache/
+.gpt_collector_profile/
+.playwright-mcp/
 
 # Runtime data (CL-030: auto-generated, not tracked)
 data/bucky_memory.db
 data/bucky_memory.db-shm
 data/bucky_memory.db-wal
 data/intake_queue/processed/
+data/intake_queue/failed/
 data/wishket_loop_history.json
 
 # Graphify output/cache
@@ -125,6 +137,11 @@ yarn-error.log*
 *.log
 *.err
 
+# Local screenshots / preview evidence
+/local-dashboard-login.png
+/vercel-dashboard-login.png
+/jh-google-revenue-dashboard*.png
+
 # OS
 .DS_Store
 Thumbs.db
@@ -146,6 +163,11 @@ exports/
 
 # Duplicate planning scratch file
 plan2.md
+
+# Local review artifacts (Charlie audit residue — not for commit)
+G1-preflight-dirty.patch
+G1-*.patch
+Api 재미나이*.txt
 
 # Token/secret files (never commit)
 token.txt

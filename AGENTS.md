@@ -109,6 +109,15 @@ If the user asks to end/save the session, run `D:\ai프로젝트\JH-Agent-Room\s
 
 For screen errors, connection errors, and runtime errors, handle only the direct visible failure first: read the error, check the relevant port/process/health endpoint, start the required server if needed, verify one response, then stop and ask the user to retry. Do not inspect architecture, queues, unrelated configs, vault-wide files, or perform cleanup unless the user explicitly asks after the direct fix.
 
+## Codex Web Preview Hook
+
+For any Obsidian Brain System dashboard, UI, screen-error, runtime-error, or review work, Codex must open the local dashboard preview inside the Codex in-app browser before reporting results.
+
+1. Start or confirm the preview server with `python -X utf8 scripts/codex_preview_hook.py`.
+2. Open `http://127.0.0.1:4173/index.html` in the Codex in-app browser. Do not substitute an external browser or screenshots unless the user explicitly asks for that fallback.
+3. If the static preview redirects to `/login.html`, set only the local preview cookie `bucky_auth=preview` for `127.0.0.1` and reload `/index.html`. Do not use or expose production credentials.
+4. Treat this preview as the default pre-commit/pre-push visual verification surface for dashboard changes.
+
 ## Context Discipline
 
 Do not read whole large logs by default. For `agent-room-messages.jsonl`, `sync-state.jsonl`, session logs, and tool result files, use targeted search/tail by date, target, status, or keyword. Prefer short summaries and referenced docs over copying long procedures into context.
