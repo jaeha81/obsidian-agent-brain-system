@@ -71,7 +71,7 @@ Read these first in the next session:
 - `python -B scripts\charlie_audit.py --no-write` runs.
 - Current Charlie state is `WARNING`.
 - The remaining confirmed warning is the large dirty worktree.
-- The dirty worktree is now classified by Charlie, not vague:
+- The dirty worktree was classified by Charlie, not vague:
   - `bucky-discord-daily-plus`: 58
   - `charlie`: 15
   - `support-tooling`: 17
@@ -80,6 +80,14 @@ Read these first in the next session:
   - `kmong`: 6
   - `local-review-artifact`: 2
 - Dirty count was reduced from 127 to 120 by ignoring local runtime artifacts only; no delete/reset/commit was done.
+
+### 2026-06-17 session — safe-group commits
+
+- Bot health re-verified: watchdog PID 38200 + discord_bot PID 39616 alive (lockfile had stale PID; bot itself OK).
+- `.gitignore` extended to ignore `G1-*.patch` and `Api 재미나이*.txt` local review artifacts.
+- Commit `6354975` — Charlie system group (21 files, +2301): OPERATING_INTENT, USER_OPERATING_INTENT, all CHARLIE_* docs, PROJECT_INSTRUCTION_REGISTRY, charlie.md role, charlie_audit.py, codex_preview_hook.py + AGENTS.md hook section, prompt_logger.py, create_charlie_discord_channel.py, charlie_status.json (×2), test_charlie_operational_status.py, charlie-system-audit plan.
+- Commit `86c4de2` — Knowledge vault refresh (39 files, +2485/-104): 3 YouTube notes, bridge-indexes 007/015/016, github-repo-catalog, dashboards, BUCKY_OS_RUNBOOK/STATUS/folder-registry, graph.json, 2026-06-12 daily-plus outbox+report, 09_Archive/sessions (2), 09_Archive/gdrive-archive (22 legacy migration files).
+- Dirty count now 84 (66 modified + 18 untracked). Remaining groups: `bucky-discord-daily-plus`=56, `support-tooling`=~15, `google-revenue-dashboard`=8 (user approval pending), `kmong`=6 (user approval pending), 4 untracked tests (test_bucky_*, test_daily_plus_*).
 - Hardcoded collab admin password was removed from `scripts/bucky_chat_server.py`.
 - `scripts/charlie_audit.py` now detects hardcoded secret-like assignments and reports worktree areas.
 - UTF-8 BOM pollution was removed from Python scripts.
