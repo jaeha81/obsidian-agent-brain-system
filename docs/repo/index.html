@@ -1,0 +1,1582 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#58a6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bucky">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>JH 레포 상품화 대시보드</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
+})();
+</script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  .top-progress { height: 3px; background: linear-gradient(90deg, var(--green), var(--accent)); position: fixed; top: 0; left: 0; z-index: 300; transition: width 0.3s; }
+
+  header {
+    background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 32px 18px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+  .jh-nav { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+  .jh-nav a {
+    font-size:0.78rem; color:var(--muted); text-decoration:none; border:1px solid var(--border);
+    padding:5px 12px; border-radius:20px; transition:all 0.2s; line-height:1.2;
+  }
+  .jh-nav a:hover, .jh-nav a.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,0.08); }
+
+  .stats-bar {
+    display: flex; gap: 12px; padding: 16px 32px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 18px; flex: 1; min-width: 100px; text-align: center;
+  }
+  .stat-box .num { font-size: 1.6rem; font-weight: 700; }
+  .stat-box .label { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  .controls {
+    padding: 12px 32px; display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; border-bottom: 1px solid var(--border);
+  }
+  .filter-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.1); }
+  .search-box {
+    margin-left: auto; background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; width: 200px;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+
+  .sort-select {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 10px; border-radius: 6px; font-size: 0.82rem; cursor: pointer;
+  }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 14px; padding: 20px 32px;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; position: relative;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .card:hover { border-color: #58a6ff66; transform: translateY(-1px); }
+  .card.checked { border-color: var(--green); background: rgba(63,185,80,0.04); }
+  .card.hidden { display: none; }
+
+  .card-header { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 8px; }
+  .card-check {
+    width: 17px; height: 17px; border-radius: 4px; border: 2px solid var(--border);
+    cursor: pointer; flex-shrink: 0; margin-top: 2px; accent-color: var(--green);
+  }
+  .card-title { font-weight: 600; font-size: 0.92rem; word-break: break-word; }
+  .card-title a { color: var(--accent); text-decoration: none; }
+  .card-title a:hover { text-decoration: underline; }
+
+  .card-desc { color: var(--muted); font-size: 0.80rem; margin-bottom: 10px; line-height: 1.5; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .tag { font-size: 0.70rem; padding: 2px 7px; border-radius: 12px; font-weight: 500; }
+  .tag-lang { background: rgba(88,166,255,0.12); color: var(--accent); border: 1px solid rgba(88,166,255,0.25); }
+  .tag-active { background: rgba(63,185,80,0.12); color: var(--green); border: 1px solid rgba(63,185,80,0.25); }
+  .tag-stale { background: rgba(210,153,34,0.12); color: var(--yellow); border: 1px solid rgba(210,153,34,0.25); }
+
+  .tier-badge {
+    position: absolute; top: 12px; right: 12px;
+    font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+  }
+  .tier-1 { background: rgba(63,185,80,0.18); color: var(--green); border: 1px solid rgba(63,185,80,0.35); }
+  .tier-2 { background: rgba(255,166,87,0.18); color: var(--orange); border: 1px solid rgba(255,166,87,0.35); }
+  .tier-3 { background: rgba(139,148,158,0.18); color: var(--muted); border: 1px solid rgba(139,148,158,0.28); }
+
+  .score-bar { margin-top: 10px; }
+  .score-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-bottom: 3px; }
+  .score-track { background: rgba(255,255,255,0.07); border-radius: 3px; height: 5px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .score-high { background: linear-gradient(90deg, var(--green), #2ea043); }
+  .score-mid { background: linear-gradient(90deg, var(--orange), #e3a230); }
+  .score-low { background: linear-gradient(90deg, var(--muted), #6e7681); }
+
+  .reason-box { font-size: 0.76rem; color: var(--muted); margin: 8px 0; line-height: 1.5; }
+
+  .card-footer { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .progress-panel { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.03); }
+  .progress-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .progress-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .progress-status { font-size: 12px; font-weight: 700; color: var(--accent); }
+  .progress-copy { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+  .progress-copy strong { color: var(--text); }
+  .progress-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .action-btn {
+    font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .bucky-btn {
+    border-color: rgba(188,140,255,0.4); color: var(--purple);
+    background: rgba(188,140,255,0.06);
+  }
+  .bucky-btn:hover { border-color: var(--purple); background: rgba(188,140,255,0.15); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: #1f2937; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 20px; font-size: 0.85rem; color: var(--text);
+    z-index: 500; opacity: 0; transition: opacity 0.3s;
+    max-width: 380px; text-align: center; pointer-events: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .toast.show { opacity: 1; }
+  .toast .toast-title { font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .toast .toast-msg { color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
+
+  /* Bucky panel */
+  .bucky-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(135deg, #1a1030 0%, #0d1117 100%);
+    border-top: 1px solid rgba(188,140,255,0.3);
+    padding: 12px 32px; display: flex; align-items: center; gap: 12px;
+    z-index: 200; transform: translateY(100%); transition: transform 0.3s;
+    flex-wrap: wrap;
+  }
+  .bucky-panel.show { transform: translateY(0); }
+  .bucky-panel-text { color: var(--purple); font-size: 0.85rem; font-weight: 600; }
+  .bucky-panel-sub { color: var(--muted); font-size: 0.75rem; margin-left: 4px; }
+  .bucky-send-btn {
+    margin-left: auto; background: rgba(188,140,255,0.15);
+    border: 1px solid var(--purple); color: var(--purple);
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .bucky-send-btn:hover { background: rgba(188,140,255,0.3); }
+  .bucky-close { color: var(--muted); background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; }
+
+  .intake-panel {
+    margin: 18px 32px 0;
+    background: var(--card);
+    border: 1px solid rgba(188,140,255,0.32);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .intake-title { color: var(--purple); font-size: 0.96rem; font-weight: 700; margin-bottom: 6px; }
+  .intake-sub { color: var(--muted); font-size: 0.78rem; line-height: 1.55; margin-bottom: 12px; }
+  .intake-grid { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 10px; }
+  .intake-panel input, .intake-panel textarea, .intake-panel select {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    font-family: inherit;
+  }
+  .intake-panel textarea { min-height: 106px; resize: vertical; }
+  .intake-panel input:focus, .intake-panel textarea:focus, .intake-panel select:focus {
+    outline: none;
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(188,140,255,0.12);
+  }
+  .intake-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .intake-actions button {
+    border: 1px solid rgba(188,140,255,0.45);
+    border-radius: 8px;
+    background: rgba(188,140,255,0.12);
+    color: var(--purple);
+    min-height: 36px;
+    padding: 7px 13px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .intake-actions button.secondary { border-color: var(--border); color: var(--muted); background: transparent; }
+  .intake-actions button:hover { background: rgba(188,140,255,0.22); }
+
+  .result-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .result-summary-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+  }
+  .result-summary-card strong {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--purple);
+  }
+  .result-summary-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.74rem;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  footer { text-align: center; padding: 28px; color: var(--muted); font-size: 0.77rem; border-top: 1px solid var(--border); margin-top: 8px; }
+
+  /* Discord Webhook Modal */
+  .wh-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:400; align-items:center; justify-content:center; }
+  .wh-overlay.show { display:flex; }
+  .wh-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; width:460px; max-width:95vw; }
+  .wh-modal h2 { font-size:15px; font-weight:700; margin-bottom:10px; }
+  .wh-modal p { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:4px; }
+  .wh-modal label { font-size:12px; color:var(--muted); display:block; margin:12px 0 5px; }
+  .wh-modal input { width:100%; background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:8px 12px; color:var(--text); font-size:12px; font-family:monospace; }
+  .wh-modal input:focus { outline:none; border-color:var(--accent); }
+  .wh-btns { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+  .wh-btn { padding:6px 14px; border-radius:6px; border:1px solid #30363d; background:#21262d; color:var(--text); font-size:12px; cursor:pointer; transition:all .15s; }
+  .wh-btn:hover { background:#30363d; }
+  .wh-btn-save { background:var(--accent); color:#0d1117; border-color:var(--accent); font-weight:600; }
+  .wh-btn-save:hover { opacity:.85; }
+
+  /* Add Project Modal */
+  .ap-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:400; align-items:center; justify-content:center; }
+  .ap-overlay.show { display:flex; }
+  .ap-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; width:520px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+  .ap-modal h2 { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .ap-modal p { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+  .ap-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  .ap-row.full { grid-template-columns:1fr; }
+  .ap-modal label { font-size:11px; color:var(--muted); display:block; margin-bottom:4px; }
+  .ap-modal input, .ap-modal select, .ap-modal textarea { width:100%; box-sizing:border-box; background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:7px 10px; color:var(--text); font-size:12px; font-family:inherit; }
+  .ap-modal input:focus, .ap-modal select:focus, .ap-modal textarea:focus { outline:none; border-color:var(--accent); }
+  .ap-modal textarea { min-height:60px; resize:vertical; }
+  .ap-fetch-row { display:flex; gap:8px; margin-bottom:10px; }
+  .ap-fetch-row input { flex:1; font-family:monospace; }
+  .ap-fetch-btn { flex-shrink:0; padding:7px 14px; border-radius:6px; border:1px solid #30363d; background:#21262d; color:var(--text); font-size:12px; cursor:pointer; white-space:nowrap; }
+  .ap-fetch-btn:hover { background:#30363d; }
+  .ap-status-msg { font-size:11px; color:var(--muted); margin-bottom:8px; min-height:16px; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; padding: 12px; }
+    header, .controls, .stats-bar { padding: 12px 16px; }
+    .search-box { width: 140px; }
+    .bucky-panel { padding: 10px 16px; }
+    .intake-panel { margin: 12px; }
+    .intake-grid { grid-template-columns: 1fr; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="top-progress" id="topProgress" style="width:0%"></div>
+
+<header style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div style="flex:1">
+    <h1>🚀 JH 레포 상품화 대시보드</h1>
+    <p>jaeha81 · <span id="repoCount">39</span>개 레포 · 2026-06-17 · Bucky Agent 분석 — 완성도 × 시장성 우선순위</p>
+  </div>
+  <div class="jh-nav">
+    <a href="/repo/" class="active">레포대시보드</a>
+    <a href="/bucky-os.html" style="color:var(--accent);border-color:var(--accent)">🧠 Bucky OS</a>
+    <a href="/wishket/">위시켓</a>
+    <a href="/daily-plus/">오늘의플러스</a>
+    <a href="/task-board/">태스크보드</a>
+    <a href="/agent-room.html">에이전트룸</a>
+    <a href="/checklist.html">체크리스트</a>
+    <a href="/jingle.html" style="color:var(--gold);border-color:var(--gold)">🎵 징글공모전</a>
+    <a href="/bni-proposal.html">내 소개</a>
+    <a href="/ai-usage.html">AI사용량</a>
+    <a href="/project-graph.html">프로젝트그래프</a>
+    <a href="/claude-code/">앱세션</a>
+    <a href="https://github.com/jaeha81" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="/login.html">로그인</a>
+    <a href="/api/logout">로그아웃</a>
+  </div>
+</header>
+<div class="info-strip" style="padding:6px 28px;border-bottom:1px solid #30363d;font-size:0.75rem;color:#8b949e;">공식: <code>jh-chat</code> | <code>jh-레포대시보드</code> | Chrome extension, Vercel, Supabase, local PC control, bot restart</div>
+
+<section class="intake-panel" aria-label="레포 운영 상태">
+  <div class="intake-grid">
+    <div class="intake-card">
+      <h3>jh-chat 공식 경로</h3>
+      <p>사용자 직접 대화는 <strong>jh-chat</strong>을 기준으로 하고, 레포 착수 요청은 <strong>jh-레포대시보드</strong> 채널로 전달합니다.</p>
+    </div>
+    <div class="intake-card">
+      <h3>진행상황 운영</h3>
+      <p><strong>진행상황</strong>, <strong>다음 플랜</strong>, <strong>이어서 작업</strong>, <strong>세션</strong> 정보를 레포 카드 기준으로 관리합니다.</p>
+    </div>
+  </div>
+  </section>
+
+<section class="intake-panel" aria-label="repo-dashboard-results" data-dashboard-results="repo">
+  <div class="intake-title">대시보드 결과 요약</div>
+  <div class="intake-sub">Discord results를 따로 찾지 않아도, 레포별 착수 결과와 다음 세션 상태를 이 화면에서 바로 확인합니다.</div>
+  <div class="result-summary-grid">
+    <div class="result-summary-card"><strong id="repoResultDispatched">0</strong><span>전송됨</span></div>
+    <div class="result-summary-card"><strong id="repoResultPlanning">0</strong><span>다음 플랜 기록</span></div>
+    <div class="result-summary-card"><strong id="repoResultReady">0</strong><span>이어서 작업 준비</span></div>
+    <div class="result-summary-card"><strong id="repoResultStopped">0</strong><span>중지 / 세션 저장</span></div>
+  </div>
+</section>
+
+<p style="margin:0 32px 10px;color:var(--muted);font-size:0.78rem"><strong>공식 대화 채널:</strong> 사용자 직접 대화는 <code>jh-chat</code>만 사용하고, <code>일반</code> 채널은 운영 경로로 사용하지 않습니다.</p>
+<p style="margin:0 32px 16px;color:var(--muted);font-size:0.78rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart는 사용자 승인 후 Bucky가 실행 가능한 작업으로 취급합니다.</p>
+
+<div class="stats-bar">
+  <div class="stat-box">
+    <div class="num" style="color:var(--accent)" id="totalCount">39</div>
+    <div class="label">전체 레포</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--green)" id="tier1Count">0</div>
+    <div class="label">🟢 즉시 출시</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--orange)" id="tier2Count">0</div>
+    <div class="label">🟡 개발 필요</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--muted)" id="tier3Count">0</div>
+    <div class="label">⚫ 인프라/보류</div>
+  </div>
+  <div class="stat-box">
+    <div class="num" style="color:var(--purple)" id="checkedCount">0</div>
+    <div class="label">✅ 완료 체크</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="wh-btn" style="border-radius:20px;font-size:0.78rem" onclick="openWebhookSettings()">⚙️ Discord 웹훅</button>
+  <button class="filter-btn active" data-filter="all" onclick="filter(this,'all')">전체</button>
+  <button class="filter-btn" data-filter="tier1" onclick="filter(this,'tier1')">🟢 즉시 출시</button>
+  <button class="filter-btn" data-filter="tier2" onclick="filter(this,'tier2')">🟡 개발 필요</button>
+  <button class="filter-btn" data-filter="tier3" onclick="filter(this,'tier3')">⚫ 인프라/보류</button>
+  <span style="width:1px;height:20px;background:var(--border);margin:0 2px"></span>
+  <button class="filter-btn" data-filter="cat-ai" onclick="filter(this,'cat-ai')">🤖 AI/에이전트</button>
+  <button class="filter-btn" data-filter="cat-interior" onclick="filter(this,'cat-interior')">🏗️ 인테리어</button>
+  <button class="filter-btn" data-filter="cat-commerce" onclick="filter(this,'cat-commerce')">🛍️ 커머스</button>
+  <button class="filter-btn" data-filter="cat-saas" onclick="filter(this,'cat-saas')">💼 SaaS</button>
+  <button class="filter-btn" data-filter="cat-finance" onclick="filter(this,'cat-finance')">💹 파이낸스</button>
+  <button class="filter-btn" data-filter="checked" onclick="filter(this,'checked')">✅ 완료됨</button>
+  <select class="sort-select" onchange="sortRepos(this.value)">
+    <option value="score">점수순</option>
+    <option value="name">이름순</option>
+    <option value="completion">완성도순</option>
+    <option value="market">시장성순</option>
+    <option value="tier">티어순</option>
+  </select>
+  <input class="search-box" type="text" placeholder="레포 검색..." oninput="search(this.value)">
+  <button class="filter-btn" style="background:rgba(63,185,80,0.1);color:#3fb950;border-color:rgba(63,185,80,0.3);margin-left:4px" onclick="openAddProject()">+ 추가</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  Bucky Agent 상품화 분석 v2 · 완성도 × 시장성 점수 기반 · 체크 상태는 브라우저에 저장됩니다<br>
+  ⚙️ Discord 웹훅 설정 → 체크 후 "Bucky에게 전송" 클릭 → Discord 채널로 자동 전송
+</footer>
+
+<!-- Discord Webhook Modal -->
+<div class="wh-overlay" id="whOverlay">
+  <div class="wh-modal">
+    <h2>⚙️ Discord Webhook 설정</h2>
+    <p>설정하면 버튼 클릭 시 Bucky Discord 채널로 메시지를 자동 전송합니다.<br>
+    Discord 채널 → 채널 편집 → 연동 → 웹후크 → 새 웹후크 → URL 복사</p>
+    <label>Discord Webhook URL</label>
+    <input type="url" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
+    <label>봇 이름 (선택, 기본: JH Dashboard)</label>
+    <input type="text" id="whName" placeholder="JH Dashboard">
+    <label style="margin-top:10px;display:block">Bucky OS 엔드포인트 (로컬, 선택)</label>
+    <input type="url" id="buckyOsUrl" placeholder="http://localhost:8765">
+    <div style="margin-top:12px"><button class="wh-btn" onclick="testWebhook()">🧪 연결 테스트</button></div>
+    <div class="wh-btns">
+      <button class="wh-btn" onclick="closeWebhookSettings()">취소</button>
+      <button class="wh-btn wh-btn-save" onclick="saveWebhook()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="ap-overlay" id="apOverlay" onclick="if(event.target===this)closeAddProject()">
+  <div class="ap-modal">
+    <h2>+ 프로젝트 추가</h2>
+    <p>GitHub URL을 입력하면 레포 정보를 자동으로 가져옵니다. 수동 입력도 가능합니다.</p>
+    <div class="ap-fetch-row">
+      <input type="url" id="apGithubUrl" placeholder="https://github.com/username/repo-name" onkeydown="if(event.key==='Enter')fetchApRepo()">
+      <button class="ap-fetch-btn" onclick="fetchApRepo()">🔍 가져오기</button>
+    </div>
+    <div class="ap-status-msg" id="apStatusMsg"></div>
+    <div class="ap-row full"><div>
+      <label>레포 이름 *</label>
+      <input type="text" id="apName" placeholder="repo-name">
+    </div></div>
+    <div class="ap-row full"><div>
+      <label>설명</label>
+      <textarea id="apDesc" placeholder="레포 설명"></textarea>
+    </div></div>
+    <div class="ap-row">
+      <div>
+        <label>언어</label>
+        <input type="text" id="apLang" placeholder="Python, TypeScript ...">
+      </div>
+      <div>
+        <label>카테고리</label>
+        <select id="apCat">
+          <option value="ai">🤖 AI/에이전트</option>
+          <option value="interior">🏗️ 인테리어</option>
+          <option value="commerce">🛍️ 커머스</option>
+          <option value="saas">💼 SaaS</option>
+          <option value="finance">💹 파이낸스</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-row">
+      <div>
+        <label>티어</label>
+        <select id="apTier">
+          <option value="1">🟢 Tier 1 — 즉시 출시</option>
+          <option value="2">🟡 Tier 2 — 개발 필요</option>
+          <option value="3" selected>⚫ Tier 3 — 인프라/보류</option>
+        </select>
+      </div>
+      <div>
+        <label>상태</label>
+        <select id="apStatus">
+          <option value="active">active</option>
+          <option value="dev">dev</option>
+          <option value="hold">hold</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-row">
+      <div>
+        <label>완성도 %</label>
+        <input type="number" id="apCompletion" min="0" max="100" value="0">
+      </div>
+      <div>
+        <label>시장성 %</label>
+        <input type="number" id="apMarket" min="0" max="100" value="0">
+      </div>
+    </div>
+    <div class="ap-row full"><div>
+      <label>이유 (추가 이유)</label>
+      <input type="text" id="apReason" placeholder="이 레포를 추가하는 이유">
+    </div></div>
+    <div class="ap-row full"><div>
+      <label>액션 (다음 할 일)</label>
+      <input type="text" id="apAction" placeholder="다음 착수 액션">
+    </div></div>
+    <div class="wh-btns">
+      <button class="wh-btn" onclick="closeAddProject()">취소</button>
+      <button class="wh-btn wh-btn-save" onclick="submitAddProject()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toastTitle"></div>
+  <div class="toast-msg" id="toastMsg"></div>
+</div>
+
+<!-- Bucky Panel -->
+<div class="bucky-panel" id="buckyPanel">
+  <span class="bucky-panel-text">🤖 Bucky 작업 명령 준비됨</span>
+  <span class="bucky-panel-sub" id="buckyPanelSub"></span>
+  <button class="bucky-send-btn" onclick="sendAllToBucky()">🤖 Bucky에게 전송</button>
+  <button class="bucky-close" onclick="closeBuckyPanel()">✕</button>
+</div>
+
+<script>
+const repos = [
+  // ─── TIER 1: 즉시 출시 가능 ───────────────────────────────────
+  // ─── TIER 1: 즉시 출시 가능 ────────────────────────────────────
+  {
+    id: 'jh-estimate-system',
+    name: 'jh-estimate-system',
+    url: 'https://github.com/jaeha81/jh-estimate-system',
+    desc: '건설/인테리어 AI 견적 시스템. 공종 자동 분류, 물량 산출, PDF 보고서 생성. B2B 건설사 타깃.',
+    lang: 'Python', status: 'active', tier: 1, cat: 'interior',
+    completion: 85, market: 90,
+    reason: '특화 니치 시장, 경쟁 적음, 완성도 높음',
+    action: '랜딩페이지 + 유료 플랜 설정 후 즉시 출시 (건설사 B2B)'
+  },
+  {
+    id: 'codex-medipic-v2-app',
+    name: 'codex-medipic-v2-app',
+    url: 'https://github.com/jaeha81/codex-medipic-v2-app',
+    desc: 'Medipic v2 — AI 기반 의료 이미지 분석 앱. 피부과·성형외과 특화.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'interior',
+    completion: 80, market: 85,
+    reason: '의료 AI 고수요 시장, 규제 낮은 뷰티의료 분야, v2 완성도',
+    action: 'SaaS 플랜 설정 + 의료기관 파일럿 제안'
+  },
+  {
+    id: 'jh-CapitalBridge-Intelligence',
+    name: 'jh-CapitalBridge-Intelligence',
+    url: 'https://github.com/jaeha81/jh-CapitalBridge-Intelligence',
+    desc: '캐피털브릿지 인텔리전스 — 금융 데이터 분석 및 투자 인사이트 플랫폼.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'finance',
+    completion: 75, market: 88,
+    reason: '금융 AI 고부가가치, 엔터프라이즈 타깃, 경쟁 차별화 가능',
+    action: '데모 환경 구축 + 금융사/VC BD 접촉'
+  },
+  {
+    id: 'sketchflow-final',
+    name: 'sketchflow-final',
+    url: 'https://github.com/jaeha81/sketchflow-final',
+    desc: '스케치플로우 — 디자인 워크플로우 자동화 도구. Figma 연동 지원.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'saas',
+    completion: 78, market: 80,
+    reason: '디자이너 수요 높음, SaaS 전환 구조 명확, Product Hunt 적합',
+    action: 'Vercel 배포 후 Product Hunt 등록'
+  },
+  {
+    id: 'jh-outsource-system',
+    name: 'jh-outsource-system',
+    url: 'https://github.com/jaeha81/jh-outsource-system',
+    desc: '외주 프로젝트 통합 관리 시스템. 클라이언트 관리, 계약, 정산 자동화.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'saas',
+    completion: 72, market: 82,
+    reason: '프리랜서/에이전시 범용 수요, 즉시 사용 가능 수준',
+    action: 'SaaS 전환 + 프리랜서 커뮤니티 홍보'
+  },
+  {
+    id: 'Seou-up-Microblading-APP',
+    name: 'Seou-up-Microblading-APP',
+    url: 'https://github.com/jaeha81/Seou-up-Microblading-APP',
+    desc: '서울업 마이크로블레이딩 앱 — 뷰티/반영구 화장 클리닉 전용 예약·관리 앱.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'interior',
+    completion: 70, market: 75,
+    reason: '특화 버티컬 SaaS, 국내 뷰티 클리닉 시장 진입 최적화',
+    action: '뷰티 클리닉 대상 B2B SaaS 출시 (월정액)'
+  },
+  {
+    id: 'arki-Build-medipic-app-',
+    name: 'arki-Build-medipic-app-',
+    url: 'https://github.com/jaeha81/arki-Build-medipic-app-',
+    desc: 'Arki Medipic 앱 빌드 — 의료 이미지 분석 Arki 브랜드 빌드.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'interior',
+    completion: 65, market: 78,
+    reason: 'Medipic 생태계 확장, Arki 브랜드 독립 출시 가능',
+    action: 'v2와 차별화 후 Arki 브랜드로 독립 출시 또는 v2 통합'
+  },
+
+  {
+    id: 'sniper-buying-dashboard',
+    name: 'sniper-buying-dashboard',
+    url: 'https://github.com/jaeha81/sniper-buying-dashboard',
+    desc: '스나이퍼 구매대행 플랫폼 MVP — iHerb·Amazon 소싱, 스나이퍼 스코어(8지표 100점) 기반 검증, 마진율 계산, 통관리스크 분석.',
+    lang: 'TypeScript', status: 'active', tier: 1, cat: 'commerce',
+    completion: 70, market: 82,
+    reason: '해외직구 구매대행 성장 시장, Vercel 배포 완료, 스코어링 차별화',
+    action: 'Supabase 연동 + 실결제 붙이면 즉시 수익화 가능'
+  },
+
+  // ─── TIER 2: 개발 필요 ──────────────────────────────────────────
+  {
+    id: 'AgentDeck',
+    name: 'AgentDeck',
+    url: 'https://github.com/jaeha81/AgentDeck',
+    desc: 'AI 에이전트 관리 대시보드 UI — 멀티에이전트 모니터링 및 제어 인터페이스.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
+    completion: 65, market: 88,
+    reason: '에이전트 오케스트레이션 수요 급증, 타이밍 매우 좋음',
+    action: 'Bucky 시스템과 통합 후 SaaS 패키징 → 에이전트 관리 B2B'
+  },
+  {
+    id: 'JH-AI-Dev-Nexus',
+    name: 'JH-AI-Dev-Nexus',
+    url: 'https://github.com/jaeha81/JH-AI-Dev-Nexus',
+    desc: 'AI 개발 넥서스 — 다중 AI 모델 라우팅 및 통합 개발 플랫폼.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
+    completion: 60, market: 85,
+    reason: 'AI API 라우팅 수요 폭발적, 완성도 보강 필요',
+    action: 'API 게이트웨이 기능 완성 후 개발자 타깃 출시'
+  },
+  {
+    id: 'arki-Build-Project-Medicare',
+    name: 'arki-Build-Project-Medicare',
+    url: 'https://github.com/jaeha81/arki-Build-Project-Medicare',
+    desc: 'Arki Medicare — 의료 플랫폼 통합 빌드 (예약·차트·청구 연동).',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
+    completion: 60, market: 82,
+    reason: '의료 플랫폼 고부가가치, MVP 완성 시 즉시 파일럿 가능',
+    action: 'MVP 완성 후 의료기관 파일럿 → EMR 연동'
+  },
+  {
+    id: 'marketingskills-agents',
+    name: 'marketingskills-agents',
+    url: 'https://github.com/jaeha81/marketingskills-agents',
+    desc: '마케팅 스킬 에이전트 시스템 — AI 기반 마케팅 전략 수립 및 콘텐츠 생성.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
+    completion: 55, market: 82,
+    reason: '마케팅 AI 수요 높음, 캠페인 자동화 파이프라인 고도화 필요',
+    action: '캠페인 자동화 시나리오 추가 후 에이전시 타깃'
+  },
+  {
+    id: 'Wishket-Dev-Prompt-Converter',
+    name: 'Wishket-Dev-Prompt-Converter',
+    url: 'https://github.com/jaeha81/Wishket-Dev-Prompt-Converter',
+    desc: 'Wishket 개발 요청서를 AI 프롬프트로 자동 변환. 개발자 생산성 향상 도구.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
+    completion: 65, market: 75,
+    reason: 'Wishket 플랫폼 연동 필요, 범용 RFP 변환으로 확장 가능',
+    action: '범용 RFP → AI 프롬프트 변환으로 확장 후 출시'
+  },
+  {
+    id: 'jh-Jarvis',
+    name: 'jh-Jarvis',
+    url: 'https://github.com/jaeha81/jh-Jarvis',
+    desc: 'JH Jarvis AI 개인 비서 시스템 — 음성/텍스트 멀티모달 AI 어시스턴트.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
+    completion: 70, market: 78,
+    reason: 'AI 어시스턴트 경쟁 치열, 건설/법률 특화 차별화 필요',
+    action: '버티컬(건설/법률) 집중 후 산업별 특화 어시스턴트로 재포지셔닝'
+  },
+  {
+    id: 'jh-mobile-second-brain',
+    name: 'jh-mobile-second-brain',
+    url: 'https://github.com/jaeha81/jh-mobile-second-brain',
+    desc: '모바일 세컨드 브레인 앱 — Obsidian 연동 모바일 지식 관리 솔루션.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
+    completion: 55, market: 80,
+    reason: 'PKM 시장 성장 중, 모바일 Obsidian 갭 존재',
+    action: '핵심 기능 완성 후 App Store/Play Store 출시'
+  },
+  {
+    id: 'jh-harnessFramework-dashboard',
+    name: 'jh-harnessFramework-dashboard',
+    url: 'https://github.com/jaeha81/jh-harnessFramework-dashboard',
+    desc: '하네스 프레임워크 대시보드 — Claude Code 하네스 시스템 모니터링 UI.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'ai',
+    completion: 68, market: 72,
+    reason: 'Claude Code 사용자 타깃 특화 도구, 커뮤니티 공개 가능',
+    action: '공개 배포 후 Claude Code 커뮤니티 홍보'
+  },
+  {
+    id: 'JH-BuildFlow',
+    name: 'JH-BuildFlow',
+    url: 'https://github.com/jaeha81/JH-BuildFlow',
+    desc: '빌드플로우 — CI/CD 파이프라인 시각화 및 자동화 관리 시스템.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
+    completion: 60, market: 72,
+    reason: 'DevOps 도구 포화 상태, AI 자동 최적화로 차별화 필요',
+    action: 'AI 자동 최적화 기능 추가 후 재포지셔닝'
+  },
+  {
+    id: 'jh-WishDash',
+    name: 'jh-WishDash',
+    url: 'https://github.com/jaeha81/jh-WishDash',
+    desc: 'Wishket 대시보드 — Wishket 플랫폼 통합 프리랜서 관리 대시보드.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
+    completion: 60, market: 70,
+    reason: 'Wishket 종속적, 범용 프리랜서 대시보드로 확장 가능',
+    action: '다중 플랫폼(Wishket+크몽+탈잉) 통합 대시보드로 재설계'
+  },
+  {
+    id: 'codex-medipic-app',
+    name: 'codex-medipic-app',
+    url: 'https://github.com/jaeha81/codex-medipic-app',
+    desc: 'Medipic 앱 v1 (Codex 빌드) — 의료 이미지 분석 v1 버전.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
+    completion: 65, market: 70,
+    reason: 'v2와 중복, v1 기능 v2로 통합 또는 라이트 버전 분리 필요',
+    action: 'v2로 합병 또는 라이트(무료) 버전으로 분리 출시'
+  },
+  {
+    id: 'codex-better-space',
+    name: 'codex-better-space',
+    url: 'https://github.com/jaeha81/codex-better-space',
+    desc: 'Better Space — 공간/인테리어 AI 시각화 및 설계 도구.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
+    completion: 55, market: 72,
+    reason: '공간 AI 틈새 시장, AR 인테리어 시각화 추가 시 경쟁력',
+    action: '3D/AR 인테리어 시각화 기능 추가 후 앱 출시'
+  },
+  {
+    id: 'arki-3d-APP',
+    name: 'arki-3d-APP',
+    url: 'https://github.com/jaeha81/arki-3d-APP',
+    desc: 'Arki 3D 앱 — 건축/인테리어 3D 시각화 AI 앱.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'interior',
+    completion: 60, market: 75,
+    reason: '3D 시각화 AI 수요 증가, 건축 시장 니치 진입 가능',
+    action: 'WebGL 성능 최적화 후 건축/인테리어 사무소 타깃 출시'
+  },
+  {
+    id: 'JH-IDEAGO-APP',
+    name: 'JH-IDEAGO-APP',
+    url: 'https://github.com/jaeha81/JH-IDEAGO-APP',
+    desc: 'IDEAGO 앱 — AI 기반 아이디어 생성 및 발전 관리 앱.',
+    lang: 'TypeScript', status: 'active', tier: 2, cat: 'saas',
+    completion: 55, market: 68,
+    reason: 'PKM/아이디어 앱 경쟁 치열, AI 발전 기능으로 차별화',
+    action: 'AI 아이디어 발전 + 연결 기능 추가 후 크리에이터 타깃'
+  },
+  {
+    id: 'bitmex-ai-bot',
+    name: 'bitmex-ai-bot',
+    url: 'https://github.com/jaeha81/bitmex-ai-bot',
+    desc: 'BitMEX AI 트레이딩 봇 — 자동 매매 전략 및 리스크 관리.',
+    lang: 'JavaScript', status: 'active', tier: 2, cat: 'finance',
+    completion: 70, market: 68,
+    reason: '규제 리스크 존재, 백테스팅/검증 데이터 필요',
+    action: '페이퍼트레이딩 검증 + 법적 검토 후 구독형 서비스 전환'
+  },
+  {
+    id: 'jh-free-ott-hub',
+    name: 'jh-free-ott-hub',
+    url: 'https://github.com/jaeha81/jh-free-ott-hub',
+    desc: '무료 OTT 허브 — 합법 무료 스트리밍 콘텐츠 큐레이션 플랫폼.',
+    lang: 'Python', status: 'active', tier: 2, cat: 'saas',
+    completion: 60, market: 68,
+    reason: '저작권 리스크 관리 필요, 합법 콘텐츠 큐레이션으로 방향 전환 가능',
+    action: '합법 무료 콘텐츠 API 연동 후 큐레이션 커뮤니티 서비스로 출시'
+  },
+  {
+    id: 'sisyphus-dashboard-desktop',
+    name: 'sisyphus-dashboard-desktop',
+    url: 'https://github.com/jaeha81/sisyphus-dashboard-desktop',
+    desc: 'Sisyphus 대시보드 데스크탑 앱 (Electron) — 프로젝트 관리 대시보드.',
+    lang: 'HTML', status: 'active', tier: 2, cat: 'saas',
+    completion: 65, market: 60,
+    reason: 'Electron 앱 배포 복잡, 웹 버전 전환 시 SaaS 적합',
+    action: '웹 버전 전환 후 SaaS 패키징 → 프리랜서/팀 타깃'
+  },
+  {
+    id: 'jH-Remote-DevCore',
+    name: 'jH-Remote-DevCore',
+    url: 'https://github.com/jaeha81/jH-Remote-DevCore',
+    desc: '원격 개발 코어 시스템 — 리모트 환경 통합 개발 및 배포 자동화.',
+    lang: 'JavaScript', status: 'active', tier: 2, cat: 'saas',
+    completion: 62, market: 65,
+    reason: '원격 근무 인프라 수요, 개발자 도구로 차별화 가능',
+    action: '핵심 기능 정의 + 개발자 CLI 도구로 출시'
+  },
+
+  // ─── TIER 3: 인프라/보류 ────────────────────────────────────────
+  {
+    id: 'obsidian-agent-brain-system',
+    name: 'obsidian-agent-brain-system',
+    url: 'https://github.com/jaeha81/obsidian-agent-brain-system',
+    desc: '이 레포 — Obsidian 에이전트 브레인 시스템. Bucky AI 인프라 + 지식 관리.',
+    lang: 'Python', status: 'active', tier: 3, cat: 'ai',
+    completion: 85, market: 65,
+    reason: '내부 인프라, "AI Brain OS"로 패키징 시 상품화 가능',
+    action: 'SaaS화 검토 — 개인 AI 지식 OS 패키징 (장기)'
+  },
+  {
+    id: 'agent_factory',
+    name: 'agent_factory',
+    url: 'https://github.com/jaeha81/agent_factory',
+    desc: '에이전트 팩토리 — AI 에이전트 자동 생성 및 배포 시스템.',
+    lang: 'Python', status: 'active', tier: 3, cat: 'ai',
+    completion: 65, market: 75,
+    reason: '잠재력 높음, GUI 추가 시 Tier 2 승격 가능',
+    action: '노코드 GUI 추가 후 에이전트 빌더로 출시 검토'
+  },
+  {
+    id: 'JH-Agent-Room',
+    name: 'JH-Agent-Room',
+    url: 'https://github.com/jaeha81/JH-Agent-Room',
+    desc: 'AgentBus 메시지 버스 — 에이전트 간 통신 인프라. Discord 연동.',
+    lang: 'JavaScript', status: 'active', tier: 3, cat: 'ai',
+    completion: 78, market: 55,
+    reason: '내부 인프라, npm 패키지화 시 오픈소스 기여 가능',
+    action: 'npm 패키지화 후 오픈소스 공개 고려'
+  },
+  {
+    id: 'today-plus-obsidian-archiver',
+    name: 'today-plus-obsidian-archiver',
+    url: 'https://github.com/jaeha81/today-plus-obsidian-archiver',
+    desc: 'Obsidian 일일 아카이버 자동화 — 데일리 노트 처리 및 정리 파이프라인.',
+    lang: 'Python', status: 'active', tier: 3, cat: 'ai',
+    completion: 80, market: 52,
+    reason: 'Obsidian 플러그인 생태계 타깃 가능, 완성도 높음',
+    action: 'Obsidian Community Plugin으로 출시 검토'
+  },
+  {
+    id: 'arkistore_system',
+    name: 'arkistore_system',
+    url: 'https://github.com/jaeha81/arkistore_system',
+    desc: 'Arki 스토어 시스템 — Arki 생태계 백엔드 인프라.',
+    lang: 'Python', status: 'active', tier: 3, cat: 'commerce',
+    completion: 55, market: 62,
+    reason: 'Arki 생태계 인프라, 상품화 전 시스템 통합 필요',
+    action: 'Arki 생태계 통합 백엔드로 구성 후 API화'
+  },
+  {
+    id: 'JH-Chrome-Remote-Desktop',
+    name: 'JH-Chrome-Remote-Desktop',
+    url: 'https://github.com/jaeha81/JH-Chrome-Remote-Desktop',
+    desc: 'Chrome 원격 데스크탑 보조 도구 — 원격 환경 자동화 헬퍼.',
+    lang: 'Python', status: 'active', tier: 3, cat: 'saas',
+    completion: 65, market: 55,
+    reason: 'Chrome 원격 데스크탑 종속, 범위 제한적',
+    action: '원격 근무 도구 패키지로 통합 또는 보관'
+  },
+  {
+    id: 'H-Sisyphus-handoff',
+    name: 'H-Sisyphus-handoff',
+    url: 'https://github.com/jaeha81/H-Sisyphus-handoff',
+    desc: 'Sisyphus 핸드오프 도구 — 프로젝트 인계 문서 자동화.',
+    lang: 'HTML', status: 'active', tier: 3, cat: 'saas',
+    completion: 50, market: 52,
+    reason: '핸드오프 특화, 사용 사례 제한적',
+    action: 'Sisyphus 대시보드 내 인프라로 통합'
+  },
+  {
+    id: 'upload-auto-netlify',
+    name: 'upload-auto-netlify',
+    url: 'https://github.com/jaeha81/upload-auto-netlify',
+    desc: 'Netlify 자동 업로드 도구 — 배포 자동화 CLI.',
+    lang: 'JavaScript', status: 'active', tier: 3, cat: 'saas',
+    completion: 70, market: 48,
+    reason: 'Netlify 종속적, 범용 배포 CLI로 확장 시 가치 증가',
+    action: '범용 배포 자동화 CLI로 확장 후 npm 공개'
+  },
+  {
+    id: 'jh-android-studio',
+    name: 'jh-android-studio',
+    url: 'https://github.com/jaeha81/jh-android-studio',
+    desc: 'Android Studio 환경 설정 자동화 스크립트 (PowerShell).',
+    lang: 'PowerShell', status: 'active', tier: 3, cat: 'saas',
+    completion: 40, market: 42,
+    reason: '개발 환경 설정 도구, 범위 제한적',
+    action: '개발 환경 자동화 패키지로 보관'
+  },
+  {
+    id: 'jh-perfect-grop',
+    name: 'jh-perfect-grop',
+    url: 'https://github.com/jaeha81/jh-perfect-grop',
+    desc: 'Perfect Group 프로젝트 — 그룹/팀 관리 실험 앱.',
+    lang: 'JavaScript', status: 'active', tier: 3, cat: 'saas',
+    completion: 45, market: 52,
+    reason: '목적 불명확, 재정의 필요',
+    action: '원래 목적 재검토 후 발전 or 아카이브 결정'
+  },
+  {
+    id: 'arki-medipic',
+    name: 'arki-medipic',
+    url: 'https://github.com/jaeha81/arki-medipic',
+    desc: 'Arki Medipic 초기 버전 — 의료 이미지 분석 프로토타입.',
+    lang: '—', status: 'active', tier: 3, cat: 'interior',
+    completion: 30, market: 48,
+    reason: '초기 단계, arki-Build-medipic-app- 으로 발전',
+    action: 'arki-Build-medipic-app- 으로 통합 후 아카이브'
+  },
+  {
+    id: 'JH-ICON',
+    name: 'JH-ICON',
+    url: 'https://github.com/jaeha81/JH-ICON',
+    desc: 'JH 아이콘 리소스 모음 — 프로젝트 공용 UI 아이콘 에셋.',
+    lang: '—', status: 'active', tier: 3, cat: 'saas',
+    completion: 70, market: 38,
+    reason: '아이콘 에셋, 직접 상품화 어려움',
+    action: '디자인 시스템 번들 or npm 아이콘 패키지 공개'
+  },
+  {
+    id: 'cookie-hertz-platformSAMPLE',
+    name: 'cookie-hertz-platformSAMPLE',
+    url: 'https://github.com/jaeha81/cookie-hertz-platformSAMPLE',
+    desc: 'Cookie Hertz 플랫폼 샘플 — 실험적 플랫폼 프로토타입.',
+    lang: '—', status: 'active', tier: 3, cat: 'saas',
+    completion: 30, market: 38,
+    reason: '샘플/프로토타입, 방향 미결정',
+    action: '원래 목적 재검토 후 아카이브 또는 발전 결정'
+  },
+  {
+    id: 'docs',
+    name: 'docs',
+    url: 'https://github.com/jaeha81/docs',
+    desc: '문서 레포 — 프로젝트 공용 문서 및 가이드 (MDX).',
+    lang: 'MDX', status: 'stale', tier: 3, cat: 'saas',
+    completion: 40, market: 28,
+    reason: '유지보수 낮음, 각 레포 README로 대체 가능',
+    action: '각 레포 README 개선으로 대체 후 아카이브'
+  }
+];
+
+// ── 상태 초기화 ─────────────────────────────────────────────────
+const saved = JSON.parse(localStorage.getItem('jh-repo-checks-v2') || '{}');
+repos.forEach(r => { r.checked = saved[r.id] || false; });
+const repoProgress = JSON.parse(localStorage.getItem('jh-repo-progress-v1') || '{}');
+
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSort = 'score';
+
+// ── 유틸 ────────────────────────────────────────────────────────
+function getScore(r) { return Math.round((r.completion + r.market) / 2); }
+function getScoreClass(score) {
+  return score >= 78 ? 'score-high' : score >= 60 ? 'score-mid' : 'score-low';
+}
+
+// ── 카드 클릭 (버튼/체크박스 제외한 영역) ───────────────────────
+function cardClick(e, url) {
+  if (e.target.closest('button,a,input')) return;
+  window.open(url, '_blank');
+}
+
+// ── 카드 렌더 ────────────────────────────────────────────────────
+function renderCard(r) {
+  const score = getScore(r);
+  const progress = getRepoProgress(r.id);
+  const tierLabel = r.tier === 1 ? '🟢 즉시 출시' : r.tier === 2 ? '🟡 개발 필요' : '⚫ 인프라/보류';
+  const tierClass = `tier-${r.tier}`;
+  return `
+  <div class="card ${r.checked ? 'checked' : ''}" id="card-${r.id}" data-tier="${r.tier}" data-checked="${r.checked}" data-score="${score}" onclick="cardClick(event,'${r.url}')" style="cursor:pointer">
+    <span class="tier-badge ${tierClass}">${tierLabel}</span>
+    <div class="card-header">
+      <input type="checkbox" class="card-check" ${r.checked ? 'checked' : ''} onchange="toggleCheck('${r.id}', this)" onclick="event.stopPropagation()">
+      <div class="card-title">
+        <a href="${r.url}" target="_blank" onclick="event.stopPropagation()">${r.name}</a>
+      </div>
+    </div>
+    <div class="card-desc">${r.desc}</div>
+    <div class="tags">
+      ${r.lang !== '—' ? `<span class="tag tag-lang">${r.lang}</span>` : ''}
+      <span class="tag ${r.status === 'active' ? 'tag-active' : 'tag-stale'}">${r.status === 'active' ? '🟢 active' : '🟡 stale'}</span>
+      ${r.cat === 'ai' ? '<span class="tag" style="background:rgba(188,140,255,0.12);color:#bc8cff;border:1px solid rgba(188,140,255,0.28)">🤖 AI/에이전트</span>' : ''}
+      ${r.cat === 'interior' ? '<span class="tag" style="background:rgba(255,166,87,0.12);color:#ffa657;border:1px solid rgba(255,166,87,0.28)">🏗️ 인테리어</span>' : ''}
+      ${r.cat === 'commerce' ? '<span class="tag" style="background:rgba(63,185,80,0.12);color:#3fb950;border:1px solid rgba(63,185,80,0.28)">🛍️ 커머스</span>' : ''}
+      ${r.cat === 'saas' ? '<span class="tag" style="background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.28)">💼 SaaS</span>' : ''}
+      ${r.cat === 'finance' ? '<span class="tag" style="background:rgba(57,208,216,0.12);color:#39d0d8;border:1px solid rgba(57,208,216,0.28)">💹 파이낸스</span>' : ''}
+    </div>
+    <div class="reason-box">
+      💡 <strong>이유:</strong> ${r.reason}<br>
+      🎯 <strong>액션:</strong> ${r.action}
+    </div>
+    <div class="score-bar">
+      <div class="score-label">
+        <span>완성도 ${r.completion}% · 시장성 ${r.market}%</span>
+        <span style="color:var(--text);font-weight:700">종합 ${score}점</span>
+      </div>
+      <div class="score-track">
+        <div class="score-fill ${getScoreClass(score)}" style="width:${score}%"></div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <a class="action-btn" href="${r.url}" target="_blank" onclick="event.stopPropagation()">GitHub →</a>
+      <button class="action-btn bucky-btn" onclick="event.stopPropagation();sendToBucky('${r.id}')">🤖 Bucky 전송</button>
+      <button class="action-btn" onclick="event.stopPropagation();copyAction('${r.id}')">액션 복사</button>
+    </div>
+  </div>`;
+}
+
+// ── 렌더 & 정렬 ─────────────────────────────────────────────────
+function getRepoProgress(id) {
+  return repoProgress[id] || {
+    status: '대기',
+    nextPlan: 'Bucky 착수 요청 전입니다.',
+    sessionNote: '세션 미저장'
+  };
+}
+
+function saveRepoProgress(id, patch) {
+  repoProgress[id] = { ...getRepoProgress(id), ...patch, updatedAt: new Date().toISOString() };
+  localStorage.setItem('jh-repo-progress-v1', JSON.stringify(repoProgress));
+}
+
+function setRepoProgressState(id, status) {
+  const current = getRepoProgress(id);
+  saveRepoProgress(id, {
+    status,
+    nextPlan: status === '중지' ? '중지 사유를 정리한 뒤 다음 세션에서 재개합니다.' : current.nextPlan,
+    sessionNote: status === '중지' ? '세션 저장됨: 중지 후 재개 대기' : current.sessionNote
+  });
+  renderAll();
+}
+
+function captureRepoNextPlan(id) {
+  const current = getRepoProgress(id);
+  const nextPlan = prompt('다음 플랜을 입력하세요.', current.nextPlan);
+  if (nextPlan === null) return;
+  saveRepoProgress(id, {
+    status: current.status === '대기' ? '계획 정리' : current.status,
+    nextPlan,
+    sessionNote: '세션 저장됨: 다음 플랜 기록 완료'
+  });
+  renderAll();
+}
+
+function resumeRepoSession(id) {
+  saveRepoProgress(id, {
+    status: '재개 준비',
+    nextPlan: 'jh-레포대시보드 채널의 직전 메시지와 현재 레포 상태를 확인합니다.',
+    sessionNote: '세션 저장됨: 이어서 작업 준비'
+  });
+  renderAll();
+}
+
+function markRepoDispatched(id, mode) {
+  const nextPlan = mode === 'batch'
+    ? 'jh-레포대시보드 채널에서 배치 순서와 다음 작업을 확인합니다.'
+    : 'jh-레포대시보드 채널에서 착수 브리핑과 다음 플랜을 확인합니다.';
+  saveRepoProgress(id, {
+    status: '전송됨',
+    nextPlan,
+    sessionNote: '세션 저장됨: 다음 세션에서 이어서 작업 가능'
+  });
+}
+
+function buildRepoProgressPanel(id) {
+  const progress = getRepoProgress(id);
+  return `
+    <div class="progress-panel" data-progress-panel="repo">
+      <div class="progress-head">
+        <span class="progress-title">진행상황</span>
+        <span class="progress-status">${progress.status}</span>
+      </div>
+      <div class="progress-copy">
+        <div><strong>다음 플랜</strong>: ${progress.nextPlan}</div>
+        <div><strong>세션</strong>: ${progress.sessionNote}</div>
+      </div>
+      <div class="progress-actions">
+        <button class="action-btn" onclick="event.stopPropagation();setRepoProgressState('${id}','중지')">중지</button>
+        <button class="action-btn" onclick="event.stopPropagation();resumeRepoSession('${id}')">이어서 작업</button>
+        <button class="action-btn" onclick="event.stopPropagation();captureRepoNextPlan('${id}')">다음 플랜</button>
+      </div>
+    </div>`;
+}
+
+function enhanceRepoProgressPanels() {
+  repos.forEach((repo) => {
+    const card = document.getElementById(`card-${repo.id}`);
+    if (!card) return;
+    const existing = card.querySelector('[data-progress-panel="repo"]');
+    if (existing) existing.remove();
+    card.insertAdjacentHTML('beforeend', buildRepoProgressPanel(repo.id));
+  });
+}
+
+function getSorted() {
+  const arr = [...repos];
+  if (currentSort === 'score') arr.sort((a,b) => getScore(b)-getScore(a));
+  else if (currentSort === 'name') arr.sort((a,b) => a.name.localeCompare(b.name));
+  else if (currentSort === 'completion') arr.sort((a,b) => b.completion-a.completion);
+  else if (currentSort === 'market') arr.sort((a,b) => b.market-a.market);
+  else if (currentSort === 'tier') arr.sort((a,b) => a.tier-b.tier || getScore(b)-getScore(a));
+  return arr;
+}
+
+function renderAll() {
+  document.getElementById('grid').innerHTML = getSorted().map(renderCard).join('');
+  enhanceRepoProgressPanels();
+  updateStats();
+  applyFilters();
+}
+
+function sortRepos(val) { currentSort = val; renderAll(); }
+
+// ── 체크 토글 ────────────────────────────────────────────────────
+function toggleCheck(id, el) {
+  const repo = repos.find(r => r.id === id);
+  repo.checked = el.checked;
+  const card = document.getElementById(`card-${id}`);
+  card.classList.toggle('checked', el.checked);
+  card.dataset.checked = el.checked;
+  const s = JSON.parse(localStorage.getItem('jh-repo-checks-v2') || '{}');
+  s[id] = el.checked;
+  localStorage.setItem('jh-repo-checks-v2', JSON.stringify(s));
+  updateStats();
+  updateBuckyPanel();
+}
+
+// ── 통계 ─────────────────────────────────────────────────────────
+function updateStats() {
+  const t1 = repos.filter(r => r.tier === 1).length;
+  const t2 = repos.filter(r => r.tier === 2).length;
+  const t3 = repos.filter(r => r.tier === 3).length;
+  const checked = repos.filter(r => r.checked).length;
+  document.getElementById('tier1Count').textContent = t1;
+  document.getElementById('tier2Count').textContent = t2;
+  document.getElementById('tier3Count').textContent = t3;
+  document.getElementById('checkedCount').textContent = checked;
+  document.getElementById('topProgress').style.width = (checked / repos.length * 100) + '%';
+  updateRepoResultSummary();
+}
+
+function updateRepoResultSummary() {
+  const summary = { dispatched: 0, planning: 0, ready: 0, stopped: 0 };
+  Object.values(repoProgress).forEach((progress) => {
+    if (!progress || !progress.status) return;
+    if (progress.status === '전송됨') summary.dispatched++;
+    else if (progress.status === '계획 정리') summary.planning++;
+    else if (progress.status === '재개 준비') summary.ready++;
+    else if (progress.status === '중지') summary.stopped++;
+  });
+  document.getElementById('repoResultDispatched').textContent = summary.dispatched;
+  document.getElementById('repoResultPlanning').textContent = summary.planning;
+  document.getElementById('repoResultReady').textContent = summary.ready;
+  document.getElementById('repoResultStopped').textContent = summary.stopped;
+}
+
+// ── 필터 ─────────────────────────────────────────────────────────
+function filter(btn, type) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function search(val) { currentSearch = val.toLowerCase(); applyFilters(); }
+
+function applyFilters() {
+  getSorted().forEach((r) => {
+    const card = document.getElementById(`card-${r.id}`);
+    if (!card) return;
+    let show = true;
+    if (currentFilter === 'tier1') show = r.tier === 1;
+    else if (currentFilter === 'tier2') show = r.tier === 2;
+    else if (currentFilter === 'tier3') show = r.tier === 3;
+    else if (currentFilter === 'checked') show = r.checked;
+    else if (currentFilter === 'unchecked') show = !r.checked;
+    else if (currentFilter === 'cat-ai') show = r.cat === 'ai';
+    else if (currentFilter === 'cat-interior') show = r.cat === 'interior';
+    else if (currentFilter === 'cat-commerce') show = r.cat === 'commerce';
+    else if (currentFilter === 'cat-saas') show = r.cat === 'saas';
+    else if (currentFilter === 'cat-finance') show = r.cat === 'finance';
+    if (currentSearch && !(r.name.toLowerCase().includes(currentSearch) || r.desc.toLowerCase().includes(currentSearch) || (r.cat||'').includes(currentSearch))) show = false;
+    card.classList.toggle('hidden', !show);
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(title, msg, duration=3500) {
+  clearTimeout(toastTimer);
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Discord Webhook 설정 ──────────────────────────────────────────
+function openWebhookSettings() {
+  document.getElementById('whUrl').value = localStorage.getItem('bucky-webhook') || '';
+  document.getElementById('whName').value = localStorage.getItem('bucky-wh-name') || '';
+  document.getElementById('buckyOsUrl').value = localStorage.getItem(BUCKY_OS_KEY) || 'http://localhost:8765';
+  document.getElementById('whOverlay').classList.add('show');
+}
+function closeWebhookSettings() {
+  document.getElementById('whOverlay').classList.remove('show');
+}
+function saveWebhook() {
+  localStorage.setItem('bucky-webhook', document.getElementById('whUrl').value.trim());
+  localStorage.setItem('bucky-wh-name', document.getElementById('whName').value.trim() || 'JH Dashboard');
+  const osUrl = document.getElementById('buckyOsUrl').value.trim();
+  if (osUrl) localStorage.setItem(BUCKY_OS_KEY, osUrl);
+  closeWebhookSettings();
+  showToast('✅ 설정 저장됨', 'Bucky OS + Discord 연동 준비 완료');
+}
+async function testWebhook() {
+  const url = document.getElementById('whUrl').value.trim();
+  if (!url) { showToast('⚠️ URL 없음', 'Webhook URL을 먼저 입력하세요'); return; }
+  const name = document.getElementById('whName').value.trim() || 'JH Dashboard';
+  await postWebhook(url, name, '🧪 **대시보드 연결 테스트** — Bucky와 연결되었습니다!');
+}
+async function postWebhook(url, username, content) {
+  if (!url) {
+    showToast('⚙️ Webhook 미설정', '상단 "Discord 웹훅" 버튼으로 설정하세요');
+    return false;
+  }
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, username: username || 'JH Dashboard' })
+    });
+    if (r.ok) { showToast('📨 Discord 전송 완료', content.substring(0, 60) + '...'); return true; }
+    else { showToast('❌ 전송 실패', 'HTTP ' + r.status); return false; }
+  } catch(e) {
+    showToast('❌ 연결 오류', e.message);
+    return false;
+  }
+}
+document.getElementById('whOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeWebhookSettings();
+});
+
+// 기본 Webhook URL 자동 저장 (첫 로드 시)
+(function() {
+  const DEFAULT_WEBHOOK = '';
+  if (!localStorage.getItem('bucky-webhook')) {
+    localStorage.setItem('bucky-webhook', DEFAULT_WEBHOOK);
+    localStorage.setItem('bucky-wh-name', 'JH Dashboard');
+  }
+})();
+
+// ── Bucky Discord 연동 ─────────────────────────────────────────────
+const BUCKY_OS_KEY = 'buckyIntakeEndpoint';
+
+function getBuckyOsEndpoint() {
+  return (localStorage.getItem(BUCKY_OS_KEY) || 'http://localhost:8765').replace(/\/$/, '');
+}
+
+function buildRepoBriefingInstruction(repo) {
+  return [
+    '레포대시보드에서 작업구현 착수 요청이 들어왔습니다.',
+    '사용자에게 이 레포의 구현 목표, 우선순위, 첫 작업 단계를 간단히 브리핑하세요.',
+    '브리핑 후 사용자의 음성 또는 채팅 지시를 기다리고, 지시가 오면 작업 범위를 확정하세요.',
+    `레포: ${repo.name}`,
+    `액션: ${repo.action}`,
+    `링크: ${repo.url}`
+  ].join('\n');
+}
+
+function buildRepoBatchBriefingInstruction(items) {
+  return [
+    `레포대시보드에서 ${items.length}개 레포 일괄 작업구현 착수 요청이 들어왔습니다.`,
+    '사용자에게 우선순위와 예상 구현 흐름을 짧게 브리핑하세요.',
+    '브리핑 후 사용자의 음성 또는 채팅 지시를 기다리고, 어느 레포부터 시작할지 확정하세요.',
+    '',
+    items.map((repo, i) => `${i + 1}. ${repo.name} — ${repo.action}`).join('\n')
+  ].join('\n');
+}
+
+function buildRepoDashboardContext() {
+  const total = repos.length;
+  const tierCounts = repos.reduce((acc, repo) => {
+    acc[repo.tier] = (acc[repo.tier] || 0) + 1;
+    return acc;
+  }, {});
+  const activeCount = repos.filter(repo => repo.status === 'active').length;
+  const topRepos = [...repos]
+    .sort((a, b) => getScore(b) - getScore(a))
+    .slice(0, 8)
+    .map(repo => ({
+      id: repo.id,
+      name: repo.name,
+      action: repo.action,
+      completion: repo.completion,
+      market: repo.market,
+      score: getScore(repo),
+      tier: repo.tier,
+      category: repo.cat,
+      url: repo.url
+    }));
+  return {
+    total_repos: total,
+    active_repos: activeCount,
+    tier_counts: tierCounts,
+    top_repos: topRepos,
+    planning_goal: '전체 개발 레포 상황을 먼저 파악한 뒤, 우선순위와 다음 작업 플랜을 미리 정의한다.'
+  };
+}
+
+function makeBuckyMsg(repo) {
+  return `🤖 버키 작업 요청\n레포: ${repo.name}\n액션: ${repo.action}\n링크: ${repo.url}`;
+}
+
+async function postToIntake(payload) {
+  const endpoint = getBuckyOsEndpoint() + '/intake';
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function sendToBucky(id) {
+  const repo = repos.find(r => r.id === id);
+  const now = new Date().toLocaleString('ko-KR');
+  const intakePayload = {
+    dashboard_type: 'repo',
+    target_channel: 'jh-레포대시보드',
+    action: 'start',
+    request_id: `repo-${repo.id}-${Date.now()}`,
+    item_id: repo.id,
+    title: repo.name,
+    summary: repo.action,
+    repo_description: repo.desc,
+    reason: repo.reason,
+    language: repo.lang,
+    status: repo.status,
+    tier: repo.tier,
+    category: repo.cat,
+    completion: repo.completion,
+    market: repo.market,
+    score: getScore(repo),
+    dashboard_context: buildRepoDashboardContext(),
+    briefing_instruction: buildRepoBriefingInstruction(repo),
+    url: repo.url,
+    source: 'repo-dashboard',
+    created_at: new Date().toISOString(),
+    source_dashboard_url: location.href
+  };
+  markRepoDispatched(id, 'single');
+  renderAll();
+  try {
+    await postToIntake(intakePayload);
+    showToast('✅ Bucky 전송 완료', `${repo.name} → jh-레포대시보드 채널`);
+    return;
+  } catch (_) { /* fallback to Discord webhook */ }
+  const webhookUrl = localStorage.getItem('bucky-webhook');
+  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
+  const content = `🤖 **Bucky 작업 요청**\n\n**레포**: \`${repo.name}\`\n**액션**: ${repo.action}\n**링크**: ${repo.url}\n**시각**: ${now}`;
+  if (webhookUrl) {
+    await postWebhook(webhookUrl, name, content);
+  } else {
+    navigator.clipboard.writeText(makeBuckyMsg(repo)).then(() => {
+      showToast('📋 복사됨 (Webhook 미설정)', 'Discord 채널에 붙여넣기 하세요');
+    }).catch(() => prompt('Discord에 붙여넣기:', makeBuckyMsg(repo)));
+  }
+}
+
+function copyAction(id) {
+  const r = repos.find(r => r.id === id);
+  navigator.clipboard.writeText(r.action).then(() => {
+    showToast('액션 복사됨', r.action);
+  }).catch(() => alert('액션: ' + r.action));
+}
+
+// ── Bucky 패널 (복수 체크 시) ────────────────────────────────────
+function updateBuckyPanel() {
+  const checked = repos.filter(r => r.checked);
+  const panel = document.getElementById('buckyPanel');
+  const sub = document.getElementById('buckyPanelSub');
+  if (checked.length > 0) {
+    sub.textContent = `${checked.length}개 항목 선택됨`;
+    panel.classList.add('show');
+  } else {
+    panel.classList.remove('show');
+  }
+}
+
+async function sendAllToBucky() {
+  const checked = repos.filter(r => r.checked);
+  if (checked.length === 0) return;
+  const now = new Date().toLocaleString('ko-KR');
+  const intakePayload = {
+    dashboard_type: 'repo',
+    target_channel: 'jh-레포대시보드',
+    action: 'batch_start',
+    request_id: `repo-batch-${Date.now()}`,
+    item_id: checked.map(r => r.id).join(','),
+    title: `일괄 작업 ${checked.length}개`,
+    summary: checked.map((r, i) => `${i+1}. ${r.name}: ${r.action}`).join('\n'),
+    dashboard_context: buildRepoDashboardContext(),
+    briefing_instruction: buildRepoBatchBriefingInstruction(checked),
+    items: checked.map(r => ({
+      id: r.id,
+      name: r.name,
+      action: r.action,
+      url: r.url,
+      repo_description: r.desc,
+      reason: r.reason,
+      language: r.lang,
+      status: r.status,
+      tier: r.tier,
+      category: r.cat,
+      completion: r.completion,
+      market: r.market,
+      score: getScore(r)
+    })),
+    source: 'repo-dashboard',
+    created_at: new Date().toISOString(),
+    source_dashboard_url: location.href
+  };
+  checked.forEach((repo) => markRepoDispatched(repo.id, 'batch'));
+  renderAll();
+  try {
+    await postToIntake(intakePayload);
+    showToast(`✅ ${checked.length}개 전송 완료`, 'jh-레포대시보드 채널에서 확인하세요');
+    return;
+  } catch (_) { /* fallback to Discord webhook */ }
+  const webhookUrl = localStorage.getItem('bucky-webhook');
+  const name = localStorage.getItem('bucky-wh-name') || 'JH Dashboard';
+  const lines = checked.map((r, i) => `${i+1}. \`${r.name}\`\n   → ${r.action}`).join('\n\n');
+  const content = `🤖 **Bucky 일괄 작업 요청 (${checked.length}개)**\n\n${lines}\n\n> 모든 항목을 우선순위순으로 진행해줘. | ${now}`;
+  if (webhookUrl) {
+    await postWebhook(webhookUrl, name, content);
+  } else {
+    const plainMsg = `🤖 버키 일괄 작업 요청 (${checked.length}개)\n\n${checked.map((r,i)=>`${i+1}. [${r.name}]\n   → ${r.action}`).join('\n\n')}\n\n모든 항목을 우선순위순으로 진행해줘.`;
+    navigator.clipboard.writeText(plainMsg).then(() => {
+      showToast(`📋 ${checked.length}개 복사됨 (Webhook 미설정)`, 'Bucky Discord 채널에 붙여넣기 → 일괄 작업 시작', 4000);
+    }).catch(() => prompt(`Discord Bucky 채널에 붙여넣기 (${checked.length}개):`, plainMsg));
+  }
+}
+
+function closeBuckyPanel() {
+  document.getElementById('buckyPanel').classList.remove('show');
+}
+
+// ── Add Project ──────────────────────────────────────────────────
+let userRepos = [];
+
+function loadUserRepos() {
+  try { userRepos = JSON.parse(localStorage.getItem('jh-user-repos-v1') || '[]'); }
+  catch(e) { userRepos = []; }
+  const existing = new Set(repos.map(r => r.id));
+  userRepos.forEach(r => { if (!existing.has(r.id)) repos.push(r); });
+}
+
+function openAddProject() {
+  ['apGithubUrl','apName','apDesc','apLang','apReason','apAction'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('apCompletion').value = '0';
+  document.getElementById('apMarket').value = '0';
+  document.getElementById('apTier').value = '3';
+  document.getElementById('apCat').value = 'ai';
+  document.getElementById('apStatus').value = 'active';
+  document.getElementById('apStatusMsg').textContent = '';
+  document.getElementById('apOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('apGithubUrl').focus(), 50);
+}
+
+function closeAddProject() {
+  document.getElementById('apOverlay').classList.remove('show');
+}
+
+async function fetchApRepo() {
+  const url = document.getElementById('apGithubUrl').value.trim();
+  const statusEl = document.getElementById('apStatusMsg');
+  if (!url) return;
+  const match = url.match(/github\.com\/([^\/]+)\/([^\/\s?#]+)/);
+  if (!match) { statusEl.textContent = '❌ GitHub URL 형식이 아닙니다 (github.com/owner/repo)'; return; }
+  const [, owner, repo] = match;
+  statusEl.textContent = '🔍 가져오는 중...';
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    document.getElementById('apName').value = data.name || '';
+    document.getElementById('apDesc').value = data.description || '';
+    document.getElementById('apLang').value = data.language || '';
+    statusEl.textContent = '✅ 정보를 가져왔습니다.';
+    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+  } catch(e) {
+    statusEl.textContent = `❌ 가져오기 실패: ${e.message}`;
+  }
+}
+
+function submitAddProject() {
+  const name = document.getElementById('apName').value.trim();
+  if (!name) { showToast('이름 필수', '레포 이름을 입력해주세요.', 2500); return; }
+  const url = document.getElementById('apGithubUrl').value.trim() || `https://github.com/jaeha81/${name}`;
+  const id = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  if (repos.find(r => r.id === id || r.name === name)) { showToast('중복', '이미 존재하는 레포입니다.', 2500); return; }
+  const newRepo = {
+    id, name, url,
+    desc: document.getElementById('apDesc').value.trim() || '설명 없음',
+    lang: document.getElementById('apLang').value.trim() || '—',
+    status: document.getElementById('apStatus').value,
+    tier: parseInt(document.getElementById('apTier').value),
+    cat: document.getElementById('apCat').value,
+    completion: Math.min(100, Math.max(0, parseInt(document.getElementById('apCompletion').value) || 0)),
+    market: Math.min(100, Math.max(0, parseInt(document.getElementById('apMarket').value) || 0)),
+    reason: document.getElementById('apReason').value.trim() || '수동 추가',
+    action: document.getElementById('apAction').value.trim() || 'Bucky 분석 요청',
+    _user_added: true,
+    _added_at: new Date().toISOString()
+  };
+  repos.push(newRepo);
+  userRepos.push(newRepo);
+  localStorage.setItem('jh-user-repos-v1', JSON.stringify(userRepos));
+  closeAddProject();
+  renderAll();
+  showToast('✅ 추가 완료', `${name} 레포가 대시보드에 추가됐습니다.`, 3000);
+}
+
+// ── GitHub API 전체 레포 동적 로드 ───────────────────────────────
+async function fetchAllGithubRepos() {
+  let all = [];
+  let page = 1;
+  try {
+    while (true) {
+      const res = await fetch(`https://api.github.com/users/jaeha81/repos?per_page=100&page=${page}&sort=updated`);
+      if (!res.ok) break;
+      const data = await res.json();
+      if (!data.length) break;
+      all = all.concat(data);
+      if (data.length < 100) break;
+      page++;
+    }
+  } catch(e) { /* 네트워크 오류 시 정적 데이터만 사용 */ }
+  return all;
+}
+
+async function init() {
+  loadUserRepos();
+  renderAll();
+  updateBuckyPanel();
+
+  const ghRepos = await fetchAllGithubRepos();
+  if (!ghRepos.length) return;
+
+  const existingIds = new Set(repos.map(r => r.id));
+  let added = 0;
+  ghRepos.forEach(gr => {
+    if (!existingIds.has(gr.name)) {
+      repos.push({
+        id: gr.name,
+        name: gr.name,
+        url: gr.html_url,
+        desc: gr.description || '설명 없음 — Bucky 분석 필요',
+        lang: gr.language || '—',
+        status: 'active',
+        tier: 3,
+        cat: 'saas',
+        completion: 0,
+        market: 0,
+        reason: '분석 미완료',
+        action: '🤖 Bucky 분석 요청'
+      });
+      added++;
+    }
+  });
+
+  const total = repos.length;
+  document.getElementById('repoCount').textContent = total;
+  document.getElementById('totalCount').textContent = total;
+
+  if (added > 0) renderAll();
+  updateBuckyPanel();
+}
+
+init();
+
+</script>
+<script src="/auth-ui.js"></script>
+</body>
+</html>

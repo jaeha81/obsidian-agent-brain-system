@@ -2,9 +2,17 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": "docs",
+  "redirects": [
+    { "source": "/index.html",                  "destination": "/repo/",        "permanent": true },
+    { "source": "/wishket.html",                "destination": "/wishket/",     "permanent": true },
+    { "source": "/daily-plus.html",             "destination": "/daily-plus/",  "permanent": true },
+    { "source": "/task-board.html",             "destination": "/task-board/",  "permanent": true },
+    { "source": "/app-session.html",            "destination": "/claude-code/", "permanent": true },
+    { "source": "/kmong.html",                  "destination": "/kmong/",       "permanent": true },
+    { "source": "/charlie-system-audit.html",   "destination": "/charlie/",     "permanent": true }
+  ],
   "rewrites": [
     { "source": "/bucky-daily.html", "destination": "/api/protected?page=bucky-daily" },
-    { "source": "/wishket.html", "destination": "/api/protected?page=wishket" },
     { "source": "/investment-report.html", "destination": "/api/protected?page=investment-report" }
   ],
   "headers": [
@@ -21,11 +29,11 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {
-      "source": "/task-board.html",
+      "source": "/task-board/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {
-      "source": "/daily-plus.html",
+      "source": "/daily-plus/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {

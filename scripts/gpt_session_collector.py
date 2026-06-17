@@ -414,10 +414,36 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
             sys.exit(1)
 
         if "login" in page.url or "auth" in page.url:
-            log.error("ChatGPT 로그인이 확인되지 않습니다.")
-            log.error("Chrome에서 chatgpt.com에 로그인한 뒤 다시 시도하거나 --login 플래그로 재로그인하세요.")
+            log.warning("ChatGPT 세션 만료 감지 — 자동 재로그인 시도 중...")
             await context.close()
-            sys.exit(1)
+
+            # gpt_auto_login 모듈로 Google OAuth 자동 재연결 시도
+            try:
+                sys.path.insert(0, str(Path(__file__).resolve().parent))
+                from gpt_auto_login import auto_reconnect
+                reconnected = await auto_reconnect(PROFILE_DIR, context_label="GPT 세션 수집")
+            except Exception as _e:
+                log.error(f"자동 재로그인 모듈 오류: {_e}")
+                reconnected = False
+
+            if not reconnected:
+                log.error("자동 재로그인 실패. #jh-코덱스앱에서 !gpt-login 명령을 실행하세요.")
+                sys.exit(1)
+
+            # 재로그인 성공 — 기존 playwright(p)로 새 컨텍스트 재생성
+            log.info("재로그인 성공 — 새 컨텍스트로 수집 재시작")
+            context = await p.chromium.launch_persistent_context(
+                user_data_dir=str(PROFILE_DIR),
+                headless=True,
+                channel=BROWSER_CHANNEL,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
+            page = await context.new_page()
+            await page.goto("https://chatgpt.com/", wait_until="networkidle", timeout=60000)
+            if "login" in page.url or "auth" in page.url:
+                log.error("재로그인 후에도 세션 확인 실패.")
+                await context.close()
+                sys.exit(1)
 
         # API 요청은 page context를 통해 쿠키가 자동 포함됨
         try:

@@ -771,6 +771,46 @@ def collect_mode(
         except Exception as localize_error:
             print(f"[WARN] Korean localization skipped: {localize_error}")
         _write_note_and_evolve(value, output_path, today, force=force, evolve=evolve)
+    except RuntimeError as exc:
+        # 로그인 필요 오류 → 자동 재연결 시도
+        exc_msg = str(exc)
+        if "login is required" in exc_msg or "sign in" in exc_msg.lower():
+            print(f"[AUTO-LOGIN] 세션 만료 감지: {exc_msg}")
+            print("[AUTO-LOGIN] Google OAuth 자동 재연결 시도 중...")
+            try:
+                import asyncio as _asyncio
+                import sys as _sys
+                _sys.path.insert(0, str(Path(__file__).resolve().parent))
+                from gpt_auto_login import auto_reconnect
+                reconnected = _asyncio.run(
+                    auto_reconnect(PROFILE_DIR, context_label="Pulse 수집")
+                )
+            except Exception as _login_err:
+                print(f"[AUTO-LOGIN] 모듈 오류: {_login_err}")
+                reconnected = False
+
+            if reconnected:
+                print("[AUTO-LOGIN] 재연결 성공 — Pulse 수집 재시도")
+                try:
+                    _launch_chrome(CHATGPT_URL)
+                    value = _read_chatgpt_content()
+                    try:
+                        value = localize_capture(value)
+                    except Exception as localize_error:
+                        print(f"[WARN] Korean localization skipped: {localize_error}")
+                    _write_note_and_evolve(value, output_path, today, force=force, evolve=evolve)
+                    return
+                except Exception as retry_exc:
+                    print(f"[WARN] 재시도 수집 실패: {retry_exc}")
+            else:
+                print("[AUTO-LOGIN] 자동 재연결 실패. Discord #jh-코덱스앱에서 !gpt-login 실행하세요.")
+
+        if not allow_recovery:
+            raise
+        print(f"[WARN] Official Pulse collection failed: {exc}")
+        print("[WARN] Writing OABS Daily Plus recovery capture instead.")
+        recovery = build_recovery_capture(str(exc))
+        _write_note_and_evolve(recovery, output_path, today, force=True, evolve=evolve)
     except Exception as exc:
         if not allow_recovery:
             raise

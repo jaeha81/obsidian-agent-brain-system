@@ -1,0 +1,731 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>앱 세션 - JH Bucky</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --card-hover: #1c2333;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+    --blue: #388bfd;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  header .title-block { flex: 1; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  header p  { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
+  .jh-nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .jh-nav a {
+    font-size: 0.78rem; color: var(--muted); text-decoration: none;
+    border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+  }
+  .jh-nav a:hover, .jh-nav a.active {
+    border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08);
+  }
+
+  /* ── Stats ── */
+  .stats-bar {
+    display: flex; gap: 10px; padding: 14px 28px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 16px; flex: 1; min-width: 88px; text-align: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .stat-box:hover { border-color: var(--accent); }
+  .stat-box .num { font-size: 1.5rem; font-weight: 700; }
+  .stat-box .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Info strip ── */
+  .info-strip {
+    padding: 8px 28px; border-bottom: 1px solid var(--border);
+    font-size: 0.75rem; color: var(--muted);
+  }
+  .info-strip code { font-size: 0.74rem; background: rgba(139,148,158,0.1); padding: 1px 5px; border-radius: 3px; }
+
+  /* ── Config Panel ── */
+  .cfg-panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    margin: 12px 28px; padding: 14px; display: none;
+  }
+  .cfg-panel.open { display: block; }
+  .cfg-panel h3 { font-size: 0.88rem; margin-bottom: 8px; color: var(--purple); }
+  .cfg-panel p { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+  .cfg-row { display: flex; gap: 8px; }
+  .cfg-row input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 10px; border-radius: 6px; font-size: 0.82rem;
+  }
+  .cfg-row input:focus { outline: none; border-color: var(--purple); }
+  .cfg-row button {
+    background: var(--purple); color: #0d1117; border: none; padding: 6px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    padding: 10px 28px; display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; border-bottom: 1px solid var(--border);
+    background: rgba(22,27,34,0.6);
+  }
+  .filter-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.1);
+  }
+  .sep { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+  .search-box {
+    margin-left: auto; background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; width: 200px;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+  .btn-add {
+    background: var(--accent); color: #0d1117; border: none; padding: 5px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: opacity 0.2s;
+  }
+  .btn-add:hover { opacity: 0.85; }
+  .btn-cfg {
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+  }
+  .btn-cfg:hover { border-color: var(--purple); color: var(--purple); }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px; padding: 18px 28px;
+  }
+  .empty-state { padding: 60px 28px; text-align: center; color: var(--muted); }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 8px; }
+
+  /* ── Session Card ── */
+  .session-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; position: relative; transition: border-color 0.2s, transform 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .session-card:hover { border-color: #444d56; transform: translateY(-1px); }
+  .session-card.app-claude_code { border-left-color: var(--accent); }
+  .session-card.app-codex       { border-left-color: var(--purple); }
+  .session-card.s-running { border-top: 1px solid var(--green); }
+  .session-card.s-blocked { opacity: 0.65; }
+  .session-card.s-done    { opacity: 0.6; }
+
+  .card-header { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; }
+  .app-badge {
+    font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+    letter-spacing: 0.04em; flex-shrink: 0; margin-top: 2px;
+  }
+  .app-badge.claude_code { background: rgba(88,166,255,0.18); color: var(--accent);  border: 1px solid rgba(88,166,255,0.3); }
+  .app-badge.codex       { background: rgba(188,140,255,0.18); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+
+  .card-title { flex: 1; }
+  .card-title strong { font-size: 0.93rem; font-weight: 600; line-height: 1.3; display: block; }
+  .card-title small  { font-size: 0.74rem; color: var(--muted); font-family: monospace; margin-top: 2px; display: block;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+
+  .status-pill {
+    font-size: 0.7rem; padding: 3px 9px; border-radius: 10px; font-weight: 600; flex-shrink: 0;
+  }
+  .sp-waiting       { background: rgba(139,148,158,0.15); color: var(--muted); }
+  .sp-approval      { background: rgba(210,153,34,0.15);  color: var(--yellow); }
+  .sp-open          { background: rgba(63,185,80,0.15);   color: var(--green); }
+  .sp-prompt_needed { background: rgba(255,166,87,0.15);  color: var(--orange); }
+  .sp-running       { background: rgba(88,166,255,0.15);  color: var(--accent); }
+  .sp-done          { background: rgba(63,185,80,0.12);   color: var(--green); }
+  .sp-blocked       { background: rgba(248,81,73,0.15);   color: var(--red); }
+
+  /* status dot */
+  .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+  .sd-running { background: var(--green); box-shadow: 0 0 5px var(--green); animation: blink 2s infinite; }
+  .sd-approval { background: var(--yellow); }
+  .sd-open { background: var(--green); }
+  .sd-waiting { background: var(--muted); }
+  .sd-done { background: var(--muted); }
+  .sd-blocked { background: var(--red); }
+  .sd-prompt_needed { background: var(--orange); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .card-meta { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; line-height: 1.7; }
+  .card-meta .lbl { color: rgba(139,148,158,0.6); }
+  .meta-chip {
+    display: inline-block; background: rgba(139,148,158,0.08); padding: 1px 6px;
+    border-radius: 3px; font-size: 0.7rem; font-family: monospace; margin-right: 4px;
+  }
+
+  .card-prompt {
+    font-size: 0.78rem; color: var(--muted); line-height: 1.5; margin-bottom: 10px;
+    padding: 6px 10px; background: rgba(88,166,255,0.04); border-radius: 5px;
+    border: 1px solid rgba(88,166,255,0.1); max-height: 60px; overflow: hidden;
+    position: relative; cursor: pointer;
+  }
+  .card-prompt.expanded { max-height: none; }
+  .card-prompt::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 20px; background: linear-gradient(transparent, rgba(14,20,30,0.95));
+    pointer-events: none;
+  }
+  .card-prompt.expanded::after { display: none; }
+
+  .card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .act-btn {
+    font-size: 0.76rem; padding: 4px 11px; border-radius: 5px; cursor: pointer;
+    border: 1px solid; transition: all 0.15s; font-weight: 500;
+  }
+  .a-start   { background: rgba(88,166,255,0.1);  color: var(--accent); border-color: rgba(88,166,255,0.3); }
+  .a-start:hover   { background: rgba(88,166,255,0.2); }
+  .a-resume  { background: rgba(255,166,87,0.1);  color: var(--orange); border-color: rgba(255,166,87,0.3); }
+  .a-resume:hover  { background: rgba(255,166,87,0.2); }
+  .a-status  { background: rgba(188,140,255,0.08); color: var(--purple); border-color: rgba(188,140,255,0.2); }
+  .a-status:hover  { background: rgba(188,140,255,0.15); }
+  .a-stop    { background: rgba(248,81,73,0.08);  color: var(--red);    border-color: rgba(248,81,73,0.2); }
+  .a-stop:hover    { background: rgba(248,81,73,0.15); }
+  .a-setstatus { background: transparent; color: var(--muted); border-color: var(--border); font-size: 0.7rem; }
+  .a-setstatus:hover { border-color: var(--accent); color: var(--accent); }
+  .a-delete  { background: transparent; color: var(--muted); border-color: var(--border); font-size: 0.7rem; margin-left: auto; }
+  .a-delete:hover  { color: var(--red); border-color: var(--red); }
+
+  .card-progress {
+    margin-top: 10px; padding: 8px 12px; border-radius: 5px;
+    background: rgba(88,166,255,0.04); border: 1px solid rgba(88,166,255,0.1);
+    font-size: 0.76rem; color: var(--muted); display: none;
+  }
+  .card-progress.visible { display: block; }
+  .card-progress strong { color: var(--accent); }
+
+  /* ── Add Modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px; width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { font-size: 1rem; margin-bottom: 14px; color: var(--accent); }
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+  .form-row input, .form-row textarea, .form-row select {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 7px 10px; border-radius: 6px; font-size: 0.85rem; font-family: inherit;
+  }
+  .form-row input:focus, .form-row textarea:focus, .form-row select:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-row textarea { resize: vertical; min-height: 80px; }
+  .form-row select option { background: var(--card); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .modal-actions button {
+    padding: 7px 16px; border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600; border: 1px solid;
+  }
+  .btn-cancel { background: transparent; color: var(--muted); border-color: var(--border); }
+  .btn-save   { background: var(--accent); color: #0d1117;   border-color: var(--accent); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; background: #1f2937;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px;
+    font-size: 0.82rem; color: var(--text); transform: translateY(60px);
+    opacity: 0; transition: all 0.25s; z-index: 300; max-width: 360px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.ok  { border-color: var(--green); }
+  #toast.err { border-color: var(--red); }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; padding: 12px 14px; }
+    .stats-bar, .toolbar { padding: 10px 14px; }
+    header { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>앱 세션 대시보드</h1>
+    <p>Claude Code · Codex 작업 세션 관리 — 시작 · 재개 · 정지 · 상태 확인</p>
+  </div>
+  <nav class="jh-nav">
+    <a href="/repo/">레포대시보드</a>
+    <a href="/wishket/">위시켓</a>
+    <a href="/daily-plus/">오늘의플러스</a>
+    <a href="/task-board/">태스크보드</a>
+    <a href="/checklist.html">체크리스트</a>
+    <a href="/ai-usage.html">AI사용량</a>
+    <a href="/claude-code/" class="active">앱세션</a>
+    <a href="https://github.com/jaeha81" target="_blank" rel="noreferrer">깃허브</a>
+  </nav>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-box" onclick="setFilter('all')">
+    <div class="num" id="s-total" style="color:var(--accent)">0</div>
+    <div class="lbl">전체</div>
+  </div>
+  <div class="stat-box" onclick="setFilter('active')">
+    <div class="num" id="s-active" style="color:var(--green)">0</div>
+    <div class="lbl">진행중</div>
+  </div>
+  <div class="stat-box" onclick="setFilter('approval')">
+    <div class="num" id="s-approval" style="color:var(--yellow)">0</div>
+    <div class="lbl">승인대기</div>
+  </div>
+  <div class="stat-box" onclick="setFilter('waiting')">
+    <div class="num" id="s-waiting" style="color:var(--muted)">0</div>
+    <div class="lbl">대기</div>
+  </div>
+  <div class="stat-box" onclick="setFilter('done')">
+    <div class="num" id="s-done" style="color:var(--muted)">0</div>
+    <div class="lbl">완료</div>
+  </div>
+  <div class="stat-box" onclick="setFilter('claude_code')">
+    <div class="num" id="s-claude" style="color:var(--accent)">0</div>
+    <div class="lbl">Claude</div>
+  </div>
+  <div class="stat-box" onclick="setFilter('codex')">
+    <div class="num" id="s-codex" style="color:var(--purple)">0</div>
+    <div class="lbl">Codex</div>
+  </div>
+</div>
+
+<div class="info-strip">
+  <strong>운영:</strong> 세션 카드로 Claude Code / Codex 앱 세션 요청을 Bucky로 전달합니다. 실제 앱 실행·PC 제어는 사용자 승인 후 Bucky가 처리합니다.
+  &nbsp;|&nbsp;
+  <strong>Intake:</strong> <code id="epDisplay">미설정</code>
+  &nbsp;|&nbsp;
+  <strong>채널:</strong> <code>jh-chat</code> (Bucky 직접 대화) · <code>jh-클로드코드앱</code> · <code>jh-코덱스앱</code>
+  &nbsp;|&nbsp;
+  <strong>승인 후 허용:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart
+</div>
+
+<!-- Config Panel -->
+<div class="cfg-panel" id="cfgPanel">
+  <h3>Bucky Intake 설정</h3>
+  <p>앱 세션 요청을 전달할 Bucky OS intake 엔드포인트를 입력하세요.</p>
+  <div class="cfg-row">
+    <input type="text" id="epInput" placeholder="http://127.0.0.1:8765" />
+    <button onclick="saveEndpoint()">저장</button>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <button class="btn-add" onclick="openModal()">+ 새 세션</button>
+  <div class="sep"></div>
+  <button class="filter-btn active" id="f-all"       onclick="setFilter('all')">전체</button>
+  <button class="filter-btn"        id="f-claude_code" onclick="setFilter('claude_code')">Claude Code</button>
+  <button class="filter-btn"        id="f-codex"     onclick="setFilter('codex')">Codex</button>
+  <button class="filter-btn"        id="f-active"    onclick="setFilter('active')">진행중</button>
+  <button class="filter-btn"        id="f-approval"  onclick="setFilter('approval')">승인대기</button>
+  <button class="filter-btn"        id="f-waiting"   onclick="setFilter('waiting')">대기</button>
+  <button class="filter-btn"        id="f-done"      onclick="setFilter('done')">완료</button>
+  <input class="search-box" type="text" id="searchBox" placeholder="레포·경로·프롬프트 검색..." oninput="renderSessions()" />
+  <button class="btn-cfg" onclick="toggleCfg()">⚙ 설정</button>
+</div>
+
+<!-- Session Grid -->
+<div class="grid" id="sessionsGrid"></div>
+<div id="emptyState" class="empty-state" style="display:none">
+  <div class="big">🤖</div>
+  <div>세션이 없습니다</div>
+  <div style="font-size:0.8rem;margin-top:6px">+ 새 세션 버튼으로 Claude Code 또는 Codex 세션을 시작하세요</div>
+</div>
+
+<!-- Add Session Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>새 앱 세션 요청</h2>
+    <div class="form-row">
+      <label>앱 종류</label>
+      <select id="fTargetApp">
+        <option value="claude_code">Claude Code</option>
+        <option value="codex">Codex</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>레포 / 프로젝트 이름 <span style="color:var(--red)">*</span></label>
+      <input type="text" id="fRepoName" placeholder="예: obsidian-agent-brain-system" />
+    </div>
+    <div class="form-row">
+      <label>워크스페이스 경로 (선택)</label>
+      <input type="text" id="fWorkspacePath" placeholder="예: G:\내 드라이브\obsidian-agent-brain-system" />
+    </div>
+    <div class="form-row">
+      <label>Handoff 파일 경로 (선택)</label>
+      <input type="text" id="fHandoffPath" placeholder="ObsidianVault/10_AgentBus/handoffs/..." />
+    </div>
+    <div class="form-row">
+      <label>시작 프롬프트 (선택)</label>
+      <textarea id="fStartPrompt" placeholder="세션 시작 시 전달할 지시사항..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save"   onclick="requestNewSession()">세션 시작 요청</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ── Constants ── */
+const STORAGE_KEY = 'appSessionDashboard_sessions';
+const INTAKE_KEY  = 'buckyIntakeEndpoint';
+
+const STATUS_MAP = {
+  waiting:       { label: '대기',              cls: 'sp-waiting',       dotCls: 'sd-waiting' },
+  approval:      { label: '승인 대기',         cls: 'sp-approval',      dotCls: 'sd-approval' },
+  open:          { label: '앱 열림',           cls: 'sp-open',          dotCls: 'sd-open' },
+  prompt_needed: { label: '프롬프트 필요',     cls: 'sp-prompt_needed', dotCls: 'sd-prompt_needed' },
+  running:       { label: '진행중',            cls: 'sp-running',       dotCls: 'sd-running' },
+  done:          { label: '완료',              cls: 'sp-done',          dotCls: 'sd-done' },
+  blocked:       { label: '차단',              cls: 'sp-blocked',       dotCls: 'sd-blocked' },
+};
+
+const ACTIVE_STATUSES = ['open', 'prompt_needed', 'running'];
+const DONE_STATUSES   = ['done', 'blocked'];
+
+/* ── State ── */
+let sessions = [];
+let activeFilter = 'all';
+
+/* ── Init ── */
+(function init() {
+  try { sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { sessions = []; }
+  const ep = localStorage.getItem(INTAKE_KEY) || '';
+  document.getElementById('epInput').value = ep;
+  document.getElementById('epDisplay').textContent = ep ? ep.replace('/intake', '') : '미설정';
+  renderSessions();
+})();
+
+/* ── Persist ── */
+function saveSessions() { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); }
+
+/* ── Endpoint ── */
+function getIntakeUrl() {
+  const v = localStorage.getItem(INTAKE_KEY) || '';
+  const base = v.replace(/\/intake$/, '').replace(/\/$/, '') || 'http://127.0.0.1:8765';
+  return base + '/intake';
+}
+
+function saveEndpoint() {
+  const v = document.getElementById('epInput').value.trim();
+  localStorage.setItem(INTAKE_KEY, v);
+  document.getElementById('epDisplay').textContent = v ? v.replace('/intake', '') : '미설정';
+  document.getElementById('cfgPanel').classList.remove('open');
+  toast('엔드포인트 저장됨', 'ok');
+}
+
+function toggleCfg() { document.getElementById('cfgPanel').classList.toggle('open'); }
+
+/* ── Modal ── */
+function openModal() {
+  document.getElementById('fTargetApp').selectedIndex  = 0;
+  document.getElementById('fRepoName').value     = '';
+  document.getElementById('fWorkspacePath').value = '';
+  document.getElementById('fHandoffPath').value  = '';
+  document.getElementById('fStartPrompt').value  = '';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+/* ── New Session ── */
+function generateId() {
+  return 'aps-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+}
+
+async function requestNewSession() {
+  const target_app     = document.getElementById('fTargetApp').value;
+  const repo_name      = document.getElementById('fRepoName').value.trim();
+  const workspace_path = document.getElementById('fWorkspacePath').value.trim();
+  const handoff_path   = document.getElementById('fHandoffPath').value.trim();
+  const start_prompt   = document.getElementById('fStartPrompt').value.trim();
+
+  if (!repo_name) { toast('레포/프로젝트 이름을 입력하세요', 'err'); return; }
+
+  const id = generateId();
+  const target_channel = target_app === 'claude_code' ? 'jh-클로드코드앱' : 'jh-코덱스앱';
+  const now = Date.now();
+
+  const session = { id, target_app, repo_name, workspace_path, handoff_path, start_prompt,
+    status: 'approval', created: now, updated: now, last_report: null, next_action: '사용자 승인 대기' };
+
+  sessions.unshift(session);
+  saveSessions();
+  closeModal();
+  renderSessions();
+
+  const payload = {
+    dashboard_type: 'app_session',
+    target_channel,
+    action: 'start',
+    request_id: id,
+    target_app,
+    repo_name,
+    workspace_path,
+    handoff_path,
+    start_prompt,
+    requires_user_approval: true,
+    execution_mode: 'user_approved_pc_control',
+    source_dashboard_url: location.href,
+    title: repo_name,
+    requested_at: new Date(now).toISOString(),
+  };
+
+  await postToIntake(payload, id,
+    'Bucky에게 전송됨 — ' + target_channel + ' 채널에서 이어서 대화하세요.',
+    'start');
+}
+
+/* ── Session Actions ── */
+async function sendSessionAction(id, action) {
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+
+  const target_channel = s.target_app === 'claude_code' ? 'jh-클로드코드앱' : 'jh-코덱스앱';
+  const now = Date.now();
+
+  if (action === 'stop') {
+    s.status = 'waiting'; s.next_action = '재시작 가능';
+  } else if (action === 'resume' || action === 'start') {
+    s.status = 'approval'; s.next_action = '사용자 승인 대기';
+  }
+  s.updated = now;
+  saveSessions();
+  renderSessions();
+
+  const payload = {
+    dashboard_type: 'app_session',
+    target_channel,
+    action,
+    request_id: id,
+    target_app:    s.target_app,
+    repo_name:     s.repo_name,
+    workspace_path: s.workspace_path,
+    handoff_path:  s.handoff_path,
+    start_prompt:  s.start_prompt,
+    current_status: s.status,
+    requires_user_approval: true,
+    execution_mode: 'user_approved_pc_control',
+    source_dashboard_url: location.href,
+    title: s.repo_name,
+    requested_at: new Date(now).toISOString(),
+  };
+
+  const label = s.target_app === 'claude_code' ? 'Claude Code' : 'Codex';
+  await postToIntake(payload, id,
+    label + ' [' + action + '] 요청 전송됨 — ' + target_channel + ' 확인',
+    action);
+}
+
+async function postToIntake(payload, cardId, successMsg, actionLabel) {
+  const ep = getIntakeUrl();
+  const progEl = document.getElementById('prog-' + cardId);
+  if (progEl) {
+    progEl.textContent = actionLabel + ' 요청 전송 중...';
+    progEl.classList.add('visible');
+  }
+  try {
+    const res = await fetch(ep, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      const s = sessions.find(x => x.id === cardId);
+      if (s) { s.last_report = Date.now(); saveSessions(); renderSessions(); }
+      toast(successMsg, 'ok');
+      if (progEl) {
+        progEl.textContent = '전송 완료 — Discord 채널에서 Bucky 응답을 확인하세요.';
+        setTimeout(() => progEl.classList.remove('visible'), 8000);
+      }
+    } else {
+      toast('전송 실패: HTTP ' + res.status, 'err');
+      if (progEl) progEl.classList.remove('visible');
+    }
+  } catch (e) {
+    const s = sessions.find(x => x.id === cardId);
+    if (s && s.status === 'approval') { s.status = 'waiting'; s.next_action = '전송 실패 — 재시도 필요'; saveSessions(); renderSessions(); }
+    toast('Bucky 연결 실패: ' + e.message + ' (엔드포인트 확인 → ⚙ 설정)', 'err');
+    if (progEl) progEl.classList.remove('visible');
+  }
+}
+
+/* ── Manual Status Change ── */
+function setSessionStatus(id) {
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+  const keys = Object.keys(STATUS_MAP);
+  const choice = prompt('상태를 선택하세요:\n' + keys.map((k, i) => (i+1) + ': ' + STATUS_MAP[k].label).join('\n'));
+  if (!choice) return;
+  const idx = parseInt(choice, 10) - 1;
+  if (idx >= 0 && idx < keys.length) {
+    s.status = keys[idx]; s.updated = Date.now();
+    saveSessions(); renderSessions();
+    toast('상태 변경: ' + STATUS_MAP[s.status].label, 'ok');
+  }
+}
+
+function removeSession(id) {
+  if (!confirm('이 세션 카드를 삭제하시겠습니까?')) return;
+  sessions = sessions.filter(s => s.id !== id);
+  saveSessions(); renderSessions();
+  toast('세션 삭제됨');
+}
+
+/* ── Filter ── */
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('f-' + f);
+  if (btn) btn.classList.add('active');
+  renderSessions();
+}
+
+/* ── Render ── */
+function renderSessions() {
+  const q = (document.getElementById('searchBox').value || '').toLowerCase();
+
+  const c = { total: sessions.length, active: 0, approval: 0, waiting: 0, done: 0, claude: 0, codex: 0 };
+  sessions.forEach(s => {
+    if (ACTIVE_STATUSES.includes(s.status)) c.active++;
+    if (s.status === 'approval') c.approval++;
+    if (s.status === 'waiting')  c.waiting++;
+    if (DONE_STATUSES.includes(s.status)) c.done++;
+    if (s.target_app === 'claude_code') c.claude++;
+    if (s.target_app === 'codex')       c.codex++;
+  });
+  document.getElementById('s-total').textContent    = c.total;
+  document.getElementById('s-active').textContent   = c.active;
+  document.getElementById('s-approval').textContent = c.approval;
+  document.getElementById('s-waiting').textContent  = c.waiting;
+  document.getElementById('s-done').textContent     = c.done;
+  document.getElementById('s-claude').textContent   = c.claude;
+  document.getElementById('s-codex').textContent    = c.codex;
+
+  let list = sessions.filter(s => {
+    if (activeFilter === 'claude_code') return s.target_app === 'claude_code';
+    if (activeFilter === 'codex')       return s.target_app === 'codex';
+    if (activeFilter === 'active')      return ACTIVE_STATUSES.includes(s.status);
+    if (activeFilter === 'approval')    return s.status === 'approval';
+    if (activeFilter === 'waiting')     return s.status === 'waiting';
+    if (activeFilter === 'done')        return DONE_STATUSES.includes(s.status);
+    return true;
+  });
+  if (q) list = list.filter(s =>
+    (s.repo_name + s.workspace_path + s.handoff_path + s.start_prompt).toLowerCase().includes(q)
+  );
+
+  const grid  = document.getElementById('sessionsGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (!list.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  grid.innerHTML = list.map(s => {
+    const sd  = STATUS_MAP[s.status] || STATUS_MAP.waiting;
+    const app = s.target_app || 'claude_code';
+    const appLabel = app === 'claude_code' ? 'Claude Code' : 'Codex';
+    const ch  = app === 'claude_code' ? 'jh-클로드코드앱' : 'jh-코덱스앱';
+
+    return `<article class="session-card app-${app} s-${s.status}" id="card-${s.id}">
+  <div class="card-header">
+    <span class="app-badge ${app}">${appLabel}</span>
+    <div class="card-title">
+      <strong>${esc(s.repo_name || '(레포 미지정)')}</strong>
+      ${s.workspace_path ? `<small title="${esc(s.workspace_path)}">${esc(s.workspace_path)}</small>` : ''}
+    </div>
+    <span class="status-pill ${sd.cls}">
+      <span class="status-dot ${sd.dotCls}"></span>${sd.label}
+    </span>
+  </div>
+  <div class="card-meta">
+    <span class="meta-chip">${ch}</span>
+    ${s.handoff_path ? `<span class="meta-chip" title="${esc(s.handoff_path)}">${esc(s.handoff_path.split('/').pop())}</span>` : ''}
+    <br>
+    <span class="lbl">요청 </span>${fmtDate(s.created)}
+    ${s.last_report ? ` &nbsp;<span class="lbl">응답 </span>${fmtDate(s.last_report)}` : ''}
+    ${s.next_action ? ` &nbsp;<span class="lbl">→ </span>${esc(s.next_action)}` : ''}
+  </div>
+  ${s.start_prompt ? `<div class="card-prompt" onclick="this.classList.toggle('expanded')">${esc(s.start_prompt)}</div>` : ''}
+  <div class="card-actions">${buildActions(s)}</div>
+  <div class="card-progress" id="prog-${s.id}"></div>
+</article>`;
+  }).join('');
+}
+
+function buildActions(s) {
+  const btns = [];
+  const isActive = ACTIVE_STATUSES.includes(s.status);
+  const isDone   = DONE_STATUSES.includes(s.status);
+
+  if (s.status === 'waiting') {
+    btns.push(`<button class="act-btn a-start" onclick="sendSessionAction('${s.id}','start')">▶ 시작 요청</button>`);
+  }
+  if (s.status === 'approval' || isDone) {
+    btns.push(`<button class="act-btn a-resume" onclick="sendSessionAction('${s.id}','resume')">⟳ 이어서 작업</button>`);
+  }
+  if (isActive || s.status === 'prompt_needed') {
+    btns.push(`<button class="act-btn a-status" onclick="sendSessionAction('${s.id}','status')">? 상태 확인</button>`);
+    btns.push(`<button class="act-btn a-stop"   onclick="sendSessionAction('${s.id}','stop')">■ 중지</button>`);
+  }
+  btns.push(`<button class="act-btn a-setstatus" onclick="setSessionStatus('${s.id}')">상태변경</button>`);
+  btns.push(`<button class="act-btn a-delete"    onclick="removeSession('${s.id}')">삭제</button>`);
+  return btns.join('');
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtDate(ts) {
+  if (!ts) return '-';
+  const d = new Date(ts), now = new Date(), diff = now - d;
+  if (diff < 60000)    return '방금';
+  if (diff < 3600000)  return Math.floor(diff / 60000) + '분 전';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '시간 전';
+  return d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ── Toast ── */
+let _tt;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.className = '', 3200);
+}
+
+/* ── Keyboard ── */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

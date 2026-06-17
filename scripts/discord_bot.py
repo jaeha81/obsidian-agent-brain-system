@@ -161,6 +161,14 @@ JH_CHARLIE_CHANNEL_ID: str        = os.getenv("JH_CHARLIE_CHANNEL_ID", "").strip
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
+# 내 개발 채널: 사용자 자체 사이드 프로젝트 전용
+JH_MYDEV_CHANNEL_ID: str = os.getenv("JH_MYDEV_CHANNEL_ID", "").strip()
+# 쇼츠 수익화 전용 채널 (Vercel 대시보드 → Discord → 로컬 스킬)
+JH_SHORTS_CHANNEL_ID: str = os.getenv("JH_SHORTS_CHANNEL_ID", "").strip()
+_SHORTS_LOCAL_AGENT = Path(os.getenv(
+    "SHORTS_LOCAL_AGENT_PATH",
+    r"D:\ai프로젝트\쇼츠자동화\shorts-local-agent"
+))
 # 작업 채널: 채널 = 독립 Claude Code 인스턴스 (tools 허용, 병렬 실행)
 JH_WORK_CHANNEL_IDS: set[str] = {
     c.strip() for c in os.getenv("JH_WORK_CHANNEL_IDS", "").split(",") if c.strip()
@@ -186,6 +194,8 @@ ALLOWED_CHANNELS: set[str] = {
         JH_CHARLIE_CHANNEL_ID,
         JH_CLAUDE_CODE_CHANNEL_ID,
         JH_CODEX_CHANNEL_ID,
+        JH_MYDEV_CHANNEL_ID,
+        JH_SHORTS_CHANNEL_ID,
     )
     if c
 } | JH_WORK_CHANNEL_IDS  # 작업 채널 자동 포함
@@ -746,6 +756,76 @@ def _save_daily_plus_bridge_state(sent_names: set[str]) -> None:
         _json_mod.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+
+
+_SHORTS_CMD_PREFIX = "[SHORTS_CMD]"
+
+
+async def _handle_shorts_command(message: Message, content: str) -> None:
+    """#jh-shorts 채널 전용 핸들러.
+    Vercel 대시보드 버튼이 Discord Webhook으로 전송한 명령을 수신하여
+    D:\\ai프로젝트\\쇼츠자동화\\shorts-local-agent\\skill_router.py 를 실행한다.
+    """
+    import json as _json_local
+
+    if not content.startswith(_SHORTS_CMD_PREFIX):
+        # 일반 대화 메시지는 간단 안내만
+        await message.channel.send(
+            "이 채널은 쇼츠 자동화 전용입니다.\n"
+            "대시보드에서 버튼을 누르거나 `!shorts status` 로 현황을 확인하세요."
+        )
+        return
+
+    if content.startswith("!shorts"):
+        cmd_body = content[len("!shorts"):].strip() or "status"
+        payload = {"action": cmd_body, "params": {}}
+    else:
+        payload_str = content[len(_SHORTS_CMD_PREFIX):].strip()
+        try:
+            payload = _json_local.loads(payload_str)
+        except _json_local.JSONDecodeError:
+            payload = {"action": payload_str, "params": {}}
+
+    action = payload.get("action", "status")
+    print(f"[Shorts] 명령 수신: {action}", flush=True)
+    await message.channel.send(f"⚙️ `{action}` 처리 중...")
+
+    skill_router_path = _SHORTS_LOCAL_AGENT / "skill_router.py"
+    if not skill_router_path.exists():
+        await message.channel.send(
+            f"⚠️ skill_router.py 없음: `{skill_router_path}`\n"
+            "shorts-local-agent 설치를 확인하세요."
+        )
+        return
+
+    import subprocess as _sp
+    try:
+        proc = await asyncio.to_thread(
+            lambda: _sp.run(
+                [sys.executable, str(skill_router_path), action,
+                 _json_local.dumps(payload.get("params", {}))],
+                capture_output=True, text=True, timeout=600,
+                encoding="utf-8", errors="replace",
+                cwd=str(_SHORTS_LOCAL_AGENT),
+            )
+        )
+        output = (proc.stdout or "").strip()
+        err = (proc.stderr or "").strip()
+
+        if proc.returncode != 0:
+            err_short = err[-800:] if len(err) > 800 else err
+            await message.channel.send(f"❌ **[SHORTS]** `{action}` 실패\n```\n{err_short}\n```")
+        else:
+            try:
+                result = _json_local.loads(output)
+                summary = result.get("summary", output[:400])
+            except Exception:
+                summary = output[:400]
+            await message.channel.send(f"✅ **[SHORTS]** `{action}` 완료\n{summary}")
+    except asyncio.TimeoutError:
+        await message.channel.send(f"⏱️ **[SHORTS]** `{action}` 타임아웃 (10분 초과)")
+    except Exception as e:
+        await message.channel.send(f"❌ **[SHORTS]** 실행 오류: {e}")
 
 
 def write_discord_message(message: Message, reply: str = "", status: str = "pending") -> Path:
@@ -1818,8 +1898,22 @@ async def _tts_speak(vc: discord.VoiceClient, text: str, guild_id: int) -> None:
             await asyncio.wait_for(done_event.wait(), timeout=60)
             tmp_path = None  # after callback이 삭제 담당
         except asyncio.TimeoutError:
-            pass
+            # 60초 타임아웃 — 텍스트 채널에 오류 알림
+            text_ch = _voice_text_ch.get(guild_id)
+            if text_ch:
+                try:
+                    await text_ch.send("⚠️ [TTS] 음성 재생 타임아웃 (60초 초과). 텍스트로 응답합니다.")
+                except Exception:
+                    pass
+            print("[TTS] 재생 타임아웃 (60s)", flush=True)
         except Exception as e:
+            # 재생 오류 — 텍스트 채널에 오류 알림
+            text_ch = _voice_text_ch.get(guild_id)
+            if text_ch:
+                try:
+                    await text_ch.send(f"⚠️ [TTS] 음성 재생 오류: {e}")
+                except Exception:
+                    pass
             print(f"[TTS] 재생 오류: {e}", flush=True)
         finally:
             if tmp_path:
@@ -4040,6 +4134,36 @@ async def _handle_work_channel(message: Message) -> None:
         # 재개 = 해당 내용으로 즉시 재실행 (content를 override)
         content = f"[재개] {resume_body}"
 
+    # ── !gpt-login: ChatGPT 세션 재연결 (jh-코덱스앱 전용) ───────────────────────
+    if content.strip() in ("!gpt-login", "!gpt_login", "!gptlogin"):
+        if str(message.channel.id) != JH_CODEX_CHANNEL_ID:
+            await message.channel.send("⚠️ `!gpt-login`은 **#jh-코덱스앱** 채널에서만 사용 가능합니다.")
+            return
+        await message.channel.send("🔐 GPT 크롬 로그인 창을 엽니다. 로그인 완료 후 수집이 자동 재시작됩니다...")
+        try:
+            import subprocess as _sp
+            import sys as _sys
+            _scripts = str(Path(__file__).resolve().parent)
+            _collector = str(Path(_scripts) / "chatgpt_daily_collector.py")
+            _proc = _sp.Popen(
+                [_sys.executable, _collector, "--login"],
+                cwd=_scripts,
+                stdout=_sp.PIPE,
+                stderr=_sp.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            await message.channel.send(
+                "✅ Chrome 로그인 창 실행됨\n"
+                "1. 열린 Chrome에서 ChatGPT에 Google 계정으로 로그인\n"
+                "2. 로그인 완료 후 Chrome 닫기\n"
+                "3. 다음 수집(06:00 AM)부터 자동 실행됩니다"
+            )
+        except Exception as _gpt_err:
+            await message.channel.send(f"❌ GPT 로그인 실행 실패: {_gpt_err}")
+        return
+
     # ── 중복 감지 ─────────────────────────────────────────────────────────────
     task_id = None
     if _track:
@@ -4935,6 +5059,12 @@ class BuckyDiscordBot(discord.Client):
 
         content = message.content.strip()
         channel_id = str(message.channel.id)
+
+        # ── #jh-shorts: Vercel 버튼 → Webhook → 로컬 스킬 실행 ──────────────────
+        if JH_SHORTS_CHANNEL_ID and channel_id == JH_SHORTS_CHANNEL_ID:
+            await _handle_shorts_command(message, content)
+            return
+
         if await _handle_daily_plus_intake_payload(message, content, channel_id):
             return
 
