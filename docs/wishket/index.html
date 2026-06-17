@@ -24,10 +24,10 @@
   * { box-sizing:border-box; }
   body { margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
   header { background:#0f172a; color:#fff; padding:28px clamp(18px,4vw,48px) 24px; }
-  nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
-  nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
-  nav a.active, nav a:hover { color:#fff; border-color:#60a5fa; }
-  nav .auth-end { margin-left:auto; }
+  .jh-nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  .jh-nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
+  .jh-nav a.active, .jh-nav a:hover { color:#fff; border-color:#60a5fa; }
+  .jh-nav .auth-end { margin-left:auto; }
   h1 { margin:0; font-size:clamp(26px,4vw,40px); letter-spacing:0; }
   header p { max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }
   .gen-stamp { display:flex; align-items:baseline; gap:14px; margin-top:20px; padding:14px 20px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; flex-wrap:wrap; }
@@ -139,18 +139,11 @@
   footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
   @media (max-width:700px) { .stat-row { grid-template-columns:repeat(2,1fr); } .project-grid { grid-template-columns:1fr; } }
 </style>
+<script src="/shared/nav.js" defer></script>
 </head>
 <body>
 <header>
-  <nav>
-    <a href="/repo/">레포대시보드</a>
-    <a href="/wishket/" class="active">위시켓</a>
-    <a href="/daily-plus/">오늘의플러스</a>
-    <a href="/ai-usage.html">AI사용량</a>
-    <a href="/bucky-agent-os.html">BuckyOS</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
-    <a href="/api/logout" class="auth-end">로그아웃</a>
-  </nav>
+  <nav class="jh-nav"></nav>
   <h1>위시켓 자동화 대시보드</h1>
   <p>Wishket 공고 자동 수집 · 스코어링 · 제안서 생성 파이프라인. P1/P2 우선 공고를 빠르게 확인하고 지원하세요.</p>
   <div class="gen-stamp">

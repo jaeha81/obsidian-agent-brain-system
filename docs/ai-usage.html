@@ -24,10 +24,10 @@
   * { box-sizing:border-box; }
   body { margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
   header { background:#0f172a; color:#fff; padding:28px clamp(18px,4vw,48px) 24px; }
-  nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
-  nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
-  nav a.active, nav a:hover { color:#fff; border-color:#60a5fa; }
-  nav .auth-start { margin-left:auto; }
+  .jh-nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  .jh-nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
+  .jh-nav a.active, .jh-nav a:hover { color:#fff; border-color:#60a5fa; }
+  .jh-nav .auth-end { margin-left:auto; }
   h1 { margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }
   header p { max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }
   .gen-stamp { display:flex; align-items:baseline; gap:14px; margin-top:20px; padding:14px 20px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; }
@@ -102,19 +102,12 @@
   footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
   @media (max-width:900px) { .agent-grid, .ops-grid, .guardrails, .bucky-grid, .state-grid { grid-template-columns:1fr; } .metric-grid { grid-template-columns:repeat(2,1fr); } dl div, .quota-dl div { grid-template-columns:1fr; } }
 </style>
+<script src="/shared/nav.js" defer></script>
 </head>
 <body>
 <div id="pressure-banner" role="alert"></div>
 <header>
-  <nav>
-    <a href="index.html">레포대시보드</a>
-    <a href="wishket.html">위시켓</a>
-    <a href="daily-plus.html">오늘의플러스</a>
-    <a href="ai-usage.html" class="active">AI사용량</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
-    <a href="login.html" class="auth-start">로그인</a>
-    <a href="/api/logout">로그아웃</a>
-  </nav>
+  <nav class="jh-nav"></nav>
   <h1>AI Usage 대시보드</h1>
   <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
   <div class="gen-stamp">

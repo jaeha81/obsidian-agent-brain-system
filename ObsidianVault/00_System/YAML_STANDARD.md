@@ -29,8 +29,9 @@ Bucky 에이전트가 생성·검증하는 모든 Obsidian 노트의 frontmatter
 |------|------|------|------|
 | `project` | string | 연관 프로젝트명 | `wishket-automation` |
 | `client` | string | 고객명 (없으면 `-`) | `홍길동`, `-` |
-| `source` | string | 입력 출처 | `discord`, `voice`, `manual`, `api`, `web`, `file`, `chatgpt`, `today_plus`, `meeting`, `youtube`, `client`, `field`, `idea` |
-| `department` | list | 담당 부문 (다중값 허용) | `[ai_automation, interior]` |
+| `source` | string | 입력 출처 (URL 또는 파일 경로 허용) | `discord`, `voice`, `manual`, `api`, `web`, `file`, `chatgpt`, `today_plus`, `meeting`, `youtube`, `x`, `notion`, `newsletter`, `llm_wiki`, `client`, `field`, `idea`, `"https://youtu.be/..."`, `"daily-plus/2026-06-10.md"` |
+| `source_type` | string | 출처 범주 (source가 URL일 때 필수) | `youtube`, `x`, `notion`, `newsletter`, `discord`, `voice`, `web`, `file`, `manual`, `today_plus`, `meeting`, `llm_wiki` |
+| `department` | list | 담당 부문 — **반드시 YAML 리스트 형식** | `[ai_automation, interior]` — 단일도 리스트: `[system]` |
 | `agent` | string | 작성 에이전트 | `Bucky`, `ClaudeCode`, `Codex` |
 | `next_action` | string | 다음 행동 | `"Codex 검수 요청"` |
 | `owner` | string | 담당자 | `Bucky`, `jaeha` |
@@ -93,8 +94,26 @@ Bucky 에이전트가 생성·검증하는 모든 Obsidian 노트의 frontmatter
 | `content` | 콘텐츠 제작 |
 | `business_dev` | 사업 개발·제안 |
 | `system` | 시스템·인프라·에이전트 운영 |
+| `knowledge` | 지식 관리·볼트·Raw→Wiki 파이프라인 |
+| `revenue` | 수익화·매출 관련 논의 |
 
 다중 부문 소속 노트는 리스트로 기재: `department: [ai_automation, system]`
+
+> ⚠️ **YAML 리스트 형식 필수**: `department: ai_automation` 단일 문자열은 validator 오류 → 반드시 `department: [ai_automation]`
+
+---
+
+## source / source_type 사용 가이드 (2026-06-18 추가)
+
+| 상황 | source 값 | source_type 값 |
+|------|-----------|----------------|
+| Discord 메시지 | `discord` | 생략 |
+| YouTube 영상 | URL (`"https://youtu.be/..."`) | `youtube` |
+| X(트위터) 포스트 | URL 또는 `x` | `x` |
+| Daily Plus 카드 | `"daily-plus/YYYY-MM-DD.md (Card N)"` | `today_plus` |
+| LLM Wiki 정제 콘텐츠 | `llm_wiki` | `llm_wiki` |
+| Notion 임포트 | URL 또는 `notion` | `notion` |
+| 뉴스레터 | URL 또는 `newsletter` | `newsletter` |
 
 ---
 
