@@ -3382,7 +3382,7 @@ async def _init_jh_channels(client) -> None:
         ("jh-크몽수익화",    "JH_KMONG_CHANNEL_ID",          "Kmong monetization dashboard and Bucky workflow"),
         ("jh-내소개",        "JH_MYINTRO_CHANNEL_ID",        "🤝 내 소개 페이지 협업 문의"),
         ("jh-오늘의플러스",  "JH_DAILYPLUS_CHANNEL_ID",      "📅 Daily Plus → Bucky 브리핑"),
-        ("jh-테스크보드",    "JH_TASKBOARD_CHANNEL_ID",      "📋 테스크보드 → Bucky 라우팅"),
+        ("jh-태스크보드",    "JH_TASKBOARD_CHANNEL_ID",      "📋 태스크보드 → Bucky 라우팅"),
         ("jh-chris",         "JH_CHRIS_CHANNEL_ID",          "💡 Chris Graphify 지식 입력/태그 선택 요청"),
         ("jh-charlie",       "JH_CHARLIE_CHANNEL_ID",        "Charlie system audit, home PC continuity, drift warnings, and user confirmations"),
         ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
@@ -3390,7 +3390,15 @@ async def _init_jh_channels(client) -> None:
     ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
-        if _globals[env_key]:
+        ch_id = _globals[env_key]
+        if ch_id:
+            existing = guild.get_channel(int(ch_id))
+            if existing and existing.name != ch_name:
+                try:
+                    await existing.edit(name=ch_name)
+                    print(f"[Setup] #{existing.name} → #{ch_name} 이름 수정", flush=True)
+                except Exception as e:
+                    print(f"[Setup] #{ch_name} 이름 수정 실패: {e}", flush=True)
             continue
         existing = discord.utils.get(guild.text_channels, name=ch_name)
         if existing:
