@@ -105,6 +105,23 @@ fallback: Bucky 응답 불가 시 최소 안전 규칙
 
 스위치: `python -X utf8 scripts/context_pack_selector.py "디자인 개선해줘"` → key="design".
 
+## 응답 모드 설계 — Search vs Sync 패턴 (2026-06-18 추가)
+
+출처: [[../../03_Knowledge/2026-06-18-yt-gbrain-garry-tan-ai-brain-guide|GBrain 영상 분석]]
+
+Bucky의 응답 모드를 두 가지로 구분한다. 요청 복잡도와 비용 고려에 따라 선택.
+
+| 모드 | 방식 | 비용 | 언제 |
+|------|------|------|------|
+| **탐색 모드** (Search-like) | Context Pack 선택 → 관련 노트 직접 반환 | 최소 | 빠른 참조, 파일 위치 확인, 단순 정책 조회 |
+| **합성 모드** (Sync-like) | AI 깊은 분석 → 출처 달린 종합 답변 | API 과금 | 새 프로젝트 계획, 복잡한 설계, 리뷰 합성 |
+
+> 용어 매핑: **탐색 모드 = 기존 fast selector**, **합성 모드 = 기존 Bucky 깊은 합성**. 동일 개념의 다른 이름이다.
+
+**출처 추적 원칙**: 합성 모드 답변에는 어떤 Context Pack / Vault 노트에서 가져왔는지 출처를 명시한다.
+
+**정보 부족 갭 명시**: 컨텍스트가 부족해서 정확히 답하기 어려운 경우 추측 대신 갭을 명시한다. 상세 형식은 [[../../00_System/ROUTING_RULES|ROUTING_RULES]] "정보 부족 갭 명시 정책" 참조.
+
 ## Canonical Sources
 
 | Purpose | Source |

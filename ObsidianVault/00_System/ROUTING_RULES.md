@@ -284,3 +284,75 @@ preserve_design: true
 ```
 
 위반 시: `git revert` 즉시 실행 → 사용자 보고 필수
+
+## 정보 부족 갭 명시 정책 (2026-06-18 추가)
+
+출처: [[2026-06-18-yt-gbrain-garry-tan-ai-brain-guide]] — GBrain Gap Analysis 기능에서 차용.
+
+**원칙**: 에이전트는 정보가 부족해서 답하기 어려운 경우 아무 말이나 지어내지 않는다. 부족한 정보가 무엇인지 명시하고 사용자에게 알린다.
+
+### 적용 대상
+
+- Bucky가 Context Pack을 선택했으나 해당 프로젝트 패킷이 없을 때
+- Claude Code가 명세를 추론해야 하는 상황 (요구사항이 불완전)
+- Codex가 코드 컨텍스트 없이 검수 요청을 받을 때
+- 어떤 에이전트든 답변 근거가 충분하지 않다고 판단할 때
+
+### 갭 명시 형식
+
+```
+[GAP] 이 질문에 답하기 위해 아직 없는 정보:
+- <없는 정보 1>
+- <없는 정보 2>
+
+현재 가능한 답변 범위: <가능한 것>
+보완 방법 제안: <무엇을 제공하면 더 정확히 답할 수 있는지>
+```
+
+### 금지 행동
+
+- 정보 부족을 숨기고 그럴듯한 답변 생성
+- 불충분한 컨텍스트로 중요 결정(배포, 삭제, 변경) 진행
+
+---
+
+## MCP 접근 계층 (Knowledge Access Layers)
+
+> 추가: 2026-06-18 (투솔 AI 영상 적용)
+
+세컨드 브레인은 3가지 접근 경로를 통해 어떤 AI도 사용 가능하다.
+
+| 계층 | 방법 | 범위 | 현황 |
+|------|------|------|------|
+| **Layer 1: 로컬 직접** | Claude Code CLI → 파일시스템 직접 읽기 | G:\내 드라이브 전체 | ✅ 운영중 |
+| **Layer 2: 원격 VPN** | Tailscale → BuckyOS 서버(8765) → `/os/*` API | JSON 요약 + 채팅 | ✅ 운영중 |
+| **Layer 3: MCP 웹** | Relay.md → MCP 서버 → Claude 커스텀 커넥터 | 볼트 전체 (읽기/쓰기) | 🔧 설치 대기 |
+
+### Layer 3 설정 순서 (사용자 직접 수행)
+
+1. Obsidian → Settings → Community Plugins → "relay" 검색 → **Relay.md** 설치 및 활성화
+2. relay.md 계정 생성 (solo plan 무료)
+3. Relay.md 플러그인에서 vault 동기화 시작 → 완료 후 MCP URL 복사
+4. Claude Code 프로젝트에서 `.mcp.json` 업데이트 (아래 템플릿 참고)
+5. Claude Desktop/Web → Settings → Custom Connectors → MCP URL 붙여넣기
+6. 검증: "내 세컨드 브레인에서 오늘 세션 로그 확인해줘" 입력 → 볼트 파일 읽어서 응답하면 성공
+
+### .mcp.json 업데이트 템플릿
+
+Relay.md 설정 완료 후 `.mcp.json`에 아래 블록을 추가한다.  
+`YOUR_RELAY_MCP_URL`은 Relay.md 대시보드에서 복사한 MCP 엔드포인트로 교체:
+
+```json
+"second-brain": {
+  "type": "sse",
+  "url": "YOUR_RELAY_MCP_URL"
+}
+```
+
+### 지식 쿼리 우선순위 (어떤 AI가 볼트에 접근할 때)
+
+1. Layer 3 MCP가 있으면 → MCP 경유 (가장 풍부한 컨텍스트)
+2. Layer 2 VPN 환경 → `/os/memory`, `/os/activity` API 경유
+3. Layer 1 로컬 → 파일 직접 읽기
+
+> "근거 없이 추측 후 완료 보고 금지"는 이 파일의 기존 **Completion Standard** 섹션과 동일 원칙 — 해당 섹션 참조.
