@@ -37,6 +37,7 @@
   --mono:     "Space Mono", "Fira Code", monospace;
   --r:        10px;
   --gap:      14px;
+  --jh-nav-h: 34px;
   --topbar-h: 52px;
   --tabbar-h: 44px;
 }
@@ -85,7 +86,7 @@ body::after {
    TOPBAR
 ───────────────────────────────────────── */
 #topbar {
-  position: fixed; top: 0; left: 0; right: 0;
+  position: fixed; top: var(--jh-nav-h); left: 0; right: 0;
   height: var(--topbar-h);
   background: rgba(4,4,14,0.82);
   backdrop-filter: blur(16px);
@@ -226,7 +227,7 @@ body::after {
 ───────────────────────────────────────── */
 #tabbar {
   position: fixed;
-  top: var(--topbar-h); left: 0; right: 0;
+  top: calc(var(--jh-nav-h) + var(--topbar-h)); left: 0; right: 0;
   height: var(--tabbar-h);
   background: rgba(4,4,14,0.88);
   backdrop-filter: blur(16px);
@@ -265,8 +266,8 @@ body::after {
 ───────────────────────────────────────── */
 #main {
   position: relative; z-index: 1;
-  margin-top: calc(var(--topbar-h) + var(--tabbar-h));
-  min-height: calc(100vh - var(--topbar-h) - var(--tabbar-h));
+  margin-top: calc(var(--jh-nav-h) + var(--topbar-h) + var(--tabbar-h));
+  min-height: calc(100vh - var(--jh-nav-h) - var(--topbar-h) - var(--tabbar-h));
 }
 
 /* ─────────────────────────────────────────
@@ -976,12 +977,34 @@ body::after {
 }
 </style>
 <style>
-.in-iframe #topbar,.in-iframe #tabbar{display:none!important}
+.in-iframe .jh-nav,.in-iframe #topbar,.in-iframe #tabbar{display:none!important}
 .in-iframe #main{margin-top:0!important}
+.jh-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--jh-nav-h); z-index: 300;
+  background: rgba(2,2,10,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,212,255,0.06);
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 2px;
+}
+.jh-nav a {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); text-decoration: none;
+  padding: 3px 8px; border-radius: 3px;
+  letter-spacing: 0.06em;
+  transition: color .15s, background .15s;
+}
+.jh-nav a:hover { color: var(--cyan); background: rgba(0,212,255,0.06); }
+.jh-nav .auth-end { margin-left: auto; }
 </style>
 <script>(function(){if(window!==window.top){document.documentElement.classList.add('in-iframe');}})();</script>
+<script src="/shared/nav.js" defer></script>
 </head>
 <body>
+
+<nav class="jh-nav"></nav>
 
 <!-- ═══════════════════════════════════════
      TOPBAR
