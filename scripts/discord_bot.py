@@ -3392,13 +3392,13 @@ async def _init_jh_channels(client) -> None:
     for ch_name, env_key, topic in _specs:
         ch_id = _globals[env_key]
         if ch_id:
-            existing = guild.get_channel(int(ch_id))
+            existing = discord.utils.get(guild.text_channels, id=int(ch_id))
             if existing and existing.name != ch_name:
                 try:
                     await existing.edit(name=ch_name)
-                    print(f"[Setup] #{existing.name} → #{ch_name} 이름 수정", flush=True)
+                    print(f"[Setup] #{existing.name} -> #{ch_name} rename OK", flush=True)
                 except Exception as e:
-                    print(f"[Setup] #{ch_name} 이름 수정 실패: {e}", flush=True)
+                    print(f"[Setup] #{ch_name} rename FAIL: {e}", flush=True)
             continue
         existing = discord.utils.get(guild.text_channels, name=ch_name)
         if existing:
