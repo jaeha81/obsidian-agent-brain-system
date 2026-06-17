@@ -22,7 +22,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 # 모델 라우터 통합 (작업 유형 → sonnet/haiku/opus)
 SCRIPTS_DIR = Path(__file__).parent
@@ -75,11 +75,34 @@ def _split_env_args(value: str) -> list[str]:
     return shlex.split(value, posix=False)
 
 
+def _windows_npm_command_path(command: str) -> str | None:
+    command_name = command.strip().lower()
+    if command_name not in {"claude", "claude.cmd"}:
+        return None
+
+    candidate_names = [command]
+    if not command_name.endswith(".cmd"):
+        candidate_names.append(f"{command}.cmd")
+
+    roots = []
+    appdata = os.getenv("APPDATA", "").strip()
+    if appdata:
+        roots.append(Path(appdata) / "npm")
+    roots.append(Path.home() / "AppData" / "Roaming" / "npm")
+
+    for root in roots:
+        for candidate_name in candidate_names:
+            candidate = root / candidate_name
+            if candidate.exists():
+                return str(candidate)
+    return None
+
+
 def bucky_command() -> str:
     command = os.getenv("CLAUDE_COMMAND", "claude").strip() or "claude"
     if any(sep in command for sep in ("\\", "/", ":")):
         return command
-    return shutil.which(command) or command
+    return shutil.which(command) or _windows_npm_command_path(command) or command
 
 
 def agent_runtime() -> str:

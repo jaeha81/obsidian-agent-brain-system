@@ -28,7 +28,7 @@ from urllib.error import URLError
 _ROOT = Path(__file__).parent.parent
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 UPLOAD_DIR = _ROOT / "runtime" / "uploads"
-CAPTURES_DIR = VAULT / "Inbox" / "DiscordCaptures"
+CAPTURES_DIR = VAULT / "00_Inbox" / "DiscordCaptures"
 
 ALLOWED_CONTENT_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"}
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB

@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "project_name": "JH-구글자동화수익대시보드",
+    "dashboard_type": "jh_google_revenue",
+    "discord_channel": "jh-google-revenue-dashboard",
+    "version": "0.1.0",
+    "created": "2026-06-15",
+    "source_plan": "google_blog_adsense_monetization_plan.docx"
+  },
+  "phases": [
+    {
+      "id": "phase-0",
+      "name": "Foundation",
+      "status": "active",
+      "goal": "프로젝트 계약, 안전 정책, 운영 대시보드, AgentBus 큐를 만든다.",
+      "done_when": [
+        "대시보드가 로컬 docs preview에서 열린다.",
+        "금지 액션이 워크플로우에서 차단된다.",
+        "콘텐츠 생성 요청은 사람 검수 대기 상태로만 이동한다."
+      ]
+    },
+    {
+      "id": "phase-1",
+      "name": "Content Pipeline",
+      "status": "planned",
+      "goal": "키워드 점수화, 글 목차, Blogger 초안, 정책 검수 패킷을 연결한다."
+    },
+    {
+      "id": "phase-2",
+      "name": "Metrics And Revenue",
+      "status": "planned",
+      "goal": "Search Console, AdSense, 수동 KPI 입력을 RPM 중심 리포트로 통합한다."
+    },
+    {
+      "id": "phase-3",
+      "name": "Make Bridge",
+      "status": "planned",
+      "goal": "Make.com webhook으로 Sheets, Gmail, Discord, Blogger 초안 작업을 연결한다."
+    }
+  ],
+  "agents": [
+    {
+      "id": "keyword_scout",
+      "name": "KeywordScout",
+      "status": "ready",
+      "allowed_actions": ["score_keyword", "sync_manual_metrics"],
+      "requires_human_review": false
+    },
+    {
+      "id": "content_draft",
+      "name": "ContentDraft",
+      "status": "ready",
+      "allowed_actions": ["draft_outline", "draft_article", "draft_blogger_post"],
+      "requires_human_review": true
+    },
+    {
+      "id": "policy_guard",
+      "name": "PolicyGuard",
+      "status": "ready",
+      "allowed_actions": ["run_policy_check", "create_review_packet"],
+      "requires_human_review": false
+    },
+    {
+      "id": "revenue_analyst",
+      "name": "RevenueAnalyst",
+      "status": "ready",
+      "allowed_actions": ["update_kpi_snapshot", "sync_manual_metrics"],
+      "requires_human_review": false
+    },
+    {
+      "id": "make_bridge",
+      "name": "MakeBridge",
+      "status": "guarded",
+      "allowed_actions": ["prepare_make_webhook_payload"],
+      "approval_required_actions": ["send_make_webhook"]
+    },
+    {
+      "id": "discord_ops",
+      "name": "DiscordOps",
+      "status": "guarded",
+      "allowed_actions": ["prepare_status_report"],
+      "approval_required_actions": ["create_discord_channel", "send_weekly_report"]
+    }
+  ],
+  "content_queue": [
+    {
+      "id": "kw-001",
+      "cluster": "google-adsense-basics",
+      "keyword": "블로그 애드센스 승인 체크리스트",
+      "intent_score": 5,
+      "monetization_score": 5,
+      "operator_fit_score": 5,
+      "stage": "keyword_scored",
+      "next_action": "draft_outline"
+    },
+    {
+      "id": "kw-002",
+      "cluster": "ai-productivity-tools",
+      "keyword": "무료 AI 생산성 도구 비교",
+      "intent_score": 5,
+      "monetization_score": 4,
+      "operator_fit_score": 4,
+      "stage": "keyword_scored",
+      "next_action": "draft_outline"
+    },
+    {
+      "id": "kw-003",
+      "cluster": "ai-automation",
+      "keyword": "Make.com으로 블로그 운영 기록 자동 저장",
+      "intent_score": 4,
+      "monetization_score": 5,
+      "operator_fit_score": 4,
+      "stage": "outline_needed",
+      "next_action": "draft_outline"
+    }
+  ],
+  "kpis": {
+    "target_posts_90d": 50,
+    "minimum_reviewed_posts_before_adsense": 20,
+    "rpm_formula": "estimated_revenue / page_views * 1000",
+    "primary_metrics": ["posts_published", "indexed_urls", "page_views", "rpm", "leads", "review_queue"]
+  },
+  "safety": {
+    "forbidden_actions": [
+      "click_ads",
+      "self_click_ads",
+      "ask_others_to_click_ads",
+      "simulate_traffic",
+      "buy_traffic",
+      "mass_publish",
+      "auto_publish_without_review",
+      "generate_low_value_content",
+      "bypass_adsense_policy"
+    ],
+    "content_requires_human_review": true,
+    "secrets_source": "environment"
+  }
+}

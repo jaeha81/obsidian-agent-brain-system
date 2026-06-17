@@ -35,7 +35,7 @@ TASK_NAME = "ObsidianBrain_CollectionScheduler"
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+    load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 except ImportError:
     pass
 
@@ -66,6 +66,9 @@ def notify_discord(message: str) -> None:
 
 # ── 수집기 실행 ────────────────────────────────────────────────────────────────
 
+_GPT_PROFILE = ROOT / ".gpt_collector_profile"
+_CLAUDE_PROFILE = Path(os.environ.get("USERPROFILE", str(Path.home()))) / ".playwright-claude-sessions"
+
 COLLECTORS = [
     {
         "name": "GPT Session Collector",
@@ -73,6 +76,8 @@ COLLECTORS = [
         "args": ["--collect"],
         "dry_run_args": ["--collect", "--dry-run"],
         "login_required": True,
+        "profile_path": _GPT_PROFILE,
+        "login_cmd": "python scripts/gpt_session_collector.py --login",
     },
     {
         "name": "Claude Session Collector",
@@ -80,6 +85,8 @@ COLLECTORS = [
         "args": ["--collect"],
         "dry_run_args": ["--collect", "--dry-run"],
         "login_required": True,
+        "profile_path": _CLAUDE_PROFILE,
+        "login_cmd": "python scripts/claude_session_collector.py --login",
     },
     {
         "name": "Codex Log Collector",
@@ -87,6 +94,8 @@ COLLECTORS = [
         "args": ["--collect"],
         "dry_run_args": ["--collect", "--dry-run"],
         "login_required": False,
+        "profile_path": None,
+        "login_cmd": None,
     },
 ]
 
@@ -96,15 +105,26 @@ def run_collector(collector: dict, dry_run: bool = False, timeout: int = 300) ->
     args = collector["dry_run_args"] if dry_run else collector["args"]
     cmd = [sys.executable, str(script)] + args
 
-    log.info(f"실행: {collector['name']} {'[DRY-RUN]' if dry_run else ''}")
-
     result = {
         "name": collector["name"],
         "success": False,
+        "skipped": False,
         "files_saved": 0,
         "error": None,
         "duration_s": 0,
     }
+
+    # 로그인 필요 수집기인데 프로파일이 없으면 건너뜀 (실패로 보고하지 않음)
+    profile_path = collector.get("profile_path")
+    if collector.get("login_required") and profile_path and not Path(profile_path).exists():
+        login_cmd = collector.get("login_cmd", "")
+        log.warning(f"  ⏭ {collector['name']}: 로그인 프로파일 없음 — 건너뜀")
+        log.warning(f"     1회 설정: {login_cmd}")
+        result["skipped"] = True
+        result["error"] = f"로그인 필요: {login_cmd}"
+        return result
+
+    log.info(f"실행: {collector['name']} {'[DRY-RUN]' if dry_run else ''}")
 
     start = datetime.now()
     try:
@@ -156,9 +176,10 @@ def run_all(dry_run: bool = False) -> list[dict]:
     # 결과 요약
     total_files = sum(r["files_saved"] for r in results)
     success_count = sum(1 for r in results if r["success"])
-    fail_count = len(results) - success_count
+    skip_count = sum(1 for r in results if r.get("skipped"))
+    fail_count = len(results) - success_count - skip_count
 
-    log.info(f"=== 완료: 성공 {success_count}/{len(results)}, 총 {total_files}개 파일 저장 ===")
+    log.info(f"=== 완료: 성공 {success_count}/{len(results)}, 건너뜀 {skip_count}, 실패 {fail_count}, 총 {total_files}개 파일 ===")
 
     # 로그 저장
     log_path = LOG_DIR / f"{ts}_collection.json"
@@ -170,6 +191,7 @@ def run_all(dry_run: bool = False) -> list[dict]:
         "summary": {
             "total_collectors": len(results),
             "success": success_count,
+            "skipped": skip_count,
             "failed": fail_count,
             "total_files": total_files,
         }
@@ -182,10 +204,16 @@ def run_all(dry_run: bool = False) -> list[dict]:
         status_icon = "✅" if fail_count == 0 else "⚠️"
         msg_lines = [f"{status_icon} **수집 파이프라인 완료** ({date_str})"]
         for r in results:
-            icon = "✓" if r["success"] else "✗"
-            msg_lines.append(f"  {icon} {r['name']}: {r['files_saved']}개 파일")
+            if r.get("skipped"):
+                icon = "⏭"
+                msg_lines.append(f"  {icon} {r['name']}: 로그인 1회 필요 (건너뜀)")
+            else:
+                icon = "✓" if r["success"] else "✗"
+                msg_lines.append(f"  {icon} {r['name']}: {r['files_saved']}개 파일")
         if fail_count:
             msg_lines.append(f"\n⚠️ {fail_count}개 수집기 실패 — 로그 확인: `{log_path.name}`")
+        if skip_count:
+            msg_lines.append(f"\n💡 로그인 설정 필요 수집기 {skip_count}개 — 집 PC에서 --login 실행")
         notify_discord("\n".join(msg_lines))
 
     return results
@@ -310,7 +338,7 @@ def main():
     else:
         # --run 또는 인수 없이 실행
         results = run_all(dry_run=args.dry_run)
-        failed = [r for r in results if not r["success"]]
+        failed = [r for r in results if not r["success"] and not r.get("skipped")]
         sys.exit(1 if failed else 0)
 
 

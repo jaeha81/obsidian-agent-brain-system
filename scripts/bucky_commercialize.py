@@ -13,7 +13,7 @@ import requests
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK_URL", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")

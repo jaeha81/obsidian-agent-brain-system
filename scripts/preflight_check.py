@@ -29,7 +29,7 @@ if sys.stderr.encoding and sys.stderr.encoding.lower() not in ("utf-8", "utf-8-s
 
 def _load_env() -> None:
     if load_dotenv:
-        load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+        load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 
 def _run(args: list[str], timeout: int = 10) -> tuple[int, str]:

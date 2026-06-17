@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 # 경로 설정
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(ROOT / "ObsidianVault")))
 SCRIPTS_DIR = ROOT / "scripts"

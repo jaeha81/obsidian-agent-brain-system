@@ -222,7 +222,7 @@ async def login_mode():
 
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
-            user_data_dir=str(PROFILE_DIR), headless=False, channel="chromium"
+            user_data_dir=str(PROFILE_DIR), headless=False, channel="chrome"
         )
         page = await context.new_page()
         await page.goto("https://claude.ai/", wait_until="domcontentloaded")
@@ -261,7 +261,7 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
         context = await p.chromium.launch_persistent_context(
             user_data_dir=str(PROFILE_DIR),
             headless=True,
-            channel="chromium",
+            channel="chrome",
             args=["--disable-blink-features=AutomationControlled"],
         )
         page = await context.new_page()

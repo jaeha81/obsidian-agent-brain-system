@@ -9,7 +9,13 @@ echo [Bot] Restart signal: ObsidianVault\10_AgentBus\signals\bot_restart.signal
 echo [Bot] Stop: press Ctrl+C in this window
 echo.
 
-python scripts\bucky_bot_supervisor.py
+set PYTHONUTF8=1
+set PYTHONIOENCODING=utf-8
+
+set "PYTHON_EXE=C:\Python314\python.exe"
+if not exist "%PYTHON_EXE%" set "PYTHON_EXE=python"
+
+"%PYTHON_EXE%" -X utf8 scripts\bucky_bot_supervisor.py
 set EXIT_CODE=%ERRORLEVEL%
 
 echo.

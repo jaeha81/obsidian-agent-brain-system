@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>PC 원격 제어 — BuckyOS</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -72,6 +72,7 @@
     cursor: crosshair;
     position: relative;
     touch-action: none;
+    overscroll-behavior: contain;
   }
   #viewport:focus { outline: none; }
   #screen-img {
@@ -84,6 +85,7 @@
     touch-action: none;
     transform-origin: center center;
     transition: transform 0.05s linear;
+    will-change: transform;
   }
   #overlay {
     position: absolute; inset: 0; pointer-events: none;
@@ -160,7 +162,7 @@
     <button id="btn-ctrl" onclick="toggleControl()">제어 OFF</button>
     <button id="btn-kbd" onclick="toggleKbd()">키보드</button>
     <button onclick="sendFullscreenKey()">전체화면</button>
-    <button onclick="sendKey('ctrl+alt+delete')">Ctrl+Alt+Del</button>
+    <button onclick="sendCtrlAltDel()">Ctrl+Alt+Del</button>
     <div class="sep"></div>
     <button id="btn-fullvp" onclick="toggleFullViewport()">뷰 확대</button>
     <button onclick="resetZoom()" id="btn-zoom-reset" style="display:none">줌 초기화</button>
@@ -187,8 +189,10 @@
 
   <!-- Keyboard panel -->
   <div id="kbd-panel">
-    <input id="type-input" type="text" placeholder="텍스트 입력 후 Enter — PC에 그대로 타이핑됩니다"
+    <input id="type-input" type="text" placeholder="텍스트 입력 후 전송"
+      autocomplete="off" autocapitalize="none" enterkeyhint="send"
       onkeydown="onTypeInput(event)">
+    <button class="hotkey-btn" id="btn-type-send" onclick="sendTypedText()">전송</button>
     <button class="hotkey-btn" onclick="sendHotkey(['ctrl','c'])">Copy</button>
     <button class="hotkey-btn" onclick="sendHotkey(['ctrl','v'])">Paste</button>
     <button class="hotkey-btn" onclick="sendHotkey(['ctrl','z'])">Undo</button>
@@ -226,6 +230,7 @@ let panX = 0, panY = 0;
 const MIN_ZOOM = 0.5, MAX_ZOOM = 5.0;
 
 function applyViewTransform() {
+  clampPan();
   img.style.transform = `translate(${panX}px, ${panY}px) scale(${viewZoom})`;
   const pct = Math.round(viewZoom * 100);
   const isZoomed = viewZoom !== 1.0 || panX !== 0 || panY !== 0;
@@ -237,10 +242,30 @@ function applyViewTransform() {
 function clampPan() {
   if (viewZoom <= 1.0) { panX = 0; panY = 0; return; }
   const vp = document.getElementById('viewport');
-  const maxX = vp.clientWidth  * (viewZoom - 1) / 2;
-  const maxY = vp.clientHeight * (viewZoom - 1) / 2;
+  const baseW = img.offsetWidth || vp.clientWidth;
+  const baseH = img.offsetHeight || vp.clientHeight;
+  const maxX = Math.max(0, (baseW * viewZoom - vp.clientWidth) / 2);
+  const maxY = Math.max(0, (baseH * viewZoom - vp.clientHeight) / 2);
   panX = Math.max(-maxX, Math.min(maxX, panX));
   panY = Math.max(-maxY, Math.min(maxY, panY));
+}
+
+function setViewZoom(nextZoom, focalX, focalY) {
+  const prevZoom = viewZoom;
+  nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nextZoom));
+  if (Math.abs(nextZoom - prevZoom) < 0.001) return;
+
+  if (typeof focalX === 'number' && typeof focalY === 'number') {
+    const rect = img.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const ratio = nextZoom / prevZoom;
+    panX += (focalX - centerX) * (1 - ratio);
+    panY += (focalY - centerY) * (1 - ratio);
+  }
+
+  viewZoom = nextZoom;
+  applyViewTransform();
 }
 
 function resetZoom() {
@@ -252,7 +277,7 @@ function resetZoom() {
 
 // Touch state
 const touch = { startX: 0, startY: 0, lastTapTime: 0, longTimer: null, moved: false, count: 0,
-                twoFingerY: 0, pinchDist: 0, pinchMode: null, prevX: 0, prevY: 0 };
+                twoFingerX: 0, twoFingerY: 0, pinchDist: 0, pinchMode: null, prevX: 0, prevY: 0 };
 
 // ── Init ──────────────────────────────────────────────────────────
 (async function init() {
@@ -373,9 +398,11 @@ function setConnected(ok, lat) {
 // ── Coordinate mapping ────────────────────────────────────────────
 function coordsFromPoint(cx, cy) {
   const rect = img.getBoundingClientRect();
+  const nx = Math.max(0, Math.min(1, (cx - rect.left) / rect.width));
+  const ny = Math.max(0, Math.min(1, (cy - rect.top) / rect.height));
   return {
-    x: Math.round(((cx - rect.left) / rect.width)  * screenW),
-    y: Math.round(((cy - rect.top)  / rect.height) * screenH),
+    x: Math.round(nx * screenW),
+    y: Math.round(ny * screenH),
   };
 }
 
@@ -400,7 +427,10 @@ function onTouchStart(e) {
       }, 600);
     }
   } else if (e.touches.length === 2) {
+    touch.twoFingerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
     touch.twoFingerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    touch.prevX = touch.twoFingerX;
+    touch.prevY = touch.twoFingerY;
     const dx = e.touches[0].clientX - e.touches[1].clientX;
     const dy = e.touches[0].clientY - e.touches[1].clientY;
     touch.pinchDist = Math.hypot(dx, dy);
@@ -410,24 +440,29 @@ function onTouchStart(e) {
 
 function onTouchMove(e) {
   e.preventDefault();
-  if (!controlEnabled) return;
 
   if (e.touches.length === 1) {
     const t = e.touches[0];
+    const dx = t.clientX - touch.prevX;
+    const dy = t.clientY - touch.prevY;
     if (Math.abs(t.clientX - touch.startX) > 5 || Math.abs(t.clientY - touch.startY) > 5) {
       touch.moved = true;
       clearTimeout(touch.longTimer);
     }
-    if (!controlEnabled) {
-      // Pan the zoomed view
-      panX += t.clientX - touch.prevX;
-      panY += t.clientY - touch.prevY;
+
+    if (viewZoom > 1.01) {
+      panX += dx;
+      panY += dy;
       touch.prevX = t.clientX;
       touch.prevY = t.clientY;
-      clampPan();
       applyViewTransform();
       return;
     }
+
+    touch.prevX = t.clientX;
+    touch.prevY = t.clientY;
+    if (!controlEnabled) return;
+
     const now = Date.now();
     if (now - lastMoveTime < MOVE_THROTTLE_MS) return;
     lastMoveTime = now;
@@ -436,28 +471,43 @@ function onTouchMove(e) {
     sendInput({ type: 'move', x, y });
 
   } else if (e.touches.length === 2) {
+    touch.moved = true;
+    clearTimeout(touch.longTimer);
+    const curMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
     const curMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
     const dx = e.touches[0].clientX - e.touches[1].clientX;
     const dy = e.touches[0].clientY - e.touches[1].clientY;
     const curDist = Math.hypot(dx, dy);
+    const panDx = curMidX - touch.twoFingerX;
+    const panDy = curMidY - touch.twoFingerY;
 
     // Decide pinch vs scroll on first significant move
     if (touch.pinchMode === null) {
       const distChange = Math.abs(curDist - touch.pinchDist);
       const scrollChange = Math.abs(curMidY - touch.twoFingerY);
+      const panChange = Math.hypot(panDx, panDy);
       if (distChange > 8) touch.pinchMode = 'zoom';
+      else if (viewZoom > 1.01 && panChange > 5) touch.pinchMode = 'pan';
       else if (scrollChange > 5) touch.pinchMode = 'scroll';
     }
 
     if (touch.pinchMode === 'zoom') {
       if (touch.pinchDist > 0) {
         const ratio = curDist / touch.pinchDist;
-        viewZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, viewZoom * ratio));
-        applyViewTransform();
+        setViewZoom(viewZoom * ratio, curMidX, curMidY);
       }
       touch.pinchDist = curDist;
+      touch.twoFingerX = curMidX;
+      touch.twoFingerY = curMidY;
+    } else if (touch.pinchMode === 'pan') {
+      panX += panDx;
+      panY += panDy;
+      touch.twoFingerX = curMidX;
+      touch.twoFingerY = curMidY;
+      applyViewTransform();
     } else if (touch.pinchMode === 'scroll') {
       const delta = curMidY - touch.twoFingerY;
+      touch.twoFingerX = curMidX;
       touch.twoFingerY = curMidY;
       if (Math.abs(delta) > 2 && controlEnabled) {
         const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
@@ -589,24 +639,26 @@ function onKeyUp(e) {
 
 // ── Type input ────────────────────────────────────────────────────
 function onTypeInput(e) {
-  if (e.key === 'Enter') {
-    const inp = document.getElementById('type-input');
-    const text = inp.value;
-    if (text) {
-      sendInput({ type: 'type', text });
-      inp.value = '';
-    }
+  if (e.key === 'Enter' && !e.isComposing) {
+    e.preventDefault();
+    sendTypedText();
   }
 }
 
 // ── Send helpers ──────────────────────────────────────────────────
-function sendInput(payload) {
-  fetch(BASE + '/os/screen/input', {
+function sendInput(payload, options = {}) {
+  const request = fetch(BASE + '/os/screen/input', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
     credentials: 'include',
-  }).catch(() => {});
+  }).then(async (r) => {
+    if (!r.ok) throw new Error(await r.text());
+    return r;
+  });
+  if (options.reportErrors) return request;
+  request.catch(() => {});
+  return request;
 }
 
 function sendKey(k) {
@@ -617,8 +669,36 @@ function sendHotkey(keys) {
   sendInput({ type: 'hotkey', keys });
 }
 
+async function sendTypedText() {
+  const inp = document.getElementById('type-input');
+  const btn = document.getElementById('btn-type-send');
+  const text = inp.value;
+  if (!text) {
+    inp.focus();
+    return;
+  }
+
+  inp.value = '';
+  btn.disabled = true;
+  btn.textContent = '전송중';
+  try {
+    await sendInput({ type: 'type', text }, { reportErrors: true });
+  } catch (e) {
+    inp.value = text;
+    console.warn('Text input failed', e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '전송';
+    inp.focus();
+  }
+}
+
 function sendFullscreenKey() {
   sendInput({ type: 'key', key: 'f11' });
+}
+
+function sendCtrlAltDel() {
+  sendHotkey(['ctrl', 'alt', 'delete']);
 }
 
 // ── Toggle control ────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 GitHub Cataloger Agent — bucky_sub_agent_manager 패턴을 따르는 서브에이전트 래퍼
 
@@ -49,7 +49,7 @@ if str(_SCRIPTS) not in sys.path:
 try:
     from dotenv import load_dotenv
     _ROOT = _SCRIPTS.parent
-    load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
+    load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 except ImportError:
     _ROOT = _SCRIPTS.parent
 

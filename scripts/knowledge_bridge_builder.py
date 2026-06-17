@@ -14,7 +14,7 @@ SOURCE_DIRS = (
     "01_RAW",
     "10_AgentBus",
     "09_Archive",
-    "Inbox",
+    "00_Inbox",
 )
 EXCLUDED_SOURCE_PARTS = {
     "claude-sessions",

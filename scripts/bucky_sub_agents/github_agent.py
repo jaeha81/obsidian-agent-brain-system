@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 GitHub Agent — bucky_sub_agent_manager 패턴을 따르는 GitHub 전담 서브에이전트
 
@@ -41,7 +41,7 @@ if str(_SCRIPTS) not in sys.path:
 from dotenv import load_dotenv
 
 _ROOT = _SCRIPTS.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"

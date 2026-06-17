@@ -15,7 +15,7 @@ import requests
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(ROOT / "ObsidianVault")))
 AGENTBUS_INBOX = VAULT / "10_AgentBus" / "inbox"

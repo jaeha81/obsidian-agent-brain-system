@@ -40,7 +40,7 @@ import urllib.parse
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 import os
 

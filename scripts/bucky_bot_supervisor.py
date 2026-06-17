@@ -20,27 +20,44 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
-try:
-    from dotenv import load_dotenv
-    _env_path = Path(__file__).resolve().parent.parent / ".env"
-    if _env_path.exists():
-        load_dotenv(_env_path, encoding="utf-8")
-except ImportError:
-    pass
-
 ROOT = Path(__file__).resolve().parent.parent
 BOT_SCRIPT = ROOT / "scripts" / "discord_bot.py"
 SIGNAL_DIR = ROOT / "ObsidianVault" / "10_AgentBus" / "signals"
 SIGNAL_FILE = SIGNAL_DIR / "bot_restart.signal"
 PID_FILE = SIGNAL_DIR / "bucky_bot.pid"
+SUPERVISOR_PID_FILE = SIGNAL_DIR / "bucky_bot_supervisor.pid"
 LOG_FILE = ROOT / "discord_bot.log"
 ERR_FILE = ROOT / "discord_bot.err"
-POLL_SECONDS = int(os.getenv("BUCKY_SUPERVISOR_INTERVAL", "10"))
-RESTART_DELAY_SECONDS = int(os.getenv("BUCKY_SUPERVISOR_RESTART_DELAY", "5"))
-DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL", "")
+LEGACY_PID_FILE = ROOT / "logs" / "discord_bot.pid"
 
 # 재시작 통계
 _restart_count = 0
+
+
+def load_env_file() -> None:
+    """Load .env even when python-dotenv is missing or the file has a BOM."""
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_path, encoding="utf-8-sig", override=True)
+        return
+    except ImportError:
+        pass
+
+    for raw_line in env_path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        os.environ[name.strip()] = value.strip().strip('"').strip("'")
+
+
+load_env_file()
+POLL_SECONDS = int(os.getenv("BUCKY_SUPERVISOR_INTERVAL", "10"))
+RESTART_DELAY_SECONDS = int(os.getenv("BUCKY_SUPERVISOR_RESTART_DELAY", "5"))
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 
 def send_webhook(text: str) -> None:
@@ -112,12 +129,83 @@ def is_pid_running(pid: int) -> bool:
         return False
 
 
+def process_command_line(pid: int) -> str:
+    if pid <= 0 or os.name != "nt":
+        return ""
+    try:
+        result = subprocess.run(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-Command",
+                f"(Get-CimInstance Win32_Process -Filter \"ProcessId={pid}\").CommandLine",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=8,
+        )
+        return result.stdout.strip()
+    except Exception as exc:
+        log(f"process_command_line({pid}) failed: {exc}")
+        return ""
+
+
 def existing_child_is_running() -> bool:
     try:
         pid = int(PID_FILE.read_text(encoding="utf-8").strip())
     except Exception:
         return False
-    return is_pid_running(pid)
+    if not is_pid_running(pid):
+        return False
+    command_line = process_command_line(pid)
+    if "discord_bot.py" in command_line.replace("\\", "/"):
+        return True
+    log(f"Ignoring stale bot PID file pid={pid}; command is not discord_bot.py")
+    return False
+
+
+def read_supervisor_pid() -> int | None:
+    try:
+        pid = int(SUPERVISOR_PID_FILE.read_text(encoding="utf-8").strip())
+    except Exception:
+        return None
+    return pid if pid > 0 else None
+
+
+def existing_supervisor_is_running() -> bool:
+    pid = read_supervisor_pid()
+    if not pid or pid == os.getpid():
+        return False
+    if is_pid_running(pid):
+        command_line = process_command_line(pid)
+        if "bucky_bot_supervisor.py" in command_line.replace("\\", "/"):
+            return True
+        log(f"Ignoring stale supervisor PID file pid={pid}; command is not bucky_bot_supervisor.py")
+    try:
+        SUPERVISOR_PID_FILE.unlink(missing_ok=True)
+    except OSError:
+        pass
+    return False
+
+
+def write_supervisor_pid() -> None:
+    try:
+        SIGNAL_DIR.mkdir(parents=True, exist_ok=True)
+        SUPERVISOR_PID_FILE.write_text(str(os.getpid()), encoding="ascii")
+    except OSError as exc:
+        log(f"Could not write supervisor PID file: {exc}")
+
+
+def remove_supervisor_pid() -> None:
+    pid = read_supervisor_pid()
+    if pid and pid != os.getpid():
+        return
+    try:
+        SUPERVISOR_PID_FILE.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 def find_existing_bot_pids() -> list[int]:
@@ -149,6 +237,31 @@ def find_existing_bot_pids() -> list[int]:
                             pids.append(pid)
         except Exception as exc:
             log(f"find_existing_bot_pids wmic 오류: {exc}")
+        if not pids:
+            try:
+                result = subprocess.run(
+                    [
+                        "powershell.exe",
+                        "-NoProfile",
+                        "-Command",
+                        "Get-CimInstance Win32_Process | "
+                        "Where-Object { $_.CommandLine -like '*discord_bot.py*' } | "
+                        "ForEach-Object { $_.ProcessId }",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=10,
+                )
+                for line in result.stdout.splitlines():
+                    line = line.strip()
+                    if line.isdigit():
+                        pid = int(line)
+                        if pid and pid != self_pid:
+                            pids.append(pid)
+            except Exception as exc:
+                log(f"find_existing_bot_pids powershell 오류: {exc}")
     else:
         try:
             result = subprocess.run(
@@ -194,8 +307,11 @@ def clear_restart_signal() -> None:
 
 
 def write_pid(pid: int) -> None:
-    SIGNAL_DIR.mkdir(parents=True, exist_ok=True)
-    PID_FILE.write_text(str(pid), encoding="ascii")
+    try:
+        SIGNAL_DIR.mkdir(parents=True, exist_ok=True)
+        PID_FILE.write_text(str(pid), encoding="ascii")
+    except OSError as exc:
+        log(f"Could not write bot PID file: {exc}")
 
 
 def remove_pid() -> None:
@@ -205,14 +321,63 @@ def remove_pid() -> None:
         pass
 
 
+def reconcile_legacy_pid_file() -> list[int]:
+    """Remove or stop the legacy logs/discord_bot.pid guard before supervisor start."""
+    if not LEGACY_PID_FILE.exists():
+        return []
+    try:
+        pid_text = LEGACY_PID_FILE.read_text(encoding="utf-8").strip()
+        pid = int(pid_text)
+    except Exception:
+        log(f"Removing unreadable legacy bot PID file: {LEGACY_PID_FILE}")
+        try:
+            LEGACY_PID_FILE.unlink(missing_ok=True)
+        except OSError as exc:
+            log(f"Could not remove unreadable legacy bot PID file: {exc}")
+        return []
+
+    if not is_pid_running(pid):
+        log(f"Removing stale legacy bot PID file pid={pid}")
+        try:
+            LEGACY_PID_FILE.unlink(missing_ok=True)
+        except OSError as exc:
+            log(f"Could not remove stale legacy bot PID file: {exc}")
+        return []
+
+    command_line = process_command_line(pid)
+    if "discord_bot.py" in command_line.replace("\\", "/"):
+        log(f"Legacy discord_bot.py pid={pid} detected; stopping before supervised start")
+        kill_pid(pid)
+        time.sleep(2)
+        try:
+            LEGACY_PID_FILE.unlink(missing_ok=True)
+        except OSError as exc:
+            log(f"Could not remove legacy bot PID file after stop: {exc}")
+        return [pid]
+
+    log(f"Removing legacy bot PID file pid={pid}; command is not discord_bot.py")
+    try:
+        LEGACY_PID_FILE.unlink(missing_ok=True)
+    except OSError as exc:
+        log(f"Could not remove non-bot legacy PID file: {exc}")
+    return []
+
+
 def start_bot() -> subprocess.Popen:
     SIGNAL_DIR.mkdir(parents=True, exist_ok=True)
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    reconcile_legacy_pid_file()
     stdout = LOG_FILE.open("a", encoding="utf-8", errors="replace")
     stderr = ERR_FILE.open("a", encoding="utf-8", errors="replace")
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
+    if os.name == "nt":
+        path_value = env.get("PATH") or env.get("Path") or os.defpath
+        for key in list(env):
+            if key.lower() == "path":
+                env.pop(key, None)
+        env["PATH"] = path_value
     proc = subprocess.Popen(
         [sys.executable, str(BOT_SCRIPT)],
         cwd=str(ROOT),
@@ -269,6 +434,12 @@ def stop_bot(proc: subprocess.Popen | None) -> None:
 def run() -> int:
     global _restart_count
 
+    if existing_supervisor_is_running():
+        pid = read_supervisor_pid()
+        log(f"Existing supervisor pid={pid} is already running; not starting duplicate.")
+        return 0
+    write_supervisor_pid()
+
     send_webhook(f"🟢 **Bucky 슈퍼바이저 시작** | PC: `{socket.gethostname()}`")
     log(f"Home PC supervisor starting on {socket.gethostname()}")
     log(f"Restart signal: {SIGNAL_FILE}")
@@ -278,8 +449,10 @@ def run() -> int:
     # PID 파일로 확인
     if existing_child_is_running():
         pid_str = PID_FILE.read_text(encoding="utf-8").strip()
-        log(f"Existing bot pid={pid_str} is already running (PID file); not starting duplicate.")
-        return 0
+        log(f"Existing bot pid={pid_str} found from PID file; restarting under supervisor control.")
+        kill_pid(int(pid_str))
+        time.sleep(2)
+        remove_pid()
 
     # 이름 기반 검색: PID 파일 없이 직접 실행된 경우도 감지
     orphan_pids = find_existing_bot_pids()
@@ -338,6 +511,7 @@ def run() -> int:
         log("Supervisor interrupted")
         stop_bot(proc)
         send_webhook(f"🔴 **Bucky 슈퍼바이저 수동 종료** | PC: `{socket.gethostname()}`")
+        remove_supervisor_pid()
         return 0
 
 

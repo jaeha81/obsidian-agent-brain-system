@@ -16,7 +16,7 @@ G:\내 드라이브\JH-SHARED → ObsidianVault 단방향 이관
   JH-SHARED/04_DAILY_REPORTS/ → ObsidianVault/05_Logs/daily-reports-gdrive/
   JH-SHARED/05_TASK_LOCKS/  → ObsidianVault/10_AgentBus/task-locks-gdrive/
   JH-SHARED/06_TASK_LOGS/   → ObsidianVault/05_Logs/task-logs-gdrive/
-  JH-SHARED/99_ARCHIVE/     → ObsidianVault/99_Archive/gdrive-archive/
+  JH-SHARED/99_ARCHIVE/     → ObsidianVault/09_Archive/gdrive-archive/
   JH-SHARED/scripts/        → ObsidianVault/00_System/gdrive-scripts/
   JH-SHARED/.claude/        → ObsidianVault/00_System/gdrive-claude-config/
   JH-SHARED/*.json, *.md    → ObsidianVault/00_System/gdrive-root-files/
@@ -31,7 +31,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 GDRIVE_AGENT_ROOM = Path(os.getenv("GDRIVE_AGENT_ROOM", r"G:\내 드라이브\JH-SHARED"))
@@ -44,7 +44,7 @@ MIGRATION_MAP = {
     "04_DAILY_REPORTS": VAULT / "05_Logs" / "daily-reports-gdrive",
     "05_TASK_LOCKS":    VAULT / "10_AgentBus" / "task-locks-gdrive",
     "06_TASK_LOGS":     VAULT / "05_Logs" / "task-logs-gdrive",
-    "99_ARCHIVE":       VAULT / "99_Archive" / "gdrive-archive",
+    "99_ARCHIVE":       VAULT / "09_Archive" / "gdrive-archive",
     "scripts":          VAULT / "00_System" / "gdrive-scripts",
     ".claude":          VAULT / "00_System" / "gdrive-claude-config",
 }

@@ -30,7 +30,7 @@ _ROOT = Path(__file__).parent.parent
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(_ROOT / ".env", encoding="utf-8")
+    load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 except ImportError:
     pass
 

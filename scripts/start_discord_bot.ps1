@@ -1,47 +1,45 @@
-#!/usr/bin/env pwsh
-# Discord Bot 시작 스크립트 (백그라운드 실행)
-
 param(
     [switch]$Wait = $false
 )
 
-$ROOT = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$BOT_SCRIPT = Join-Path $ROOT "scripts" "discord_bot.py"
-$LOG_FILE = Join-Path $ROOT ".logs" "discord_bot_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+$ErrorActionPreference = "Stop"
+$Root = Split-Path -Parent $PSScriptRoot
+$Supervisor = Join-Path $Root "scripts\bucky_bot_supervisor.py"
+$LogDir = Join-Path $Root ".logs"
+New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 
-# 로그 디렉토리 생성
-$LOG_DIR = Split-Path -Parent $LOG_FILE
-if (-not (Test-Path $LOG_DIR)) {
-    New-Item -ItemType Directory -Path $LOG_DIR -Force | Out-Null
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
+
+$Python = "C:\Python314\python.exe"
+if (-not (Test-Path $Python)) {
+    $Python = "python"
 }
-
-Write-Host "🚀 Discord Bot 시작 중..." -ForegroundColor Green
-Write-Host "로그: $LOG_FILE" -ForegroundColor Cyan
-
-# Python 백그라운드 실행
-$process = Start-Process `
-    -FilePath python `
-    -ArgumentList $BOT_SCRIPT `
-    -WorkingDirectory $ROOT `
-    -RedirectStandardOutput $LOG_FILE `
-    -RedirectStandardError $LOG_FILE `
-    -PassThru `
-    -WindowStyle Hidden
-
-Write-Host "✅ Bot PID: $($process.Id)" -ForegroundColor Green
 
 if ($Wait) {
-    Write-Host "대기 중... (Ctrl+C로 중단)" -ForegroundColor Yellow
-    $process.WaitForExit()
+    Write-Host "[Bucky] Starting supervisor in foreground: $Supervisor"
+    & $Python -X utf8 $Supervisor
+    exit $LASTEXITCODE
 }
-else {
-    Start-Sleep -Seconds 2
-    if ($process.HasExited) {
-        Write-Host "❌ Bot 시작 실패!" -ForegroundColor Red
-        Get-Content $LOG_FILE -Tail 20 | Write-Host -ForegroundColor Red
-    }
-    else {
-        Write-Host "✨ Bot이 백그라운드에서 실행 중입니다" -ForegroundColor Green
-        Write-Host "로그 확인: Get-Content '$LOG_FILE' -Wait" -ForegroundColor Cyan
+
+$psi = [System.Diagnostics.ProcessStartInfo]::new()
+$psi.FileName = $Python
+$psi.Arguments = "-X utf8 `"$Supervisor`""
+$psi.WorkingDirectory = $Root
+$psi.UseShellExecute = $false
+$psi.CreateNoWindow = $true
+$psi.RedirectStandardOutput = $false
+$psi.RedirectStandardError = $false
+
+foreach ($key in @($psi.Environment.Keys)) {
+    if ($key -ieq "path" -and $key -cne "PATH") {
+        $psi.Environment.Remove($key) | Out-Null
     }
 }
+$psi.Environment["PYTHONUTF8"] = "1"
+$psi.Environment["PYTHONIOENCODING"] = "utf-8"
+
+$process = [System.Diagnostics.Process]::Start($psi)
+
+Write-Host "[Bucky] Supervisor PID: $($process.Id)"
+Write-Host "[Bucky] Bot logs: $(Join-Path $Root 'discord_bot.log') / $(Join-Path $Root 'discord_bot.err')"

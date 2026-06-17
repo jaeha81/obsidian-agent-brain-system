@@ -14,27 +14,22 @@ VAULT_ROOT = Path(__file__).parent.parent / "ObsidianVault"
 # 폴더명 → 추가할 area 태그 목록
 FOLDER_AREA_MAP = {
     "10_AgentBus":          ["#area/ai_automation"],
-    "AgentBus":             ["#area/ai_automation"],
     "06_Context_Packs":     ["#area/ai_automation"],
     "05_Frameworks":        ["#area/ai_automation"],
     "05_Logs":              ["#area/ai_automation"],
     "03_Projects":          ["#area/business_model"],
     "02_Project":           ["#area/business_model"],
-    "06_Projects":          ["#area/business_model"],
     "07_Reports":           ["#area/gpt_feedback"],
     "04_DAILY_REPORTS":     ["#area/gpt_feedback"],
     "04_Wiki":              ["#area/research"],
     "03_Knowledge":         ["#area/research"],
-    "06_Knowledge":         ["#area/research"],
-    "06_Resources":         ["#area/research"],
     "09_Knowledge_Capture": ["#area/research"],
     "11_Interior_Business":  ["#area/interior_design", "#status/active"],
     "12_Client_Consulting":  ["#area/client_consulting", "#status/active"],
-    "Inbox":                ["#status/inbox"],
+    "00_Inbox":             ["#status/inbox"],
     "01_RAW":               ["#status/inbox"],
     "02_Processed":         ["#status/review_needed"],
     "09_Archive":           ["#status/archive"],
-    "99_Archive":           ["#status/archive"],
     # 시스템 폴더 — 태그 없음
     "00_System":            [],
     "00_Dashboard":         [],
@@ -254,7 +249,7 @@ def process_file(path: Path, dry_run: bool) -> dict:
     new_text = inject_tags(text, tags_to_add)
     if new_text is None:
         # frontmatter 없는 노트 → 자동 생성 (Inbox / 새 폴더만)
-        if top_folder in ("Inbox", "01_RAW", "11_Interior_Business", "12_Client_Consulting"):
+        if top_folder in ("00_Inbox", "01_RAW", "11_Interior_Business", "12_Client_Consulting"):
             new_text = create_frontmatter(path, tags_to_add) + text
         else:
             result["skipped"] = True

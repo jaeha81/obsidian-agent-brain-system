@@ -24,7 +24,7 @@ def send_restart_signal(reason: str = "manual") -> None:
     )
     print(f"[Signal] Restart signal written: {SIGNAL_FILE}")
     print("[Signal] The home-PC supervisor will restart the bot when it sees this file.")
-    print("[Signal] start_discord_bot.bat must be running on the home PC.")
+    print("[Signal] Canonical supervisor must be running: start_discord_bot.bat or scripts/start_discord_bot.ps1.")
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8")
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK_URL", "")
 BUCKY_SCRIPT = str(_ROOT / "scripts" / "discord_bot.py")

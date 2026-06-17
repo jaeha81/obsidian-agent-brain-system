@@ -31,7 +31,6 @@ EXCLUDED_PARTS = {
     ".git",
     ".obsidian",
     "09_Archive",
-    "99_Archive",
     "archive",
     "legacy-import",
     "migration-conflicts",

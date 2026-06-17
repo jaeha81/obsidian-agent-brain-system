@@ -16,7 +16,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 # STT 오류 교정 사전 (nlp_preprocessor와 공유)
 try:

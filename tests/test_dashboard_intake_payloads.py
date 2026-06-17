@@ -14,7 +14,7 @@ class RepoDashboardIntakePayloadTests(unittest.TestCase):
     def test_repo_single_item_payload_has_required_plan_fields(self):
         html = read_text("docs/index.html")
         self.assertIn("dashboard_type: 'repo'", html)
-        self.assertIn("target_channel: 'jh-?덊룷??쒕낫??", html)
+        self.assertIn("target_channel: 'jh-레포대시보드", html)
         self.assertIn("item_id: repo.id", html)
         self.assertIn("repo_description: repo.desc", html)
         self.assertIn("dashboard_context: buildRepoDashboardContext()", html)
@@ -25,7 +25,7 @@ class RepoDashboardIntakePayloadTests(unittest.TestCase):
     def test_repo_batch_payload_has_required_plan_fields(self):
         html = read_text("docs/index.html")
         self.assertIn("dashboard_type: 'repo'", html)
-        self.assertIn("target_channel: 'jh-?덊룷??쒕낫??", html)
+        self.assertIn("target_channel: 'jh-레포대시보드", html)
         self.assertIn("item_id: checked.map(r => r.id).join(',')", html)
         self.assertIn("dashboard_context: buildRepoDashboardContext()", html)
         self.assertIn("briefing_instruction: buildRepoBatchBriefingInstruction(checked)", html)
@@ -69,7 +69,7 @@ class WishketDashboardIntakePayloadTests(unittest.TestCase):
 
     def test_wishket_payload_has_target_channel_and_source_url(self):
         html = read_text("docs/wishket.html")
-        self.assertIn("target_channel: 'jh-?꾩떆耳?", html)
+        self.assertIn("target_channel: 'jh-위시켓", html)
         self.assertIn("source_dashboard_url: location.href", html)
 
     def test_wishket_dashboard_has_workflow_status_map_and_helper(self):
@@ -81,7 +81,7 @@ class WishketDashboardIntakePayloadTests(unittest.TestCase):
     def test_wishket_dashboard_replaces_discord_button_with_proposal_request(self):
         html = read_text("docs/wishket.html")
         self.assertNotIn(">Discord<", html)
-        self.assertIn("?쒖븞??留뚮뱾湲?", html)
+        self.assertIn("제안서 만들기", html)
         self.assertIn("requestWishketProposal", html)
         self.assertIn("type:'wishket_proposal_request'", html)
 
@@ -90,6 +90,29 @@ class WishketDashboardIntakePayloadTests(unittest.TestCase):
         self.assertIn("disabled: !workflow.approved", html)
         self.assertIn("sendProposalFeedback", html)
         self.assertIn("approveProposal", html)
+
+
+class KmongDashboardIntakePayloadTests(unittest.TestCase):
+    def test_kmong_dashboard_has_bucky_intake_payload_markers(self):
+        html = read_text("docs/kmong.html")
+        self.assertIn("dashboard_type: 'kmong'", html)
+        self.assertIn("target_channel: 'jh-크몽수익화'", html)
+        self.assertIn("request_id: `kmong-${action}-${Date.now()}`", html)
+        self.assertIn("source_dashboard_url: location.href", html)
+        self.assertIn("sendKmongPayload", html)
+
+    def test_kmong_dashboard_does_not_capture_passwords(self):
+        html = read_text("docs/kmong.html")
+        self.assertIn("KMONG_EMAIL / KMONG_PASSWORD", html)
+        self.assertIn("manual_auth_required", html)
+        self.assertNotIn('type="password"', html)
+        self.assertNotIn("localStorage.setItem('kmongPassword", html)
+
+    def test_discord_bot_routes_kmong_dashboard_type(self):
+        bot = read_text("scripts/discord_bot.py")
+        self.assertIn("JH_KMONG_CHANNEL_ID", bot)
+        self.assertIn('"kmong":', bot)
+        self.assertIn("jh-크몽수익화", bot)
 
 
 class CollaborationAdminWorkflowStaticTests(unittest.TestCase):
@@ -173,23 +196,23 @@ class GlobalOperatingPolicyTests(unittest.TestCase):
     def test_repo_dashboard_shows_official_channel_and_local_control_policy(self):
         html = read_text("docs/index.html")
         self.assertIn("jh-chat", html)
-        self.assertIn("jh-?덊룷??쒕낫??", html)
-        self.assertIn("?쇰컲", html)
+        self.assertIn("jh-레포대시보드", html)
+        self.assertIn("공식", html)
         self.assertIn("Chrome extension, Vercel, Supabase, local PC control, bot restart", html)
 
     def test_wishket_dashboard_shows_official_channel_and_local_control_policy(self):
         html = read_text("docs/wishket.html")
         self.assertIn("jh-chat", html)
-        self.assertIn("jh-?꾩떆耳?", html)
-        self.assertIn("?쇰컲", html)
+        self.assertIn("jh-위시켓", html)
+        self.assertIn("공식", html)
         self.assertIn("Chrome extension, Vercel, Supabase, local PC control", html)
 
     def test_daily_plus_dashboard_shows_official_channel_and_local_control_policy(self):
         html = read_text("docs/daily-plus.html")
         self.assertIn("jh-chat", html)
-        self.assertIn("jh-?ㅻ뒛?섑뵆?ъ뒪", html)
+        self.assertIn("jh-오늘의플러스", html)
         self.assertIn("jh-chris", html)
-        self.assertIn("?쇰컲", html)
+        self.assertIn("공식", html)
         self.assertIn("Chrome extension, Vercel, Supabase, local PC control, bot restart", html)
 
     def test_task_and_checklist_show_official_channel_policy(self):
@@ -197,8 +220,8 @@ class GlobalOperatingPolicyTests(unittest.TestCase):
         checklist_html = read_text("docs/checklist.html")
         for html in (task_html, checklist_html):
             self.assertIn("jh-chat", html)
-            self.assertIn("jh-?쒖뒪?щ낫??", html)
-            self.assertIn("?쇰컲", html)
+            self.assertIn("jh-태스크보드", html)
+            self.assertIn("공식", html)
             self.assertIn("Chrome extension, Vercel, Supabase, local PC control, bot restart", html)
 
 
@@ -206,13 +229,13 @@ class TaskChecklistRoleTests(unittest.TestCase):
     def test_task_board_defines_role_separation(self):
         html = read_text("docs/task-board.html")
         self.assertIn("Task operations channel:", html)
-        self.assertIn("jh-?쒖뒪?щ낫??", html)
+        self.assertIn("jh-태스크보드", html)
         self.assertIn("immediate execution request", html)
 
     def test_checklist_defines_role_separation(self):
         html = read_text("docs/checklist.html")
         self.assertIn("Task operations channel:", html)
-        self.assertIn("jh-?쒖뒪?щ낫??", html)
+        self.assertIn("jh-태스크보드", html)
         self.assertIn("Execution handoff:", html)
 
 
@@ -348,8 +371,8 @@ class AppSessionDashboardTests(unittest.TestCase):
 
     def test_app_session_routes_to_correct_channels(self):
         html = read_text("docs/app-session.html")
-        self.assertIn("jh-?대줈?쒖퐫?쒖빋", html)
-        self.assertIn("jh-肄붾뜳?ㅼ빋", html)
+        self.assertIn("jh-클로드코드앱", html)
+        self.assertIn("jh-코덱스앱", html)
 
     def test_app_session_has_required_actions(self):
         html = read_text("docs/app-session.html")
@@ -360,8 +383,8 @@ class AppSessionDashboardTests(unittest.TestCase):
     def test_app_session_shows_official_channel_policy(self):
         html = read_text("docs/app-session.html")
         self.assertIn("jh-chat", html)
-        self.assertIn("jh-?대줈?쒖퐫?쒖빋", html)
-        self.assertIn("jh-肄붾뜳?ㅼ빋", html)
+        self.assertIn("jh-클로드코드앱", html)
+        self.assertIn("jh-코덱스앱", html)
         self.assertIn("Chrome extension, Vercel, Supabase, local PC control, bot restart", html)
 
     def test_app_session_requires_user_approval(self):

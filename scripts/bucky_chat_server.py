@@ -40,6 +40,9 @@ from urllib.parse import quote
 from flask import Flask, jsonify, request, send_from_directory
 
 from bucky_client import BuckyError, run_bucky
+import collab_inquiry_store
+import collab_development_request
+import collab_proposal_workflow
 
 DOCS_DIR = ROOT / "docs"
 PROTECTED_DIR = ROOT / "protected"
@@ -50,7 +53,7 @@ app = Flask(__name__)
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(ROOT / ".env", encoding="utf-8", override=False)
+    load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=False)
 except Exception:
     pass
 
@@ -103,7 +106,7 @@ def _cors(response):
     else:
         response.headers["Access-Control-Allow-Origin"] = "same-origin"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Collab-Admin-Password"
     # Prevent browsers from caching HTML pages so phones always get the latest version
     if request.path.endswith(".html") or request.path in ("/", "/launch"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -191,9 +194,26 @@ def _auth_token() -> str:
     return hashlib.sha256(("bucky-dashboard:" + secret).encode("utf-8")).hexdigest()
 
 
+def _collab_admin_secret() -> str:
+    return os.environ.get("COLLAB_ADMIN_PASSWORD", "").strip()
+
+
 def _is_authenticated_request() -> bool:
     token = _auth_token()
     return bool(token) and request.cookies.get(AUTH_COOKIE_NAME) == token
+
+
+def _is_collab_admin_request() -> bool:
+    secret = _collab_admin_secret()
+    if not secret:
+        return False
+    header_value = (request.headers.get("X-Collab-Admin-Password") or "").strip()
+    if header_value == secret:
+        return True
+    data = request.get_json(silent=True)
+    if isinstance(data, dict) and str(data.get("admin_password") or "").strip() == secret:
+        return True
+    return False
 
 
 def _is_public_path(path: str) -> bool:
@@ -213,9 +233,15 @@ def _require_dashboard_auth():
     if _is_public_path(path):
         return None
 
+    if path == "/collab/inquiries" and request.method == "POST":
+        return None
+
     if path in PROTECTED_API_PATHS and not _is_authenticated_request():
         if _is_trusted_source():
             return None
+        return jsonify({"error": "authentication required"}), 401
+
+    if path.startswith("/collab/inquiries") and not (_is_authenticated_request() or _is_collab_admin_request()):
         return jsonify({"error": "authentication required"}), 401
 
     if _is_html_path(path) and not _is_authenticated_request():
@@ -347,6 +373,179 @@ def intake_dashboard():
         return jsonify({"error": f"queue write failed: {exc}"}), 500
 
     return jsonify({"status": "accepted", "request_id": request_id, "queue_file": filename}), 202
+
+
+def _enqueue_dashboard_payload(payload: dict) -> str:
+    dashboard_type = str(payload.get("dashboard_type") or "").strip()
+    if not dashboard_type:
+        raise ValueError("dashboard_type is required")
+    request_id = str(payload.get("request_id") or uuid.uuid4()).strip()
+    payload = {**payload, "request_id": request_id, "enqueued_at": time.time()}
+    INTAKE_QUEUE_DIR.mkdir(parents=True, exist_ok=True)
+    safe_type = re.sub(r"[^a-z0-9_-]", "_", dashboard_type.lower())
+    ts_ms = int(time.time() * 1000)
+    filename = f"{ts_ms}_{safe_type}_{request_id[:8]}.json"
+    tmp_path = INTAKE_QUEUE_DIR / (filename + ".tmp")
+    final_path = INTAKE_QUEUE_DIR / filename
+    tmp_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    tmp_path.rename(final_path)
+    return filename
+
+
+def _collab_payload_from_record(record: dict) -> dict:
+    return collab_development_request.normalize_payload(
+        {
+            "request_id": record.get("request_id"),
+            "request_slug": record.get("request_slug"),
+            "project_title": record.get("summary"),
+            "summary": record.get("summary"),
+            "body": record.get("body"),
+            "requester_name": record.get("name"),
+            "requester_email": record.get("email"),
+            "company": record.get("company"),
+            "budget": record.get("budget"),
+            "timeline": record.get("timeline"),
+            "links": record.get("links") or [],
+            "source": "collab_admin",
+        }
+    )
+
+
+@app.post("/collab/inquiries")
+def create_collab_inquiry():
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify({"error": "JSON object payload is required"}), 400
+    summary = str(data.get("summary") or "").strip()
+    body = str(data.get("body") or data.get("message") or "").strip()
+    if not summary or not body:
+        return jsonify({"error": "summary and body are required"}), 400
+    path = collab_inquiry_store.create_inquiry(data)
+    record = collab_inquiry_store.load_inquiry(path)
+    return jsonify({"status": "created", "request_id": record["request_id"], "path": str(path)}), 201
+
+
+@app.get("/collab/inquiries")
+def list_collab_inquiries():
+    items = collab_inquiry_store.list_inquiries()
+    return jsonify({"items": items}), 200
+
+
+@app.post("/collab/inquiries/<request_id>/note")
+def update_collab_inquiry_note(request_id: str):
+    path = collab_inquiry_store.find_inquiry_by_request_id(request_id)
+    if path is None:
+        return jsonify({"error": "inquiry not found"}), 404
+    data = request.get_json(silent=True) or {}
+    note = str(data.get("note") or "").strip()
+    collab_inquiry_store.save_admin_note(path, note)
+    return jsonify({"status": "ok", "request_id": request_id}), 200
+
+
+@app.post("/collab/inquiries/<request_id>/status")
+def update_collab_inquiry_status(request_id: str):
+    path = collab_inquiry_store.find_inquiry_by_request_id(request_id)
+    if path is None:
+        return jsonify({"error": "inquiry not found"}), 404
+    data = request.get_json(silent=True) or {}
+    status = str(data.get("status") or "").strip()
+    if not status:
+        return jsonify({"error": "status is required"}), 400
+    collab_inquiry_store.update_status(path, status, actor="admin")
+    return jsonify({"status": "ok", "request_id": request_id, "state": status}), 200
+
+
+@app.post("/collab/inquiries/<request_id>/discord-dispatch")
+def dispatch_collab_inquiry_discord(request_id: str):
+    path = collab_inquiry_store.find_inquiry_by_request_id(request_id)
+    if path is None:
+        return jsonify({"error": "inquiry not found"}), 404
+    record = collab_inquiry_store.load_inquiry(path)
+    payload = _collab_payload_from_record(record)
+    collab_proposal_workflow.ensure_workspace(payload)
+    collab_proposal_workflow.mark_discord_dispatched(payload, "admin")
+    updated_record = {
+        **record,
+        "discord_dispatched": True,
+        "activity": list(record.get("activity") or []) + ["admin dispatched inquiry to discord"],
+    }
+    collab_inquiry_store.write_inquiry(path, updated_record)
+    queue_file = _enqueue_dashboard_payload(
+        {
+            "dashboard_type": "collab",
+            "action": "discord_dispatch",
+            "type": "collab_inquiry",
+            **payload,
+        }
+    )
+    return jsonify({"status": "accepted", "request_id": request_id, "queue_file": queue_file}), 202
+
+
+@app.post("/collab/inquiries/<request_id>/proposal-start")
+def start_collab_inquiry_proposal(request_id: str):
+    path = collab_inquiry_store.find_inquiry_by_request_id(request_id)
+    if path is None:
+        return jsonify({"error": "inquiry not found"}), 404
+    record = collab_inquiry_store.load_inquiry(path)
+    payload = _collab_payload_from_record(record)
+    collab_proposal_workflow.ensure_workspace(payload)
+    collab_proposal_workflow.mark_proposal_started(payload, "admin")
+    collab_inquiry_store.update_status(path, "proposal_in_progress", actor="admin")
+    queue_file = _enqueue_dashboard_payload(
+        {
+            "dashboard_type": "collab",
+            "action": "proposal_start",
+            "type": "collab_proposal_request",
+            "title": payload["project_title"],
+            "summary": payload["summary"],
+            **payload,
+        }
+    )
+    return jsonify({"status": "accepted", "request_id": request_id, "queue_file": queue_file}), 202
+
+
+@app.post("/collab/inquiries/<request_id>/development-request")
+def dispatch_collab_inquiry_development(request_id: str):
+    path = collab_inquiry_store.find_inquiry_by_request_id(request_id)
+    if path is None:
+        return jsonify({"error": "inquiry not found"}), 404
+    record = collab_inquiry_store.load_inquiry(path)
+    payload = _collab_payload_from_record(record)
+    collab_proposal_workflow.ensure_workspace(payload)
+    if str(record.get("status") or "") == "approved":
+        collab_proposal_workflow.record_approval(payload, "admin")
+    mode, claude_path, codex_path = collab_development_request.dispatch_request(payload, require_workflow_approval=True)
+    collab_inquiry_store.update_status(path, "development_requested", actor="admin")
+    return jsonify(
+        {
+            "status": "ok",
+            "mode": mode,
+            "request_id": request_id,
+            "claude_path": str(claude_path),
+            "codex_path": str(codex_path),
+        }
+    ), 200
+
+
+@app.post("/collab/inquiries/<request_id>/codex-review")
+def dispatch_collab_inquiry_codex_review(request_id: str):
+    path = collab_inquiry_store.find_inquiry_by_request_id(request_id)
+    if path is None:
+        return jsonify({"error": "inquiry not found"}), 404
+    record = collab_inquiry_store.load_inquiry(path)
+    payload = _collab_payload_from_record(record)
+    review_path = collab_development_request.enqueue_codex_review_request(payload)
+    collab_proposal_workflow.ensure_workspace(payload)
+    collab_proposal_workflow.mark_codex_review_requested(payload, "admin")
+    collab_inquiry_store.write_inquiry(
+        path,
+        {
+            **record,
+            "codex_review_requested": True,
+            "activity": list(record.get("activity") or []) + ["admin requested codex review"],
+        },
+    )
+    return jsonify({"status": "ok", "request_id": request_id, "codex_path": str(review_path)}), 200
 
 
 @app.route("/tablet-intake", methods=["OPTIONS"])

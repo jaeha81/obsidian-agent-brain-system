@@ -17,7 +17,7 @@ DEFAULT_FORBIDDEN_PREFIXES = (
     "10_AgentBus/",
     "00_UPGRADE/",
     "graphify-out/",
-    "Inbox/DiscordCaptures/",
+    "00_Inbox/DiscordCaptures/",
 )
 
 

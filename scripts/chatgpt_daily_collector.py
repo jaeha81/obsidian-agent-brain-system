@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -54,6 +55,11 @@ PROFILE_DIR = Path(
 DEBUG_PORT = int(os.environ.get("GPT_COLLECTOR_DEBUG_PORT", "9222"))
 CHROME_EXE = os.environ.get("GPT_COLLECTOR_CHROME_EXE") or (
     r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+)
+CHROME_EXE_CANDIDATES = (
+    CHROME_EXE,
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
 )
 
 HANGUL_RE = re.compile(r"[가-힣]")
@@ -381,6 +387,9 @@ def _existing_note_is_valid(path: Path) -> bool:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return False
+    # Fallback/recovery captures are intentional — don't reject them for mentioning "404"
+    if re.search(r"^collection_status:\s*fallback\s*$", text, flags=re.M):
+        return True
     if _looks_like_error_page(text):
         return False
     match = re.search(r"^card_count:\s*(\d+)\s*$", text, flags=re.M)
@@ -416,10 +425,23 @@ def _wait_for_cdp(timeout_s: int = 20) -> None:
     raise RuntimeError(f"Chrome DevTools port did not open on {DEBUG_PORT}")
 
 
+def _resolve_google_chrome_exe() -> str:
+    for candidate in CHROME_EXE_CANDIDATES:
+        if candidate and Path(candidate).exists():
+            return candidate
+    for command_name in ("chrome.exe", "chrome"):
+        resolved = shutil.which(command_name)
+        if resolved:
+            return resolved
+    raise RuntimeError(
+        "Google Chrome executable not found. Set GPT_COLLECTOR_CHROME_EXE to chrome.exe."
+    )
+
+
 def _launch_chrome(open_url: str = CHATGPT_URL) -> None:
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     if not _cdp_is_ready():
-        chrome = CHROME_EXE if Path(CHROME_EXE).exists() else "chrome"
+        chrome = _resolve_google_chrome_exe()
         subprocess.Popen(
             [
                 chrome,
@@ -741,8 +763,8 @@ def collect_mode(
         _write_note_and_evolve(recovery, output_path, today, force=True, evolve=evolve)
         return
 
-    _launch_chrome(CHATGPT_URL)
     try:
+        _launch_chrome(CHATGPT_URL)
         value = _read_chatgpt_content()
         try:
             value = localize_capture(value)

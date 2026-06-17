@@ -32,6 +32,8 @@ VALID_STATUSES = {
     "pending", "processing", "failed", "awaiting_approval",
     "rejected", "archived", "superseded", "ok",
 }
+VALID_SOURCES = {"discord", "voice", "manual", "api", "web", "file"}
+VALID_DEPARTMENTS = {"ai_automation", "interior", "consulting", "content", "business_dev", "system"}
 FORBIDDEN_SECRET_FIELDS = {"api_key", "password", "secret", "token", "webhook_url"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
 _FM_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
@@ -111,6 +113,22 @@ def validate_file(filepath: Path) -> ValidationResult:
             val = str(fm[secret_field])
             if val and val not in ("-", "null", "None", ""):
                 result.findings.append(Finding(result.path, "error", secret_field, f"비밀 필드에 실제 값 입력 금지: {secret_field}"))
+
+    # source 유효성 (값이 있을 때만)
+    if "source" in fm and fm["source"]:
+        s = str(fm["source"])
+        if s not in VALID_SOURCES:
+            result.findings.append(Finding(result.path, "warn", "source", f"알 수 없는 source 값: '{s}' (허용={sorted(VALID_SOURCES)})"))
+
+    # department 유효성 (리스트 타입 권장)
+    if "department" in fm and fm["department"]:
+        dept = fm["department"]
+        if isinstance(dept, str):
+            dept = [dept]
+        if isinstance(dept, list):
+            invalid = [d for d in dept if d not in VALID_DEPARTMENTS]
+            if invalid:
+                result.findings.append(Finding(result.path, "warn", "department", f"알 수 없는 department 값: {invalid} (허용={sorted(VALID_DEPARTMENTS)})"))
 
     # processing 상태 경고
     if fm.get("status") == "processing":

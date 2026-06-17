@@ -17,7 +17,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 
 PC_ROLE: str = os.getenv("PC_ROLE", "primary").strip().lower()   # primary | secondary
 PC_NAME: str = os.getenv("PC_NAME", "home").strip().lower()      # home | office | laptop

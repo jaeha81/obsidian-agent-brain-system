@@ -22,7 +22,7 @@ import yaml
 from dotenv import load_dotenv
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"

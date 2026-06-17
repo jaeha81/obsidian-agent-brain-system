@@ -21,7 +21,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 _VALID_TASK_ID = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
 _MAX_CONTEXT_CHARS = 4000

@@ -26,7 +26,7 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from dotenv import load_dotenv
-load_dotenv(ROOT / ".env", encoding="utf-8")
+load_dotenv(ROOT / ".env", encoding="utf-8-sig")
 
 import stripe
 

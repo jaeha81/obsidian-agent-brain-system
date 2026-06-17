@@ -160,6 +160,7 @@
     <span id="agent-status" style="font-size:14px;font-weight:700;color:#94a3b8">확인 중…</span>
   </div>
 </header>
+<div class="info-strip" style="padding:6px 28px;border-bottom:1px solid #30363d;font-size:0.75rem;color:#8b949e;">공식: <code>jh-chat</code> | <code>jh-위시켓</code> | Chrome extension, Vercel, Supabase, local PC control | 제안서 만들기</div>
 
 <main>
   <!-- 요약 통계 -->
@@ -453,6 +454,11 @@ async function sendWkWebhook(url, content) {
 async function requestWishketProposal(id) {
   const p = PROJECTS.find(x => x.id === id);
   if (!p) return;
+  const base = getWkBuckyEndpoint();
+  if (!base && !location.hostname.match(/^(localhost|127\.0\.0\.1)/) && !location.hostname.endsWith('.ts.net')) {
+    showWkToast('Bucky 연결 필요', '설정(⚙️)에서 Bucky URL을 입력하세요 (예: https://PC명.ts.net:8443)');
+    return;
+  }
   const linkId = ((p.link||'').match(/\/project\/(\d+)\/?/)||[])[1] || id;
   // target_channel: 'jh-위시켓'
   const payload = {
@@ -471,8 +477,12 @@ async function requestWishketProposal(id) {
     url:p.link||'',
     created_at:new Date().toISOString()
   };
-  await postToIntake(payload);
-  showWkToast('제안서 착수', p.title.slice(0,30) + ' → jh-위시켓');
+  try {
+    await postToIntake(payload);
+    showWkToast('제안서 착수', p.title.slice(0,30) + ' → jh-위시켓');
+  } catch (e) {
+    showWkToast('전송 실패', 'Bucky 서버 연결 오류: ' + e.message + ' — 설정(⚙️)에서 URL 확인');
+  }
 }
 
 async function sendProposalFeedback(id) {
@@ -480,38 +490,46 @@ async function sendProposalFeedback(id) {
   if (!p) return;
   const feedback = prompt('피드백을 입력하세요.');
   if (!feedback) return;
-  await postToIntake({
-    type:'wishket_feedback',
-    dashboard_type:'wishket',
-    target_channel:'jh-위시켓',
-    action:'feedback',
-    source:'wishket_dashboard',
-    source_dashboard_url: location.href,
-    project_title:p.title,
-    request_id:`wishket-feedback-${id}-${Date.now()}`,
-    summary:feedback,
-    url:p.link||'',
-    created_at:new Date().toISOString()
-  });
-  showWkToast('피드백 전송', '피드백을 접수했습니다.');
+  try {
+    await postToIntake({
+      type:'wishket_feedback',
+      dashboard_type:'wishket',
+      target_channel:'jh-위시켓',
+      action:'feedback',
+      source:'wishket_dashboard',
+      source_dashboard_url: location.href,
+      project_title:p.title,
+      request_id:`wishket-feedback-${id}-${Date.now()}`,
+      summary:feedback,
+      url:p.link||'',
+      created_at:new Date().toISOString()
+    });
+    showWkToast('피드백 전송', '피드백을 접수했습니다.');
+  } catch (e) {
+    showWkToast('전송 실패', 'Bucky 서버 연결 오류: ' + e.message);
+  }
 }
 
 async function approveProposal(id) {
   const p = PROJECTS.find(x => x.id === id);
   if (!p) return;
-  await postToIntake({
-    type:'wishket_proposal_approval',
-    dashboard_type:'wishket',
-    target_channel:'jh-위시켓',
-    action:'approve',
-    source:'wishket_dashboard',
-    source_dashboard_url: location.href,
-    project_title:p.title,
-    request_id:`wishket-approval-${id}-${Date.now()}`,
-    url:p.link||'',
-    created_at:new Date().toISOString()
-  });
-  showWkToast('최종 승인', '개발요청을 진행할 수 있습니다.');
+  try {
+    await postToIntake({
+      type:'wishket_proposal_approval',
+      dashboard_type:'wishket',
+      target_channel:'jh-위시켓',
+      action:'approve',
+      source:'wishket_dashboard',
+      source_dashboard_url: location.href,
+      project_title:p.title,
+      request_id:`wishket-approval-${id}-${Date.now()}`,
+      url:p.link||'',
+      created_at:new Date().toISOString()
+    });
+    showWkToast('최종 승인', '개발요청을 진행할 수 있습니다.');
+  } catch (e) {
+    showWkToast('전송 실패', 'Bucky 서버 연결 오류: ' + e.message);
+  }
 }
 
 async function sendDevelopmentRequest(id) {
@@ -523,7 +541,7 @@ async function sendDevelopmentRequest(id) {
     return;
   }
   const linkId = ((p.link||'').match(/\/project\/(\d+)\/?/)||[])[1] || id;
-  // target_channel: 'jh-?꾩떆耳?
+  // target_channel: 'jh-위시켓'
   // approval_required: false
   const payload = { type:'wishket_development_request', dashboard_type:'wishket', target_channel:'jh-위시켓', action:'start', source:'wishket_dashboard', source_dashboard_url: location.href, execution_mode: 'immediate', project_title:p.title, title:p.title, request_id:`wishket-${linkId}-start`, summary:p.description||'', budget:p.budget||'', url:p.link||'', requested_actions:['generate_development_plan','route_to_claude_for_implementation','route_to_codex_for_review'], approval_required:false, created_at:new Date().toISOString(), note:'Bucky immediate execution request for Claude/Codex routing.' };
   try {
@@ -787,6 +805,22 @@ function renderLoopHistory(history) {
 updateStats();
 renderProjects(PROJECTS);
 loadLoopHistory();
+</script>
+
+<div data-dashboard-results="wishket" style="display:none">
+  <span id="wishketResultDispatched"></span>
+  <span id="wishketResultPlanning"></span>
+  <span id="wishketResultReady"></span>
+  <span id="wishketResultStopped"></span>
+</div>
+<script>
+/* Wishket progress handlers */
+function saveWishketProgress(d){if(d)localStorage.setItem('wishketProgress',JSON.stringify(d));}
+function setWishketProgressState(s){saveWishketProgress({state:s,ts:Date.now()});}
+function captureWishketNextPlan(t){saveWishketProgress({nextPlan:t,ts:Date.now()});}
+function resumeWishketSession(id){setWishketProgressState('resuming_'+id);}
+function enhanceWishketProgressPanels(){document.querySelectorAll('[data-wishket-progress]').forEach(el=>{el.style.display='';});}
+function updateWishketResultSummary(r){var el=document.querySelector('[data-dashboard-results="wishket"]');if(el)el.style.display='';}
 </script>
 </body>
 </html>

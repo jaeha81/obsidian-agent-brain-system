@@ -14,9 +14,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 VAULT = ROOT / "ObsidianVault"
 
 # Obsidian 저장 폴더 규칙 (사용자 지정)
@@ -57,14 +58,14 @@ ROLE_SYSTEM_PROMPTS = {
 }
 
 
-def _get_genai():
-    """google-generativeai 패키지 로드. 없으면 ImportError."""
+def _get_client():
+    """google.genai 클라이언트 반환. 없으면 ImportError."""
     try:
-        import google.generativeai as genai  # type: ignore
-        return genai
+        from google import genai  # type: ignore
+        return genai.Client(api_key=GEMINI_API_KEY)
     except ImportError:
         raise ImportError(
-            "google-generativeai 패키지가 없습니다. 설치: pip install google-generativeai"
+            "google-genai 패키지가 없습니다. 설치: pip install google-genai"
         )
 
 
@@ -90,16 +91,10 @@ def run_gemini(role: str, prompt: str, *, image_path: str | None = None, timeout
     if role not in ROLE_SYSTEM_PROMPTS:
         return f"❌ 알 수 없는 Gemini 역할: {role}. 가능한 역할: {list(ROLE_SYSTEM_PROMPTS)}"
 
-    genai = _get_genai()
-    genai.configure(api_key=GEMINI_API_KEY)
+    from google.genai import types as genai_types  # type: ignore
 
+    client = _get_client()
     system_prompt = ROLE_SYSTEM_PROMPTS[role]
-    model_name = "gemini-2.0-flash" if role != "multimodal" else "gemini-2.0-flash"
-
-    model = genai.GenerativeModel(
-        model_name=model_name,
-        system_instruction=system_prompt,
-    )
 
     # RAG: Vault 컨텍스트 주입
     if role == "rag":
@@ -107,16 +102,28 @@ def run_gemini(role: str, prompt: str, *, image_path: str | None = None, timeout
         if vault_context:
             prompt = f"[Vault 검색 결과]\n{vault_context}\n\n[질문]\n{prompt}"
 
+    config = genai_types.GenerateContentConfig(system_instruction=system_prompt)
+
     # Multimodal: 이미지 첨부
     if role == "multimodal" and image_path and Path(image_path).exists():
         try:
-            import PIL.Image  # type: ignore
-            img = PIL.Image.open(image_path)
-            response = model.generate_content([prompt, img])
+            image_data = Path(image_path).read_bytes()
+            import mimetypes
+            mime = mimetypes.guess_type(image_path)[0] or "image/jpeg"
+            contents = [
+                genai_types.Part.from_bytes(data=image_data, mime_type=mime),
+                genai_types.Part.from_text(text=prompt),
+            ]
         except Exception as e:
-            response = model.generate_content(f"[이미지 로드 실패: {e}]\n{prompt}")
+            contents = [f"[이미지 로드 실패: {e}]\n{prompt}"]
     else:
-        response = model.generate_content(prompt)
+        contents = [prompt]
+
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=contents,
+        config=config,
+    )
 
     result = response.text.strip() if hasattr(response, "text") else str(response)
 

@@ -224,7 +224,7 @@ def get_activity():
         conn.execute("PRAGMA journal_mode=WAL")
         try:
             rows = conn.execute(
-                "SELECT content, timestamp FROM conv_history WHERE role='user' ORDER BY timestamp DESC LIMIT 5"
+                "SELECT content, ts FROM conv_history WHERE role='user' ORDER BY ts DESC LIMIT 5"
             ).fetchall()
             for content, ts in rows:
                 events.append({

@@ -35,7 +35,7 @@ from typing import Optional
 try:
     from dotenv import load_dotenv
     _ROOT = Path(__file__).parent.parent
-    load_dotenv(_ROOT / ".env", encoding="utf-8", override=True)
+    load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 except ImportError:
     _ROOT = Path(__file__).parent.parent
 

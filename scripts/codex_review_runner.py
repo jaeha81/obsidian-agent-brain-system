@@ -19,7 +19,7 @@ from harness_router import build_codex_review_context, is_harness_router_enabled
 
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(ROOT / "ObsidianVault")))
 WORKER_NAME = os.getenv("AGENTBUS_WORKER_NAME", "Bucky")

@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+load_dotenv(ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(ROOT / "ObsidianVault")))
 HARNESS_DIR = VAULT / "05_Frameworks" / "Harness"

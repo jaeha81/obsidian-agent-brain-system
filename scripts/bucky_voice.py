@@ -31,7 +31,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from dotenv import load_dotenv
-load_dotenv(ROOT / ".env", encoding="utf-8")
+load_dotenv(ROOT / ".env", encoding="utf-8-sig")
 
 import numpy as np
 import pyttsx3

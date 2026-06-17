@@ -133,7 +133,7 @@ except ImportError:
         return ""
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8")
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 
 # Discord 봇은 Vault 파일 읽기·명령 실행이 필요 → 항상 auto(dangerously-skip-permissions)
 os.environ.setdefault("BUCKY_TOOL_MODE", "auto")
@@ -152,10 +152,12 @@ JH_RESULTS_CHANNEL_ID: str = os.getenv("JH_RESULTS_CHANNEL_ID", "").strip()
 # 대시보드 intake 전용 채널
 JH_REPO_DASHBOARD_CHANNEL_ID: str = os.getenv("JH_REPO_DASHBOARD_CHANNEL_ID", "").strip()
 JH_WISHKET_CHANNEL_ID: str        = os.getenv("JH_WISHKET_CHANNEL_ID", "").strip()
+JH_KMONG_CHANNEL_ID: str          = os.getenv("JH_KMONG_CHANNEL_ID", "").strip()
 JH_MYINTRO_CHANNEL_ID: str        = os.getenv("JH_MYINTRO_CHANNEL_ID", "").strip()
 JH_DAILYPLUS_CHANNEL_ID: str      = os.getenv("JH_DAILYPLUS_CHANNEL_ID", "").strip()
 JH_TASKBOARD_CHANNEL_ID: str      = os.getenv("JH_TASKBOARD_CHANNEL_ID", "").strip()
 JH_CHRIS_CHANNEL_ID: str          = os.getenv("JH_CHRIS_CHANNEL_ID", "").strip()
+JH_CHARLIE_CHANNEL_ID: str        = os.getenv("JH_CHARLIE_CHANNEL_ID", "").strip()
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
@@ -170,9 +172,27 @@ TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
 GUILD_ID: str = os.getenv("DISCORD_GUILD_ID", "")
 ALLOWED_CHANNELS: set[str] = {
     c.strip() for c in os.getenv("DISCORD_CHANNEL_IDS", "").split(",") if c.strip()
+} | {
+    c
+    for c in (
+        JH_CHAT_CHANNEL_ID,
+        JH_REPO_DASHBOARD_CHANNEL_ID,
+        JH_WISHKET_CHANNEL_ID,
+        JH_KMONG_CHANNEL_ID,
+        JH_MYINTRO_CHANNEL_ID,
+        JH_DAILYPLUS_CHANNEL_ID,
+        JH_TASKBOARD_CHANNEL_ID,
+        JH_CHRIS_CHANNEL_ID,
+        JH_CHARLIE_CHANNEL_ID,
+        JH_CLAUDE_CODE_CHANNEL_ID,
+        JH_CODEX_CHANNEL_ID,
+    )
+    if c
 } | JH_WORK_CHANNEL_IDS  # 작업 채널 자동 포함
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"
+DAILY_PLUS_OUTBOX = VAULT / "10_AgentBus" / "outbox" / "Bucky"
+DAILY_PLUS_BRIDGE_STATE = VAULT / "10_AgentBus" / "signals" / "daily_plus_discord_bridge.json"
 MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "1"))
 BUCKY_ENABLED: bool = os.getenv("BUCKY_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
 VOICE_ENABLED: bool = os.getenv("VOICE_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
@@ -284,6 +304,7 @@ _CHRIS_ROLE_FILE = Path(
 _CHRIS_CONTEXT_CHAR_LIMIT = int(os.getenv("CHRIS_CONTEXT_CHAR_LIMIT", "6000"))
 _context_cache: dict = {"text": "", "loaded_at": 0.0}
 _chris_context_cache: dict = {"text": "", "loaded_at": 0.0}
+_charlie_context_cache: dict = {"text": "", "loaded_at": 0.0}
 _CONTEXT_TTL = 300  # 5분
 _CHRIS_CONTEXT_TTL = 300
 
@@ -499,8 +520,59 @@ def _uses_chris_context(channel_id: str, user_message: str = "") -> bool:
     )
 
 
+def _read_charlie_context() -> str:
+    import time
+    now = time.time()
+    if now - _charlie_context_cache["loaded_at"] < _CONTEXT_TTL and _charlie_context_cache["text"]:
+        return _charlie_context_cache["text"]
+    paths = [
+        _ROOT / "OPERATING_INTENT.md",
+        _VAULT / "00_System" / "USER_OPERATING_INTENT.md",
+        _VAULT / "03_Projects" / "agents" / "charlie.md",
+        _VAULT / "00_System" / "CHARLIE_AGENT_COORDINATION.md",
+        _VAULT / "00_System" / "CHARLIE_EXPERT_AGENT_ROSTER.md",
+        _VAULT / "00_System" / "CHARLIE_HERMES_LEVEL_ROADMAP.md",
+    ]
+    sections: list[str] = []
+    remaining = int(os.getenv("CHARLIE_CONTEXT_CHAR_LIMIT", "10000"))
+    for path in paths:
+        if remaining <= 0:
+            break
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace").strip()
+        except Exception:
+            continue
+        if not text:
+            continue
+        excerpt = text[:remaining]
+        if len(text) > len(excerpt):
+            excerpt += "\n\n[TRUNCATED: Charlie context char limit reached]"
+        sections.append(f"## {path.name}\n\n{excerpt}")
+        remaining -= len(excerpt)
+    context = "\n\n---\n\n# Charlie System Audit Context\n\n" + "\n\n---\n\n".join(sections) if sections else ""
+    _charlie_context_cache["text"] = context
+    _charlie_context_cache["loaded_at"] = now
+    return context
+
+
+def _uses_charlie_context(channel_id: str, user_message: str = "") -> bool:
+    if JH_CHARLIE_CHANNEL_ID and str(channel_id) == str(JH_CHARLIE_CHANNEL_ID):
+        return True
+    text = (user_message or "").lower()
+    return (
+        "target_channel: jh-charlie" in text
+        or "jh-charlie" in text
+        or "charlie audit" in text
+        or "찰리" in text
+    )
+
+
 def _load_agent_context(channel_id: str, user_message: str = "") -> str:
     context = _load_bucky_context()
+    if _uses_charlie_context(channel_id, user_message):
+        charlie_context = _read_charlie_context()
+        if charlie_context:
+            return f"{context}\n\n{charlie_context}"
     if not _uses_chris_context(channel_id, user_message):
         return context
     chris_context = _read_chris_role_context()
@@ -635,6 +707,45 @@ def split_message(text: str, limit: int = 1900) -> list[str]:
     if current:
         chunks.append(current)
     return chunks
+
+
+def _pending_daily_plus_briefings(paths: list[Path], sent_names: set[str]) -> list[Path]:
+    pending: list[Path] = []
+    for path in sorted(paths):
+        if not path.name.endswith("_090000_daily_plus_dashboard_bucky.md"):
+            continue
+        if path.name in sent_names:
+            continue
+        pending.append(path)
+    return pending
+
+
+def _build_daily_plus_briefing_message(filename: str, text: str) -> str:
+    body = text
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) == 3:
+            body = parts[2].strip()
+    header = f"📰 **[Daily Plus 09:00 Report]** `{filename}`"
+    return f"{header}\n\n{body.strip()}".strip()
+
+
+def _load_daily_plus_bridge_state() -> set[str]:
+    try:
+        payload = _json_mod.loads(DAILY_PLUS_BRIDGE_STATE.read_text(encoding="utf-8"))
+    except Exception:
+        return set()
+    sent = payload.get("sent_files") or []
+    return {str(item) for item in sent if str(item).strip()}
+
+
+def _save_daily_plus_bridge_state(sent_names: set[str]) -> None:
+    DAILY_PLUS_BRIDGE_STATE.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"sent_files": sorted(sent_names)}
+    DAILY_PLUS_BRIDGE_STATE.write_text(
+        _json_mod.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 
 def write_discord_message(message: Message, reply: str = "", status: str = "pending") -> Path:
@@ -1164,6 +1275,9 @@ async def _handle_dashboard_watch_payload(payload: dict, channel) -> bool:
     if channel:
         for chunk in split_message("\n".join(reply_lines)):
             await channel.send(chunk)
+        ch_id = str(channel.id)
+        conversation_history[ch_id].append({"role": "user", "content": f"YouTube 저장 요청: {watch_url}"})
+        conversation_history[ch_id].append({"role": "assistant", "content": f"YouTube '{yt_result.get('title') or watch_url}' 저장 완료. 이 영상에 대해 무엇이 필요하신가요?"})
     return True
 
 
@@ -1391,6 +1505,9 @@ async def _handle_daily_plus_intake_payload(message: Message, content: str, chan
 
     append_to_bucky_chat(message.author.name, content, reply)
     write_discord_message(message, reply, status="answered")
+    intake_label = f"[Daily Plus Intake] {payload.get('title', '(untitled)')} 저장 완료"
+    conversation_history[channel_id].append({"role": "user", "content": intake_label})
+    conversation_history[channel_id].append({"role": "assistant", "content": reply[:600] + ("..." if len(reply) > 600 else "")})
     for chunk in split_message(reply):
         await message.channel.send(chunk)
     return True
@@ -2229,8 +2346,8 @@ async def ask_bucky(
             conversation_history[channel_id] = history[-MAX_HISTORY:]
             history = conversation_history[channel_id]
 
-    # ── SMALL_TALK + LOW + quick_answer → Pass 2 생략 ───────────────────────
-    if intent == "SMALL_TALK" and context_need == "LOW" and quick_answer:
+    # ── SMALL_TALK + LOW + quick_answer → Pass 2 생략 (히스토리 없을 때만) ─────
+    if intent == "SMALL_TALK" and context_need == "LOW" and quick_answer and len(history) <= 1:
         reply = quick_answer
         if _use_mem:
             await asyncio.to_thread(_mem.save_message, channel_id, "assistant", reply)
@@ -3158,8 +3275,8 @@ def _persist_env_key(key: str, value: str) -> None:
 async def _init_jh_channels(client) -> None:
     """jh-chat + intake 채널 자동 생성. (deprecated: jh-tasks/jh-status/jh-results/jh-briefing 삭제 2026-06-09)"""
     global JH_CHAT_CHANNEL_ID
-    global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_MYINTRO_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
-    global JH_CHRIS_CHANNEL_ID
+    global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_KMONG_CHANNEL_ID, JH_MYINTRO_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
+    global JH_CHRIS_CHANNEL_ID, JH_CHARLIE_CHANNEL_ID
     global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID
     if not client.guilds:
         return
@@ -3168,10 +3285,12 @@ async def _init_jh_channels(client) -> None:
         ("jh-chat", "JH_CHAT_CHANNEL_ID", "?? JH ? Bucky ?? ??"),
         ("jh-??????", "JH_REPO_DASHBOARD_CHANNEL_ID", "?? Repo ???? ? Bucky ???"),
         ("jh-???", "JH_WISHKET_CHANNEL_ID", "?? Wishket ???? ??"),
+        ("jh-크몽수익화", "JH_KMONG_CHANNEL_ID", "Kmong monetization dashboard and Bucky workflow"),
         ("jh-???", "JH_MYINTRO_CHANNEL_ID", "?? ? ?? ???? ??"),
         ("jh-??????", "JH_DAILYPLUS_CHANNEL_ID", "?? Daily Plus ? Bucky ???"),
         ("jh-?????", "JH_TASKBOARD_CHANNEL_ID", "?? ????? ? Bucky ???"),
         ("jh-chris", "JH_CHRIS_CHANNEL_ID", "?? Chris Graphify ?? ??/??? ?? ??"),
+        ("jh-charlie", "JH_CHARLIE_CHANNEL_ID", "Charlie system audit, home PC continuity, drift warnings, and user confirmations"),
         ("jh-??????", "JH_CLAUDE_CODE_CHANNEL_ID", "?? Claude Code ? ?? ??/?? ??"),
         ("jh-????", "JH_CODEX_CHANNEL_ID", "?? Codex ? ?? ??/?? ??"),
     ]
@@ -3201,10 +3320,12 @@ async def _init_jh_channels(client) -> None:
     _intake_env_keys = [
         ("JH_REPO_DASHBOARD_CHANNEL_ID", JH_REPO_DASHBOARD_CHANNEL_ID),
         ("JH_WISHKET_CHANNEL_ID",        JH_WISHKET_CHANNEL_ID),
+        ("JH_KMONG_CHANNEL_ID",          JH_KMONG_CHANNEL_ID),
         ("JH_MYINTRO_CHANNEL_ID",        JH_MYINTRO_CHANNEL_ID),
         ("JH_DAILYPLUS_CHANNEL_ID",      JH_DAILYPLUS_CHANNEL_ID),
         ("JH_TASKBOARD_CHANNEL_ID",      JH_TASKBOARD_CHANNEL_ID),
         ("JH_CHRIS_CHANNEL_ID",          JH_CHRIS_CHANNEL_ID),
+        ("JH_CHARLIE_CHANNEL_ID",        JH_CHARLIE_CHANNEL_ID),
         ("JH_CLAUDE_CODE_CHANNEL_ID",    JH_CLAUDE_CODE_CHANNEL_ID),
         ("JH_CODEX_CHANNEL_ID",          JH_CODEX_CHANNEL_ID),
     ]
@@ -4022,6 +4143,7 @@ class BuckyDiscordBot(discord.Client):
         asyncio.create_task(self._wishket_auto_scan_task())
         # 대시보드 intake 큐 소비자 (bucky_chat_server POST /intake → queue file)
         asyncio.create_task(self._intake_queue_consumer_task())
+        asyncio.create_task(self._daily_plus_outbox_bridge_task())
 
     async def _daily_briefing_task(self) -> None:
         """매일 BRIEFING_TIME에 자동 브리핑 게시."""
@@ -4167,6 +4289,31 @@ class BuckyDiscordBot(discord.Client):
 
             await asyncio.sleep(interval_sec)
 
+    async def _daily_plus_outbox_bridge_task(self) -> None:
+        """Relay Daily Plus Bucky outbox briefings to the dedicated Discord channel."""
+        await self.wait_until_ready()
+        sent_names = _load_daily_plus_bridge_state()
+        print("[DailyPlusBridge] outbox monitor started", flush=True)
+
+        while not self.is_closed():
+            try:
+                channel = self.get_channel(int(JH_DAILYPLUS_CHANNEL_ID)) if JH_DAILYPLUS_CHANNEL_ID else None
+                if channel and DAILY_PLUS_OUTBOX.exists():
+                    files = list(DAILY_PLUS_OUTBOX.glob("*_090000_daily_plus_dashboard_bucky.md"))
+                    pending = _pending_daily_plus_briefings(files, sent_names)
+                    for path in pending:
+                        text = path.read_text(encoding="utf-8", errors="replace")
+                        message = _build_daily_plus_briefing_message(path.name, text)
+                        for chunk in split_message(message):
+                            await channel.send(chunk)
+                        sent_names.add(path.name)
+                        _save_daily_plus_bridge_state(sent_names)
+                        print(f"[DailyPlusBridge] posted {path.name}", flush=True)
+            except Exception as exc:
+                print(f"[DailyPlusBridge] error: {exc}", flush=True)
+
+            await asyncio.sleep(15)
+
     async def _intake_queue_consumer_task(self) -> None:
         """Poll data/intake_queue/*.json and route payloads to Discord channels.
 
@@ -4183,12 +4330,14 @@ class BuckyDiscordBot(discord.Client):
         _channel_map = {
             "repo":        lambda: JH_REPO_DASHBOARD_CHANNEL_ID,
             "wishket":     lambda: JH_WISHKET_CHANNEL_ID,
+            "kmong":       lambda: JH_KMONG_CHANNEL_ID,
             "collab":      lambda: JH_MYINTRO_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
             "daily_plus":  lambda: JH_DAILYPLUS_CHANNEL_ID,
             "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
             "taskboard":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
             "checklist":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
             "knowledge_intake": lambda: JH_CHRIS_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
+            "charlie":     lambda: JH_CHARLIE_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
         }
 
         print("[IntakeConsumer] 시작", flush=True)
@@ -4309,6 +4458,44 @@ class BuckyDiscordBot(discord.Client):
             return
 
         if await _handle_collab_proposal_approval_payload(payload, channel):
+            return
+
+        if dashboard_type == "kmong" and channel:
+            safe_actions = payload.get("requested_actions") or []
+            if not isinstance(safe_actions, list):
+                safe_actions = [str(safe_actions)]
+            approval_required = bool(payload.get("approval_required"))
+            prompt = (
+                "[Kmong monetization dashboard intake]\n"
+                f"action: {action}\n"
+                f"title: {title}\n"
+                f"request_id: {request_id[:12]}\n"
+                f"work_state: {payload.get('work_state') or '(none)'}\n"
+                f"requested_actions: {', '.join(str(a) for a in safe_actions) or 'none'}\n"
+                f"approval_required: {approval_required}\n\n"
+                "Rules: use KMONG_EMAIL / KMONG_PASSWORD from runtime only; never ask for or print secrets. "
+                "Stop with manual_auth_required on captcha, OTP, 2FA, suspicious-login, or policy challenge. "
+                "Draft customer-facing replies, but do not send, accept orders, deliver files, or handle payment without explicit approval.\n\n"
+                f"Summary:\n{payload.get('summary') or ''}"
+            ).strip()
+            try:
+                timeout_s = int(os.getenv("KMONG_INTAKE_BUCKY_TIMEOUT", "90"))
+                reply = await asyncio.wait_for(
+                    ask_bucky(
+                        str(channel.id),
+                        prompt,
+                        session_key=_dashboard_session_key(payload),
+                        session_label=_dashboard_session_label(payload),
+                    ),
+                    timeout=timeout_s,
+                )
+                for chunk in split_message(reply):
+                    await channel.send(chunk)
+            except asyncio.TimeoutError:
+                await channel.send("Kmong Bucky response timed out. The request was received; continue in #jh-크몽수익화.")
+            except Exception as exc:
+                print(f"[IntakeConsumer] Kmong Bucky flow failed: {exc}", flush=True)
+                await channel.send(f"Kmong Bucky flow failed: `{exc}`")
             return
 
         if dashboard_type == "daily_plus" and channel:

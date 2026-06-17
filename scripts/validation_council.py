@@ -34,7 +34,7 @@ from dotenv import load_dotenv
 # ── 루트 경로 및 환경 변수 로드 ────────────────────────────────────────────────
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8")
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK_URL", "")
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))

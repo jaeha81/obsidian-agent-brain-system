@@ -25,7 +25,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8")
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK_URL", "")
 HEALTH_FILE = _ROOT / "ObsidianVault" / "10_AgentBus" / "health-status.json"
