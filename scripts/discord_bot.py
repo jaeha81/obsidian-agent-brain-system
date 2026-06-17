@@ -3376,17 +3376,17 @@ async def _init_jh_channels(client) -> None:
         return
     guild = client.guilds[0]
     _specs = [
-        ("jh-chat", "JH_CHAT_CHANNEL_ID", "?? JH ? Bucky ?? ??"),
-        ("jh-??????", "JH_REPO_DASHBOARD_CHANNEL_ID", "?? Repo ???? ? Bucky ???"),
-        ("jh-???", "JH_WISHKET_CHANNEL_ID", "?? Wishket ???? ??"),
-        ("jh-크몽수익화", "JH_KMONG_CHANNEL_ID", "Kmong monetization dashboard and Bucky workflow"),
-        ("jh-???", "JH_MYINTRO_CHANNEL_ID", "?? ? ?? ???? ??"),
-        ("jh-??????", "JH_DAILYPLUS_CHANNEL_ID", "?? Daily Plus ? Bucky ???"),
-        ("jh-?????", "JH_TASKBOARD_CHANNEL_ID", "?? ????? ? Bucky ???"),
-        ("jh-chris", "JH_CHRIS_CHANNEL_ID", "?? Chris Graphify ?? ??/??? ?? ??"),
-        ("jh-charlie", "JH_CHARLIE_CHANNEL_ID", "Charlie system audit, home PC continuity, drift warnings, and user confirmations"),
-        ("jh-??????", "JH_CLAUDE_CODE_CHANNEL_ID", "?? Claude Code ? ?? ??/?? ??"),
-        ("jh-????", "JH_CODEX_CHANNEL_ID", "?? Codex ? ?? ??/?? ??"),
+        ("jh-chat",         "JH_CHAT_CHANNEL_ID",           "💬 JH ↔ Bucky 대화 전용"),
+        ("jh-레포대시보드",  "JH_REPO_DASHBOARD_CHANNEL_ID", "📦 Repo 대시보드 → Bucky 라우팅"),
+        ("jh-위시켓",        "JH_WISHKET_CHANNEL_ID",        "💼 Wishket 개발요청 전용"),
+        ("jh-크몽수익화",    "JH_KMONG_CHANNEL_ID",          "Kmong monetization dashboard and Bucky workflow"),
+        ("jh-내소개",        "JH_MYINTRO_CHANNEL_ID",        "🤝 내 소개 페이지 협업 문의"),
+        ("jh-오늘의플러스",  "JH_DAILYPLUS_CHANNEL_ID",      "📅 Daily Plus → Bucky 브리핑"),
+        ("jh-테스크보드",    "JH_TASKBOARD_CHANNEL_ID",      "📋 테스크보드 → Bucky 라우팅"),
+        ("jh-chris",         "JH_CHRIS_CHANNEL_ID",          "💡 Chris Graphify 지식 입력/태그 선택 요청"),
+        ("jh-charlie",       "JH_CHARLIE_CHANNEL_ID",        "Charlie system audit, home PC continuity, drift warnings, and user confirmations"),
+        ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
+        ("jh-코덱스앱",      "JH_CODEX_CHANNEL_ID",          "🔍 Codex 앱 세션 요청/상태 보고"),
     ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
@@ -3428,13 +3428,12 @@ async def _init_jh_channels(client) -> None:
             ALLOWED_CHANNELS.add(_ch_id)
             _persist_env_key(_env_key, _ch_id)
 
-    # ── 작업 채널 자동 생성 (jh-work-1, jh-work-2) ────────────────────────────
-    _work_specs = [
-        ("jh-work-1", "⚙️ Claude Code 작업 채널 1 — 독립 세션, 병렬 실행"),
-        ("jh-work-2", "⚙️ Claude Code 작업 채널 2 — 독립 세션, 병렬 실행"),
-    ]
+    # ── [deprecated] 레거시 작업 채널 (jh-work-1, jh-work-2) ────────────────────
+    # 폐기됨: 앱 채널(jh-클로드코드앱, jh-코덱스앱)로 대체.
+    # 신규 생성 중단. 기존 채널이 남아있으면 .env에서 JH_WORK_CHANNEL_IDS 항목을 직접 제거하세요.
+    _legacy_work_names = {"jh-work-1", "jh-work-2"}
     known_work_channel_ids: set[str] = set()
-    for ch_name, topic in _work_specs:
+    for ch_name in _legacy_work_names:
         existing = discord.utils.get(guild.text_channels, name=ch_name)
         if existing:
             ch_id = str(existing.id)
@@ -3442,23 +3441,11 @@ async def _init_jh_channels(client) -> None:
             if ch_id not in JH_WORK_CHANNEL_IDS:
                 JH_WORK_CHANNEL_IDS.add(ch_id)
                 ALLOWED_CHANNELS.add(ch_id)
-            print(f"[Setup] #{ch_name} 발견: {existing.id}", flush=True)
-        else:
-            try:
-                new_ch = await guild.create_text_channel(ch_name, topic=topic)
-                ch_id = str(new_ch.id)
-                known_work_channel_ids.add(ch_id)
-                JH_WORK_CHANNEL_IDS.add(ch_id)
-                ALLOWED_CHANNELS.add(ch_id)
-                await new_ch.send(
-                    f"⚙️ **#{ch_name}** 자동 생성됨\n"
-                    f"{topic}\n\n"
-                    f"메시지를 보내면 독립 Claude Code 인스턴스가 실행됩니다.\n"
-                    f"여러 작업 채널에서 동시에 병렬 작업이 가능합니다."
-                )
-                print(f"[Setup] #{ch_name} 생성: {new_ch.id}", flush=True)
-            except discord.Forbidden:
-                print(f"[Setup] #{ch_name} 생성 실패: 권한 없음", flush=True)
+            print(
+                f"[Setup] #{ch_name} 발견(레거시): {existing.id} — "
+                ".env JH_WORK_CHANNEL_IDS 에서 이 ID를 제거하면 비활성화됩니다.",
+                flush=True,
+            )
 
     stale_work_channel_ids = JH_WORK_CHANNEL_IDS - known_work_channel_ids
     if stale_work_channel_ids:
