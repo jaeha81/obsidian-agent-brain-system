@@ -11,8 +11,8 @@ param(
 $ErrorActionPreference = "Continue"
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $scriptsDir = $PSScriptRoot
-$pythonExe = (Get-Command python -ErrorAction SilentlyContinue)?.Source
-if (-not $pythonExe) { $pythonExe = "python" }
+$_pyCmd = Get-Command python -ErrorAction SilentlyContinue
+$pythonExe = if ($_pyCmd) { $_pyCmd.Source } else { "python" }
 
 $logDir = Join-Path $repoRoot "logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
@@ -74,8 +74,29 @@ if ($reportOk -and -not $SkipGitPush) {
             $dateStr = Get-Date -Format "yyyy-MM-dd"
             $commitMsg = "chore: Daily Plus 자동 업데이트 $dateStr [skip ci]"
             & git commit -m $commitMsg 2>&1 | ForEach-Object { Log "  git commit: $_" }
-            & git push 2>&1 | ForEach-Object { Log "  git push: $_" }
-            Log "OK: git push 완료"
+            $pushOutput = & git push 2>&1
+            $pushExit = $LASTEXITCODE
+            $pushOutput | ForEach-Object { Log "  git push: $_" }
+            if ($pushExit -ne 0) {
+                Log "WARN: git push 실패 (exit=$pushExit) — 원격 변경사항 확인 후 수동 처리 필요"
+                $pullOutput = & git pull --rebase 2>&1
+                $pullExit = $LASTEXITCODE
+                $pullOutput | ForEach-Object { Log "  git pull --rebase: $_" }
+                if ($pullExit -eq 0) {
+                    $retryOutput = & git push 2>&1
+                    $retryExit = $LASTEXITCODE
+                    $retryOutput | ForEach-Object { Log "  git push (retry): $_" }
+                    if ($retryExit -eq 0) {
+                        Log "OK: git push 완료 (rebase 후 재시도 성공)"
+                    } else {
+                        Log "ERROR: git push 재시도 실패 (exit=$retryExit) — 수동 개입 필요"
+                    }
+                } else {
+                    Log "ERROR: git pull --rebase 실패 (exit=$pullExit) — 충돌 확인 필요"
+                }
+            } else {
+                Log "OK: git push 완료"
+            }
         } else {
             Log "SKIP: 변경사항 없음, git push 생략"
         }
