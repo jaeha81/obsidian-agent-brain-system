@@ -6,6 +6,11 @@
       "headers": {
         "Authorization": "Bearer ${HIGGSFIELD_API_KEY}"
       }
+    },
+    "obsidian-vault": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault"]
     }
   }
 }

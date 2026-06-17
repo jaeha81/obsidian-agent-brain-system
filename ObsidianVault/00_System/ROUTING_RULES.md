@@ -326,28 +326,21 @@ preserve_design: true
 |------|------|------|------|
 | **Layer 1: 로컬 직접** | Claude Code CLI → 파일시스템 직접 읽기 | G:\내 드라이브 전체 | ✅ 운영중 |
 | **Layer 2: 원격 VPN** | Tailscale → BuckyOS 서버(8765) → `/os/*` API | JSON 요약 + 채팅 | ✅ 운영중 |
-| **Layer 3: MCP 웹** | Relay.md → MCP 서버 → Claude 커스텀 커넥터 | 볼트 전체 (읽기/쓰기) | 🔧 설치 대기 |
+| **Layer 3: MCP 파일시스템** | `@modelcontextprotocol/server-filesystem` → `.mcp.json` `obsidian-vault` 서버 | 볼트 전체 (읽기/쓰기) | ✅ 운영중 |
 
-### Layer 3 설정 순서 (사용자 직접 수행)
+### Layer 3 설정 완료 (2026-06-18)
 
-1. Obsidian → Settings → Community Plugins → "relay" 검색 → **Relay.md** 설치 및 활성화
-2. relay.md 계정 생성 (solo plan 무료)
-3. Relay.md 플러그인에서 vault 동기화 시작 → 완료 후 MCP URL 복사
-4. Claude Code 프로젝트에서 `.mcp.json` 업데이트 (아래 템플릿 참고)
-5. Claude Desktop/Web → Settings → Custom Connectors → MCP URL 붙여넣기
-6. 검증: "내 세컨드 브레인에서 오늘 세션 로그 확인해줘" 입력 → 볼트 파일 읽어서 응답하면 성공
-
-### .mcp.json 업데이트 템플릿
-
-Relay.md 설정 완료 후 `.mcp.json`에 아래 블록을 추가한다.  
-`YOUR_RELAY_MCP_URL`은 Relay.md 대시보드에서 복사한 MCP 엔드포인트로 교체:
+`.mcp.json`에 `obsidian-vault` 서버 추가 완료:
 
 ```json
-"second-brain": {
-  "type": "sse",
-  "url": "YOUR_RELAY_MCP_URL"
+"obsidian-vault": {
+  "type": "stdio",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault"]
 }
 ```
+
+검증: Claude Code 세션에서 `obsidian-vault` MCP 도구로 볼트 파일 직접 읽기/쓰기 가능.
 
 ### 지식 쿼리 우선순위 (어떤 AI가 볼트에 접근할 때)
 
