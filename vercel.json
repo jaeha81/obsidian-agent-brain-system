@@ -9,7 +9,8 @@
     { "source": "/task-board.html",             "destination": "/task-board/",  "permanent": true },
     { "source": "/app-session.html",            "destination": "/claude-code/", "permanent": true },
     { "source": "/kmong.html",                  "destination": "/kmong/",       "permanent": true },
-    { "source": "/charlie-system-audit.html",   "destination": "/charlie/",     "permanent": true }
+    { "source": "/charlie-system-audit.html",   "destination": "/charlie/",     "permanent": true },
+    { "source": "/system-workflow.html",        "destination": "/workflow/",    "permanent": true }
   ],
   "rewrites": [
     { "source": "/bucky-daily.html", "destination": "/api/protected?page=bucky-daily" },
