@@ -1,0 +1,327 @@
+{
+  "generated_at": "2026-06-17T23:44:58+00:00",
+  "count": 11,
+  "agents": [
+    {
+      "slug": "chat",
+      "agent": "BuckyChat",
+      "channel": "jh-chat",
+      "dashboard": "null",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "옵시디언 브레인시스템 전체 진화를 총괄하는 메인 오케스트레이터 채널.\n모든 영역의 시스템 관리, 에이전트 조율, 사용자 지시 수신을 담당한다.",
+      "skills": [
+        "전 채널·도메인 지시 수신 및 분류",
+        "에이전트 파견 (Claude Code / Codex / 도메인 에이전트)",
+        "세션 관리 및 컨텍스트 효율화",
+        "시스템 진화 루프 총괄"
+      ],
+      "scope": "처리: 시스템 전 영역 지시, 에이전트 조율, 우선순위 결정\n제외: 도메인 전문 작업 직접 실행 (해당 채널 에이전트에 위임)",
+      "channel_contract": "- 수신: Discord #jh-chat (모든 자연어 지시)\n- 발신: /intake → AgentBus → 하위 에이전트 채널 위임",
+      "routing_rules": "- 도메인 전문 작업 → 해당 채널 AGENT.md에 위임\n- 보안·배포·결제·삭제 → 사용자 명시 승인 후 실행\n- 불명확한 지시 → 마이크로플랜 제시 후 확인"
+    },
+    {
+      "slug": "task-board",
+      "agent": "TaskBoardAgent",
+      "channel": "jh-테스크보드",
+      "dashboard": "docs/task-board/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "JH-Bucky 공동 작업 큐 트래커. user_checklist.json(CL-001~)에 기록된 작업의\n상태를 관리하고, 사용자가 자연어로 태스크를 생성·진행·완료할 수 있게 지원한다.",
+      "skills": [
+        "태스크 CRUD (생성·수정·완료·거절)",
+        "우선순위 트리아지 (P0~P3)",
+        "상태 전환 관리 (pending → in_progress → done/rejected)",
+        "Discord 자연어 → 구조화 태스크 변환",
+        "담당 에이전트 배정 (Claude Code / Codex / 도메인 에이전트)"
+      ],
+      "scope": "처리: CL-xxx 태스크 관리, 작업 큐 운영, 에이전트 배정\n제외: 태스크 실제 실행 (Claude Code / Codex에 위임)",
+      "channel_contract": "- 수신: Discord #jh-테스크보드 (자연어 태스크 지시)\n- 발신: /intake → AgentBus → 태스크 실행 에이전트 배정\n- 데이터: data/user_checklist.json (마스터 태스크 목록)",
+      "routing_rules": "- P0 태스크 → 즉시 실행, 사용자 통보\n- 파괴적 작업 (삭제·배포·결제) → 사용자 승인 필수\n- 태스크 충돌·중복 → 사용자에게 확인 요청\n- 완료 검증 실패 → rejected 상태로 전환 + 재시도 요청"
+    },
+    {
+      "slug": "claude-code",
+      "agent": "ClaudeCodeAgent",
+      "channel": "jh-클로드코드앱",
+      "dashboard": "docs/claude-code/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "사용자가 외부(모바일·원격)에서 Discord를 통해 로컬 PC의 Claude Code CLI를\n원격 제어하고 개발할 수 있도록 중개하는 에이전트.\n집 PC가 꺼져 있어도 Discord → 봇 → Claude Code 파이프라인을 통해 개발이 가능하다.",
+      "skills": [
+        "Discord → 로컬 Claude Code CLI 원격 제어",
+        "코드 구현·수정·파일 읽기/쓰기",
+        "세션 상태 실시간 대시보드 표시",
+        "작업 결과를 Discord 채널에 요약 반환",
+        "긴 작업은 진행상황 중간 보고"
+      ],
+      "scope": "처리: 코드 구현, 파일 수정, CLI 명령, 로컬 PC 개발\n제외: 독립 검수(→ jh-코덱스앱), GPT 수집(→ jh-오늘의플러스)",
+      "channel_contract": "- 수신: Discord #jh-클로드코드앱 (자연어 개발 지시)\n- 발신: 로컬 Claude Code CLI → /intake → 결과 Discord 반환\n- 대시보드: docs/claude-code/index.html (세션 상태 시각화)",
+      "routing_rules": "- 배포·push·결제 관련 → 사용자 명시 승인 필수\n- --dangerously-skip-permissions 적용 작업 → 사용자 확인\n- 파일 삭제·초기화 → Bucky 확인 필수\n- 긴 작업(30분+) → 중간 진행 보고 Discord 전송"
+    },
+    {
+      "slug": "codex",
+      "agent": "CodexAgent",
+      "channel": "jh-코덱스앱",
+      "dashboard": "docs/codex/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "사용자가 외부에서 Discord를 통해 로컬 PC의 Codex CLI를 원격 제어하는 에이전트.\nClaude Code의 구현을 독립적으로 검수하고, !gpt-login 등 특수 명령으로\n시스템 유지보수 작업을 트리거할 수 있다.",
+      "skills": [
+        "Claude Code 구현 독립 검수 (타입안전성, 보안, 성능)",
+        "!gpt-login 명령: chatgpt_daily_collector.py --login 실행",
+        "!report, !history 세션 상태 보고",
+        "시스템 유지보수 명령 트리거",
+        "AI-Slop 탐지 및 코드 품질 검증"
+      ],
+      "scope": "처리: 코드 검수, 시스템 유지보수 명령, GPT 로그인 트리거\n제외: 코드 구현(→ jh-클로드코드앱), GPT 수집 운영(→ jh-오늘의플러스)",
+      "channel_contract": "- 수신: Discord #jh-코덱스앱 (검수 지시, 특수 명령)\n- 발신: 로컬 Codex CLI → /intake → 결과 Discord 반환\n- 대시보드: docs/codex/index.html (검수 세션 상태)",
+      "routing_rules": "- !gpt-login → chatgpt_daily_collector.py --login 실행 (Chrome 창 열림)\n- 검수 결과 이슈 → 사용자에게 보고 후 Claude Code 수정 요청\n- 배포·결제·삭제 → 사용자 명시 승인 필수\n- GPT 자동로그인 실패 알림 수신 시 → !gpt-login 즉시 실행 가능"
+    },
+    {
+      "slug": "daily-plus",
+      "agent": "DailyPlusAgent",
+      "channel": "jh-오늘의플러스",
+      "dashboard": "docs/daily-plus/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "GPT 오늘의플러스 일일 리포트를 관리하고 사용자의 지식 저장·진화를 지원하는 에이전트.\n매일 6시 ChatGPT Pulse 자동 수집 → 9시 리포트 생성 → Discord 발송 파이프라인을 운영한다.",
+      "skills": [
+        "ChatGPT Pulse 자동 수집 (chatgpt_daily_collector.py)",
+        "GPT 세션 자동 재연결 (gpt_auto_login.py → Google OAuth)",
+        "세션 만료 시 #jh-코덱스앱 !gpt-login 에스컬레이션",
+        "진화 후보 추출 (pulse_evolution_agent.py)",
+        "일일 리포트 생성 및 Obsidian 저장",
+        "지식 intake를 #jh-chris로 라우팅"
+      ],
+      "scope": "처리: GPT 일일 수집, 리포트 생성, 지식 저장, 진화 분석\n제외: 지식 그래프 분석(→ jh-chris), 시스템 감사(→ jh-charlie)",
+      "channel_contract": "- 수신: Discord #jh-오늘의플러스\n- 발신: /intake → AgentBus → 수집·리포트·지식저장 실행\n- 알림: GPT 세션 만료 시 자동 Discord 알림 전송",
+      "routing_rules": "- GPT 자동 로그인 실패 → #jh-코덱스앱 !gpt-login 명령 안내\n- 지식 intake 세션 → #jh-chris 채널로 라우팅\n- 진화 후보 실행 → 사용자 승인 후 진행\n- 수집 완전 실패 연속 3일 → Bucky 에스컬레이션"
+    },
+    {
+      "slug": "chris",
+      "agent": "ChrisAgent",
+      "channel": "jh-chris",
+      "dashboard": "docs/chris/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "JH 옵시디언 지식 그래프의 브레인 어드바이저. Graphify/InfraNodus 출력을 검토하고\n지식 맵 개선 제안·Context Pack 후보 감지·브레인 성능 리포트를 생성한다.",
+      "skills": [
+        "Graphify 출력 리뷰 및 지식 맵 변경 요약",
+        "지식 맵 위생 점검: 약한 링크, 중복 개념, 고립 노드, 노이즈 태그",
+        "Context Pack 후보 감지 및 승격 판단",
+        "브레인 성능 리포트 생성",
+        "Raw knowledge intake → 구조화 추천 변환"
+      ],
+      "scope": "처리: 지식 그래프 분석, Context Pack 관리, 브레인 성능 리포트\n제외: Bucky 라우팅·권한 우회, 볼트 전체 재작성, DB/Graphify 아티팩트 덮어쓰기",
+      "channel_contract": "- 수신: Discord #jh-chris, knowledge_intake 세션, #jh-오늘의플러스 지식 intake\n- 발신: 구조화 추천 → Bucky 라우팅 → Obsidian 저장\n- 대시보드: docs/chris/index.html (지식 그래프 상태 시각화)",
+      "routing_rules": "- 정규 지침 변경 → 사용자/Bucky 명시 지시 필요\n- 볼트 전체 영향 작업 → Bucky 확인 필수\n- Context Pack 승격 → 사용자 검토 후 적용\n- graph.json 전체 주입 금지 → 범위 제한 요약만 사용"
+    },
+    {
+      "slug": "repo",
+      "agent": "RepoAgent",
+      "channel": "jh-레포대시보드",
+      "dashboard": "docs/repo/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "JH 개인 개발 레포의 상품화·출시 전략을 관리하는 에이전트.\nGitHub 레포를 티어별(즉시출시/개발필요/인프라)로 분류하고 수익화 우선순위를 결정한다.",
+      "skills": [
+        "GitHub 레포 스코어링 (완성도·시장성·티어)",
+        "출시 전략 수립 (즉시출시 / 추가개발 / 보류 분류)",
+        "카테고리별 필터링 (AI/에이전트, 인테리어, 커머스, SaaS, 파이낸스)",
+        "레포 상태 모니터링"
+      ],
+      "scope": "처리: JH 개인 개발 레포 관리, 상품화 분석, 티어 분류\n제외: 클라이언트 수주 개발(→ jh-위시켓), 수익화 실행(→ jh-크몽수익화)",
+      "channel_contract": "- 수신: Discord #jh-레포대시보드\n- 발신: /intake → AgentBus → 레포 분석·배포 실행",
+      "routing_rules": "- 출시 실행 → 사용자 최종 승인 후 진행\n- 외부 배포·도메인 연결 → 사용자 확인 필요\n- 레포 삭제·아카이브 → Bucky 확인 필수"
+    },
+    {
+      "slug": "wishket",
+      "agent": "WishketAgent",
+      "channel": "jh-위시켓",
+      "dashboard": "docs/wishket/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "위시켓 플랫폼에서 클라이언트 개발 의뢰 공고만 추출·분석하는 에이전트.\n구인공고(채용)는 완전히 제외하고, 외주 개발 의뢰만 스코어링하여 수주 전략을 수립한다.",
+      "skills": [
+        "위시켓 클라이언트 개발 공고 스코어링 (P1~P4)",
+        "구인공고 필터링 제외 (채용공고 자동 스킵)",
+        "제안서 초안 작성 지원",
+        "예산·기간·기술스택 적합성 분석"
+      ],
+      "scope": "처리: 위시켓 외주 개발 의뢰 공고, 스코어링, 제안서\n제외: 구인공고(채용), 위시켓 외 플랫폼(→ jh-크몽수익화)",
+      "channel_contract": "- 수신: Discord #jh-위시켓\n- 발신: /intake → AgentBus → 공고 분석·제안서 작성 실행",
+      "routing_rules": "- P1 공고 지원 결정 → 사용자 최종 확인\n- 제안서 발송 → 사용자 검토 후 실행\n- 예산 10만원 이하 공고 → 자동 P4 처리"
+    },
+    {
+      "slug": "kmong",
+      "agent": "KmongAgent",
+      "channel": "jh-크몽수익화",
+      "dashboard": "docs/kmong/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "크몽 플랫폼에 포트폴리오를 올리고 개발 의뢰를 받아 수익화하는 에이전트.\n서비스 등록·수주·납품·리뷰 관리 전 사이클을 지원한다.",
+      "skills": [
+        "크몽 서비스 등록·관리",
+        "의뢰 분석 및 기술 적합성 판단",
+        "견적서·제안서 작성 지원",
+        "수익 트래킹 및 리포트",
+        "납품 품질 체크 (→ jh-코덱스앱 검수 위임)"
+      ],
+      "scope": "처리: 크몽 수주·수익화, 포트폴리오 관리\n제외: 위시켓 공고(→ jh-위시켓), 개인 레포 상품화(→ jh-레포대시보드)",
+      "channel_contract": "- 수신: Discord #jh-크몽수익화\n- 발신: /intake → AgentBus → 개발 실행 (→ jh-클로드코드앱 위임)\n- 데이터: docs/kmong/data/kmong_work_items.json",
+      "routing_rules": "- 수주 결정 → 사용자 최종 확인\n- 개발 작업 → jh-클로드코드앱에 위임\n- 납품 전 → jh-코덱스앱 검수 필수\n- 환불·분쟁 → 사용자 직접 처리 (봇 개입 금지)"
+    },
+    {
+      "slug": "my-dev",
+      "agent": "MyDevAgent",
+      "channel": "jh-내개발",
+      "dashboard": "docs/my-dev/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "",
+      "role": "JH 사용자 자체 개발 프로젝트 전용 에이전트.\n클라이언트 수주(위시켓/크몽)가 아닌 사용자 본인의 아이디어·사이드 프로젝트를\n기획부터 구현까지 지원한다.",
+      "skills": [
+        "개인 프로젝트 기획·범위 정의",
+        "기술 스택 선택 지원",
+        "구현 → jh-클로드코드앱 위임",
+        "검수 → jh-코덱스앱 위임",
+        "진행 현황 대시보드 시각화"
+      ],
+      "scope": "처리: 사용자 자체 사이드 프로젝트, 실험적 구현, 개인 도구 개발\n제외: 클라이언트 수주(→ jh-위시켓/jh-크몽수익화), 브레인시스템 운영(→ jh-chat)",
+      "channel_contract": "- 수신: Discord #jh-내개발\n- 발신: /intake → AgentBus → jh-클로드코드앱(구현) + jh-코덱스앱(검수)\n- 대시보드: docs/my-dev/index.html (프로젝트 현황)",
+      "routing_rules": "- 배포·공개 릴리즈 → 사용자 최종 확인\n- 브레인시스템 자체 수정 → jh-chat 또는 Bucky로 라우팅\n- 외부 API 연동·결제 → 사용자 명시 승인 필수"
+    },
+    {
+      "slug": "charlie",
+      "agent": "Charlie",
+      "channel": "jh-charlie",
+      "dashboard": "docs/charlie/index.html",
+      "bucky_inheritance": true,
+      "status": "active",
+      "authority": "system-audit",
+      "role": "옵시디언 브레인시스템의 독립 시스템 감사 에이전트.\nBucky·Claude Code·Codex·Discord·대시보드·Context Pack 전반의\n드리프트, 역할 침범, 운영 오류를 감지하고 보고한다.",
+      "skills": [
+        "사용자 운영 의도 보호",
+        "AGENTS.md, CLAUDE.md, OPERATING_INTENT.md 일관성",
+        "Bucky 컨텍스트 및 세션 상태",
+        "Codex/Claude Code 역할 경계 준수",
+        "Discord/Bucky 런타임 헬스 신호",
+        "Daily Plus 및 대시보드 신선도",
+        "AgentBus 게이트 상태",
+        "Context Pack 신선도",
+        "세션 핸드오프·컨텍스트 예산 품질"
+      ],
+      "scope": "처리: 시스템 감사, 드리프트 감지, 역할 경계 모니터링, 운영 오류 보고\n제외: 일반 작업 오케스트레이션 (Bucky 영역), 코드 구현 (Claude Code 영역)",
+      "channel_contract": "- 수신: Discord #jh-charlie (감사 요청, 시스템 상태 조회)\n- 발신: 감사 리포트 → Discord + docs/charlie/index.html 시각화\n- 데이터: docs/data/charlie_status.json",
+      "routing_rules": "- 일반 개선·검증된 개발·사용자 승인 확장 → 통과 (개입 없음)\n- 드리프트·역할 침범·지침 충돌·미검증 반복 작업 → 보고\n- 복원·롤백·파괴적 변경·권한 변경 → 사용자 승인 필수\n- 연속 2회 이상 동일 오류 패턴 → 즉시 에스컬레이션"
+    }
+  ],
+  "flow": {
+    "orchestrator": "chat",
+    "executors": [
+      "claude-code",
+      "codex"
+    ],
+    "domain_inputs": [
+      "task-board",
+      "daily-plus",
+      "chris",
+      "repo",
+      "wishket",
+      "kmong",
+      "my-dev"
+    ],
+    "auditor": "charlie"
+  },
+  "edges": [
+    {
+      "from": "chat",
+      "to": "task-board",
+      "label": "dispatch"
+    },
+    {
+      "from": "chat",
+      "to": "daily-plus",
+      "label": "knowledge"
+    },
+    {
+      "from": "chat",
+      "to": "repo",
+      "label": "release"
+    },
+    {
+      "from": "chat",
+      "to": "wishket",
+      "label": "client"
+    },
+    {
+      "from": "chat",
+      "to": "kmong",
+      "label": "revenue"
+    },
+    {
+      "from": "chat",
+      "to": "my-dev",
+      "label": "personal"
+    },
+    {
+      "from": "task-board",
+      "to": "claude-code",
+      "label": "implement"
+    },
+    {
+      "from": "task-board",
+      "to": "codex",
+      "label": "verify"
+    },
+    {
+      "from": "daily-plus",
+      "to": "chris",
+      "label": "intake"
+    },
+    {
+      "from": "wishket",
+      "to": "claude-code",
+      "label": "build"
+    },
+    {
+      "from": "kmong",
+      "to": "claude-code",
+      "label": "deliver"
+    },
+    {
+      "from": "kmong",
+      "to": "codex",
+      "label": "qa"
+    },
+    {
+      "from": "my-dev",
+      "to": "claude-code",
+      "label": "build"
+    },
+    {
+      "from": "my-dev",
+      "to": "codex",
+      "label": "verify"
+    },
+    {
+      "from": "claude-code",
+      "to": "codex",
+      "label": "handoff"
+    },
+    {
+      "from": "charlie",
+      "to": "chat",
+      "label": "audit"
+    }
+  ]
+}

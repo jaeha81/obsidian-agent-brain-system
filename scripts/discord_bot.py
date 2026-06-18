@@ -768,23 +768,26 @@ async def _handle_shorts_command(message: Message, content: str) -> None:
     """
     import json as _json_local
 
-    if not content.startswith(_SHORTS_CMD_PREFIX):
-        # 일반 대화 메시지는 간단 안내만
-        await message.channel.send(
-            "이 채널은 쇼츠 자동화 전용입니다.\n"
-            "대시보드에서 버튼을 누르거나 `!shorts status` 로 현황을 확인하세요."
-        )
-        return
-
     if content.startswith("!shorts"):
+        # 사용자 직접 명령: !shorts status / !shorts run_pipeline 등
         cmd_body = content[len("!shorts"):].strip() or "status"
         payload = {"action": cmd_body, "params": {}}
-    else:
+    elif content.startswith(_SHORTS_CMD_PREFIX):
+        # Vercel 대시보드 Webhook 명령: [SHORTS_CMD] {"action": "..."}
         payload_str = content[len(_SHORTS_CMD_PREFIX):].strip()
         try:
             payload = _json_local.loads(payload_str)
         except _json_local.JSONDecodeError:
             payload = {"action": payload_str, "params": {}}
+    else:
+        # 일반 대화 메시지 — 안내만
+        await message.channel.send(
+            "이 채널은 쇼츠 자동화 전용입니다.\n"
+            "`!shorts status` — 현황\n"
+            "`!shorts run_pipeline` — 전체 파이프라인 실행\n"
+            "`!shorts product_discovery` / `content_generation` / `revenue_sync`"
+        )
+        return
 
     action = payload.get("action", "status")
     print(f"[Shorts] 명령 수신: {action}", flush=True)

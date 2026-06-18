@@ -39,6 +39,10 @@
     {
       "source": "/ai-usage.html",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/workflow/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ],
   "functions": {

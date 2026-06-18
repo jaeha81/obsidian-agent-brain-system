@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#58a6ff">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>워크플로우 - JH Bucky Brain System</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
+})();
+</script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --card-h: #1c2129;
+    --border: #30363d;
+    --border-h: #58a6ff;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --teal: #2dd4bf;
+    --pink: #f778ba;
+    --orange: #ff9248;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header {
+    background: linear-gradient(135deg, #0d1f2d 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px; position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  header .title-block { flex: 1; min-width: 240px; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
+  .jh-nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .jh-nav a {
+    font-size: 0.78rem; color: var(--muted); text-decoration: none;
+    border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+  }
+  .jh-nav a:hover, .jh-nav a.active {
+    border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08);
+  }
+  .stats-bar {
+    display: flex; gap: 10px; padding: 14px 28px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 16px; flex: 1; min-width: 110px; text-align: center; transition: all 0.2s;
+  }
+  .stat-box:hover { border-color: var(--accent); }
+  .stat-box .num { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat-box .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  main { padding: 24px 28px 80px; max-width: 1400px; margin: 0 auto; }
+  section { margin-bottom: 36px; }
+  section h2 {
+    font-size: 1rem; font-weight: 600; color: var(--accent);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+  }
+  section h2 .badge {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 10px;
+    background: rgba(88,166,255,0.12); color: var(--accent);
+    border: 1px solid rgba(88,166,255,0.3); font-weight: 500;
+  }
+  section .subtitle { color: var(--muted); font-size: 0.82rem; margin-bottom: 14px; }
+
+  /* Mermaid container */
+  .mermaid-wrap {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; overflow-x: auto;
+  }
+  .mermaid { display: flex; justify-content: center; min-height: 200px; }
+
+  /* Group label */
+  .group {
+    margin-bottom: 22px;
+  }
+  .group-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px; padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .group-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+  .group-count {
+    font-size: 0.7rem; color: var(--muted);
+    background: var(--card); padding: 2px 8px; border-radius: 10px;
+  }
+  .group-desc { font-size: 0.75rem; color: var(--muted); margin-left: auto; }
+
+  /* Agent cards */
+  .agent-grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .agent-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    transition: all 0.2s; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 8px;
+    position: relative; overflow: hidden;
+  }
+  .agent-card:hover { border-color: var(--border-h); background: var(--card-h); transform: translateY(-1px); }
+  .agent-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent-c, var(--accent));
+  }
+  .agent-card[data-group="orchestrator"] { --accent-c: var(--accent); }
+  .agent-card[data-group="execution"]    { --accent-c: var(--green); }
+  .agent-card[data-group="domain"]       { --accent-c: var(--purple); }
+  .agent-card[data-group="audit"]        { --accent-c: var(--orange); }
+  .agent-card[data-group="coordination"] { --accent-c: var(--teal); }
+  .agent-card[data-group="personal"]     { --accent-c: var(--pink); }
+
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .card-channel { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+  .card-agent { font-size: 0.7rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .card-role { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .card-scope { font-size: 0.72rem; color: var(--text); margin-top: 4px; }
+  .card-scope b { color: var(--green); font-weight: 600; }
+  .card-exclude { font-size: 0.72rem; color: var(--muted); }
+  .card-exclude b { color: var(--red); font-weight: 600; }
+  .card-foot { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 10px;
+    background: rgba(88,166,255,0.08); color: var(--accent);
+    border: 1px solid rgba(88,166,255,0.2);
+  }
+  .tag.inherit { background: rgba(63,185,80,0.08); color: var(--green); border-color: rgba(63,185,80,0.2); }
+  .tag.no-dash { background: rgba(248,81,73,0.08); color: var(--red); border-color: rgba(248,81,73,0.2); }
+  .card-link {
+    margin-top: 6px; font-size: 0.72rem; color: var(--accent);
+    font-family: ui-monospace, monospace;
+  }
+
+  /* Health badge on agent cards */
+  .health-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 0 2px var(--card);
+  }
+  .health-badge.warn { background: var(--yellow); }
+  .health-badge.err  { background: var(--red); animation: hb-pulse 1.4s infinite; }
+  .health-badge.unknown { background: var(--muted); opacity: 0.6; }
+  @keyframes hb-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .card-warnings {
+    margin-top: 4px; font-size: 0.7rem; color: var(--yellow);
+    background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.25);
+    border-radius: 6px; padding: 4px 7px;
+  }
+  .card-errors {
+    margin-top: 4px; font-size: 0.7rem; color: var(--red);
+    background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.25);
+    border-radius: 6px; padding: 4px 7px;
+  }
+
+  /* Live runtime panel */
+  .runtime-panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; display: flex; gap: 18px; flex-wrap: wrap;
+    align-items: center; font-size: 0.78rem;
+  }
+  .runtime-panel .rt-title {
+    color: var(--muted); font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-right: 8px;
+  }
+  .runtime-panel .rt-item { display: flex; align-items: center; gap: 6px; }
+  .runtime-panel .rt-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  }
+  .runtime-panel .rt-dot.warn { background: var(--yellow); }
+  .runtime-panel .rt-dot.err  { background: var(--red); animation: hb-pulse 1.4s infinite; }
+  .runtime-panel .rt-name { color: var(--text); font-weight: 600; }
+  .runtime-panel .rt-msg  { color: var(--muted); font-family: ui-monospace, monospace; font-size: 0.72rem; }
+  .runtime-panel .rt-stamp {
+    margin-left: auto; color: var(--muted); font-size: 0.7rem;
+  }
+  .runtime-panel .rt-stamp .live-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); margin-right: 6px; animation: hb-pulse 2s infinite;
+  }
+  .runtime-panel .rt-stamp.stale .live-dot { background: var(--red); }
+
+  /* Brain connection grid */
+  .brain-grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .brain-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+  }
+  .brain-card h3 {
+    font-size: 0.85rem; color: var(--teal); margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .brain-card p { font-size: 0.75rem; color: var(--muted); line-height: 1.55; }
+  .brain-card ul { font-size: 0.74rem; color: var(--text); padding-left: 18px; margin-top: 6px; line-height: 1.7; }
+  .brain-card code { font-family: ui-monospace, monospace; font-size: 0.72rem; color: var(--purple); background: rgba(188,140,255,0.08); padding: 1px 5px; border-radius: 3px; }
+
+  /* Footer */
+  footer { padding: 20px 28px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.72rem; text-align: center; }
+  footer code { color: var(--accent); font-family: ui-monospace, monospace; }
+
+  @media (max-width: 768px) {
+    header { padding: 14px 18px; }
+    main { padding: 18px 18px 60px; }
+    .stats-bar { padding: 12px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="jh-nav" style="padding:6px 28px;border-bottom:1px solid var(--border);background:#0d1117"></nav>
+
+<header>
+  <div class="title-block">
+    <h1>워크플로우 시각화</h1>
+    <p>11개 채널 에이전트의 역할 · 라우팅 · Bucky 상속 · 옵시디언 브레인 연결을 한눈에</p>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-box" id="stat-agents"><div class="num">—</div><div class="lbl">활성 채널</div></div>
+  <div class="stat-box" id="stat-inherit"><div class="num">—</div><div class="lbl">Bucky 상속</div></div>
+  <div class="stat-box" id="stat-dash"><div class="num">—</div><div class="lbl">대시보드</div></div>
+  <div class="stat-box" id="stat-tasks"><div class="num">—</div><div class="lbl">진행/대기</div></div>
+  <div class="stat-box" id="stat-blocked"><div class="num">—</div><div class="lbl">블록드</div></div>
+  <div class="stat-box" id="stat-runtime"><div class="num">—</div><div class="lbl">런타임</div></div>
+</div>
+
+<main>
+
+  <!-- ─────────── §0. 실시간 런타임 신호 ─────────── -->
+  <section>
+    <h2>§0. 실시간 런타임 신호 <span class="badge" id="liveBadge">● LIVE</span></h2>
+    <p class="subtitle">디스코드 봇·채팅 서버·각 에이전트 헬스를 30초 간격 폴링. 이상 시 빨간 점 + 카드 펄스로 표시.</p>
+    <div class="runtime-panel" id="runtimePanel">
+      <span class="rt-title">신호:</span>
+      <span class="rt-msg">불러오는 중…</span>
+      <span class="rt-stamp" id="rtStamp"><span class="live-dot"></span>—</span>
+    </div>
+  </section>
+
+  <!-- ─────────── §1. 시스템 흐름 ─────────── -->
+  <section>
+    <h2>§1. 시스템 흐름 <span class="badge">User → Discord → Bucky → Agent → Result</span></h2>
+    <p class="subtitle">사용자 지시가 Discord 채널을 통해 들어와 각 에이전트로 위임되고 결과가 대시보드와 옵시디언 볼트에 반영되는 전체 파이프라인.</p>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="m-flow">
+graph LR
+    U([👤 사용자]) -->|음성·텍스트| D[Discord 채널]
+    D -->|/intake| R{Bucky 라우터<br/>discord_bot.py}
+    R -->|구현| CC[🟢 jh-클로드코드앱<br/>ClaudeCode CLI]
+    R -->|검수| CX[🟢 jh-코덱스앱<br/>Codex CLI]
+    R -->|도메인| DOM[🟣 도메인 에이전트<br/>6개 채널]
+    R -->|조율| CRD[🔵 jh-테스크보드<br/>큐 관리]
+    R -.->|감시| CH[🟠 jh-charlie<br/>독립 감사]
+    CC --> AB[AgentBus]
+    CX --> AB
+    DOM --> AB
+    CRD --> AB
+    AB -->|결과 반환| D
+    AB -->|기록| OV[(옵시디언 볼트<br/>ObsidianVault/)]
+    AB -->|시각화| DASH[대시보드<br/>docs/&lt;channel&gt;/index.html]
+    OV -->|컨텍스트| R
+    CH -.->|보고| U
+    style U fill:#58a6ff,stroke:#58a6ff,color:#0d1117
+    style R fill:#1c2129,stroke:#58a6ff,color:#c9d1d9
+    style CC fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style CX fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style DOM fill:#1c2129,stroke:#bc8cff,color:#bc8cff
+    style CRD fill:#1c2129,stroke:#2dd4bf,color:#2dd4bf
+    style CH fill:#1c2129,stroke:#ff9248,color:#ff9248
+    style OV fill:#1c2129,stroke:#f778ba,color:#f778ba
+    style DASH fill:#1c2129,stroke:#d29922,color:#d29922
+    style AB fill:#161b22,stroke:#30363d,color:#8b949e
+    style D fill:#161b22,stroke:#30363d,color:#c9d1d9
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── §2. 에이전트 매트릭스 ─────────── -->
+  <section>
+    <h2>§2. 에이전트 매트릭스 <span class="badge">11 채널 · 6 그룹</span></h2>
+    <p class="subtitle">각 채널은 독립 에이전트이며 도메인별로 그룹화된다. 카드를 클릭하면 해당 채널 대시보드로 이동.</p>
+
+    <!-- Orchestrator -->
+    <div class="group">
+      <div class="group-header">
+        <div class="group-title" style="color:var(--accent)">🎯 오케스트레이션</div>
+        <div class="group-count">1</div>
+        <div class="group-desc">전체 시스템 조율 · 사용자 지시 1차 수신</div>
+      </div>
+      <div class="agent-grid" id="grp-orchestrator"></div>
+    </div>
+
+    <!-- Execution -->
+    <div class="group">
+      <div class="group-header">
+        <div class="group-title" style="color:var(--green)">⚡ 실행 · 검수</div>
+        <div class="group-count">2</div>
+        <div class="group-desc">Discord → 로컬 PC CLI 원격 제어</div>
+      </div>
+      <div class="agent-grid" id="grp-execution"></div>
+    </div>
+
+    <!-- Coordination -->
+    <div class="group">
+      <div class="group-header">
+        <div class="group-title" style="color:var(--teal)">🔵 조율 · 큐 관리</div>
+        <div class="group-count">1</div>
+        <div class="group-desc">작업 트래커 · 에이전트 배정</div>
+      </div>
+      <div class="agent-grid" id="grp-coordination"></div>
+    </div>
+
+    <!-- Domain -->
+    <div class="group">
+      <div class="group-header">
+        <div class="group-title" style="color:var(--purple)">🟣 도메인 전문</div>
+        <div class="group-count">5</div>
+        <div class="group-desc">수익화 · 지식 · 개발 도메인별 전문 에이전트</div>
+      </div>
+      <div class="agent-grid" id="grp-domain"></div>
+    </div>
+
+    <!-- Personal -->
+    <div class="group">
+      <div class="group-header">
+        <div class="group-title" style="color:var(--pink)">🌸 개인 개발</div>
+        <div class="group-count">1</div>
+        <div class="group-desc">사용자 본인의 사이드 프로젝트 전용</div>
+      </div>
+      <div class="agent-grid" id="grp-personal"></div>
+    </div>
+
+    <!-- Audit -->
+    <div class="group">
+      <div class="group-header">
+        <div class="group-title" style="color:var(--orange)">🛡️ 독립 감사</div>
+        <div class="group-count">1</div>
+        <div class="group-desc">Bucky 라우팅과 독립 · 드리프트 감지 전용</div>
+      </div>
+      <div class="agent-grid" id="grp-audit"></div>
+    </div>
+  </section>
+
+  <!-- ─────────── §3. Bucky 상속 트리 ─────────── -->
+  <section>
+    <h2>§3. Bucky 상속 구조 <span class="badge">Memory · Routing · Evolution Loop → 11 Agents</span></h2>
+    <p class="subtitle">모든 에이전트는 Bucky의 3대 핵심 능력을 상속받아 동일한 운영 원칙으로 작동한다.</p>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="m-inherit">
+graph TD
+    B((🧠 Bucky<br/>오케스트레이터))
+    B --> M[Memory Stack<br/>단기·에피소딕·시맨틱·절차적]
+    B --> R[Routing<br/>3-tier<br/>즉시·마이크로플랜·확인]
+    B --> E[Evolution Loop<br/>수신→분류→실행→반영]
+    M --> A1[jh-chat]
+    M --> A2[jh-레포대시보드]
+    M --> A3[jh-위시켓]
+    M --> A4[jh-오늘의플러스]
+    M --> A5[jh-테스크보드]
+    M --> A6[jh-클로드코드앱]
+    M --> A7[jh-코덱스앱]
+    M --> A8[jh-크몽수익화]
+    M --> A9[jh-chris]
+    M --> A10[jh-내개발]
+    M --> A11[jh-charlie]
+    R -.-> A1
+    R -.-> A2
+    R -.-> A3
+    R -.-> A4
+    R -.-> A5
+    R -.-> A6
+    R -.-> A7
+    R -.-> A8
+    R -.-> A9
+    R -.-> A10
+    E -.-> A1
+    E -.-> A2
+    E -.-> A3
+    E -.-> A4
+    E -.-> A5
+    E -.-> A6
+    E -.-> A7
+    E -.-> A8
+    E -.-> A9
+    E -.-> A10
+    A11 -.->|독립| B
+    style B fill:#58a6ff,stroke:#58a6ff,color:#0d1117
+    style M fill:#1c2129,stroke:#bc8cff,color:#bc8cff
+    style R fill:#1c2129,stroke:#2dd4bf,color:#2dd4bf
+    style E fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style A11 fill:#1c2129,stroke:#ff9248,color:#ff9248
+    style A1 fill:#161b22,stroke:#58a6ff,color:#c9d1d9
+    style A2 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
+    style A3 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
+    style A4 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
+    style A5 fill:#161b22,stroke:#2dd4bf,color:#c9d1d9
+    style A6 fill:#161b22,stroke:#3fb950,color:#c9d1d9
+    style A7 fill:#161b22,stroke:#3fb950,color:#c9d1d9
+    style A8 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
+    style A9 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
+    style A10 fill:#161b22,stroke:#f778ba,color:#c9d1d9
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── §4. 옵시디언 브레인 연결 ─────────── -->
+  <section>
+    <h2>§4. 옵시디언 브레인 연결 <span class="badge">에이전트 ↔ Vault</span></h2>
+    <p class="subtitle">각 에이전트가 옵시디언 볼트(<code>ObsidianVault/</code>)의 어떤 폴더와 연결되어 컨텍스트를 읽고 결과를 저장하는지.</p>
+    <div class="brain-grid">
+      <div class="brain-card">
+        <h3>📚 06_Context_Packs/</h3>
+        <p>모든 에이전트가 작업 전 참조하는 운영 정책 팩.</p>
+        <ul>
+          <li><code>bucky-agent-os-legacy-rules.md</code></li>
+          <li><code>bucky-context-efficiency-goal-mode.md</code></li>
+          <li><code>bucky-ai-api-routing-policy.md</code></li>
+          <li><code>Design/</code> — 디자인 토큰 추출 결과</li>
+        </ul>
+      </div>
+      <div class="brain-card">
+        <h3>🤖 03_Projects/agents/</h3>
+        <p>에이전트 정체성·역할 정의. <code>chris.md</code>, <code>charlie.md</code>, <code>bucky.md</code> 등 정본.</p>
+        <ul>
+          <li>11개 채널 AGENT.md → 이 폴더 정본 상속</li>
+          <li>ROUTING_RULES.md 정합성 유지</li>
+        </ul>
+      </div>
+      <div class="brain-card">
+        <h3>🚌 10_AgentBus/</h3>
+        <p>AgentBus 작업 큐·상태·dispatcher 로그.</p>
+        <ul>
+          <li><code>tasks/</code> — CL-xxx 정본 DB</li>
+          <li><code>completed/</code> — 결과·핸드오프</li>
+          <li><code>reports/</code> — 일일·주간 리포트</li>
+        </ul>
+      </div>
+      <div class="brain-card">
+        <h3>🗂️ 04_Wiki/ + 03_Knowledge/</h3>
+        <p>정제된 지식 베이스. Chris가 graph health 점검.</p>
+        <ul>
+          <li>Raw → Wiki 파이프라인</li>
+          <li>중복 노트 70% 게이트</li>
+          <li>InfraNodus 모듈성 0.547</li>
+        </ul>
+      </div>
+      <div class="brain-card">
+        <h3>📅 04_DAILY_REPORTS/</h3>
+        <p>Daily Plus·세션 로그·일일 회고. 동적 정보 저장소.</p>
+        <ul>
+          <li>jh-오늘의플러스 ↔ 직접 저장</li>
+          <li>ChatGPT Pulse 수집 결과</li>
+        </ul>
+      </div>
+      <div class="brain-card">
+        <h3>⚙️ 00_System/</h3>
+        <p>시스템 운영 메타데이터. Charlie의 감사 대상.</p>
+        <ul>
+          <li><code>BUCKY_STATUS.md</code> — 실시간 상태</li>
+          <li><code>session-state.md</code> — 권위 소스</li>
+          <li><code>HANDOFF_LOG.md</code> — 세션 인계</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  📡 데이터: 11개 <code>docs/*/AGENT.md</code> · 자동 파싱 <code>scripts/build_workflow_data.py</code> → <code>agents.json</code> + <code>health.json</code> · 30초 헬스 폴링 · 정본 라우팅: <code>ObsidianVault/00_System/ROUTING_RULES.md</code>
+</footer>
+
+<script src="/shared/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  // Data is auto-parsed from docs/*/AGENT.md by scripts/build_workflow_data.py
+  // → docs/workflow/agents.json (parsed frontmatter + sections)
+  // → docs/workflow/health.json (runtime health snapshot, 30s poll)
+
+  // Map slug → display group (for the existing 6-group layout)
+  const SLUG_GROUP = {
+    'chat': 'orchestrator',
+    'claude-code': 'execution',
+    'codex': 'execution',
+    'task-board': 'coordination',
+    'wishket': 'domain',
+    'kmong': 'domain',
+    'repo': 'domain',
+    'daily-plus': 'domain',
+    'chris': 'domain',
+    'my-dev': 'personal',
+    'charlie': 'audit',
+  };
+
+  // Map parser output → existing card schema (preserves prior styling)
+  function adapt(p) {
+    const skillsTags = (p.skills || []).slice(0, 2).map(s => s.length > 14 ? s.slice(0,14)+'…' : s);
+    const tags = [];
+    if (p.bucky_inheritance) tags.push('Bucky 상속');
+    if (p.authority === 'system-audit') tags.push('독립 감사');
+    skillsTags.forEach(t => tags.push(t));
+
+    const scopeText = (p.scope || '').match(/처리:\s*(.+?)(?:\n|$)/);
+    const excludeText = (p.scope || '').match(/제외:\s*(.+?)(?:\n|$)/);
+    const dash = p.dashboard && p.dashboard !== 'null' && p.dashboard !== null ? '/' + p.slug + '/' : null;
+
+    return {
+      slug: p.slug,
+      group: SLUG_GROUP[p.slug] || 'domain',
+      channel: p.channel || ('jh-' + p.slug),
+      agent: p.agent,
+      role: (p.role || '').replace(/\n/g, ' '),
+      scope: scopeText ? scopeText[1].trim() : (p.scope || '—'),
+      exclude: excludeText ? excludeText[1].trim() : '—',
+      tags: tags,
+      dashboard: dash,
+      noDashLabel: '대시보드 없음 (Discord 채팅 전용)',
+    };
+  }
+
+  // Health rendering
+  function healthBadge(slug, healthAgents) {
+    const h = healthAgents && healthAgents[slug];
+    if (!h) return '<div class="health-badge unknown" title="상태 미확인"></div>';
+    const cls = h.status === 'error' ? 'err' : (h.status === 'warn' ? 'warn' : '');
+    const msg = (h.warnings || []).concat(h.errors || []).join(' · ') || 'OK';
+    return `<div class="health-badge ${cls}" title="${msg.replace(/"/g, '&quot;')}"></div>`;
+  }
+  function healthBlocks(slug, healthAgents) {
+    const h = healthAgents && healthAgents[slug];
+    if (!h) return '';
+    let out = '';
+    if (h.warnings && h.warnings.length) out += `<div class="card-warnings">⚠ ${h.warnings.join(' · ')}</div>`;
+    if (h.errors && h.errors.length)    out += `<div class="card-errors">✕ ${h.errors.join(' · ')}</div>`;
+    return out;
+  }
+
+  function cardHTML(a, healthAgents) {
+    const link = a.dashboard
+      ? `<div class="card-link">↗ ${a.dashboard}</div>`
+      : `<div class="card-link" style="color:var(--muted)">— ${a.noDashLabel}</div>`;
+    const tags = a.tags.map(t => {
+      const cls = t === 'Bucky 상속' ? 'tag inherit' : (t === '독립 감사' ? 'tag no-dash' : 'tag');
+      return `<span class="${cls}">${t}</span>`;
+    }).join('');
+    const wrap = a.dashboard ? 'a' : 'div';
+    const hrefAttr = a.dashboard ? ` href="${a.dashboard}"` : '';
+    return `
+      <${wrap} class="agent-card" data-group="${a.group}" data-slug="${a.slug}"${hrefAttr}>
+        ${healthBadge(a.slug, healthAgents)}
+        <div class="card-head">
+          <div class="card-channel">#${a.channel}</div>
+          <div class="card-agent">${a.agent}</div>
+        </div>
+        <div class="card-role">${a.role}</div>
+        <div class="card-scope"><b>처리:</b> ${a.scope}</div>
+        <div class="card-exclude"><b>제외:</b> ${a.exclude}</div>
+        ${healthBlocks(a.slug, healthAgents)}
+        <div class="card-foot">${tags}</div>
+        ${link}
+      </${wrap}>
+    `;
+  }
+
+  function renderCards(agents, healthAgents) {
+    const groups = ['orchestrator', 'execution', 'coordination', 'domain', 'personal', 'audit'];
+    groups.forEach(g => {
+      const el = document.getElementById('grp-' + g);
+      if (!el) return;
+      el.innerHTML = agents.filter(a => a.group === g).map(a => cardHTML(a, healthAgents)).join('');
+    });
+  }
+
+  function fmtAgo(iso) {
+    if (!iso) return '—';
+    const ms = Date.now() - new Date(iso).getTime();
+    if (ms < 60000) return Math.floor(ms/1000) + '초전';
+    if (ms < 3600000) return Math.floor(ms/60000) + '분전';
+    if (ms < 86400000) return Math.floor(ms/3600000) + '시간전';
+    return Math.floor(ms/86400000) + '일전';
+  }
+
+  function renderStats(agents, health) {
+    const inh = agents.filter(a => a.tags.indexOf('Bucky 상속') >= 0).length;
+    const dash = agents.filter(a => a.dashboard).length;
+    const g = (health && health.global) || {};
+    const rt = (health && health.runtime) || [];
+    const rtBad = rt.filter(r => r.status !== 'ok').length;
+
+    document.querySelector('#stat-agents .num').textContent = agents.length;
+    document.querySelector('#stat-inherit .num').textContent = inh + '/' + agents.length;
+    document.querySelector('#stat-dash .num').textContent = dash;
+    document.querySelector('#stat-tasks .num').textContent = g.tasks_pending != null ? g.tasks_pending : '—';
+    document.querySelector('#stat-blocked .num').textContent = g.tasks_blocked != null ? g.tasks_blocked : '—';
+    document.querySelector('#stat-runtime .num').textContent = rtBad + ' / ' + rt.length;
+
+    document.querySelector('#stat-blocked').style.color = g.tasks_blocked > 0 ? 'var(--red)' : '';
+    const rtBox = document.querySelector('#stat-runtime .num');
+    rtBox.style.color = rtBad === 0 ? 'var(--green)' : (rt.some(r => r.status === 'error') ? 'var(--red)' : 'var(--yellow)');
+  }
+
+  function renderRuntime(health) {
+    const panel = document.getElementById('runtimePanel');
+    if (!panel) return;
+    const rt = (health && health.runtime) || [];
+    const stampEl = '<span class="rt-stamp" id="rtStamp"><span class="live-dot"></span>' + (health ? fmtAgo(health.generated_at) : '—') + '</span>';
+    if (!rt.length) {
+      panel.innerHTML = '<span class="rt-title">신호:</span><span class="rt-msg">런타임 신호 없음</span>' + stampEl;
+      return;
+    }
+    let html = '<span class="rt-title">신호:</span>';
+    rt.forEach(r => {
+      const cls = r.status === 'error' ? 'err' : (r.status === 'warn' ? 'warn' : '');
+      html += `<div class="rt-item"><span class="rt-dot ${cls}"></span><span class="rt-name">${r.id}</span><span class="rt-msg">${r.msg || ''}</span></div>`;
+    });
+    html += stampEl;
+    panel.innerHTML = html;
+
+    const badge = document.getElementById('liveBadge');
+    if (badge && health) {
+      const ageMs = Date.now() - new Date(health.generated_at).getTime();
+      if (ageMs > 5 * 60 * 1000) {
+        badge.textContent = '● STALE (' + fmtAgo(health.generated_at) + ')';
+        badge.style.background = 'rgba(248,81,73,0.12)';
+        badge.style.color = 'var(--red)';
+        badge.style.borderColor = 'rgba(248,81,73,0.3)';
+        const stamp = document.getElementById('rtStamp');
+        if (stamp) stamp.classList.add('stale');
+      } else {
+        badge.textContent = '● LIVE';
+        badge.style.background = 'rgba(63,185,80,0.12)';
+        badge.style.color = 'var(--green)';
+        badge.style.borderColor = 'rgba(63,185,80,0.3)';
+      }
+    }
+  }
+
+  function load() {
+    return Promise.all([
+      fetch('agents.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('health.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([data, health]) => {
+      const rawAgents = (data && data.agents) || [];
+      const agents = rawAgents.map(adapt);
+      const healthAgents = (health && health.agents) || {};
+      renderCards(agents, healthAgents);
+      renderStats(agents, health);
+      renderRuntime(health);
+    });
+  }
+
+  load();
+  setInterval(load, 30 * 1000);
+
+  // Mermaid init
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#0d1117',
+      primaryColor: '#1c2129',
+      primaryTextColor: '#c9d1d9',
+      primaryBorderColor: '#58a6ff',
+      lineColor: '#58a6ff',
+      secondaryColor: '#161b22',
+      tertiaryColor: '#0d1117',
+      fontFamily: 'Segoe UI, system-ui, sans-serif'
+    },
+    flowchart: { curve: 'basis', useMaxWidth: true }
+  });
+</script>
+
+</body>
+</html>

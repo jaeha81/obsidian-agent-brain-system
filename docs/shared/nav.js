@@ -9,6 +9,7 @@
     { href: '/codex/',             label: 'Codex' },
     { href: '/chris/',             label: 'Chris' },
     { href: '/my-dev/',            label: '내 개발' },
+    { href: '/workflow/',          label: '워크플로우' },
     { href: '/ai-usage.html',      label: 'AI사용량' },
     { href: '/bucky-agent-os.html',label: 'BuckyOS' },
     { href: '/api/logout',         label: '로그아웃', cls: 'auth-end' },
