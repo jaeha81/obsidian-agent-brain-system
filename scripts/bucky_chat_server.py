@@ -731,6 +731,28 @@ def update_wishket():
     return jsonify(result), code
 
 
+
+@app.post("/wishket/chrome-handoff")
+def wishket_chrome_handoff():
+    """Open visible Chrome for Wishket login/profile completion via Claude Code extension or user handoff."""
+    py = sys.executable
+    scraper = str(SCRIPTS / "wishket_scraper.py")
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+    r = subprocess.run(
+        [py, "-X", "utf8", scraper, "--chrome-handoff"],
+        capture_output=True,
+        text=True,
+        env=env,
+        cwd=str(ROOT),
+    )
+    if r.returncode != 0:
+        return jsonify({"ok": False, "stderr": r.stderr[-500:] or r.stdout[-500:]}), 500
+    return jsonify({
+        "ok": True,
+        "msg": "Chrome opened for Wishket login/profile completion. Continue in the visible browser.",
+    }), 200
+
+
 @app.post("/update-profile")
 def update_profile():
     """위시켓 프로필 자동 업데이트 (헤드라인 + 자기소개)."""

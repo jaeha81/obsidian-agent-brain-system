@@ -1,15 +1,15 @@
 {
   "collapse-filter": false,
   "search": "-path:01_RAW -path:09_Archive -path:00_UPGRADE -path:graphify-out -path:00_Inbox/DiscordCaptures -path:.obsidian -path:legacy-import",
-  "showTags": true,
-  "showAttachments": true,
+  "showTags": false,
+  "showAttachments": false,
   "hideUnresolved": true,
   "showOrphans": false,
   "collapse-color-groups": false,
   "colorGroups": [],
   "collapse-display": false,
   "showArrow": false,
-  "textFadeMultiplier": -2.4,
+  "textFadeMultiplier": -2.3,
   "nodeSizeMultiplier": 0.75078125,
   "lineSizeMultiplier": 0.67421875,
   "collapse-forces": false,
@@ -17,6 +17,6 @@
   "repelStrength": 20,
   "linkStrength": 0.690104166666667,
   "linkDistance": 134,
-  "scale": 0.04231590268975891,
+  "scale": 0.08317427835927535,
   "close": false
 }

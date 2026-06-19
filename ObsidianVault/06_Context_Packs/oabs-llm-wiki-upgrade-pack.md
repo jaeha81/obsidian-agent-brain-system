@@ -33,7 +33,8 @@ The durable advantage is user-context understanding:
 3. `ObsidianVault/00_System/user-evolution-model.md`
 4. `ObsidianVault/00_System/USER_OPERATING_INTENT.md`
 5. `prompts/graphify_integration_prompt.md`
-6. `ObsidianVault/03_Knowledge/oabs-latent-project-asset-sample.md`
+6. `ObsidianVault/00_System/oabs-library-taxonomy-standard.md`
+7. `ObsidianVault/03_Knowledge/oabs-latent-project-asset-sample.md`
 
 ## Operating Constraints
 
@@ -81,4 +82,18 @@ If evidence is incomplete, state the gap instead of inventing continuity.
 - Bucky references the new criteria without replacing `bucky.md`.
 - Future OABS work can load this pack instead of expanding global instructions.
 - The model preserves the distinction between execution speed and user-context understanding.
+
+
+## Library Taxonomy Standard
+
+Use ObsidianVault/00_System/oabs-library-taxonomy-standard.md as the catalog rule for folders, node types, keywords, source trace, and Graphify-selected cluster updates.
+
+
+## Graphify Selected Cluster
+
+- Source: external_data/graphify_selected/OABS_second_brain_source/
+- Graph: external_data/graphify_selected/OABS_second_brain_source/graphify-out/graph.json
+- Report: external_data/graphify_selected/OABS_second_brain_source/graphify-out/GRAPH_REPORT.md
+- Context Pack: ObsidianVault/06_Context_Packs/Graphify/OABS_second_brain_graphify_pack.md
+- Bridge node: ObsidianVault/03_Knowledge/oabs-second-brain-library-node-map.md
 
