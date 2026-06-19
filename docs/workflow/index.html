@@ -271,7 +271,7 @@ graph LR
     D -->|/intake| R{Bucky 라우터<br/>discord_bot.py}
     R -->|구현| CC[🟢 jh-클로드코드앱<br/>ClaudeCode CLI]
     R -->|검수| CX[🟢 jh-코덱스앱<br/>Codex CLI]
-    R -->|도메인| DOM[🟣 도메인 에이전트<br/>6개 채널]
+    R -->|도메인| DOM[🟣 도메인 에이전트<br/>7개 채널]
     R -->|조율| CRD[🔵 jh-테스크보드<br/>큐 관리]
     R -.->|감시| CH[🟠 jh-charlie<br/>독립 감사]
     CC --> AB[AgentBus]
@@ -455,6 +455,72 @@ graph TD
     </div>
   </section>
 
+  <!-- ─────────── §5. 도메인 에이전트 워크플로우 ─────────── -->
+  <section>
+    <h2>§5. 도메인 에이전트 워크플로우 <span class="badge">채널별 데이터 흐름</span></h2>
+    <p class="subtitle">각 도메인 채널이 Discord 명령을 받아 어떤 경로로 실행하고 결과를 반환하는지 채널 유형별 흐름.</p>
+
+    <!-- CHSH Mining -->
+    <h3 style="color:var(--purple);margin:18px 0 8px;font-size:0.95rem">🪙 CHSH마이닝 (AI-mining-CHSHAUTOMATION)</h3>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="m-chsh">
+graph LR
+    U2([👤 사용자]) -->|!mining run/evolve/upload| DC2[#jh-chsh-mining]
+    DC2 --> BOT2{discord_bot.py<br/>_handle_chsh_mining_command}
+    BOT2 -->|subprocess| MP[main.py<br/>D:/ai프로젝트/AI-mining-CHSHAUTOMATION]
+    MP -->|콘텐츠 생성| GEN[AI 스크립트·썸네일·자막 생성]
+    GEN -->|업로드| YT[📺 YouTube]
+    GEN -->|업로드| XX[𝕏 X]
+    GEN -->|업로드| TT[🎵 TikTok]
+    GEN -->|업로드| IG[📸 Instagram]
+    YT & XX & TT & IG -->|광고 수익| REV[수익 집계]
+    REV -->|!mining revenue| DC2
+    BOT2 -->|상태 보고| AB2[AgentBus]
+    AB2 -->|기록| OV2[(ObsidianVault/<br/>03_Projects/agents/chsh-mining.md)]
+    style U2 fill:#58a6ff,stroke:#58a6ff,color:#0d1117
+    style DC2 fill:#161b22,stroke:#bc8cff,color:#bc8cff
+    style BOT2 fill:#1c2129,stroke:#58a6ff,color:#c9d1d9
+    style MP fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style GEN fill:#1c2129,stroke:#d29922,color:#d29922
+    style YT fill:#1c2129,stroke:#ff4040,color:#ff4040
+    style XX fill:#1c2129,stroke:#c9d1d9,color:#c9d1d9
+    style TT fill:#1c2129,stroke:#ff00aa,color:#ff00aa
+    style IG fill:#1c2129,stroke:#f778ba,color:#f778ba
+    style REV fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style AB2 fill:#161b22,stroke:#30363d,color:#8b949e
+    style OV2 fill:#1c2129,stroke:#f778ba,color:#f778ba
+      </div>
+    </div>
+
+    <!-- Threads -->
+    <h3 style="color:var(--purple);margin:24px 0 8px;font-size:0.95rem">🧵 쓰레드자동화 (Threads Monetization Dashboard)</h3>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="m-threads">
+graph LR
+    U3([👤 사용자]) -->|!threads run/revenue/accounts| DC3[#jh-쓰레드자동화]
+    DC3 --> BOT3{discord_bot.py<br/>_handle_threads_command}
+    BOT3 -->|API 호출 Bearer| VRL[Vercel API<br/>threads-monetization.vercel.app]
+    VRL -->|/api/cron/threads-daily| PUB[콘텐츠 자동 발행]
+    VRL -->|/api/revenue| REV3[수익 집계]
+    VRL -->|/api/accounts| ACC[계정 관리]
+    PUB --> TH[🧵 Threads Platform]
+    TH -->|광고 수익| REV3
+    VRL -->|응답 JSON| BOT3
+    BOT3 -->|결과 반환| DC3
+    BOT3 -->|상태 기록| AB3[AgentBus]
+    style U3 fill:#58a6ff,stroke:#58a6ff,color:#0d1117
+    style DC3 fill:#161b22,stroke:#bc8cff,color:#bc8cff
+    style BOT3 fill:#1c2129,stroke:#58a6ff,color:#c9d1d9
+    style VRL fill:#1c2129,stroke:#d29922,color:#d29922
+    style PUB fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style REV3 fill:#1c2129,stroke:#3fb950,color:#3fb950
+    style ACC fill:#1c2129,stroke:#2dd4bf,color:#2dd4bf
+    style TH fill:#1c2129,stroke:#bc8cff,color:#bc8cff
+    style AB3 fill:#161b22,stroke:#30363d,color:#8b949e
+      </div>
+    </div>
+  </section>
+
   <!-- ─────────── §4. 옵시디언 브레인 연결 ─────────── -->
   <section>
     <h2>§4. 옵시디언 브레인 연결 <span class="badge">에이전트 ↔ Vault</span></h2>
@@ -474,7 +540,7 @@ graph TD
         <h3>🤖 03_Projects/agents/</h3>
         <p>에이전트 정체성·역할 정의. <code>chris.md</code>, <code>charlie.md</code>, <code>bucky.md</code> 등 정본.</p>
         <ul>
-          <li>11개 채널 AGENT.md → 이 폴더 정본 상속</li>
+          <li>13개 채널 AGENT.md → 이 폴더 정본 상속</li>
           <li>ROUTING_RULES.md 정합성 유지</li>
         </ul>
       </div>
@@ -519,7 +585,7 @@ graph TD
 </main>
 
 <footer>
-  📡 데이터: 11개 <code>docs/*/AGENT.md</code> · 자동 파싱 <code>scripts/build_workflow_data.py</code> → <code>agents.json</code> + <code>health.json</code> · 30초 헬스 폴링 · 정본 라우팅: <code>ObsidianVault/00_System/ROUTING_RULES.md</code>
+  📡 데이터: 13개 <code>docs/*/AGENT.md</code> · 자동 파싱 <code>scripts/build_workflow_data.py</code> → <code>agents.json</code> + <code>health.json</code> · 30초 헬스 폴링 · 정본 라우팅: <code>ObsidianVault/00_System/ROUTING_RULES.md</code>
 </footer>
 
 <script src="/shared/nav.js"></script>
