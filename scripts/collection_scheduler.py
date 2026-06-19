@@ -290,6 +290,146 @@ def uninstall_task() -> None:
         log.error("schtasks 명령을 찾을 수 없습니다.")
 
 
+# ── Wiki 스케줄 태스크 ─────────────────────────────────────────────────────────
+
+WIKI_LINT_TASK = "ObsidianBrain_WikiLint"
+MODALITY_CHECK_TASK = "ObsidianBrain_ModalityCheck"
+
+
+def _register_xml_task(task_name: str, xml_body: str) -> bool:
+    """XML 파일로 Windows Task Scheduler 태스크 등록. 성공 여부 반환."""
+    xml_path = ROOT / "logs" / f"{task_name}.xml"
+    xml_path.parent.mkdir(parents=True, exist_ok=True)
+    xml_path.write_text(xml_body, encoding="utf-16")
+    try:
+        result = subprocess.run(
+            ["schtasks", "/Create", "/F", "/TN", task_name, "/XML", str(xml_path)],
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            log.info(f"✓ Task Scheduler 등록 완료: '{task_name}'")
+            return True
+        else:
+            stderr = result.stderr.decode("cp949", errors="replace").strip()
+            log.error(f"등록 실패 ({task_name}): {stderr}")
+            return False
+    except FileNotFoundError:
+        log.error("schtasks 명령을 찾을 수 없습니다. Windows에서만 사용 가능합니다.")
+        return False
+
+
+def install_wiki_tasks() -> None:
+    """wiki_lint (매일 03:00) + modality_check (매주 월요일 09:00) 등록."""
+    python_exe = sys.executable
+    script_path = Path(__file__).resolve().parent
+
+    # wiki_lint — 매일 03:00
+    lint_xml = f"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Obsidian Brain — Wiki Lint (매일 03:00)</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2026-01-01T03:00:00</StartBoundary>
+      <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>
+  </Triggers>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
+    <Enabled>true</Enabled>
+  </Settings>
+  <Actions>
+    <Exec>
+      <Command>{python_exe}</Command>
+      <Arguments>-X utf8 "{script_path / 'wiki_lint.py'}" --report</Arguments>
+      <WorkingDirectory>{ROOT}</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>"""
+
+    # modality_check — 매주 월요일 09:00
+    modality_xml = f"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Obsidian Brain — Modality Check (매주 월요일 09:00)</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2026-01-01T09:00:00</StartBoundary>
+      <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>
+      <Enabled>true</Enabled>
+      <ScheduleByWeek>
+        <DaysOfWeek>
+          <Monday />
+        </DaysOfWeek>
+        <WeeksInterval>1</WeeksInterval>
+      </ScheduleByWeek>
+    </CalendarTrigger>
+  </Triggers>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <ExecutionTimeLimit>PT15M</ExecutionTimeLimit>
+    <Enabled>true</Enabled>
+  </Settings>
+  <Actions>
+    <Exec>
+      <Command>{python_exe}</Command>
+      <Arguments>-X utf8 "{script_path / 'modality_check.py'}" --notify</Arguments>
+      <WorkingDirectory>{ROOT}</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>"""
+
+    ok1 = _register_xml_task(WIKI_LINT_TASK, lint_xml)
+    ok2 = _register_xml_task(MODALITY_CHECK_TASK, modality_xml)
+
+    if ok1 and ok2:
+        log.info("Wiki 스케줄 등록 완료:")
+        log.info(f"  {WIKI_LINT_TASK}: 매일 03:00 — wiki_lint.py --report")
+        log.info(f"  {MODALITY_CHECK_TASK}: 매주 월요일 09:00 — modality_check.py --notify")
+    else:
+        log.warning("일부 태스크 등록 실패 — 위 오류 메시지 확인")
+
+
+def uninstall_wiki_tasks() -> None:
+    for task in (WIKI_LINT_TASK, MODALITY_CHECK_TASK):
+        try:
+            result = subprocess.run(
+                ["schtasks", "/Delete", "/F", "/TN", task],
+                capture_output=True, text=True, encoding="utf-8",
+            )
+            if result.returncode == 0:
+                log.info(f"✓ 등록 해제: '{task}'")
+            else:
+                log.warning(f"등록 해제 실패 (이미 없을 수 있음): {task}")
+        except FileNotFoundError:
+            log.error("schtasks 명령을 찾을 수 없습니다.")
+
+
+def check_wiki_status() -> None:
+    for task in (WIKI_LINT_TASK, MODALITY_CHECK_TASK):
+        result = subprocess.run(
+            ["schtasks", "/Query", "/FO", "LIST", "/TN", task],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                if line.strip():
+                    print(f"  {line}")
+        else:
+            log.info(f"'{task}' 미등록")
+
+
 def check_status() -> None:
     try:
         result = subprocess.run(
@@ -326,6 +466,9 @@ def main():
     group.add_argument("--install", action="store_true", help="Windows Task Scheduler 등록 (매일 오전 6시)")
     group.add_argument("--uninstall", action="store_true", help="Task Scheduler 등록 해제")
     group.add_argument("--status", action="store_true", help="스케줄 및 최근 로그 상태 확인")
+    group.add_argument("--install-wiki", action="store_true", help="Wiki Lint (매일 03:00) + Modality Check (매주 월요일 09:00) 등록")
+    group.add_argument("--uninstall-wiki", action="store_true", help="Wiki 스케줄 태스크 해제")
+    group.add_argument("--status-wiki", action="store_true", help="Wiki 스케줄 태스크 상태 확인")
     parser.add_argument("--dry-run", action="store_true", help="실제 저장 없이 테스트")
     args = parser.parse_args()
 
@@ -335,6 +478,12 @@ def main():
         uninstall_task()
     elif args.status:
         check_status()
+    elif args.install_wiki:
+        install_wiki_tasks()
+    elif args.uninstall_wiki:
+        uninstall_wiki_tasks()
+    elif args.status_wiki:
+        check_wiki_status()
     else:
         # --run 또는 인수 없이 실행
         results = run_all(dry_run=args.dry_run)
