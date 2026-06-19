@@ -237,18 +237,6 @@
 // ── 공고 데이터 ──
 const PROJECTS = [
   {
-    id: 'project-155733',
-    title: 'Python/LangChain 기반 AI 에이전트 백엔드 개발 (고급/중급)',
-    link: 'https://www.wishket.com/project/155733/',
-    budget: '월 780만원',
-    budget_wan: 780,
-    description: '2026.06.08. Python · 5년 이상 langchain · 2년 이상 langgraph · 2년 이상 경기도 성남시 분당구',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040468',
-    score: 73,
-    priority: 'P1'
-  },
-  {
     id: 'project-155967',
     title: 'LLM 기반 AI Agent 개발 (Python / FastAPI)',
     link: 'https://www.wishket.com/project/155967/',
@@ -273,30 +261,6 @@ const PROJECTS = [
     priority: 'P1'
   },
   {
-    id: 'project-155920',
-    title: '핸드헬드 AI 골프 분석기 외장 디자인/기구 설계',
-    link: 'https://www.wishket.com/project/155920/',
-    budget: '월 1000만원',
-    budget_wan: 1000,
-    description: '기타(IT 서비스 구축) 경기도 성남시 수정구 · 등록일자 2026.06.09.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040482',
-    score: 69,
-    priority: 'P2'
-  },
-  {
-    id: 'project-155776',
-    title: '공공 교육서비스 AI 개발',
-    link: 'https://www.wishket.com/project/155776/',
-    budget: '월 700만원',
-    budget_wan: 700,
-    description: 'AI/ML/Data 엔지니어 Python · 경력 무관 Java · 경력 무관 Kubernetes · 경력 무관 · 등록일자 2026.06.01.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040458',
-    score: 68,
-    priority: 'P2'
-  },
-  {
     id: 'project-155952',
     title: '프라이빗 매칭',
     link: 'https://www.wishket.com/project/155952/',
@@ -319,54 +283,6 @@ const PROJECTS = [
     scraped_at: '2026-06-11T08:30:12.681386',
     score: 67,
     priority: 'P2'
-  },
-  {
-    id: 'project-155934',
-    title: 'AI LLM 예측 서비스 프로젝트 PM',
-    link: 'https://www.wishket.com/project/155934/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: '2026.06.22. PM (프로덕트 매니저) · 등록일자 2026.06.09.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040477',
-    score: 65,
-    priority: 'P2'
-  },
-  {
-    id: 'project-155987',
-    title: 'AI 기반 보험사 솔루션 구축 PMO',
-    link: 'https://www.wishket.com/project/155987/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: '2026.06.22. PM (프로덕트 매니저) · 등록일자 2026.06.11.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-12T08:30:12.352924',
-    score: 62,
-    priority: 'P2'
-  },
-  {
-    id: 'project-155943',
-    title: '웹사이트 기반 데이터 분석 플랫폼 풀스택 개발 (주 2회 재택)',
-    link: 'https://www.wishket.com/project/155943/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: '· 등록일자 2026.06.09.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040487',
-    score: 46,
-    priority: 'P3'
-  },
-  {
-    id: 'project-155817',
-    title: 'C#/C++ 기반 컷팅 플로터 장비 제어 소프트웨어 개발 (재택 근무)',
-    link: 'https://www.wishket.com/project/155817/',
-    budget: '월 400만원',
-    budget_wan: 400,
-    description: '2026.07.02. C · 경력 무관 C++ · 경력 무관 Python · 경력 무관 등록일자 2026.06.02.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040435',
-    score: 22,
-    priority: 'P4'
   }
 ];
 
@@ -554,6 +470,19 @@ async function sendDevelopmentRequest(id) {
   if (!wh) { openWkSettings(); return; }
   try { await sendWkWebhook(wh, `**개발요청**\n\`\`\`json\n${JSON.stringify(payload,null,2).slice(0,1500)}\`\`\``); showWkToast('개발요청 전송', '웹훅으로 전송했습니다.'); }
   catch (e) { showWkToast('전송 실패', e.message); }
+}
+
+
+async function triggerChromeHandoff() {
+  const base = getWkBuckyEndpoint();
+  const url = (base || '') + '/wishket/chrome-handoff';
+  try {
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source:'wishket_dashboard'}) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    showWkToast('Chrome handoff', '위시켓 로그인/프로필 완성 창을 열었습니다.');
+  } catch (e) {
+    showWkToast('Chrome handoff 실패', 'Bucky 로컬 서버 연결을 확인하세요: ' + e.message);
+  }
 }
 
 // ── Toast ──

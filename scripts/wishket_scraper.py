@@ -13,11 +13,13 @@ import json
 import os
 import re
 import sys
+import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+from wishket_filters import classify_project, is_collectable_development_request
 try:
     from wishket_scorer import score_projects as _score_projects
 except ImportError:
@@ -70,8 +72,7 @@ def _parse_budget(text: str) -> int:
 
 
 def _is_relevant(title: str, description: str) -> bool:
-    combined = (title + " " + description).lower()
-    return any(kw.lower() in combined for kw in KEYWORDS)
+    return is_collectable_development_request(title, description, keywords=KEYWORDS)
 
 
 def _get_seen_links() -> set[str]:
@@ -382,7 +383,9 @@ def fetch_projects(max_pages: int = 5) -> list[dict]:
                 link = (WISHKET_BASE + href) if href and href.startswith("/") else href
                 budget_wan = _parse_budget(budget_text)
 
-                if not _is_relevant(title, description):
+                classification = classify_project({"title": title, "description": description}, keywords=KEYWORDS)
+                if not classification["accepted"]:
+                    print(f"[Wishket] skip {classification['reason']}: {title[:60]}")
                     continue
 
                 norm_link = link.rstrip("/") if link else ""
@@ -399,6 +402,7 @@ def fetch_projects(max_pages: int = 5) -> list[dict]:
                     "budget_wan": budget_wan,
                     "description": description,
                     "source": "wishket_login",
+                    "classification": classification["reason"],
                     "scraped_at": datetime.now().isoformat(),
                 })
                 page_new += 1
@@ -459,6 +463,36 @@ def manual_login() -> None:
         print(f"[Wishket] 쿠키 {len(cookies)}개 저장 완료 → {_SESSION_CACHE}")
         browser.close()
 
+
+
+def _resolve_google_chrome_exe() -> str:
+    candidates = (
+        os.getenv("WISHKET_CHROME_EXE", ""),
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        "chrome.exe",
+        "chrome",
+    )
+    for candidate in candidates:
+        if candidate:
+            if candidate in {"chrome", "chrome.exe"}:
+                return candidate
+            if Path(candidate).exists():
+                return candidate
+    raise RuntimeError("Google Chrome executable not found. Set WISHKET_CHROME_EXE.")
+
+
+def open_chrome_handoff() -> bool:
+    """Open visible Chrome for Wishket login/profile completion handoff."""
+    chrome = _resolve_google_chrome_exe()
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    profile_dir = CACHE_DIR / "wishket_chrome_profile"
+    urls = [WISHKET_LOGIN, WISHKET_PROFILE_EDIT]
+    args = [chrome, f"--user-data-dir={profile_dir}", "--new-window", *urls]
+    subprocess.Popen(args, cwd=str(_ROOT))
+    print(f"[Wishket] Chrome handoff opened: {WISHKET_LOGIN} / {WISHKET_PROFILE_EDIT}")
+    print("[Wishket] Continue in visible Chrome with the Claude Code web extension or user login.")
+    return True
 
 WISHKET_PROFILE_EDIT = f"{WISHKET_BASE}/partner/profile/edit/"
 
@@ -596,6 +630,7 @@ if __name__ == "__main__":
     parser.add_argument("--manual-login", action="store_true", help="브라우저를 열어 수동 로그인 후 쿠키 저장")
     parser.add_argument("--clear-cache", action="store_true", help="저장된 세션 쿠키 삭제 후 재로그인")
     parser.add_argument("--update-profile", action="store_true", help="위시켓 프로필 자동 업데이트")
+    parser.add_argument("--chrome-handoff", action="store_true", help="보이는 Chrome으로 위시켓 로그인/프로필 완성 handoff")
     args = parser.parse_args()
 
     if args.clear_cache and _SESSION_CACHE.exists():
@@ -604,6 +639,8 @@ if __name__ == "__main__":
 
     if args.manual_login:
         manual_login()
+    elif args.chrome_handoff:
+        open_chrome_handoff()
     elif args.update_profile:
         ok = update_profile()
         print("[Profile] 업데이트 완료" if ok else "[Profile] 업데이트 실패 — .cache/wishket_debug_profile_*.png 확인")

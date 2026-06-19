@@ -46,3 +46,30 @@ status: active
 클라이언트 개발 공고 식별 조건:
   - 포함: "개발 의뢰", "웹/앱 제작", "API 구축", "자동화 구축"
   - 제외: "채용", "정규직", "계약직", "프리랜서 모집"
+
+## Workflow Nodes
+
+1. `wishket.chrome_login_handoff`
+   - Opens visible Google Chrome for Wishket login and portfolio/profile completion.
+   - Uses the local Bucky endpoint `/wishket/chrome-handoff` and `scripts/wishket_scraper.py --chrome-handoff`.
+   - Claude Code web extension or the user continues the authenticated browser work. Bucky does not store Wishket passwords in dashboard localStorage.
+2. `wishket.search_projects`
+   - Uses logged-in Wishket search/session collection.
+   - Source script: `scripts/wishket_scraper.py`.
+3. `wishket.classify_development_request`
+   - Shared skill module: `scripts/wishket_filters.py`.
+   - Accepts outsourced development requests only.
+   - Rejects recruiting/hiring posts before dashboard generation.
+4. `wishket.score_and_route`
+   - Scores accepted development requests and routes proposal/development actions through `jh-위시켓`.
+5. `wishket.dashboard_publish`
+   - Regenerates `docs/wishket.html` and `docs/wishket/index.html` from accepted projects.
+
+## Skill Formation
+
+| Skill | File | Purpose |
+|---|---|---|
+| Chrome handoff | `scripts/wishket_scraper.py --chrome-handoff` | Open visible Chrome for Wishket login/profile completion with user session context. |
+| Development request filter | `scripts/wishket_filters.py` | Block 구인/채용 and allow only development request candidates. |
+| Dashboard update | `scripts/generate_wishket_dashboard.py` | Apply the same filter again before publishing dashboard data. |
+| Bucky dashboard trigger | `docs/wishket.html`, `docs/wishket/index.html` | Expose Chrome login/profile handoff and project update controls. |

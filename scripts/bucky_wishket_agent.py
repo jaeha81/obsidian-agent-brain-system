@@ -96,6 +96,7 @@ def scan_projects(max_pages: int = 2) -> list[dict]:
         sys.path.insert(0, str(Path(__file__).parent))
 
     from wishket_scraper import fetch_projects, save_projects
+    from wishket_filters import filter_collectable_projects
     from wishket_gmail_scraper import fetch_wishket_emails
 
     print("[WishketAgent] 공고 수집 시작 (웹 + 네이버 메일)")
@@ -103,7 +104,7 @@ def scan_projects(max_pages: int = 2) -> list[dict]:
     web_projects = fetch_projects(max_pages=max_pages)
     gmail_projects = fetch_wishket_emails()
 
-    all_projects = dedup_projects(web_projects + gmail_projects)
+    all_projects = dedup_projects(filter_collectable_projects(web_projects + gmail_projects))
 
     if all_projects:
         save_projects(all_projects)

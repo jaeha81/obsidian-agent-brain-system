@@ -230,18 +230,6 @@
 // ── 공고 데이터 ──
 const PROJECTS = [
   {
-    id: 'project-155733',
-    title: 'Python/LangChain 기반 AI 에이전트 백엔드 개발 (고급/중급)',
-    link: 'https://www.wishket.com/project/155733/',
-    budget: '월 780만원',
-    budget_wan: 780,
-    description: '2026.06.08. Python · 5년 이상 langchain · 2년 이상 langgraph · 2년 이상 경기도 성남시 분당구',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040468',
-    score: 73,
-    priority: 'P1'
-  },
-  {
     id: 'project-155967',
     title: 'LLM 기반 AI Agent 개발 (Python / FastAPI)',
     link: 'https://www.wishket.com/project/155967/',
@@ -266,30 +254,6 @@ const PROJECTS = [
     priority: 'P1'
   },
   {
-    id: 'project-155920',
-    title: '핸드헬드 AI 골프 분석기 외장 디자인/기구 설계',
-    link: 'https://www.wishket.com/project/155920/',
-    budget: '월 1000만원',
-    budget_wan: 1000,
-    description: '기타(IT 서비스 구축) 경기도 성남시 수정구 · 등록일자 2026.06.09.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040482',
-    score: 69,
-    priority: 'P2'
-  },
-  {
-    id: 'project-155776',
-    title: '공공 교육서비스 AI 개발',
-    link: 'https://www.wishket.com/project/155776/',
-    budget: '월 700만원',
-    budget_wan: 700,
-    description: 'AI/ML/Data 엔지니어 Python · 경력 무관 Java · 경력 무관 Kubernetes · 경력 무관 · 등록일자 2026.06.01.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040458',
-    score: 68,
-    priority: 'P2'
-  },
-  {
     id: 'project-155952',
     title: '프라이빗 매칭',
     link: 'https://www.wishket.com/project/155952/',
@@ -312,62 +276,215 @@ const PROJECTS = [
     scraped_at: '2026-06-11T08:30:12.681386',
     score: 67,
     priority: 'P2'
-  },
-  {
-    id: 'project-155934',
-    title: 'AI LLM 예측 서비스 프로젝트 PM',
-    link: 'https://www.wishket.com/project/155934/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: '2026.06.22. PM (프로덕트 매니저) · 등록일자 2026.06.09.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040477',
-    score: 65,
-    priority: 'P2'
-  },
-  {
-    id: 'project-155987',
-    title: 'AI 기반 보험사 솔루션 구축 PMO',
-    link: 'https://www.wishket.com/project/155987/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: '2026.06.22. PM (프로덕트 매니저) · 등록일자 2026.06.11.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-12T08:30:12.352924',
-    score: 62,
-    priority: 'P2'
-  },
-  {
-    id: 'project-155943',
-    title: '웹사이트 기반 데이터 분석 플랫폼 풀스택 개발 (주 2회 재택)',
-    link: 'https://www.wishket.com/project/155943/',
-    budget: '월 500만원',
-    budget_wan: 500,
-    description: '· 등록일자 2026.06.09.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040487',
-    score: 46,
-    priority: 'P3'
-  },
-  {
-    id: 'project-155817',
-    title: 'C#/C++ 기반 컷팅 플로터 장비 제어 소프트웨어 개발 (재택 근무)',
-    link: 'https://www.wishket.com/project/155817/',
-    budget: '월 400만원',
-    budget_wan: 400,
-    description: '2026.07.02. C · 경력 무관 C++ · 경력 무관 Python · 경력 무관 등록일자 2026.06.02.',
-    source: 'wishket_login',
-    scraped_at: '2026-06-09T18:04:08.040435',
-    score: 22,
-    priority: 'P4'
   }
 ];
 
 // ── 제안서 데이터 ──
 const PROPOSALS = {
-  "project-155354": "# 제안서: AI 에이전트 설계 및 개발\n\n## 지원 동기\n\nAI 에이전트를 직접 설계하고 운영하는 개발자입니다. 이론이 아닌 실제 운영 경험으로 지원합니다.\n\n현재 제가 개발·운영 중인 Bucky 에이전트 시스템은 Discord 봇, Obsidian 지식 베이스, 위시켓 자동화 파이프라인, 다중 에이전트 오케스트레이터를 포함한 실운영 AI 시스템입니다. 이 시스템을 직접 구축하면서 쌓은 노하우를 그대로 적용할 수 있습니다.\n\n## 핵심 역량\n\n**에이전트 아키텍처 설계**\n- 멀티 에이전트 오케스트레이션 (Bucky + Claude Code + Codex 3-tier 구조)\n- AgentBus: 에이전트 간 태스크 큐·승인 게이트·결과 트래킹\n- Context Pack 기반 동적 지식 주입\n\n**Python 에이전트 구현**\n- Claude/OpenAI API 통합, 도구 사용(Tool Use), 스트리밍\n- Discord 봇 인터페이스 (실시간 명령·알림)\n- 웹 스크래핑 + 데이터 파이프라인 자동화\n\n**운영 경험**\n- 에이전트 헬스 모니터링, 자동 재시작\n- 태스크 승인 게이트 (사람-in-the-loop)\n- 일일 자동 보고 시스템\n\n## 제안 방향\n\n귀사의 AI 에이전트 요구사항을 듣고, 현재 제가 운영 중인 시스템과 동일한 품질로 설계·개발하겠습니다.\n\n특히 강점:\n- 처음부터 \"실제로 작동하는\" 에이전트 설계 (MVP 우선)\n- 에이전트 실패·오류 복구 메커니즘 포함\n- 유지보수 가능한 코드 + 운영 대시보드 제공\n\n## 포트폴리오\n\n- GitHub 레포: https://github.com/jaeha81/obsidian-agent-brain-system\n- 운영 중인 에이전트 시스템: https://jaeha81.github.io/obsidian-agent-brain-system/investment-report.html\n- 월간 600만원+ 수주 자동화 파이프라인 직접 운영 중",
-  "project-155301": "# 제안서: Python/FastAPI AI Agent 및 ETL 개발\n\n## 지원 동기\n\nPython + FastAPI 기반 AI 에이전트와 ETL 파이프라인을 실제로 구축·운영 중인 개발자입니다.\n\n현재 운영 중인 시스템:\n- FastAPI 기반 에이전트 API 레이어\n- 위시켓 스크래핑 → 파싱 → 분류 → 알림 자동화 ETL 파이프라인\n- Discord → AgentBus → Vault 데이터 흐름\n\n## 기술 스택\n\n**Backend**\n- Python 3.11+, FastAPI, Pydantic v2\n- Async/Await 기반 고성능 API\n- Claude API / OpenAI API 통합\n\n**ETL**\n- 데이터 수집 (웹 스크래핑, API 연동)\n- 전처리 (중복 제거, 분류, 변환)\n- 적재 (Obsidian Vault, JSON, SQLite, 웹훅)\n\n**AI Agent**\n- Tool Use 패턴 구현\n- 컨텍스트 관리, 메모리 시스템\n- 에이전트 간 핸드오프 프로토콜\n\n## 구현 경험\n\n현재 레포에서 확인 가능한 실제 구현체:\n- `scripts/agent_dispatcher.py`: 멀티 에이전트 태스크 라우터\n- `scripts/agentbus_queue_audit.py`: AgentBus ETL 파이프라인 감사\n- `scripts/chatgpt_daily_collector.py`: ChatGPT Pulse 자동 수집 ETL\n- `scripts/generate_wishket_dashboard.py`: 위시켓 데이터 ETL + 대시보드 생성\n\n귀사 요구사항에 맞는 유사 수준의 시스템을 설계·개발하겠습니다.\n\n## 포트폴리오\n\n- GitHub: https://github.com/jaeha81/obsidian-agent-brain-system\n- 실운영 대시보드: https://jaeha81.github.io/obsidian-agent-brain-system/wishket.html",
-  "project-155755": "# 제안서: 모델하우스 AI 상담사 키오스크 소프트웨어 구축\n\n---\n\n## 지원 동기 — 두 가지 전문성이 정확히 맞물리는 프로젝트\n\n저는 인테리어·건축 설계사이자 AI 자동화 개발자입니다.\n\n모델하우스 현장을 직접 경험해온 설계사로서, 방문 고객이 실제로 무엇을 묻는지 압니다. \"84타입이랑 59타입 수납 차이가 얼마나 나요?\", \"발코니 확장하면 추가 비용이 얼마예요?\", \"계약 후 잔금까지 일정이 어떻게 되나요?\" — 이런 질문들은 팸플릿으로는 해결되지 않습니다. 현장 상담사가 직접 맥락을 파악하고 답해야 합니다.\n\n동시에, 저는 Claude API 기반 AI 에이전트 시스템(Bucky)을 직접 설계하고 운영하고 있습니다. 단순한 FAQ 챗봇이 아니라, 컨텍스트를 기억하고 고객의 관심 유형을 파악해 맞춤 정보를 제공하는 진짜 대화 엔진을 구현한 경험이 있습니다.\n\n이 두 전문성이 없는 개발자는 소프트웨어는 만들 수 있어도 \"상담사처럼 동작하는\" 소프트웨어는 만들 수 없습니다.\n\n---\n\n## 클라이언트가 실제로 얻는 것\n\n분양 현장에서 AI 상담 키오스크의 도입 가치는 기술 스펙이 아니라 비즈니스 결과입니다.\n\n**상담 인력 비용 절감**\n주말 피크타임 2~3인 추가 투입 없이 동시 다발 방문객 응대가 가능합니다. 반복 질문(평형별 구조, 옵션 가격, 입주 일정)을 AI가 처리하면 상담사는 계약 의향 고객에게만 집중할 수 있습니다.\n\n**24시간 리드 수집**\n키오스크는 영업시간 외에도 작동합니다. 방문객이 터치 한 번으로 관심 평형과 연락처를 남기면, 다음 날 아침 CRM에 자동 등록된 리드 목록이 만들어집니다. 명함 스캔 → 자동 등록도 지원합니다.\n\n**방문객 관심 데이터 자동 분류**\n실거주 목적인지, 투자 목적인지, 갭투자 관심인지를 대화 흐름에서 자동으로 파악합니다. 상담 내용 요약과 관심 유형 태그가 붙어 CRM에 저장되어, 영업팀의 후속 연락 효율이 높아집니다.\n\n---\n\n## 건축 설계사 경력이 결정적인 이유\n\nAI 상담사의 품질은 알고리즘이 아니라 지식 베이스의 정밀도에서 갈립니다.\n\n\"발코니 확장 시 구조 변경 가능 여부\", \"마감재 등급별 실제 체감 차이\", \"층별·향별 일조 조건\", \"관리비 산정 기준\" — 이런 정보는 기획자가 정리해준 문서로는 완성도가 낮습니다. 설계 도면을 직접 읽고, 현장 사양을 이해하고, 실제 입주민 관점을 아는 사람이 시나리오를 설계해야 상담사 수준의 응답이 나옵니다.\n\n저는 상담 시나리오 설계, 지식 베이스 구축, AI 응답 품질 검증을 모두 직접 수행합니다. 외부 도메인 전문가를 따로 고용하거나 클라이언트에게 자료를 과도하게 요청하지 않아도 됩니다.\n\n---\n\n## 기술 구현 계획\n\n### 1단계 — 콘텐츠 구조 설계 (1주)\n\n- 모델하우스 상담 시나리오 15종 이상 수집·분류 (평형별, 계약 절차, 옵션, 투자 문의 등)\n- 지식 베이스 구축: 단지 고유 정보 + 일반 부동산 상식 레이어 분리\n- 키오스크 UX 흐름 설계 — 터치 최적화, 고령 방문객 고려 (큰 글씨, 단순 동선)\n- 산출물: 시나리오 설계서, UX 와이어프레임\n\n### 2단계 — AI 상담 엔진 개발 (2주)\n\n- **Claude API (claude-3-5-sonnet)** 기반 다회차 컨텍스트 유지 대화 엔진\n- 방문객 관심 유형 자동 분류 (실거주 / 투자 / 갭투자 / 기타)\n- **SQLite 로컬 DB** — 상담 기록, 리드 정보 기기 내 저장 (외부 서버 의존 없음)\n- 명함 스캔 OCR → 이름·연락처 자동 파싱 → CRM 등록 연동\n- 산출물: AI 상담 엔진 v1, 로컬 DB 스키마\n\n### 3단계 — 키오스크 통합 및 납품 (1주)\n\n- **React + Electron** 전체화면 터치 UI (Windows 키오스크 모드 대응)\n- 오프라인 Fallback 모드 — 인터넷 단절 시 로컬 FAQ 트리로 자동 전환, 방문객에게 투명하게 동작\n- 운영자 관리 대시보드 — 리드 목록 조회, 상담 통계, 지식 베이스 수정\n- 운영 매뉴얼 + 설치 가이드 납품\n- 산출물: 완성 소프트웨어 패키지, 운영 매뉴얼\n\n---\n\n## 기술 스택 요약\n\n| 구성 요소 | 기술 |\n|-----------|------|\n| AI 대화 엔진 | Claude API (claude-3-5-sonnet) |\n| 프론트엔드 | React + TypeScript |\n| 키오스크 래퍼 | Electron (Windows 전체화면) |\n| 로컬 데이터 저장 | SQLite (기기 내 독립 운영) |\n| OCR (명함 스캔) | Tesseract 또는 클라우드 Vision API |\n| 오프라인 Fallback | 로컬 FAQ 결정 트리 (JSON 기반) |\n| 운영자 대시보드 | React Admin + SQLite 연동 |\n\n---\n\n## 납품 일정\n\n| 단계 | 기간 | 주요 산출물 |\n|------|------|------------|\n| 설계 | 1주차 | 시나리오 설계서, UX 와이어프레임 |\n| 개발 | 2~3주차 | AI 상담 엔진, 키오스크 UI, 로컬 DB |\n| 통합·납품 | 4주차 | 완성 소프트웨어, 운영 매뉴얼, 설치 지원 |\n\n총 4주 완료 목표. 일정은 클라이언트 요청에 따라 조율 가능합니다.\n\n---\n\n## 위험 관리 및 품질 보장\n\n**오프라인 Fallback**\nAI API 서버 장애 또는 현장 인터넷 불안정 상황에서 키오스크가 멈추지 않도록, 로컬 FAQ 트리가 자동으로 개입합니다. 방문객 입장에서 서비스 단절이 발생하지 않습니다.\n\n**데이터 보안**\n방문객 개인정보(이름, 연락처, 상담 내용)는 기기 내 SQLite에만 저장됩니다. 외부 클라우드 서버로 전송되지 않아 정보 유출 위험이 없습니다. 필요 시 AES 암호화 적용 가능합니다.\n\n**유지보수 보장**\n납품 후 3개월간 무상 유지보수를 제공합니다. 지식 베이스 업데이트(분양가 변경, 옵션 추가 등)는 운영자 대시보드에서 직접 수정 가능하며, 별도 개발자 개입 없이 운영할 수 있도록 설계합니다.\n\n---\n\n## 제안 금액 및 협의\n\n제안 금액: **2,000만원 (부가세 포함)**\n\n프로젝트 범위(지식 베이스 규모, 연동 CRM 종류, 하드웨어 납품 포함 여부)에 따라 **협의 가능**합니다. 먼저 현장 요구사항을 확인한 후 상세 견적을 재산정할 수 있습니다.\n\n---\n\n## 제안자 참고 자료\n\n- GitHub (AI 에이전트 시스템): https://github.com/jaeha81/obsidian-agent-brain-system\n- 운영 대시보드 (라이브): https://jaeha81.github.io/obsidian-agent-brain-system/wishket.html\n\n위 자료에서 확인하실 수 있듯, 저는 Claude API 기반 에이전트 시스템을 실제 운영 중입니다. 키오스크 소프트웨어는 이 시스템의 응용이며, 처음부터 새로 만드는 것이 아닙니다. 검증된 엔진 위에 모델하우스 도메인 지식을 얹는 작업입니다.\n\n미팅 가능합니다. 현장 방문 또는 화상 미팅으로 요구사항을 구체화한 후 착수하겠습니다."
+  "project-155354": "# 제안서: AI 에이전트 설계 및 개발
+
+## 지원 동기
+
+AI 에이전트를 직접 설계하고 운영하는 개발자입니다. 이론이 아닌 실제 운영 경험으로 지원합니다.
+
+현재 제가 개발·운영 중인 Bucky 에이전트 시스템은 Discord 봇, Obsidian 지식 베이스, 위시켓 자동화 파이프라인, 다중 에이전트 오케스트레이터를 포함한 실운영 AI 시스템입니다. 이 시스템을 직접 구축하면서 쌓은 노하우를 그대로 적용할 수 있습니다.
+
+## 핵심 역량
+
+**에이전트 아키텍처 설계**
+- 멀티 에이전트 오케스트레이션 (Bucky + Claude Code + Codex 3-tier 구조)
+- AgentBus: 에이전트 간 태스크 큐·승인 게이트·결과 트래킹
+- Context Pack 기반 동적 지식 주입
+
+**Python 에이전트 구현**
+- Claude/OpenAI API 통합, 도구 사용(Tool Use), 스트리밍
+- Discord 봇 인터페이스 (실시간 명령·알림)
+- 웹 스크래핑 + 데이터 파이프라인 자동화
+
+**운영 경험**
+- 에이전트 헬스 모니터링, 자동 재시작
+- 태스크 승인 게이트 (사람-in-the-loop)
+- 일일 자동 보고 시스템
+
+## 제안 방향
+
+귀사의 AI 에이전트 요구사항을 듣고, 현재 제가 운영 중인 시스템과 동일한 품질로 설계·개발하겠습니다.
+
+특히 강점:
+- 처음부터 \"실제로 작동하는\" 에이전트 설계 (MVP 우선)
+- 에이전트 실패·오류 복구 메커니즘 포함
+- 유지보수 가능한 코드 + 운영 대시보드 제공
+
+## 포트폴리오
+
+- GitHub 레포: https://github.com/jaeha81/obsidian-agent-brain-system
+- 운영 중인 에이전트 시스템: https://jaeha81.github.io/obsidian-agent-brain-system/investment-report.html
+- 월간 600만원+ 수주 자동화 파이프라인 직접 운영 중",
+  "project-155301": "# 제안서: Python/FastAPI AI Agent 및 ETL 개발
+
+## 지원 동기
+
+Python + FastAPI 기반 AI 에이전트와 ETL 파이프라인을 실제로 구축·운영 중인 개발자입니다.
+
+현재 운영 중인 시스템:
+- FastAPI 기반 에이전트 API 레이어
+- 위시켓 스크래핑 → 파싱 → 분류 → 알림 자동화 ETL 파이프라인
+- Discord → AgentBus → Vault 데이터 흐름
+
+## 기술 스택
+
+**Backend**
+- Python 3.11+, FastAPI, Pydantic v2
+- Async/Await 기반 고성능 API
+- Claude API / OpenAI API 통합
+
+**ETL**
+- 데이터 수집 (웹 스크래핑, API 연동)
+- 전처리 (중복 제거, 분류, 변환)
+- 적재 (Obsidian Vault, JSON, SQLite, 웹훅)
+
+**AI Agent**
+- Tool Use 패턴 구현
+- 컨텍스트 관리, 메모리 시스템
+- 에이전트 간 핸드오프 프로토콜
+
+## 구현 경험
+
+현재 레포에서 확인 가능한 실제 구현체:
+- `scripts/agent_dispatcher.py`: 멀티 에이전트 태스크 라우터
+- `scripts/agentbus_queue_audit.py`: AgentBus ETL 파이프라인 감사
+- `scripts/chatgpt_daily_collector.py`: ChatGPT Pulse 자동 수집 ETL
+- `scripts/generate_wishket_dashboard.py`: 위시켓 데이터 ETL + 대시보드 생성
+
+귀사 요구사항에 맞는 유사 수준의 시스템을 설계·개발하겠습니다.
+
+## 포트폴리오
+
+- GitHub: https://github.com/jaeha81/obsidian-agent-brain-system
+- 실운영 대시보드: https://jaeha81.github.io/obsidian-agent-brain-system/wishket.html",
+  "project-155755": "# 제안서: 모델하우스 AI 상담사 키오스크 소프트웨어 구축
+
+---
+
+## 지원 동기 — 두 가지 전문성이 정확히 맞물리는 프로젝트
+
+저는 인테리어·건축 설계사이자 AI 자동화 개발자입니다.
+
+모델하우스 현장을 직접 경험해온 설계사로서, 방문 고객이 실제로 무엇을 묻는지 압니다. \"84타입이랑 59타입 수납 차이가 얼마나 나요?\", \"발코니 확장하면 추가 비용이 얼마예요?\", \"계약 후 잔금까지 일정이 어떻게 되나요?\" — 이런 질문들은 팸플릿으로는 해결되지 않습니다. 현장 상담사가 직접 맥락을 파악하고 답해야 합니다.
+
+동시에, 저는 Claude API 기반 AI 에이전트 시스템(Bucky)을 직접 설계하고 운영하고 있습니다. 단순한 FAQ 챗봇이 아니라, 컨텍스트를 기억하고 고객의 관심 유형을 파악해 맞춤 정보를 제공하는 진짜 대화 엔진을 구현한 경험이 있습니다.
+
+이 두 전문성이 없는 개발자는 소프트웨어는 만들 수 있어도 \"상담사처럼 동작하는\" 소프트웨어는 만들 수 없습니다.
+
+---
+
+## 클라이언트가 실제로 얻는 것
+
+분양 현장에서 AI 상담 키오스크의 도입 가치는 기술 스펙이 아니라 비즈니스 결과입니다.
+
+**상담 인력 비용 절감**
+주말 피크타임 2~3인 추가 투입 없이 동시 다발 방문객 응대가 가능합니다. 반복 질문(평형별 구조, 옵션 가격, 입주 일정)을 AI가 처리하면 상담사는 계약 의향 고객에게만 집중할 수 있습니다.
+
+**24시간 리드 수집**
+키오스크는 영업시간 외에도 작동합니다. 방문객이 터치 한 번으로 관심 평형과 연락처를 남기면, 다음 날 아침 CRM에 자동 등록된 리드 목록이 만들어집니다. 명함 스캔 → 자동 등록도 지원합니다.
+
+**방문객 관심 데이터 자동 분류**
+실거주 목적인지, 투자 목적인지, 갭투자 관심인지를 대화 흐름에서 자동으로 파악합니다. 상담 내용 요약과 관심 유형 태그가 붙어 CRM에 저장되어, 영업팀의 후속 연락 효율이 높아집니다.
+
+---
+
+## 건축 설계사 경력이 결정적인 이유
+
+AI 상담사의 품질은 알고리즘이 아니라 지식 베이스의 정밀도에서 갈립니다.
+
+\"발코니 확장 시 구조 변경 가능 여부\", \"마감재 등급별 실제 체감 차이\", \"층별·향별 일조 조건\", \"관리비 산정 기준\" — 이런 정보는 기획자가 정리해준 문서로는 완성도가 낮습니다. 설계 도면을 직접 읽고, 현장 사양을 이해하고, 실제 입주민 관점을 아는 사람이 시나리오를 설계해야 상담사 수준의 응답이 나옵니다.
+
+저는 상담 시나리오 설계, 지식 베이스 구축, AI 응답 품질 검증을 모두 직접 수행합니다. 외부 도메인 전문가를 따로 고용하거나 클라이언트에게 자료를 과도하게 요청하지 않아도 됩니다.
+
+---
+
+## 기술 구현 계획
+
+### 1단계 — 콘텐츠 구조 설계 (1주)
+
+- 모델하우스 상담 시나리오 15종 이상 수집·분류 (평형별, 계약 절차, 옵션, 투자 문의 등)
+- 지식 베이스 구축: 단지 고유 정보 + 일반 부동산 상식 레이어 분리
+- 키오스크 UX 흐름 설계 — 터치 최적화, 고령 방문객 고려 (큰 글씨, 단순 동선)
+- 산출물: 시나리오 설계서, UX 와이어프레임
+
+### 2단계 — AI 상담 엔진 개발 (2주)
+
+- **Claude API (claude-3-5-sonnet)** 기반 다회차 컨텍스트 유지 대화 엔진
+- 방문객 관심 유형 자동 분류 (실거주 / 투자 / 갭투자 / 기타)
+- **SQLite 로컬 DB** — 상담 기록, 리드 정보 기기 내 저장 (외부 서버 의존 없음)
+- 명함 스캔 OCR → 이름·연락처 자동 파싱 → CRM 등록 연동
+- 산출물: AI 상담 엔진 v1, 로컬 DB 스키마
+
+### 3단계 — 키오스크 통합 및 납품 (1주)
+
+- **React + Electron** 전체화면 터치 UI (Windows 키오스크 모드 대응)
+- 오프라인 Fallback 모드 — 인터넷 단절 시 로컬 FAQ 트리로 자동 전환, 방문객에게 투명하게 동작
+- 운영자 관리 대시보드 — 리드 목록 조회, 상담 통계, 지식 베이스 수정
+- 운영 매뉴얼 + 설치 가이드 납품
+- 산출물: 완성 소프트웨어 패키지, 운영 매뉴얼
+
+---
+
+## 기술 스택 요약
+
+| 구성 요소 | 기술 |
+|-----------|------|
+| AI 대화 엔진 | Claude API (claude-3-5-sonnet) |
+| 프론트엔드 | React + TypeScript |
+| 키오스크 래퍼 | Electron (Windows 전체화면) |
+| 로컬 데이터 저장 | SQLite (기기 내 독립 운영) |
+| OCR (명함 스캔) | Tesseract 또는 클라우드 Vision API |
+| 오프라인 Fallback | 로컬 FAQ 결정 트리 (JSON 기반) |
+| 운영자 대시보드 | React Admin + SQLite 연동 |
+
+---
+
+## 납품 일정
+
+| 단계 | 기간 | 주요 산출물 |
+|------|------|------------|
+| 설계 | 1주차 | 시나리오 설계서, UX 와이어프레임 |
+| 개발 | 2~3주차 | AI 상담 엔진, 키오스크 UI, 로컬 DB |
+| 통합·납품 | 4주차 | 완성 소프트웨어, 운영 매뉴얼, 설치 지원 |
+
+총 4주 완료 목표. 일정은 클라이언트 요청에 따라 조율 가능합니다.
+
+---
+
+## 위험 관리 및 품질 보장
+
+**오프라인 Fallback**
+AI API 서버 장애 또는 현장 인터넷 불안정 상황에서 키오스크가 멈추지 않도록, 로컬 FAQ 트리가 자동으로 개입합니다. 방문객 입장에서 서비스 단절이 발생하지 않습니다.
+
+**데이터 보안**
+방문객 개인정보(이름, 연락처, 상담 내용)는 기기 내 SQLite에만 저장됩니다. 외부 클라우드 서버로 전송되지 않아 정보 유출 위험이 없습니다. 필요 시 AES 암호화 적용 가능합니다.
+
+**유지보수 보장**
+납품 후 3개월간 무상 유지보수를 제공합니다. 지식 베이스 업데이트(분양가 변경, 옵션 추가 등)는 운영자 대시보드에서 직접 수정 가능하며, 별도 개발자 개입 없이 운영할 수 있도록 설계합니다.
+
+---
+
+## 제안 금액 및 협의
+
+제안 금액: **2,000만원 (부가세 포함)**
+
+프로젝트 범위(지식 베이스 규모, 연동 CRM 종류, 하드웨어 납품 포함 여부)에 따라 **협의 가능**합니다. 먼저 현장 요구사항을 확인한 후 상세 견적을 재산정할 수 있습니다.
+
+---
+
+## 제안자 참고 자료
+
+- GitHub (AI 에이전트 시스템): https://github.com/jaeha81/obsidian-agent-brain-system
+- 운영 대시보드 (라이브): https://jaeha81.github.io/obsidian-agent-brain-system/wishket.html
+
+위 자료에서 확인하실 수 있듯, 저는 Claude API 기반 에이전트 시스템을 실제 운영 중입니다. 키오스크 소프트웨어는 이 시스템의 응용이며, 처음부터 새로 만드는 것이 아닙니다. 검증된 엔진 위에 모델하우스 도메인 지식을 얹는 작업입니다.
+
+미팅 가능합니다. 현장 방문 또는 화상 미팅으로 요구사항을 구체화한 후 착수하겠습니다."
 };
 
 const DEFAULT_WEBHOOK = '';
@@ -547,6 +664,19 @@ async function sendDevelopmentRequest(id) {
   if (!wh) { openWkSettings(); return; }
   try { await sendWkWebhook(wh, `**개발요청**\n\`\`\`json\n${JSON.stringify(payload,null,2).slice(0,1500)}\`\`\``); showWkToast('개발요청 전송', '웹훅으로 전송했습니다.'); }
   catch (e) { showWkToast('전송 실패', e.message); }
+}
+
+
+async function triggerChromeHandoff() {
+  const base = getWkBuckyEndpoint();
+  const url = (base || '') + '/wishket/chrome-handoff';
+  try {
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source:'wishket_dashboard'}) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    showWkToast('Chrome handoff', '위시켓 로그인/프로필 완성 창을 열었습니다.');
+  } catch (e) {
+    showWkToast('Chrome handoff 실패', 'Bucky 로컬 서버 연결을 확인하세요: ' + e.message);
+  }
 }
 
 // ── Toast ──

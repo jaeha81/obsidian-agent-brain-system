@@ -12,6 +12,9 @@ import glob
 from pathlib import Path
 from datetime import datetime
 
+sys.path.insert(0, os.path.dirname(__file__))
+from wishket_filters import is_collectable_development_request
+
 ROOT = Path(__file__).parent.parent
 INBOX_DIR = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_inbox"
 TRACKER_PATH = ROOT / "ObsidianVault" / "10_AgentBus" / "wishket_tracker.json"
@@ -49,22 +52,16 @@ def load_inbox_projects() -> list[dict]:
                     "priority": item.get("priority", "P4"),
                 }
     result = list(projects.values())
-    # 근무/직원 공고 제외 (채용형 공고 필터)
-    EXCLUDE_KEYWORDS = ["근무지", "직원 모집", "직원 채용", "정규직", "계약직", "아르바이트"]
-    EXCLUDE_TITLE_ONLY = ["직원"]
-    def _is_employment(p: dict) -> bool:
-        text = (p.get("title", "") + " " + p.get("description", "")).lower()
-        if any(kw in text for kw in EXCLUDE_KEYWORDS):
-            return True
-        title = p.get("title", "")
-        if any(kw in title for kw in EXCLUDE_TITLE_ONLY):
-            return True
-        return False
+    # Shared defense: keep only outsourced development requests, never recruiting posts.
     before = len(result)
-    result = [p for p in result if not _is_employment(p)]
+    result = [
+        p for p in result
+        if is_collectable_development_request(p.get("title", ""), p.get("description", ""))
+    ]
     excluded = before - len(result)
     if excluded:
-        print(f"근무/직원 공고 제외: {excluded}개")
+        print(f"Wishket non-development/recruiting posts excluded: {excluded}")
+
 
     # 점수 없는 구 항목 동적 채점
     try:
