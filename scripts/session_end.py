@@ -21,6 +21,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from session_continuity import numbered_pending_prompt, write_handoff
+
 ROOT = Path(__file__).parent.parent
 VAULT = ROOT / "ObsidianVault"
 SYSTEM = VAULT / "00_System"
@@ -107,6 +109,10 @@ def main():
     parser.add_argument("--task", required=True, help="Task description")
     parser.add_argument("--result", default="완료", help="Result summary")
     parser.add_argument("--notes", default="", help="Additional notes")
+    parser.add_argument("--pending", action="append", default=[], help="Unfinished item to carry into the next session")
+    parser.add_argument("--completed", action="append", default=[], help="Completed item for the continuity handoff")
+    parser.add_argument("--blocker", action="append", default=[], help="Blocker to preserve in the continuity handoff")
+    parser.add_argument("--next-read", action="append", default=[], help="File/path the next session should read first")
     args = parser.parse_args()
 
     if not re.match(r'^[A-Za-z0-9][A-Za-z0-9 _-]*$', args.agent):
@@ -125,6 +131,19 @@ def main():
 
     append_handoff(args.agent, args.task, args.result, args.notes)
     print(f"HANDOFF_LOG.md updated")
+
+    if args.pending or args.completed or args.blocker or args.next_read:
+        handoff_path = write_handoff(
+            agent=args.agent,
+            request=args.task,
+            completed=args.completed or [args.result],
+            pending=args.pending,
+            blockers=args.blocker,
+            next_read=args.next_read,
+            notes=args.notes,
+        )
+        print(f"Continuity handoff written: {handoff_path}")
+        print(numbered_pending_prompt(args.pending))
 
 
 if __name__ == "__main__":

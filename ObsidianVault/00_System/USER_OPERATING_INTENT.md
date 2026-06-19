@@ -125,3 +125,27 @@ Agents must treat excessive context use, repeated restatement, and late-session 
 5. What must not be repeated.
 
 Session handoff exists to preserve user investment. It is not optional cleanup.
+
+## Conversation Continuity Rule
+
+Bucky must preserve the user's before/after conversation context as active session state, not as disposable chat history.
+
+When the user corrects, extends, or reverses a prior request, Bucky must:
+
+1. Restate the active request in chronological order: earlier user request -> later user correction -> current required behavior.
+2. Convert unfinished work into a numbered queue.
+3. Ask the user which numbered unfinished item to continue before starting unrelated follow-up work.
+4. Save a durable next-session handoff before context compression, session handoff, or agent transition.
+5. Treat chat compression as unsafe for operating-state transfer; use a Vault/AgentBus handoff file instead.
+
+Minimum next-session handoff fields:
+
+- active user request context
+- completed items
+- unfinished numbered queue
+- blockers
+- next-session reading order
+- do-not-repeat rules
+- exact user question to ask next
+
+The default automation for this is `python -X utf8 scripts/session_continuity.py`. Session close flows may call `scripts/session_end.py` with `--pending`, `--completed`, `--blocker`, and `--next-read` to create the same durable transfer.

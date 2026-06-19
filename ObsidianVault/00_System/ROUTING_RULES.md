@@ -376,3 +376,22 @@ preserve_design: true
 | `modality_check` | Bucky (스케줄) | 매주 월요일 09:00 | `scripts/modality_check.py` |
 
 > 이 매핑은 `ObsidianVault/00_System/AGENTS_CANONICAL.md`의 권한 정의와 연동된다.
+
+## Session Continuity Routing
+
+Session continuity is a routing concern, not only a final-report style rule.
+
+When Bucky sees signals such as `압축하지마`, `다음 세션`, `자동 이관`, `미완료`, `순번`, `맥락을 이해하지 못함`, or repeated user corrections, it must route through the session continuity guard:
+
+1. Build the chronological active request context.
+2. Save or update a durable handoff node under `ObsidianVault/10_AgentBus/handoffs/`.
+3. Update `ObsidianVault/00_System/CHARLIE_NEXT_SESSION_HANDOFF.md`.
+4. Ask the user which numbered unfinished item to continue.
+5. Do not rely on chat compression as the transfer mechanism.
+
+Automation entrypoints:
+
+```powershell
+python -X utf8 scripts/session_continuity.py --agent Bucky --request "<active request>" --pending "<unfinished item>"
+python -X utf8 scripts/session_end.py --agent Bucky --task "<task>" --pending "<unfinished item>"
+```

@@ -146,3 +146,15 @@ Vault root: `G:\내 드라이브\obsidian-agent-brain-system\ObsidianVault\`
 ## 컨텍스트 절약
 
 큰 로그 전체를 읽지 않는다. `agent-room-messages.jsonl`, `sync-state.jsonl`, 세션 로그, tool result 파일은 날짜, target, status, keyword로 검색하거나 tail만 사용한다. 긴 절차는 복사하지 말고 요약과 참조 경로를 제공한다.
+
+## Session Continuity Implementation Rule
+
+When the user asks Codex to repair Bucky/Charlie/Codex session continuity, Codex may edit the relevant OABS authority files and scripts inside the requested scope.
+
+Codex must preserve this behavior:
+
+1. User corrections are chronological context, not noise.
+2. Unfinished requests become a numbered queue.
+3. Next-session transfer uses a durable handoff file, not chat compression.
+4. Final reports state completed work, open numbered items, verification, and whether commit/push was performed.
+5. If the user requests commit/push for this continuity work, Codex may commit and push only the current scoped changes.

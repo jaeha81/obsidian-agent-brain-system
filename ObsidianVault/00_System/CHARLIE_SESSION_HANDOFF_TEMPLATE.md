@@ -78,3 +78,18 @@ Charlie must keep the handoff compact. Do not paste large logs, broad diffs, or 
 - Recommended next action:
 - Approval needed:
 - What Charlie should only report, not change:
+
+## Numbered Unfinished Queue
+
+Use this section whenever any user request remains unresolved.
+
+1. <unfinished item>
+2. <unfinished item>
+3. <unfinished item>
+0. Do not continue unfinished items now.
+
+Charlie/Codex/Bucky must ask the user which number to continue before starting unrelated work in the next session.
+
+## Compression Ban
+
+Do not rely on chat compression to transfer operating state. Write a durable handoff node and update `ObsidianVault/00_System/CHARLIE_NEXT_SESSION_HANDOFF.md` before moving sessions.

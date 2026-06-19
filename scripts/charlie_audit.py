@@ -298,7 +298,16 @@ def check_core_purpose_guard() -> list[Finding]:
 def check_session_continuity_guard() -> list[Finding]:
     findings: list[Finding] = []
     intent_text = _read_text(SYSTEM / "USER_OPERATING_INTENT.md")
-    required = ["Session Continuity Rule", "handoff", "next session", "durable state"]
+    required = [
+        "Session Continuity Rule",
+        "Conversation Continuity Rule",
+        "handoff",
+        "next session",
+        "durable state",
+        "numbered queue",
+        "chat compression",
+        "scripts/session_continuity.py",
+    ]
     missing = [term for term in required if term not in intent_text]
     if missing:
         findings.append(
@@ -306,7 +315,7 @@ def check_session_continuity_guard() -> list[Finding]:
                 "P2",
                 "session-continuity",
                 "Session continuity rule is not fully pinned",
-                "USER_OPERATING_INTENT.md should preserve session-end reasons, handoff, next-session reading order, and durable state.",
+                "USER_OPERATING_INTENT.md should preserve chronological user context, numbered unfinished queue, durable handoff, and no-compression transfer.",
                 ", ".join(missing),
             )
         )
@@ -323,6 +332,8 @@ def check_turn_closure_guard() -> list[Finding]:
         ("next work directive", coordination_text, "ObsidianVault/00_System/CHARLIE_AGENT_COORDINATION.md"),
         ("active request queue", charlie_text.lower(), "ObsidianVault/03_Projects/agents/charlie.md"),
         ("Active Request Queue", template_text, "ObsidianVault/00_System/CHARLIE_SESSION_HANDOFF_TEMPLATE.md"),
+        ("Numbered Unfinished Queue", template_text, "ObsidianVault/00_System/CHARLIE_SESSION_HANDOFF_TEMPLATE.md"),
+        ("Compression Ban", template_text, "ObsidianVault/00_System/CHARLIE_SESSION_HANDOFF_TEMPLATE.md"),
     ]
     missing = [f"{term} in {path}" for term, text, path in required if term not in text]
     if missing:
