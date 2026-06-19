@@ -22,7 +22,7 @@ load_dotenv(_ROOT / ".env", encoding="utf-8-sig", override=True)
 
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 _DB_PATH_OVERRIDE = os.getenv("BUCKY_MEMORY_DB_PATH", "").strip()
-DB_PATH = Path(_DB_PATH_OVERRIDE) if _DB_PATH_OVERRIDE else VAULT / "10_AgentBus" / "tasks" / "bucky_memory.db"
+DB_PATH = Path(_DB_PATH_OVERRIDE) if _DB_PATH_OVERRIDE else _ROOT / "data" / "bucky_memory.db"
 CONTEXT_FILE = VAULT / "00_System" / "BUCKY_CONTEXT.md"
 MAX_HISTORY = int(os.getenv("BUCKY_MAX_HISTORY", "30"))
 

@@ -160,6 +160,8 @@ exports/
 *.bak
 *.swp
 *~
+.watch-*/
+.tmp_*/
 
 # Duplicate planning scratch file
 plan2.md
