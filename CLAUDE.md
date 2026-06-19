@@ -96,6 +96,12 @@ For a directly usable packet, run:
 powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 -Project "<repo-or-folder>" "<request text>"
 ```
 
+Python deep-routing fallback (when PS1 is unavailable):
+
+```bash
+python -X utf8 scripts/context_pack_selector.py --packet --project "<repo-or-folder>" "<request text>"
+```
+
 Do not reuse packets from another repo or folder unless Bucky confirms they apply.
 
 ## Three-Tier Routing

@@ -180,6 +180,11 @@ These wildcard groups cover the remaining low-score inventory candidates. They a
 | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/wiki/*.md` | old direct wiki pages; reference-only unless distilled into current framework docs or Context Packs |
 | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/OBSIDIAN-SECOND/raw/jh-mobile-second-brain/**` | old direct mobile second-brain data; archive/reference-only unless targeted ingestion is requested |
 | `ObsidianVault/09_Archive/migration-check-2026-05-25.md` | migration evidence only; current status is this audit plus inventory/residue reports |
+| `ObsidianVault/09_Archive/gdrive-archive/**` | imported from shared Google Drive legacy system (00_SYSTEM_2026-05-23, daily-reports-legacy, root-* files); archive-only, not current instruction authority; all gdrive-archive files are historical evidence only |
+| `ObsidianVault/09_Archive/bucky-context-archive/**` | auto-memory snapshots and session archives; archive-only, not current instruction authority; content superseded by current Vault memory and session records |
+| `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/infranodus/**` | old InfraNodus graph snapshots; archive/reference-only unless targeted graph analysis is requested |
+| `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/infranodus/**` | old InfraNodus graph snapshots; archive/reference-only |
+| `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/output/research-questions/**` | old research question outputs; archive/reference-only, covered by current InfraNodus and knowledge graph workflow |
 
 ## Runtime Default Path Remediation
 

@@ -36,6 +36,20 @@ class Decision:
 def _decision_for(path: Path) -> tuple[str, str, str, str]:
     rel = path.relative_to(ROOT).as_posix()
     lower = rel.lower()
+    if "gdrive-archive" in lower:
+        return (
+            "archive-only",
+            "none",
+            "imported from shared drive legacy system; archive-only, not current instruction authority",
+            "keep quarantined as historical evidence; do not promote without targeted redaction review",
+        )
+    if "agentbus.md" in lower:
+        return (
+            "covered-quarantined",
+            "ObsidianVault/05_Frameworks/AgentBus/agentbus_protocol.md",
+            "webhook_word match is a WikiLink reference [[webhook-vault-write-pattern]], not an actual webhook URL; AgentBus protocol is covered",
+            "only targeted redaction required if real webhook URLs are added to the file",
+        )
     if "/sessions/" in lower:
         return (
             "archive-only",

@@ -125,6 +125,9 @@ RULES: tuple[PackRule, ...] = (
         packs=DIRECT_EXECUTION_PACKS
         + (
             "ObsidianVault/06_Context_Packs/bucky-development-workflow-policy.md",
+            "CLAUDE.md",
+            "ObsidianVault/03_Projects/agents/bucky.md",
+            RUNBOOK_PACK,
         ),
         notes=(
             "Use for ordinary implementation requests that lack exact execution steps.",
