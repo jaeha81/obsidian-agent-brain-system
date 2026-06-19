@@ -464,6 +464,65 @@ def screen_input():
         return jsonify({"error": str(e)}), 500
 
 
+# ── Card 4: 레포 수익성 점수화 ──────────────────────────────────────────
+_REPO_SCORE_CACHE: dict = {"data": None, "mtime": 0.0}
+_REPO_SCORE_JSON = DATA_DIR / "repo_priority_scores.json" if (DATA_DIR := ROOT / "data") else None
+
+
+@os_bp.get("/repo-priority")
+def get_repo_priority():
+    """최근 repo_priority_scorer.py 결과를 반환.
+    ?refresh=1 이면 백그라운드 재실행 트리거.
+    ?owner=xxx 로 특정 오너 필터.
+    """
+    import subprocess, sys, threading
+
+    score_path = ROOT / "data" / "repo_priority_scores.json"
+
+    def _run_scorer():
+        try:
+            subprocess.run(
+                [sys.executable, "-X", "utf8", str(ROOT / "scripts" / "repo_priority_scorer.py")],
+                capture_output=True,
+                timeout=120,
+            )
+        except Exception:
+            pass
+
+    if request.args.get("refresh") == "1":
+        threading.Thread(target=_run_scorer, daemon=True).start()
+        return jsonify({"ok": True, "status": "refresh_triggered"})
+
+    try:
+        mtime = score_path.stat().st_mtime
+        if _REPO_SCORE_CACHE["data"] is None or mtime != _REPO_SCORE_CACHE["mtime"]:
+            _REPO_SCORE_CACHE["data"] = json.loads(score_path.read_text(encoding="utf-8"))
+            _REPO_SCORE_CACHE["mtime"] = mtime
+        data = _REPO_SCORE_CACHE["data"]
+    except Exception:
+        return jsonify({"generated_at": None, "results": [], "note": "score file not found — call ?refresh=1"})
+
+    results = data.get("results", [])
+    owner_filter = request.args.get("owner", "")
+    if owner_filter:
+        results = [r for r in results if r.get("name", "").startswith(owner_filter + "/")]
+
+    shortlist = [r for r in results if r.get("shortlist")]
+    tiers = {"High": 0, "Medium": 0, "Low": 0}
+    for r in results:
+        t = r.get("tier", "Low")
+        tiers[t] = tiers.get(t, 0) + 1
+
+    resp = jsonify({
+        "generated_at": data.get("generated_at"),
+        "summary": {**tiers, "shortlist_count": len(shortlist), "total": len(results)},
+        "shortlist": shortlist,
+        "results": results[:50],
+    })
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
 # ── G1: 쿼리→Wiki 피드백 루프 ──────────────────────────────────────────
 @os_bp.route("/query-to-wiki", methods=["POST"])
 def query_to_wiki():
