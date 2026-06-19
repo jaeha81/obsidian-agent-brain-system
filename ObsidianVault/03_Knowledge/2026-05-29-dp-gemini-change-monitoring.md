@@ -53,3 +53,6 @@ Gemini 기반 API/CLI/Vertex 릴리즈 노트 변화 모니터링. 모델 deprec
 - Model Routing 정책: Vault Memory `project_model_routing.md`
 - 온디바이스 API 비용 절감: `2026-05-28-dp-on-device-api-cost-reduction.md`
 - 이 항목은 P3(낮은 우선순위)이므로 정기 모니터링 항목으로 관리
+
+## 관련 노트
+- [[hubs/JH System]]

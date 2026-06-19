@@ -37,3 +37,6 @@ Turn checks into a repeatable verification checklist before implementation.
 
 - 대상: `00_UPGRADE/review-automation-protocol.md`
 - 담당: codex
+
+## 관련 노트
+- [[hubs/JH System]]

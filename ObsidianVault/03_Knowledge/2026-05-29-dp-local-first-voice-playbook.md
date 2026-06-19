@@ -54,3 +54,6 @@ graph_cluster: daily-practice
 - 음성에서 의도로 바로 넘기기: `2026-05-28-dp-voice-to-intent-pipeline.md`
 - 음성 파이프라인 운영 기준표: `2026-05-27-dp-voice-pipeline-ops-standard.md`
 - 로컬 에이전트 오프라인 우선 경로: `2026-05-28-dp-local-agent-offline-first.md`
+
+## 관련 노트
+- [[hubs/JH System]]

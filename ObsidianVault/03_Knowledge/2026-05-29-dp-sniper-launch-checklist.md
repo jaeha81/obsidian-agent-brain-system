@@ -52,3 +52,6 @@ graph_cluster: daily-practice
 - sniper-buying-dashboard 상태: Vault Memory `project_sniper_buying_dashboard.md`
 - AgentDispatcher 상태 오판 금지: Vault Memory `feedback_agent_dispatcher_status.md`
 - 배포 전 1분 검증 체크: `2026-05-27-dp-deploy-1min-verify.md`
+
+## 관련 노트
+- [[hubs/JH System]]

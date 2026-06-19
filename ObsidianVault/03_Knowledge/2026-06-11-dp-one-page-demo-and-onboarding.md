@@ -37,3 +37,6 @@ Stage voice-note metadata and replay rules for the voice capture pipeline.
 
 - 대상: `05_Frameworks/guides / voice intake and Obsidian logging`
 - 담당: distiller
+
+## 관련 노트
+- [[hubs/JH System]]

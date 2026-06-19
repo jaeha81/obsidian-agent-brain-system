@@ -60,3 +60,6 @@ graph_cluster: daily-practice
 - Codex·Claude 분리 운영 패턴: `2026-05-28-dp-codex-claude-separation-pattern.md`
 - JCS 검증용 1줄 스모크: `2026-05-29-dp-jcs-smoke-verifier.md`
 - Bucky 운영 규칙: `ObsidianVault/03_Projects/agents/bucky.md`
+
+## 관련 노트
+- [[hubs/JH System]]

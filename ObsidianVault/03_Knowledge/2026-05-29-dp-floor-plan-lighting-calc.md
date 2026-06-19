@@ -71,3 +71,6 @@ graph_cluster: daily-practice
 - JH 건설/인테리어 견적 스킬: `jh-estimate` skill
 - 파주권 번들 10일 파일럿: `2026-05-29-dp-paju-bundle-10day-pilot.md`
 - CAD to estimate PoC: `2026-06-11-dp-cad-to-estimate-poc.md` (연관 신규 작업)
+
+## 관련 노트
+- [[hubs/JH System]]

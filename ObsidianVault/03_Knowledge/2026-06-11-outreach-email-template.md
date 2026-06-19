@@ -131,3 +131,6 @@ AI 렌더링으로 80% 줄인 사례를 공유해도 될까요?
 
 - 실험 트래커: `00_UPGRADE/experiment-tracker-2026-06.md`
 - 수익 모델: `2026-06-11-revenue-model-framework.md`
+
+## 관련 노트
+- [[hubs/JH System]]

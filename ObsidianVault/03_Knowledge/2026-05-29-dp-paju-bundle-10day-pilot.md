@@ -52,3 +52,6 @@ graph_cluster: daily-practice
 - JH 구매대행 출시 점검표: `2026-05-29-dp-sniper-launch-checklist.md`
 - 묶음 상품으로 ARPU 키우기: `2026-05-28-dp-bundle-arpu-growth.md`
 - sniper-buying-dashboard 상태: Vault Memory `project_sniper_buying_dashboard.md`
+
+## 관련 노트
+- [[hubs/JH System]]

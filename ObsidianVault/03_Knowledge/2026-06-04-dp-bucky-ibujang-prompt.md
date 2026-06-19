@@ -94,3 +94,6 @@ ibujang_gate:
 
 - 관련 정책: `2026-06-04-dp-todays-plus-triage-policy.md`
 - ROUTING_RULES: `ObsidianVault/00_System/ROUTING_RULES.md`
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -55,3 +55,6 @@ graph_cluster: daily-practice
 - 버키용 최소 명령 페이로드: `2026-05-27-dp-bucky-min-command-payload.md`
 - 버키용 초경량 명령 3종: `2026-05-29-dp-bucky-3-lightweight-commands.md`
 - 웹훅 옵시디언 안전 전달: `2026-05-28-dp-webhook-to-obsidian-safe.md`
+
+## 관련 노트
+- [[hubs/JH System]]

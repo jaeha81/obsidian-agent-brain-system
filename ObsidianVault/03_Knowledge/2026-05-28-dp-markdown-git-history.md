@@ -52,3 +52,6 @@ graph_cluster: daily-practice
 - 웹훅 옵시디언 안전 전달: `2026-05-28-dp-webhook-to-obsidian-safe.md`
 - 로컬 에이전트 오프라인 우선 경로: `2026-05-28-dp-local-agent-offline-first.md`
 - Obsidian Agent Brain System Git 운영: `G:\내 드라이브\obsidian-agent-brain-system`
+
+## 관련 노트
+- [[hubs/JH System]]

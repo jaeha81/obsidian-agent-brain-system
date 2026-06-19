@@ -93,3 +93,6 @@ Market inside Stage:
 | Daily Plus 파이프라인 | Pipeline |
 | AI API 라우팅 | Market |
 | AgentBus 디스패처 | Conductor + Pipeline 혼합 |
+
+## 관련 노트
+- [[hubs/JH System]]

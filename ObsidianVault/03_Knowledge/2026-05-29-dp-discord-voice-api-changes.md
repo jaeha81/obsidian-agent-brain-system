@@ -48,3 +48,6 @@ Discord의 실험적 공간 오디오 기능 및 음성 API 변화 모니터링.
 - 음성 파이프라인 운영 기준표: `2026-05-27-dp-voice-pipeline-ops-standard.md`
 - Discord Bucky 봇 구조: Vault Memory `project_discord_bucky.md`
 - 이 항목은 P3(낮은 우선순위)이므로 정기 모니터링 항목으로 관리
+
+## 관련 노트
+- [[hubs/JH System]]

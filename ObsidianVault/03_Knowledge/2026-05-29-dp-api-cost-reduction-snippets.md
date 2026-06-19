@@ -69,3 +69,6 @@ graph_cluster: daily-practice
 - 온디바이스 API 비용 절감: `2026-05-28-dp-on-device-api-cost-reduction.md`
 - Model Routing 정책: Vault Memory `project_model_routing.md`
 - AI Usage 대시보드: Vault Memory `project_session_2026-06-06.md`
+
+## 관련 노트
+- [[hubs/JH System]]

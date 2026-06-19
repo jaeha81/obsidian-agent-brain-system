@@ -128,3 +128,6 @@ const SNIPER_PRICES = {
 - 소스: `2026-05-28-dp-fixed-cta-conversion.md`, `2026-06-01-dp-price-ab-decision-manifest.md`
 - 수익 모델: `2026-06-11-revenue-model-framework.md`
 - 실험 트래커: `00_UPGRADE/experiment-tracker-2026-06.md`
+
+## 관련 노트
+- [[hubs/JH System]]

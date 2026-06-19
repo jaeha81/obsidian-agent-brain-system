@@ -101,3 +101,6 @@ graph_cluster: daily-practice
 
 - staged 상태. 실제 Bucky 운영 프롬프트 변경 전 사용자 확인 필요.
 - 개별 프롬프트는 Discord 내 `/bucky prompt <번호> <입력>` 형식으로 호출 가능하도록 설계.
+
+## 관련 노트
+- [[hubs/JH System]]

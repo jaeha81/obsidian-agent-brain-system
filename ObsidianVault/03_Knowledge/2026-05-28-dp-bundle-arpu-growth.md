@@ -51,3 +51,6 @@ graph_cluster: daily-practice
 - 고정 CTA 전환율: `2026-05-28-dp-fixed-cta-conversion.md`
 - 파주권 번들 10일 파일럿: `2026-05-29-dp-paju-bundle-10day-pilot.md`
 - Agent Performance Policy: Vault Memory `project_agent_performance.md`
+
+## 관련 노트
+- [[hubs/JH System]]

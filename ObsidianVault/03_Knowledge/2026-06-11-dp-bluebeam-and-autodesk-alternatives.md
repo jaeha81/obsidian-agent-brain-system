@@ -37,3 +37,6 @@ Distill the idea into a knowledge note or leave as a parked candidate.
 
 - 대상: `03_Knowledge / 00_UPGRADE`
 - 담당: distiller
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -176,3 +176,6 @@ def write_audit_log(event: str, metadata: dict):
 - [ ] 순환 버퍼 `flush_after_processing()` 호출 검증
 - [ ] 감사 로그 append-only 권한 설정 (chmod 444)
 - [ ] 30일 텍스트 만료 cron 등록
+
+## 관련 노트
+- [[hubs/JH System]]

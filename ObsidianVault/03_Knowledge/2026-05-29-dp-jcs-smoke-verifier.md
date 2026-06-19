@@ -54,3 +54,6 @@ graph_cluster: daily-practice
 - Codex·Claude 분리 운영 패턴: `2026-05-28-dp-codex-claude-separation-pattern.md`
 - 검증자와 롤백 템플릿: `2026-05-27-dp-verifier-rollback-template.md`
 - 버키용 초경량 명령 3종: `2026-05-29-dp-bucky-3-lightweight-commands.md`
+
+## 관련 노트
+- [[hubs/JH System]]

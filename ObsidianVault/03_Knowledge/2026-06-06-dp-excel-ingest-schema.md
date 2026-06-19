@@ -167,3 +167,6 @@ python ingest.py --input vendor_list.xlsx --source vendor_list --output normaliz
 # 출력: normalized.json (정규화 행 배열)
 # 로그: ingest.log (플래그 항목 목록)
 ```
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -178,3 +178,6 @@ Approval rate: 84%      [OK]
 - 이벤트 저장: `data/telemetry/YYYY-MM-DD.jsonl`
 - Discord 발송: 기존 Discord 봇 webhook 재사용
 - 대시보드: `docs/agent-os.html` → AI Usage 탭 확장 고려
+
+## 관련 노트
+- [[hubs/JH System]]

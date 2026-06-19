@@ -65,3 +65,6 @@ system = """<role>Bucky — JH 에이전트 오케스트레이터</role>
 
 - 공식 릴리즈 노트: Anthropic changelog 2026-06
 - 관련 노트: `2026-05-28-dp-codex-claude-separation-pattern.md`
+
+## 관련 노트
+- [[hubs/JH System]]

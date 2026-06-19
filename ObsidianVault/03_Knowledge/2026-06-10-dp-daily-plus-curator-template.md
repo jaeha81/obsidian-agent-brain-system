@@ -148,3 +148,6 @@ curl http://localhost:8080/api/i-manager/status/{job_id}
 - [ ] 카드 템플릿을 Discord 봇 `/daily-plus` 명령어에 연결
 - [ ] 민감 필드 마스킹 함수 `scripts/stt_utils.py`에 추가
 - [ ] I-Manager API 엔드포인트 구현 확인
+
+## 관련 노트
+- [[hubs/JH System]]

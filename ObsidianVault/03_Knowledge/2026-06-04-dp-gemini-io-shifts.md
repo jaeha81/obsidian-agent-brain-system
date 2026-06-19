@@ -59,3 +59,6 @@ Google I/O에서 발표된 Gemini 업데이트는 단순 답변 제공을 넘어
 
 - 관련 노트: `project_model_routing.md`
 - Google I/O 2026 발표 자료
+
+## 관련 노트
+- [[hubs/JH System]]

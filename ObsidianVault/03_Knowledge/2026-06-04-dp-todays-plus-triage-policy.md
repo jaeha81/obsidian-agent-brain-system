@@ -95,3 +95,6 @@ Vault의 파일 변경 이벤트를 트리거로 사용:
 
 - 관련 노트: `2026-05-30-dp-obsidian-agent-bridge.md`
 - 구현 시 `bucky_chat_server.py` IPC 채널 활용
+
+## 관련 노트
+- [[hubs/JH System]]

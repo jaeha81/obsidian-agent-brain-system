@@ -158,3 +158,6 @@ document.querySelectorAll('.cta-primary').forEach(btn => {
 - 영업 이메일: `2026-06-11-outreach-email-template.md`
 - A/B 테스트: `2026-06-11-cta-ab-test-execution.md`
 - 수익 모델: `2026-06-11-revenue-model-framework.md`
+
+## 관련 노트
+- [[hubs/JH System]]

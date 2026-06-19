@@ -50,3 +50,6 @@ graph_cluster: daily-practice
 - Bucky Discord 봇 구조: `ObsidianVault/03_Projects/agents/bucky.md`
 - 웹훅 브리지 안전 전달: `2026-05-28-dp-webhook-to-obsidian-safe.md`
 - 배포 전 검증 체크: `2026-05-27-dp-deploy-1min-verify.md`
+
+## 관련 노트
+- [[hubs/JH System]]

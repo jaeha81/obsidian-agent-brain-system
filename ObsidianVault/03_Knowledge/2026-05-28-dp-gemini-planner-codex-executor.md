@@ -88,3 +88,6 @@ On approval_required: pause, output { blocked: true, reason, step_id }
 
 - 현재 Gemini API 키 미등록 — Gemini 역할은 Claude로 대체 가능.
 - 실제 Bucky 운영 프롬프트 변경 전 Bucky 패킷 승인 필요 (staged 상태).
+
+## 관련 노트
+- [[hubs/JH System]]

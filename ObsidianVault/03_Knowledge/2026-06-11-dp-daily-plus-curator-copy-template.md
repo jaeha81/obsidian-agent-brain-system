@@ -37,3 +37,6 @@ Convert queue ideas into AgentBus task templates or inbox rules.
 
 - 대상: `10_AgentBus / Obsidian queue`
 - 담당: collector
+
+## 관련 노트
+- [[hubs/JH System]]

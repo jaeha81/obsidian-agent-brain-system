@@ -130,3 +130,6 @@ def extract_area_from_dwg(dwg_path: str) -> dict:
 
 - GitHub: https://github.com/LibreDWG/libredwg
 - 관련 스킬: `jh-estimate`
+
+## 관련 노트
+- [[hubs/JH System]]

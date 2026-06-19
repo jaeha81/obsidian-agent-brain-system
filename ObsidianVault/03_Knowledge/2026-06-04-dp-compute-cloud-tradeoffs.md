@@ -134,3 +134,6 @@ def process_queue():
 - whisper.cpp 설치: `2026-06-04-dp-whisper-cpp-transcription-mvp.md`
 - 숏츠 파이프라인: `2026-06-04-dp-three-step-shorts-pipeline.md`
 - AI 과금 정책: `feedback_no_api_billing.md`
+
+## 관련 노트
+- [[hubs/JH System]]

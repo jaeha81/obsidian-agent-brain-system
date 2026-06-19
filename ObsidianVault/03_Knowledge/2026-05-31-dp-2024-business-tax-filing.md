@@ -87,3 +87,6 @@ graph_cluster: daily-practice
 ## 관련 컨텍스트
 
 - 개인사업 운영 및 수익화 관련 세무 기초 지식
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -125,3 +125,6 @@ def batch_transcribe(audio_files: list, model_path: str) -> list:
 - [ ] Discord 봇에 whisper.cpp Python 바인딩 통합
 - [ ] `2026-05-27-dp-voice-note-safe-template.md` 파이프라인과 연결
 - [ ] 한국어 음성 정확도 테스트 실행
+
+## 관련 노트
+- [[hubs/JH System]]

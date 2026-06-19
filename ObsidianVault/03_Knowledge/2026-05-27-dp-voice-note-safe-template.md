@@ -60,3 +60,6 @@ Obsidian에 음성 전사 노트를 안전하게 쌓고 브리지로 전송·중
 - 음성 파이프라인 운영 기준: `2026-05-27-dp-voice-pipeline-ops-standard.md`
 - 음성에서 의도로 넘기기: `2026-05-28-dp-voice-to-intent-pipeline.md`
 - 로컬 우선 음성 전사 플레이북: `2026-05-29-dp-local-first-voice-playbook.md`
+
+## 관련 노트
+- [[hubs/JH System]]

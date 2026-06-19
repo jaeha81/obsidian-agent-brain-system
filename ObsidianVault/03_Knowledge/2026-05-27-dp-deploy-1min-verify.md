@@ -50,3 +50,6 @@ graph_cluster: daily-practice
 - 버키 최소 명령 페이로드: `2026-05-27-dp-bucky-min-command-payload.md`
 - 웹훅 옵시디언 안전 전달: `2026-05-28-dp-webhook-to-obsidian-safe.md`
 - JH 구매대행 출시 점검표: `2026-05-29-dp-sniper-launch-checklist.md`
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -155,3 +155,6 @@ git checkout pre-migration-20260610
 # 또는 특정 파일만 복구
 git checkout pre-migration-20260610 -- ObsidianVault/path/to/file.md
 ```
+
+## 관련 노트
+- [[hubs/JH System]]

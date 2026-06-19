@@ -39,3 +39,6 @@ This is my practical roadmap for getting good at AI: how to pick one model and g
 > 이 노트는 Bucky가 자동 캡처했습니다. 적용 아이디어를 아래에 추가하세요.
 
 - [ ]
+
+## 관련 노트
+- [[hubs/JH System]]

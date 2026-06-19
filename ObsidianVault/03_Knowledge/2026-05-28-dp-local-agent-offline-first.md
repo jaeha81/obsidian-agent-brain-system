@@ -49,3 +49,6 @@ graph_cluster: daily-practice
 - 웹훅 옵시디언 안전 전달: `2026-05-28-dp-webhook-to-obsidian-safe.md`
 - 로컬 우선 음성 전사 플레이북: `2026-05-29-dp-local-first-voice-playbook.md`
 - 원격 실패 시 로컬 전환: `2026-05-28-dp-remote-fail-local-fallback.md`
+
+## 관련 노트
+- [[hubs/JH System]]

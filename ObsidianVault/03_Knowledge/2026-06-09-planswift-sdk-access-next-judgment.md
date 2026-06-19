@@ -51,3 +51,6 @@ PlanSwift SDK 활용을 검토할 때 확인할 항목:
 
 - PlanSwift 공식: https://www.planswift.com
 - SDK 문서는 공개 여부 확인 후 링크 추가 예정
+
+## 관련 노트
+- [[hubs/JH System]]

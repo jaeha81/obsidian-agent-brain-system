@@ -36,3 +36,6 @@ Log as an experiment candidate and require explicit approval before build work.
 
 - 대상: `00_UPGRADE/next-plan.md`
 - 담당: bucky
+
+## 관련 노트
+- [[hubs/JH System]]

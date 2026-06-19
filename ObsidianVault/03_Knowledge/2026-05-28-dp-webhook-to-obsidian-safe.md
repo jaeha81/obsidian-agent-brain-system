@@ -55,3 +55,6 @@ graph_cluster: daily-practice
 - Git 마크다운 이력: `2026-05-28-dp-markdown-git-history.md`
 - 버키 최소 명령 페이로드: `2026-05-27-dp-bucky-min-command-payload.md`
 - 배포 전 1분 검증 체크: `2026-05-27-dp-deploy-1min-verify.md`
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -55,3 +55,6 @@ Discord에서 즉시 쓸 수 있는 버키 초경량 명령 3종: 일일저장, 
 - JH용 디스코드 2k 안전 페이로드: `2026-05-29-dp-discord-2k-safe-payload.md`
 - 검증자와 롤백 템플릿: `2026-05-27-dp-verifier-rollback-template.md`
 - Bucky Discord 봇 구조: Vault Memory `project_discord_bucky.md`
+
+## 관련 노트
+- [[hubs/JH System]]

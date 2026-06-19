@@ -162,3 +162,6 @@ export const robustTask = task({
 - [ ] Trigger.dev 프로젝트 생성 + 첫 잡 배포
 - [ ] 훅 5개 중 1개 선택 → 오늘 영상 촬영
 - [ ] `voiceToContent` 잡을 현재 Discord 봇과 연결
+
+## 관련 노트
+- [[hubs/JH System]]

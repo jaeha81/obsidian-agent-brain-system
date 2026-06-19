@@ -59,3 +59,6 @@ graph_cluster: daily-practice
 - 묶음 상품으로 ARPU 키우기: `2026-05-28-dp-bundle-arpu-growth.md`
 - 파주권 번들 10일 파일럿: `2026-05-29-dp-paju-bundle-10day-pilot.md`
 - 이 항목은 P3(낮은 우선순위)이므로 수익화 관련 P1 항목 완료 후 검토
+
+## 관련 노트
+- [[hubs/JH System]]

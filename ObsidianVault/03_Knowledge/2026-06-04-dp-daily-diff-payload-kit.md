@@ -138,3 +138,6 @@ def gate_publish(manifest: dict, approval_signature: str,
 
 - 의존: `2026-06-04-dp-todays-plus-triage-policy.md`
 - 의존: `2026-06-04-dp-bucky-ibujang-prompt.md`
+
+## 관련 노트
+- [[hubs/JH System]]

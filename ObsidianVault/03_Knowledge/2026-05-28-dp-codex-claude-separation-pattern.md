@@ -54,3 +54,6 @@ graph_cluster: daily-practice
 - 검증자와 롤백 템플릿: `2026-05-27-dp-verifier-rollback-template.md`
 - JCS 검증용 1줄 스모크: `2026-05-29-dp-jcs-smoke-verifier.md`
 - Codex 병행 운영 원칙: Vault Memory `feedback_codex_parallel.md`
+
+## 관련 노트
+- [[hubs/JH System]]

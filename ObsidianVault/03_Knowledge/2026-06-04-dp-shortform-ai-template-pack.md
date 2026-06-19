@@ -180,3 +180,6 @@ graph_cluster: daily-practice
 
 - 관련 파이프라인: `2026-06-04-dp-three-step-shorts-pipeline.md`
 - TikTok 워크플로우: `project_session_2026-06-06b.md`
+
+## 관련 노트
+- [[hubs/JH System]]

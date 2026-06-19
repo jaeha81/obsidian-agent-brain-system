@@ -49,3 +49,6 @@ Anthropic 엔지니어 Lance Martin의 Fable 5 실험,
 > 이 노트는 Bucky가 자동 캡처했습니다. 적용 아이디어를 아래에 추가하세요.
 
 - [ ]
+
+## 관련 노트
+- [[hubs/JH System]]

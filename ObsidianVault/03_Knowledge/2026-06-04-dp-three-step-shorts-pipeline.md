@@ -164,3 +164,6 @@ def run_shorts_pipeline(source: str, count: int = 3,
 
 - 관련 노트: `2026-05-27-dp-voice-pipeline-ops-standard.md`
 - TikTok 분석 워크플로우: `project_session_2026-06-06b.md`
+
+## 관련 노트
+- [[hubs/JH System]]

@@ -36,3 +36,6 @@ Stage prompt changes as role-specific snippets and keep approval notes.
 
 - 대상: `03_Projects/agents / Bucky planner-executor prompts`
 - 담당: bucky
+
+## 관련 노트
+- [[hubs/JH System]]

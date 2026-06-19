@@ -135,3 +135,6 @@ STATUS: dispatched
 - [ ] 금융 가드레일 임계값 확인
 - [ ] 도메인 라우팅 규칙 충돌 없음 확인
 - [ ] agents/ibujang.md 반영 승인
+
+## 관련 노트
+- [[hubs/JH System]]

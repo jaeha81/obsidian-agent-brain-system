@@ -117,3 +117,6 @@ UI: "🔄 자동 수리" 버튼 + 실시간 로그 표시 + Shotstack 키 무효
 - 브랜치: `claude/charming-faraday-76e8nw`
 - 3 커밋 origin 대비 ahead
 - 푸시 대기 중 (사용자 승인 필요)
+
+## 관련 노트
+- [[hubs/JH System]]

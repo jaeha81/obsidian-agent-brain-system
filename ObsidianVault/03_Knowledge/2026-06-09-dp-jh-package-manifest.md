@@ -123,3 +123,6 @@ graph_cluster: daily-practice
 - [ ] 랜딩 페이지 템플릿 3종 HTML 생성
 - [ ] Toss 웹훅 핸들러 연결
 - [ ] 설치 가이드 docs/ 경로에 마크다운 작성
+
+## 관련 노트
+- [[hubs/JH System]]

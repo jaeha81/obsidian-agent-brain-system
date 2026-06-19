@@ -124,3 +124,6 @@ handoff:
 | snippet 형식 | mm:ss (예: "01:23") |
 | 승인 필요 명령 | approval_required: true 표기 |
 | 실패 처리 | HANDOFF_LOG에 failed 항목 기록 |
+
+## 관련 노트
+- [[hubs/JH System]]

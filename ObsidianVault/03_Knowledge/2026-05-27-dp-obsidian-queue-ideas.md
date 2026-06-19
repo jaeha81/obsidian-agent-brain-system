@@ -48,3 +48,6 @@ Obsidian 큐/재생 스타일 처리를 강화하는 세 가지 소규모 프로
 - 로컬 에이전트 오프라인 우선 경로: `2026-05-28-dp-local-agent-offline-first.md`
 - Skills Obsidian 이관: `2026-05-28-dp-skills-to-obsidian-migration.md`
 - 이 항목은 P3(낮은 우선순위)이므로 P0~P1 완료 후 검토
+
+## 관련 노트
+- [[hubs/JH System]]

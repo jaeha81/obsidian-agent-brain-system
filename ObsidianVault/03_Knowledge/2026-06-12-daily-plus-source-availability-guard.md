@@ -59,3 +59,6 @@ graph_cluster: daily-log
 ## 다음 행동
 
 우선순위 생기면 Bucky 큐로 승격. 구현 착수 시 chatgpt_daily_collector.py → daily_plus_morning_report.py → daily-plus.html 순서로 진행.
+
+## 관련 노트
+- [[hubs/JH System]]

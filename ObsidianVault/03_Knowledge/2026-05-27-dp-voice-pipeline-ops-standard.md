@@ -49,3 +49,6 @@ graph_cluster: daily-practice
 - 음성노트 저장 안전 템플릿: `2026-05-27-dp-voice-note-safe-template.md`
 - 음성에서 의도로 바로 넘기기: `2026-05-28-dp-voice-to-intent-pipeline.md`
 - 디스코드 음성 API 변화 체크: `2026-05-29-dp-discord-voice-api-changes.md`
+
+## 관련 노트
+- [[hubs/JH System]]

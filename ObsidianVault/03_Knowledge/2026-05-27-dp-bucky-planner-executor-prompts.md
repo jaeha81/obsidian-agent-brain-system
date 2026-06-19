@@ -58,3 +58,6 @@ Rules:
 - 이 프롬프트를 실제 Bucky 시스템 프롬프트에 반영하려면 Bucky 패킷 발행 후 진행.
 - 현재는 **staged** 상태 — 실제 적용 전 사용자 확인 필요.
 - Codex 역할: executor에서 검수/검증 스텝만 담당.
+
+## 관련 노트
+- [[hubs/JH System]]
