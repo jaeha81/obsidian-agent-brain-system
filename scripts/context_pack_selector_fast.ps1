@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Project = "",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$Body
@@ -21,6 +21,14 @@ $governancePacks = $directPacks + @(
     "ObsidianVault/03_Projects/agents/codex-instructions.md",
     "ObsidianVault/03_Projects/agents/roles.md",
     "ObsidianVault/03_Projects/agents/bucky.md"
+)
+
+$secondBrainPacks = $directPacks + @(
+    "ObsidianVault/00_System/oabs-second-brain-charter.md",
+    "ObsidianVault/00_System/user-evolution-model.md",
+    "ObsidianVault/00_System/bucky-user-understanding-agent.md",
+    "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md",
+    "ObsidianVault/00_System/USER_OPERATING_INTENT.md"
 )
 
 function Test-AnyTrigger {
@@ -51,6 +59,26 @@ $directTriggers = @(
     "kmong"
 )
 
+$secondBrainTriggers = @(
+    "second brain",
+    "llm wiki",
+    "oabs",
+    "latent-project",
+    "latent project",
+    "latent asset",
+    "asset 기준",
+    "repo를 해석",
+    "오래된 repo",
+    "user understanding",
+    "user context",
+    "사용자 이해",
+    "사용자 맥락",
+    "세컨드 브레인",
+    "그래프를 뇌",
+    "bucky의 뇌",
+    "업그레이드"
+)
+
 $governanceTriggers = @(
     "context waste",
     "instruction",
@@ -76,7 +104,17 @@ $implementationTriggers = @(
     "code"
 )
 
-if (Test-AnyTrigger -Text $request -Triggers $governanceTriggers) {
+if (Test-AnyTrigger -Text $request -Triggers $secondBrainTriggers) {
+    $key = "second_brain"
+    $agent = "Bucky User Understanding Agent"
+    $role = "Second Brain / LLM Wiki user-context retrieval"
+    $packs = $secondBrainPacks
+    $notes = @(
+        "Use for OABS Second Brain, LLM Wiki, Graphify-as-brain, user understanding, and latent-project asset interpretation.",
+        "Retrieve compact source-backed user context before routing execution, without expanding global instructions.",
+        "Treat older repositories and dormant prototypes as latent assets until evidence says otherwise."
+    )
+} elseif (Test-AnyTrigger -Text $request -Triggers $governanceTriggers) {
     $key = "instruction_governance"
     $agent = "Bucky Instruction Auditor"
     $role = "instruction governance / operating-system repair"
@@ -135,4 +173,28 @@ $packet = [ordered]@{
     fallback = "If Bucky is unavailable or the packet is too broad, apply the direct execution gate and ask for a narrower packet."
 }
 
+if ($key -eq "second_brain") {
+    $packet["mode"] = "bucky_first"
+    $packet["user_context"] = @(
+        "Preserve user intent and accumulated project history before optimizing dispatch speed.",
+        "Use ObsidianVault, LLM Wiki notes, Graphify, and Context Packs as source-backed memory.",
+        "Treat older GitHub repositories as latent-project assets unless evidence says otherwise."
+    )
+    $packet["latent_asset"] = [ordered]@{
+        asset_type = "unknown"
+        growth_stage = "unknown"
+        current_status = "unknown"
+        latent_value = "unknown"
+        next_possible_use = "classify from exact repo, note, or graph evidence before judging"
+    }
+    $packet["source_trace"] = @(
+        "ObsidianVault/00_System/oabs-second-brain-charter.md",
+        "ObsidianVault/00_System/user-evolution-model.md",
+        "ObsidianVault/00_System/bucky-user-understanding-agent.md",
+        "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md"
+    )
+}
+
 $packet | ConvertTo-Json -Depth 6
+
+

@@ -33,6 +33,9 @@ REQUIRED_FILES = (
     VAULT / "00_System" / "BUCKY_OS_RUNBOOK.md",
     VAULT / "00_System" / "BUCKY_OS_COMPLETION_AUDIT_2026-05-30.md",
     VAULT / "00_System" / "BUCKY_OS_MIGRATION_NEXT_ACTIONS_2026-05-30.md",
+    VAULT / "00_System" / "oabs-second-brain-charter.md",
+    VAULT / "00_System" / "user-evolution-model.md",
+    VAULT / "00_System" / "bucky-user-understanding-agent.md",
     VAULT / "00_System" / "LEGACY_INSTRUCTION_CANDIDATE_AUDIT_2026-05-30.md",
     VAULT / "00_System" / "LEGACY_INSTRUCTION_INVENTORY_2026-05-30.md",
     VAULT / "00_System" / "LEGACY_RESIDUE_SCAN_2026-05-30.md",
@@ -45,6 +48,7 @@ REQUIRED_FILES = (
     VAULT / "06_Context_Packs" / "bucky-development-workflow-policy.md",
     VAULT / "06_Context_Packs" / "bucky-security-runtime-governance.md",
     VAULT / "06_Context_Packs" / "bucky-vault-ingestion-record-policy.md",
+    VAULT / "06_Context_Packs" / "oabs-llm-wiki-upgrade-pack.md",
 )
 
 REQUIRED_TEXT = {
@@ -87,6 +91,26 @@ REQUIRED_TEXT = {
         "BUCKY_OS_RUNBOOK.md",
         "bucky_os_gate.py --fail-on-error",
         "bucky_os_gate: ok 19 checks",
+    ),
+    VAULT / "00_System" / "oabs-second-brain-charter.md": (
+        "Do not grow the instruction stack. Grow the knowledge graph.",
+        "latent-project assets",
+        "user-context understanding before agent dispatch speed",
+    ),
+    VAULT / "00_System" / "user-evolution-model.md": (
+        "latent-project portfolio",
+        "Bucky should identify the asset before judging the repo.",
+        "growth_stage",
+    ),
+    VAULT / "00_System" / "bucky-user-understanding-agent.md": (
+        "Bucky is the user-understanding agent for OABS.",
+        "Prefer targeted source references over broad vault reading.",
+        "latent-project assets",
+    ),
+    VAULT / "06_Context_Packs" / "oabs-llm-wiki-upgrade-pack.md": (
+        "OABS should become an ObsidianVault-based LLM Wiki and Second Brain operating system.",
+        "Bucky should evolve from \"router of tasks\" into \"user understanding agent plus router.\"",
+        "All GitHub repositories should be treated as potential latent-project assets.",
     ),
 }
 
@@ -193,6 +217,31 @@ def _packet_contract() -> Check:
     )
 
 
+def _second_brain_packet_contract() -> Check:
+    packet = context_pack_selector.build_instruction_packet(
+        task_type="gate",
+        body="OABS LLM Wiki Second Brain latent-project asset upgrade",
+        project="OABS",
+    )
+    missing: list[str] = []
+    if packet.get("agent") != "Bucky User Understanding Agent":
+        missing.append("agent")
+    if packet.get("mode") != "bucky_first":
+        missing.append("mode")
+    if "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md" not in packet.get("context_packs", []):
+        missing.append("upgrade-pack")
+    if "user_context" not in packet:
+        missing.append("user-context")
+    if "latent_asset" not in packet:
+        missing.append("latent-asset")
+    if "source_trace" not in packet:
+        missing.append("source-trace")
+    return Check(
+        "second-brain-packet-contract",
+        not missing,
+        "second brain packet ok" if not missing else "missing=" + ",".join(missing),
+    )
+
 def _active_legacy_reference_only() -> Check:
     missing: list[str] = []
     for path in ACTIVE_LEGACY_REFERENCE_ONLY:
@@ -258,6 +307,18 @@ def run_checks() -> list[Check]:
             ),
         )
     )
+    checks.append(
+        _selector_has(
+            "OABS LLM Wiki Second Brain latent-project asset upgrade",
+            (
+                "ObsidianVault/00_System/oabs-second-brain-charter.md",
+                "ObsidianVault/00_System/user-evolution-model.md",
+                "ObsidianVault/00_System/bucky-user-understanding-agent.md",
+                "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md",
+            ),
+        )
+    )
+    checks.append(_second_brain_packet_contract())
     checks.append(
         _selector_has(
             "Claude Code new project implementation",
@@ -393,3 +454,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

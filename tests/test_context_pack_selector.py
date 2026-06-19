@@ -140,6 +140,15 @@ class TestSelectContextPack:
         assert any("higgsfield-video-production" in p for p in sel["packs"])
 
 
+    def test_keyword_routes_to_second_brain_upgrade(self):
+        sel = select_context_pack(
+            task_type="general",
+            body="OABS를 LLM Wiki Second Brain으로 업그레이드하고 Graphify로 사용자 맥락을 연결해줘.",
+        )
+
+        assert sel["key"] == "second_brain"
+        assert sel["primary_worker"] == "Bucky User Understanding Agent"
+        assert "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md" in sel["packs"]
 # ---------------------------------------------------------------------------
 # build_instruction_packet — pytest
 # ---------------------------------------------------------------------------
@@ -167,6 +176,18 @@ class TestBuildInstructionPacket:
         assert isinstance(packet["context_packs"], list)
 
 
+    def test_second_brain_packet_includes_user_understanding_fields(self):
+        packet = build_instruction_packet(
+            task_type="general",
+            body="latent-project asset 기준으로 오래된 repo를 해석해줘",
+            project="OABS",
+        )
+
+        assert packet["agent"] == "Bucky User Understanding Agent"
+        assert "user_context" in packet
+        assert "latent_asset" in packet
+        assert "source_trace" in packet
+        assert packet["mode"] == "bucky_first"
 # ---------------------------------------------------------------------------
 # format_text — pytest
 # ---------------------------------------------------------------------------
@@ -566,3 +587,4 @@ class TestResolveSafePath:
 
 if __name__ == "__main__":
     unittest.main()
+

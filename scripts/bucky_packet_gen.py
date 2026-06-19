@@ -54,6 +54,9 @@ def build_packet(
     constraints: list[str] | None = None,
     context_packs: list[str] | None = None,
     references: list[str] | None = None,
+    user_context: list[str] | None = None,
+    latent_asset: dict[str, str] | None = None,
+    source_trace: list[str] | None = None,
     verification: str = "python -X utf8 scripts/preflight_check.py",
     done_when: str = "검증 명령 통과 + 사용자 확인",
     record_path: str = "ObsidianVault/10_AgentBus/completed/",
@@ -63,9 +66,38 @@ def build_packet(
     context_packs = context_packs or ["ObsidianVault/00_System/BUCKY_OS_RUNBOOK.md"]
     references = references or ["ObsidianVault/00_System/BUCKY_CONTEXT.md"]
 
+    if "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md" in context_packs:
+        user_context = user_context or [
+            "Preserve user intent and accumulated project history before optimizing dispatch speed.",
+            "Use ObsidianVault, LLM Wiki notes, Graphify, and Context Packs as source-backed memory.",
+            "Treat older GitHub repositories as latent-project assets unless evidence says otherwise.",
+        ]
+        latent_asset = latent_asset or {
+            "asset_type": "unknown",
+            "growth_stage": "unknown",
+            "current_status": "unknown",
+            "latent_value": "unknown",
+            "next_possible_use": "classify from exact repo, note, or graph evidence before judging",
+        }
+        source_trace = source_trace or [
+            "ObsidianVault/00_System/oabs-second-brain-charter.md",
+            "ObsidianVault/00_System/user-evolution-model.md",
+            "ObsidianVault/00_System/bucky-user-understanding-agent.md",
+            "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md",
+        ]
+
     c_lines = "\n".join(f"- {c}" for c in constraints)
     cp_lines = "\n".join(f"- {c}" for c in context_packs)
     ref_lines = "\n".join(f"- {r}" for r in references)
+    user_context_section = ""
+    if user_context:
+        user_context_section = "\n## user_context\n" + "\n".join(f"- {item}" for item in user_context) + "\n"
+    latent_asset_section = ""
+    if latent_asset:
+        latent_asset_section = "\n## latent_asset\n" + "\n".join(f"{key}: {value}" for key, value in latent_asset.items()) + "\n"
+    source_trace_section = ""
+    if source_trace:
+        source_trace_section = "\n## source_trace\n" + "\n".join(f"- {item}" for item in source_trace) + "\n"
 
     return f"""---
 type: bucky-packet
@@ -104,7 +136,7 @@ status: draft
 
 ## references
 {ref_lines}
-
+{user_context_section}{latent_asset_section}{source_trace_section}
 ## verification
 ```
 {verification}
@@ -194,3 +226,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

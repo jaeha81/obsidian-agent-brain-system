@@ -53,8 +53,49 @@ DIRECT_EXECUTION_PACKS = (
 
 RUNBOOK_PACK = "ObsidianVault/00_System/BUCKY_OS_RUNBOOK.md"
 
+SECOND_BRAIN_PACKS = DIRECT_EXECUTION_PACKS + (
+    "ObsidianVault/00_System/oabs-second-brain-charter.md",
+    "ObsidianVault/00_System/user-evolution-model.md",
+    "ObsidianVault/00_System/bucky-user-understanding-agent.md",
+    "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md",
+    "ObsidianVault/00_System/USER_OPERATING_INTENT.md",
+)
+
 
 RULES: tuple[PackRule, ...] = (
+    PackRule(
+        key="second_brain",
+        primary_worker="Bucky User Understanding Agent",
+        role="Second Brain / LLM Wiki user-context retrieval",
+        packs=SECOND_BRAIN_PACKS,
+        notes=(
+            "Use for OABS Second Brain, LLM Wiki, Graphify-as-brain, user understanding, and latent-project asset interpretation.",
+            "Retrieve compact source-backed user context before routing execution, without expanding global instructions.",
+            "Treat older repositories and dormant prototypes as latent assets until evidence says otherwise.",
+        ),
+        triggers=(
+            "second brain",
+            "llm wiki",
+            "oabs",
+            "latent-project",
+            "latent project",
+            "latent asset",
+            "asset 기준",
+            "repo를 해석",
+            "오래된 repo",
+            "past repos",
+            "dormant prototypes",
+            "user understanding",
+            "user context",
+            "user-context",
+            "사용자 이해",
+            "사용자 맥락",
+            "세컨드 브레인",
+            "그래프를 뇌",
+            "bucky의 뇌",
+            "업그레이드",
+        ),
+    ),
     PackRule(
         key="direct_execution",
         primary_worker="Codex Direct Executor",
@@ -444,7 +485,7 @@ def select_context_pack(*, task_type: str, body: str) -> dict:
     )
     score, rule = scored[0]
     if score == 0:
-        rule = _find_rule("direct_execution")
+        rule = _find_rule("implementation")
     return {
         "key": rule.key,
         "primary_worker": rule.primary_worker,
@@ -457,7 +498,7 @@ def select_context_pack(*, task_type: str, body: str) -> dict:
 def build_instruction_packet(*, task_type: str, body: str, project: str = "") -> dict:
     selection = select_context_pack(task_type=task_type, body=body)
     project_value = project or str(Path.cwd())
-    return {
+    packet = {
         "project": project_value,
         "agent": selection["primary_worker"],
         "role": selection["role"],
@@ -480,6 +521,31 @@ def build_instruction_packet(*, task_type: str, body: str, project: str = "") ->
         "done_when": "The requested outcome is verified with current files, command output, or saved evidence.",
         "fallback": "If Bucky is unavailable or the packet is too broad, apply minimum safety rules and request a narrower packet.",
     }
+    if selection["key"] == "second_brain":
+        packet.update(
+            {
+                "mode": "bucky_first",
+                "user_context": [
+                    "Preserve user intent and accumulated project history before optimizing dispatch speed.",
+                    "Use ObsidianVault, LLM Wiki notes, Graphify, and Context Packs as source-backed memory.",
+                    "Treat older GitHub repositories as latent-project assets unless evidence says otherwise.",
+                ],
+                "latent_asset": {
+                    "asset_type": "unknown",
+                    "growth_stage": "unknown",
+                    "current_status": "unknown",
+                    "latent_value": "unknown",
+                    "next_possible_use": "classify from exact repo, note, or graph evidence before judging",
+                },
+                "source_trace": [
+                    "ObsidianVault/00_System/oabs-second-brain-charter.md",
+                    "ObsidianVault/00_System/user-evolution-model.md",
+                    "ObsidianVault/00_System/bucky-user-understanding-agent.md",
+                    "ObsidianVault/06_Context_Packs/oabs-llm-wiki-upgrade-pack.md",
+                ],
+            }
+        )
+    return packet
 
 
 def format_text(selection: dict) -> str:
@@ -570,3 +636,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

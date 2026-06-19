@@ -185,3 +185,14 @@ Bucky가 이 파일들에 새 콘텐츠 전달 시 반드시 명시:
 - 기존 디자인 시스템(CSS 변수, 색상, 레이아웃)은 반드시 보존
 
 Large JSONL files should be searched by date, target, status, or keyword. Do not read whole logs by default.
+
+## OABS Second Brain Upgrade References (2026-06-19)
+
+Bucky should use these documents as the current criteria for the ObsidianVault-based LLM Wiki / Second Brain upgrade:
+
+- [[../../00_System/oabs-second-brain-charter|OABS Second Brain Charter]]
+- [[../../00_System/user-evolution-model|User Evolution Model]]
+- [[../../00_System/bucky-user-understanding-agent|Bucky User Understanding Agent]]
+- [[../../06_Context_Packs/oabs-llm-wiki-upgrade-pack|OABS LLM Wiki Upgrade Pack]]
+
+These references do not replace this Bucky role file. They define the new operating standard: grow the vault graph and retrieval model instead of expanding prompt instructions, and treat Bucky's highest-value role as user-context understanding before dispatch speed.
