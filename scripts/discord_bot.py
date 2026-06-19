@@ -169,6 +169,16 @@ _SHORTS_LOCAL_AGENT = Path(os.getenv(
     "SHORTS_LOCAL_AGENT_PATH",
     r"D:\ai프로젝트\쇼츠자동화\shorts-local-agent"
 ))
+# CHSH Mining 수익화 채널 (AI-mining-CHSHAUTOMATION → Discord 알림/제어)
+JH_CHSH_MINING_CHANNEL_ID: str = os.getenv("JH_CHSH_MINING_CHANNEL_ID", "").strip()
+_CHSH_MINING_LOCAL_AGENT = Path(os.getenv(
+    "CHSH_MINING_LOCAL_AGENT_PATH",
+    r"D:\ai프로젝트\AI-mining-CHSHAUTOMATION"
+))
+# 쓰레드 수익화 채널 (threads-monetization → Discord 알림/제어)
+JH_THREADS_CHANNEL_ID: str = os.getenv("JH_THREADS_CHANNEL_ID", "").strip()
+_THREADS_DASHBOARD_URL: str = os.getenv("THREADS_DASHBOARD_URL", "http://localhost:3000")
+_THREADS_CRON_SECRET: str = os.getenv("THREADS_CRON_SECRET", "")
 # 작업 채널: 채널 = 독립 Claude Code 인스턴스 (tools 허용, 병렬 실행)
 JH_WORK_CHANNEL_IDS: set[str] = {
     c.strip() for c in os.getenv("JH_WORK_CHANNEL_IDS", "").split(",") if c.strip()
@@ -196,6 +206,8 @@ ALLOWED_CHANNELS: set[str] = {
         JH_CODEX_CHANNEL_ID,
         JH_MYDEV_CHANNEL_ID,
         JH_SHORTS_CHANNEL_ID,
+        JH_CHSH_MINING_CHANNEL_ID,
+        JH_THREADS_CHANNEL_ID,
     )
     if c
 } | JH_WORK_CHANNEL_IDS  # 작업 채널 자동 포함
@@ -281,6 +293,12 @@ def _get_whisper_model():
     if _whisper_model is None:
         import whisper as _w
         print(f"[Bot] Whisper '{WHISPER_MODEL_NAME}' 모델 로딩 중...", flush=True)
+        # tqdm이 리다이렉트된 stdout/stderr에 쓰려다 "I/O operation on closed file" 에러 방지
+        try:
+            import tqdm as _tqdm_mod
+            _tqdm_mod.tqdm.disable = True
+        except Exception:
+            pass
         _whisper_model = _w.load_model(WHISPER_MODEL_NAME)
         print("[Bot] Whisper 모델 로드 완료.", flush=True)
     return _whisper_model
@@ -829,6 +847,178 @@ async def _handle_shorts_command(message: Message, content: str) -> None:
         await message.channel.send(f"⏱️ **[SHORTS]** `{action}` 타임아웃 (10분 초과)")
     except Exception as e:
         await message.channel.send(f"❌ **[SHORTS]** 실행 오류: {e}")
+
+
+_CHSH_MINING_CMD_PREFIX = "[CHSH_CMD]"
+
+_CHSH_MINING_ARG_MAP = {
+    "status":       "--status",
+    "run":          "--run-now",
+    "pipeline":     "--run-now",
+    "evolve":       "--evolve",
+    "upload":       "--upload",
+    "revenue":      "--revenue-sync",
+    "revenue-sync": "--revenue-sync",
+}
+
+
+async def _handle_chsh_mining_command(message: Message, content: str) -> None:
+    """#jh-chsh-mining 채널 전용 핸들러.
+
+    쇼츠자동화 _handle_shorts_command와 동일한 패턴.
+    !mining <action> 또는 [CHSH_CMD] {"action": "..."} 형식을 처리하여
+    D:\\ai프로젝트\\AI-mining-CHSHAUTOMATION\\main.py 를 실행한다.
+    """
+    import json as _json_local
+
+    if content.startswith("!mining"):
+        cmd_body = content[len("!mining"):].strip() or "status"
+        payload = {"action": cmd_body, "params": {}}
+    elif content.startswith(_CHSH_MINING_CMD_PREFIX):
+        payload_str = content[len(_CHSH_MINING_CMD_PREFIX):].strip()
+        try:
+            payload = _json_local.loads(payload_str)
+        except Exception:
+            await message.channel.send("❌ **[CHSH Mining]** JSON 파싱 실패")
+            return
+    else:
+        # 자연어 → CHSH chat_reply.py 서브프로세스로 처리
+        chat_cli = _CHSH_MINING_LOCAL_AGENT / "scripts" / "chat_reply.py"
+        if not chat_cli.exists():
+            return
+        reply = None
+        try:
+            async with message.channel.typing():
+                proc = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        _subprocess_mod.run,
+                        [r"C:\Python314\python.exe", "-X", "utf8", str(chat_cli), content],
+                        capture_output=True, text=True, timeout=30,
+                        encoding="utf-8", errors="replace",
+                        cwd=str(_CHSH_MINING_LOCAL_AGENT),
+                    ),
+                    timeout=35,
+                )
+                reply = (proc.stdout or "").strip()
+        except asyncio.TimeoutError:
+            await message.channel.send("⏱️ **[CHSH Mining]** 응답 시간 초과")
+            return
+        except Exception as _chat_err:
+            await message.channel.send(f"❌ **[CHSH Mining]** 처리 오류: {str(_chat_err)[:100]}")
+            return
+        if reply:
+            chunks = [reply[i:i + 1900] for i in range(0, len(reply), 1900)]
+            for i, chunk in enumerate(chunks):
+                if i == 0:
+                    await message.reply(chunk, mention_author=False)
+                else:
+                    await message.channel.send(chunk)
+        return
+
+    action = payload.get("action", "status")
+    main_arg = _CHSH_MINING_ARG_MAP.get(action, "--status")
+
+    await message.channel.send(f"⚙️ `{action}` 처리 중...")
+
+    main_py = _CHSH_MINING_LOCAL_AGENT / "main.py"
+    if not main_py.exists():
+        await message.channel.send(f"❌ main.py 없음: {main_py}")
+        return
+
+    try:
+        proc = await asyncio.wait_for(
+            asyncio.to_thread(
+                _subprocess_mod.run,
+                [r"C:\Python314\python.exe", "-X", "utf8", str(main_py), main_arg],
+                capture_output=True, text=True, timeout=600,
+                encoding="utf-8", errors="replace",
+                cwd=str(_CHSH_MINING_LOCAL_AGENT),
+            ),
+            timeout=620,
+        )
+        output = (proc.stdout or "").strip()
+        err = (proc.stderr or "").strip()
+        if proc.returncode != 0:
+            err_short = err[-800:] if len(err) > 800 else err
+            await message.channel.send(
+                f"❌ **[CHSH Mining]** `{action}` 실패\n```\n{err_short}\n```"
+            )
+        else:
+            try:
+                lines = output.splitlines()
+                summary = "\n".join(lines[:10])
+            except Exception:
+                summary = output[:400]
+            await message.channel.send(f"✅ **[CHSH Mining]** `{action}` 완료\n{summary}")
+    except asyncio.TimeoutError:
+        await message.channel.send(f"⏱️ **[CHSH Mining]** `{action}` 타임아웃 (10분 초과)")
+    except Exception as e:
+        await message.channel.send(f"❌ **[CHSH Mining]** 실행 오류: {e}")
+
+
+_THREADS_CMD_PREFIX = "[THREADS_CMD]"
+
+_THREADS_ACTION_MAP = {
+    "status":   "/api/health",
+    "상태":      "/api/health",
+    "run":      "/api/cron/threads-daily",
+    "실행":      "/api/cron/threads-daily",
+    "dry-run":  "/api/cron/threads-daily?dry_run=true",
+    "테스트":    "/api/cron/threads-daily?dry_run=true",
+    "수익":      "/api/revenue",
+    "revenue":  "/api/revenue",
+    "계정":      "/api/accounts",
+    "accounts": "/api/accounts",
+}
+
+
+async def _handle_threads_command(message: Message, content: str) -> None:
+    """#jh-쓰레드자동화 채널 전용 핸들러.
+
+    Bucky 봇이 쓰레드 수익화 대시보드 API를 호출한다.
+    !threads <action> 또는 [THREADS_CMD] {"action": "..."} 형식 처리.
+    로컬: http://localhost:3000 / 배포 후: THREADS_DASHBOARD_URL
+    """
+    import json as _json_local
+    import urllib.request as _url_req
+    import urllib.error as _url_err
+
+    if content.startswith("!threads"):
+        action = content[len("!threads"):].strip() or "status"
+    elif content.startswith(_THREADS_CMD_PREFIX):
+        payload_str = content[len(_THREADS_CMD_PREFIX):].strip()
+        try:
+            payload = _json_local.loads(payload_str)
+            action = payload.get("action", "status")
+        except Exception:
+            action = payload_str or "status"
+    else:
+        # 명령어가 아닌 자연어 → Bucky에게 위임 (return 없이 fall-through)
+        return False
+
+    path = _THREADS_ACTION_MAP.get(action, "/api/health")
+    url = f"{_THREADS_DASHBOARD_URL}{path}"
+    print(f"[Threads] 명령: {action} → {url}", flush=True)
+    await message.channel.send(f"⚙️ `{action}` 처리 중...")
+
+    try:
+        headers: dict = {"Content-Type": "application/json"}
+        if "cron" in path and _THREADS_CRON_SECRET:
+            headers["Authorization"] = f"Bearer {_THREADS_CRON_SECRET}"
+        req = _url_req.Request(url, headers=headers)
+        with _url_req.urlopen(req, timeout=30) as resp:
+            data = _json_local.loads(resp.read().decode())
+        summary = _json_local.dumps(data, ensure_ascii=False, indent=2)
+        if len(summary) > 1800:
+            summary = summary[:1800] + "\n…(생략)"
+        await message.channel.send(f"✅ **[Threads]** `{action}` 완료\n```json\n{summary}\n```")
+    except _url_err.URLError as e:
+        await message.channel.send(
+            f"⚠️ **[Threads]** 서버 연결 실패: {e.reason}\n"
+            f"`npm run dev` 또는 Vercel 배포 상태를 확인하세요."
+        )
+    except Exception as e:
+        await message.channel.send(f"❌ **[Threads]** 오류: {e}")
 
 
 def write_discord_message(message: Message, reply: str = "", status: str = "pending") -> Path:
@@ -1736,7 +1926,7 @@ async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
             tmp_path = tmp.name
         model = await asyncio.to_thread(_get_whisper_model)
         result = await asyncio.to_thread(
-            lambda: model.transcribe(tmp_path, language="ko", fp16=False)
+            lambda: model.transcribe(tmp_path, language="ko", fp16=False, verbose=False)
         )
         raw = result.get("text", "").strip()
         # Claude API 가용 시 고급 후처리, 아니면 regex 폴백
@@ -5062,6 +5252,18 @@ class BuckyDiscordBot(discord.Client):
         if JH_SHORTS_CHANNEL_ID and channel_id == JH_SHORTS_CHANNEL_ID:
             await _handle_shorts_command(message, content)
             return
+
+        # ── #jh-chsh-mining: AI-mining 수익 자동화 제어 ──────────────────────────
+        if JH_CHSH_MINING_CHANNEL_ID and channel_id == JH_CHSH_MINING_CHANNEL_ID:
+            await _handle_chsh_mining_command(message, content)
+            return
+
+        # ── #jh-쓰레드자동화: 명령어는 처리, 자연어는 Bucky에게 위임 ─────────────
+        if JH_THREADS_CHANNEL_ID and channel_id == JH_THREADS_CHANNEL_ID:
+            if content.startswith("!threads") or content.startswith(_THREADS_CMD_PREFIX):
+                await _handle_threads_command(message, content)
+                return
+            # 자연어 메시지 → fall-through → Bucky 자연어 처리
 
         if await _handle_daily_plus_intake_payload(message, content, channel_id):
             return

@@ -190,6 +190,8 @@ def main() -> int:
         "repo",
         "wishket",
         "kmong",
+        "chsh-mining",
+        "threads",
         "my-dev",
         "charlie",
     ]
@@ -202,7 +204,7 @@ def main() -> int:
         "flow": {
             "orchestrator": "chat",
             "executors": ["claude-code", "codex"],
-            "domain_inputs": ["task-board", "daily-plus", "chris", "repo", "wishket", "kmong", "my-dev"],
+            "domain_inputs": ["task-board", "daily-plus", "chris", "repo", "wishket", "kmong", "chsh-mining", "threads", "my-dev"],
             "auditor": "charlie",
         },
         "edges": [
@@ -211,6 +213,8 @@ def main() -> int:
             {"from": "chat", "to": "repo", "label": "release"},
             {"from": "chat", "to": "wishket", "label": "client"},
             {"from": "chat", "to": "kmong", "label": "revenue"},
+            {"from": "chat", "to": "chsh-mining", "label": "mining"},
+            {"from": "chat", "to": "threads", "label": "threads"},
             {"from": "chat", "to": "my-dev", "label": "personal"},
             {"from": "task-board", "to": "claude-code", "label": "implement"},
             {"from": "task-board", "to": "codex", "label": "verify"},
