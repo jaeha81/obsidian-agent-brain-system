@@ -25,6 +25,16 @@ Obsidian Agent Brain System is the instruction operating system for JH work. Buc
 5. Use only Bucky-provided or Bucky-confirmed instructions inside the current project scope.
 6. Keep packets compact. Long background belongs in Context Packs and exact file references, not in the prompt body.
 
+## Codex Watch Skill Trigger
+
+Video analysis is an OABS/Bucky-managed Codex capability, not a Windows-global operating-system rule.
+
+1. If the user gives Codex a video URL or local video path and asks to watch, summarize, analyze, inspect a scene, or check a timestamp, Codex should activate the `watch:watch` skill.
+2. Codex reads the local skill entrypoint at `C:\Users\user1\.codex\skills\watch\SKILL.md` and follows its Windows execution note: use `python`, not `python3`.
+3. The expected pipeline is download -> frame extraction -> transcript/captions or Whisper fallback -> visual/transcript-based answer.
+4. This trigger stays scoped to `obsidian-agent-brain-system` instruction ownership. Bucky manages when and how the capability is exposed to Codex/Claude Code packets.
+5. Do not create, replace, or relink OS-level skill/plugin paths unless the user explicitly asks for that setup change.
+
 ## Direct Execution Gate
 
 If the user gives explicit files, commands, or an execution order, treat that request as the active Bucky packet for the first step.
@@ -121,3 +131,10 @@ For any Obsidian Brain System dashboard, UI, screen-error, runtime-error, or rev
 ## Context Discipline
 
 Do not read whole large logs by default. For `agent-room-messages.jsonl`, `sync-state.jsonl`, session logs, and tool result files, use targeted search/tail by date, target, status, or keyword. Prefer short summaries and referenced docs over copying long procedures into context.
+
+---
+
+## 전체 에이전트 역할 참조
+
+모든 에이전트(Bucky, Claude Code, Codex, Charlie)의 권한·금지·인계 프로토콜 단일 기준:
+> `ObsidianVault/00_System/AGENTS_CANONICAL.md`

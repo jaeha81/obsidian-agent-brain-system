@@ -116,6 +116,12 @@ The gate must pass before treating legacy material as Bucky-managed context. A p
 | Design improvement / UI·UX quality | `ObsidianVault/06_Context_Packs/bucky-design-improvement-policy.md` |
 | Sync / AgentBus | `ObsidianVault/05_Frameworks/guides/sync-protocol.md`, `ObsidianVault/05_Frameworks/AgentBus/agentbus_protocol.md` |
 
+## Skill Triggers
+
+| User signal | Route | Rule |
+|---|---|---|
+| Video URL or local video path plus a request to watch, summarize, analyze, inspect a scene, or check a timestamp | Codex | Activate `watch:watch` through the OABS/Bucky instruction packet. This is not a Windows-global setup rule. Use `C:\Users\user1\.codex\skills\watch\SKILL.md` and Windows `python` execution. |
+
 ## Approval Gates
 
 The following require explicit user approval:
@@ -349,3 +355,24 @@ preserve_design: true
 3. Layer 1 로컬 → 파일 직접 읽기
 
 > "근거 없이 추측 후 완료 보고 금지"는 이 파일의 기존 **Completion Standard** 섹션과 동일 원칙 — 해당 섹션 참조.
+
+---
+
+## 스킬-에이전트 매핑 (2026-06-20 추가)
+
+모든 스킬 호출은 아래 매핑을 따른다. 담당 외 에이전트가 스킬을 무단 실행하지 않는다.
+
+| 스킬 | 담당 에이전트 | 트리거 조건 | 비고 |
+|---|---|---|---|
+| `jh-research` | Claude Code | 코드베이스 분석 요청 | 구현 전 탐색 |
+| `jh-plan` | Bucky | 새 기능/프로젝트 계획 | 설계 확정 후 Claude Code 이관 |
+| `jh-codex-verify` | Codex | 구현 완료 후 독립 검수 | Claude Code 완료 보고 후 |
+| `wiki_gate` | Bucky (자동) | 01_RAW 파일 48h 경과 | `scripts/wiki_gate.py --scan` |
+| `wiki_lint` | Bucky (스케줄) | 매일 03:00 | `scripts/wiki_lint.py` |
+| `watch` | Claude Code | 비디오 URL/경로 수신 | `/watch` 슬래시 커맨드 |
+| `jh-brain` | Bucky | Second Brain 운영 쿼리 | 볼트 쿼리·그래프 분석 |
+| `jh-ultra` | Bucky 위임 | 자율 실행 파이프라인 | Bucky가 Claude Code에 패킷 발행 |
+| `infranodus_sync` | Bucky (스케줄) | 매주 월요일 09:00 | `scripts/infranodus_sync.py` |
+| `modality_check` | Bucky (스케줄) | 매주 월요일 09:00 | `scripts/modality_check.py` |
+
+> 이 매핑은 `ObsidianVault/00_System/AGENTS_CANONICAL.md`의 권한 정의와 연동된다.
