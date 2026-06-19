@@ -28,8 +28,7 @@ export default async (req, res) => {
        const target = (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) ? redirect : '/';
 
        if (password === expectedPassword) {
-                const maxAge = 60 * 60 * 24 * 7;
-                        const cookie = `bucky_auth=${sessionToken}; Secure; SameSite=Strict; Max-Age=${maxAge}; Path=/`;
+                const cookie = `bucky_auth=${sessionToken}; Secure; SameSite=Strict; Path=/`;
                 res.writeHead(302, { 'Set-Cookie': cookie, 'Location': target });
                 res.end();
        } else {
