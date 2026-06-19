@@ -152,7 +152,7 @@ def filter_relevance(fm: Optional[dict]) -> FilterResult:
     tags = fm.get("tags", []) or []
     if isinstance(tags, str):
         tags = [tags]
-    normalized = {t.lower().split("/")[0].split(":")[0] for t in tags}
+    normalized = {str(t).lower().split("/")[0].split(":")[0] for t in tags if t is not None}
     matched = normalized & ALLOWED_DOMAINS
     if not matched:
         return FilterResult("F3-Relevance", False, f"허용 도메인 없음 (현재 태그: {list(tags)[:3]})")
