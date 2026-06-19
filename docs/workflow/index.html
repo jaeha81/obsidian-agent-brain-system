@@ -372,46 +372,52 @@ graph LR
 %%{init: {'flowchart': {'rankSpacing': 180, 'nodeSpacing': 65, 'curve': 'basis', 'useMaxWidth': true}}}%%
 graph TD
     B((🧠 Bucky<br/>오케스트레이터))
-    B --> M[Memory Stack<br/>단기·에피소딕·시맨틱·절차적]
-    B --> R[Routing<br/>3-tier<br/>즉시·마이크로플랜·확인]
-    B --> E[Evolution Loop<br/>수신→분류→실행→반영]
-    M --> A1[jh-chat]
-    M --> A2[jh-레포대시보드]
-    M --> A3[jh-위시켓]
-    M --> A4[jh-오늘의플러스]
-    M --> A5[jh-테스크보드]
-    M --> A6[jh-클로드코드앱]
-    M --> A7[jh-코덱스앱]
-    M --> A8[jh-크몽수익화]
-    M --> A9[jh-chris]
-    M --> A10[jh-내개발]
-    M --> A11[jh-charlie]
-    R -.-> A1
-    R -.-> A2
-    R -.-> A3
-    R -.-> A4
-    R -.-> A5
-    R -.-> A6
-    R -.-> A7
-    R -.-> A8
-    R -.-> A9
-    R -.-> A10
-    E -.-> A1
-    E -.-> A2
-    E -.-> A3
-    E -.-> A4
-    E -.-> A5
-    E -.-> A6
-    E -.-> A7
-    E -.-> A8
-    E -.-> A9
-    E -.-> A10
-    A11 -.->|독립| B
-    style B fill:#58a6ff,stroke:#58a6ff,color:#0d1117
-    style M fill:#1c2129,stroke:#bc8cff,color:#bc8cff
-    style R fill:#1c2129,stroke:#2dd4bf,color:#2dd4bf
-    style E fill:#1c2129,stroke:#3fb950,color:#3fb950
-    style A11 fill:#1c2129,stroke:#ff9248,color:#ff9248
+    B --> M[💾 Memory Stack<br/>단기·에피소딕·시맨틱·절차적]
+    B --> R[🔀 Routing<br/>3-tier<br/>즉시·마이크로플랜·확인]
+    B --> E[🔁 Evolution Loop<br/>수신→분류→실행→반영]
+
+    M -->|기억 상속| A1[jh-chat]
+    M -->|기억 상속| A2[jh-레포대시보드]
+    M -->|기억 상속| A3[jh-위시켓]
+    M -->|기억 상속| A4[jh-오늘의플러스]
+    M -->|기억 상속| A5[jh-테스크보드]
+    M -->|기억 상속| A6[jh-클로드코드앱]
+    M -->|기억 상속| A7[jh-코덱스앱]
+    M -->|기억 상속| A8[jh-크몽수익화]
+    M -->|기억 상속| A9[jh-chris]
+    M -->|기억 상속| A10[jh-내개발]
+    M -->|기억 상속| A11[jh-charlie]
+
+    R -.->|라우팅 상속| A1
+    R -.->|라우팅 상속| A2
+    R -.->|라우팅 상속| A3
+    R -.->|라우팅 상속| A4
+    R -.->|라우팅 상속| A5
+    R -.->|라우팅 상속| A6
+    R -.->|라우팅 상속| A7
+    R -.->|라우팅 상속| A8
+    R -.->|라우팅 상속| A9
+    R -.->|라우팅 상속| A10
+
+    E -.->|진화 상속| A1
+    E -.->|진화 상속| A2
+    E -.->|진화 상속| A3
+    E -.->|진화 상속| A4
+    E -.->|진화 상속| A5
+    E -.->|진화 상속| A6
+    E -.->|진화 상속| A7
+    E -.->|진화 상속| A8
+    E -.->|진화 상속| A9
+    E -.->|진화 상속| A10
+
+    A11 ==>|🛡️ 독립 감사| B
+
+    %% ─── 노드 스타일 ───
+    style B fill:#58a6ff,stroke:#58a6ff,color:#0d1117,stroke-width:3px
+    style M fill:#2a1f3d,stroke:#bc8cff,color:#bc8cff,stroke-width:2px
+    style R fill:#0f2a26,stroke:#2dd4bf,color:#2dd4bf,stroke-width:2px
+    style E fill:#142a18,stroke:#3fb950,color:#3fb950,stroke-width:2px
+    style A11 fill:#2a1a0d,stroke:#ff9248,color:#ff9248,stroke-width:2px
     style A1 fill:#161b22,stroke:#58a6ff,color:#c9d1d9
     style A2 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
     style A3 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
@@ -422,6 +428,20 @@ graph TD
     style A8 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
     style A9 fill:#161b22,stroke:#bc8cff,color:#c9d1d9
     style A10 fill:#161b22,stroke:#f778ba,color:#c9d1d9
+
+    %% ─── 연결선 색상 (인덱스 순서 주의: 위 정의 순서대로 0부터) ───
+    %% 0~2: B → M, R, E (파란색)
+    linkStyle 0 stroke:#bc8cff,stroke-width:3px
+    linkStyle 1 stroke:#2dd4bf,stroke-width:3px
+    linkStyle 2 stroke:#3fb950,stroke-width:3px
+    %% 3~13: M → A1~A11 (보라 - 기억 상속)
+    linkStyle 3,4,5,6,7,8,9,10,11,12,13 stroke:#bc8cff,stroke-width:2px,opacity:0.85
+    %% 14~23: R → A1~A10 (청록 - 라우팅 상속)
+    linkStyle 14,15,16,17,18,19,20,21,22,23 stroke:#2dd4bf,stroke-width:2px,stroke-dasharray:6 4,opacity:0.85
+    %% 24~33: E → A1~A10 (초록 - 진화 상속)
+    linkStyle 24,25,26,27,28,29,30,31,32,33 stroke:#3fb950,stroke-width:2px,stroke-dasharray:3 3,opacity:0.85
+    %% 34: A11 → B (주황 - 독립 감사)
+    linkStyle 34 stroke:#ff9248,stroke-width:3px
       </div>
     </div>
   </section>
