@@ -86,8 +86,7 @@
     padding: 20px; overflow-x: auto;
   }
   .mermaid { display: flex; justify-content: center; min-height: 200px; }
-  #m-inherit { min-height: 560px; }
-  #m-inherit svg { height: auto !important; max-height: none !important; }
+  #m-inherit svg { width: 100% !important; height: auto !important; max-height: none !important; }
 
   /* Group label */
   .group {
@@ -370,7 +369,7 @@ graph LR
     <p class="subtitle">모든 에이전트는 Bucky의 3대 핵심 능력을 상속받아 동일한 운영 원칙으로 작동한다.</p>
     <div class="mermaid-wrap">
       <div class="mermaid" id="m-inherit">
-%%{init: {'flowchart': {'rankSpacing': 110, 'nodeSpacing': 45, 'curve': 'basis', 'useMaxWidth': true}}}%%
+%%{init: {'flowchart': {'rankSpacing': 180, 'nodeSpacing': 65, 'curve': 'basis', 'useMaxWidth': true}}}%%
 graph TD
     B((🧠 Bucky<br/>오케스트레이터))
     B --> M[Memory Stack<br/>단기·에피소딕·시맨틱·절차적]
