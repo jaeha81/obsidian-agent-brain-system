@@ -6,14 +6,15 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - bluebeam
-  - autodesk
-  - quantity-takeoff
-  - csv
-  - interior
-  - tools
-  - daily-plus
-  - knowledge
+- bluebeam
+- autodesk
+- quantity-takeoff
+- csv
+- interior
+- tools
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Bluebeam and Autodesk Alternatives — 수량산출 도구 비교

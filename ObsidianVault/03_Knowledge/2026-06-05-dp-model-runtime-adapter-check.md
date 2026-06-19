@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - llm
-  - runtime-adapter
-  - model-migration
-  - compatibility
-  - claude
-  - daily-plus
-  - knowledge
+- llm
+- runtime-adapter
+- model-migration
+- compatibility
+- claude
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 모델별 런타임 어댑터 점검표

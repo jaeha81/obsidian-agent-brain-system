@@ -4,11 +4,12 @@ date: 2026-06-04
 source: daily-plus
 category: command-payload
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: Extract→Clip→Publish 3단계 숏츠 자동화 파이프라인 — Discord 커맨드 트리거, Vault 로깅 포함
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Three-Step Shorts Pipeline

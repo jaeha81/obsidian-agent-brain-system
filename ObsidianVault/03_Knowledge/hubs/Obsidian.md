@@ -2,12 +2,13 @@
 type: knowledge-hub
 created: 2026-05-27
 tags:
-  - knowledge-hub
-  - #area/research
-summary: "Bucky Graphify JH System"
+- knowledge-hub
+- null
+summary: Bucky Graphify JH System
 category: research
 status: active
 next_action: review
+graph_cluster: obsidian-system
 ---
 
 # Obsidian

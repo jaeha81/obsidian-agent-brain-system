@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - plugin
-  - serverless
-  - deployment
-  - api-contract
-  - security
-  - daily-plus
-  - knowledge
+- plugin
+- serverless
+- deployment
+- api-contract
+- security
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 클라우드 코드 플러그인 계획

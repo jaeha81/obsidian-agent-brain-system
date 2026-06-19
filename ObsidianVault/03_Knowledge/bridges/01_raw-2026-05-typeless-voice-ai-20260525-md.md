@@ -1,19 +1,20 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/2026-05/typeless-voice-ai-20260525.md"
+source_path: 01_RAW/2026-05/typeless-voice-ai-20260525.md
 created: 2026-05-27
 hubs:
-  - "Bucky"
-  - "Claude Code"
-  - "JH System"
-  - "Obsidian"
+- Bucky
+- Claude Code
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "Bucky Claude Code JH System Obsidian"
+- knowledge-bridge
+- null
+summary: Bucky Claude Code JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: typeless-voice-ai-20260525

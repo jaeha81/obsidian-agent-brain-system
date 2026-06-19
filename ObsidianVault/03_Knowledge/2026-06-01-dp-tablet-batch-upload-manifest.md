@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - tablet
-  - upload
-  - manifest
-  - bucky
-  - integrity
-  - daily-plus
-  - knowledge
+- tablet
+- upload
+- manifest
+- bucky
+- integrity
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 태블릿 배치 업로드 매니페스트

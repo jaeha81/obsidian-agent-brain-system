@@ -2,8 +2,14 @@
 title: JH Agent Brain System — Single Page Workflow Visualization
 source: https://vt.tiktok.com/ZSQFysUXg/ (@mr.notion)
 date: 2026-06-06
-tags: [workflow, visualization, brain-system, agent-os, mermaid]
+tags:
+- workflow
+- visualization
+- brain-system
+- agent-os
+- mermaid
 type: knowledge
+graph_cluster: notion-tools
 ---
 
 # JH Agent Brain System — Single Page Workflow

@@ -7,12 +7,13 @@ category: verification
 owner: codex
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - minimal
-  - agent
-  - telemetry
-  - signals
+- - daily-plus
+- auto-implemented
+- minimal
+- agent
+- telemetry
+- signals
+graph_cluster: daily-practice
 ---
 
 # Minimal Agent Telemetry Signals

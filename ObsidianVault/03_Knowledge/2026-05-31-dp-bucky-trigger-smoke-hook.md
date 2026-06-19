@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - bucky
-  - smoke-test
-  - pr
-  - trigger
-  - pipeline
-  - daily-plus
-  - knowledge
+- bucky
+- smoke-test
+- pr
+- trigger
+- pipeline
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 버키 트리거와 스모크 훅

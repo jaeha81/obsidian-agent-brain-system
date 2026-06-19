@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - youtube
-  - automation
-  - tts
-  - zapier
-  - content
-  - daily-plus
-  - knowledge
+- youtube
+- automation
+- tts
+- zapier
+- content
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # YouTube 자동화 패키지 매니페스트

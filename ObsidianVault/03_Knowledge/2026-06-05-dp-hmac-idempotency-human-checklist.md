@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - hmac
-  - idempotency
-  - security
-  - reviewer
-  - ci
-  - daily-plus
-  - knowledge
+- hmac
+- idempotency
+- security
+- reviewer
+- ci
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # HMAC·중복방지 인간 검수 체크리스트

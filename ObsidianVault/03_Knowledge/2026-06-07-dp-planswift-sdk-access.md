@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - planswift
-  - sdk
-  - automation
-  - takeoff
-  - api
-  - daily-plus
-  - knowledge
+- planswift
+- sdk
+- automation
+- takeoff
+- api
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # PlanSwift SDK 접근과 다음 판단

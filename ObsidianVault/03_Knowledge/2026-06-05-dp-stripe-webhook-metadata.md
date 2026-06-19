@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - stripe
-  - webhook
-  - metadata
-  - idempotency
-  - payment
-  - daily-plus
-  - knowledge
+- stripe
+- webhook
+- metadata
+- idempotency
+- payment
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Stripe 웹훅 메타데이터 연결

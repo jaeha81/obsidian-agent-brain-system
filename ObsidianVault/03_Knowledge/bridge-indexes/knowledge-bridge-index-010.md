@@ -2,12 +2,13 @@
 type: knowledge-bridge-index
 created: 2026-05-27
 tags:
-  - knowledge-bridge-index
-  - #area/research
-summary: "JH System Obsidian Bucky Graphify"
+- knowledge-bridge-index
+- null
+summary: JH System Obsidian Bucky Graphify
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Knowledge Bridge Index 010

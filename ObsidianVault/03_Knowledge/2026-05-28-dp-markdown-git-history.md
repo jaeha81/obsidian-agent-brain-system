@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - git
-  - markdown
-  - versioning
-  - idempotency
-  - audit
-  - daily-plus
-  - knowledge
+- git
+- markdown
+- versioning
+- idempotency
+- audit
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Git으로 남기는 마크다운 이력

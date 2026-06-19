@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - render
-  - billing
-  - interior
-  - mockup
-  - pilot
-  - daily-plus
-  - knowledge
+- render
+- billing
+- interior
+- mockup
+- pilot
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 즉시 렌더 과금 파일럿

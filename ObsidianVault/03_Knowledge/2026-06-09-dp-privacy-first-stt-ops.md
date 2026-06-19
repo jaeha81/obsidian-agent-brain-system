@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - stt
-  - vosk
-  - whisper
-  - privacy
-  - local-first
-  - daily-plus
-  - knowledge
+- stt
+- vosk
+- whisper
+- privacy
+- local-first
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 프라이버시 우선 STT 운영안

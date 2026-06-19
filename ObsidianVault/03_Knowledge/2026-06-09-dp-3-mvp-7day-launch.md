@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - mvp
-  - launch
-  - revenue
-  - 7-day
-  - checklist
-  - daily-plus
-  - knowledge
+- mvp
+- launch
+- revenue
+- 7-day
+- checklist
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 3개 MVP 7일 런치 플랜

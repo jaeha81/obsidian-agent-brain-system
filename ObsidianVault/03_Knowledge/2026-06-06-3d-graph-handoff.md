@@ -1,10 +1,11 @@
 ---
 tags:
-  - status/done
-  - area/obsidian
-  - area/design
+- status/done
+- area/obsidian
+- area/design
 created: 2026-06-06
 session: 2026-06-06b
+graph_cluster: misc
 ---
 
 # Obsidian 3D Galaxy Graph — 다음 세션 핸드오프

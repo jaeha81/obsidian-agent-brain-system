@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - bucky
-  - discord
-  - command
-  - idempotency
-  - rollback
-  - daily-plus
-  - knowledge
+- bucky
+- discord
+- command
+- idempotency
+- rollback
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 버키용 초경량 명령 3종

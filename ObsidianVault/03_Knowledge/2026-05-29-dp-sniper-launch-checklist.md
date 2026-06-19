@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - sniper-dashboard
-  - launch
-  - checklist
-  - stripe
-  - deployment
-  - daily-plus
-  - knowledge
+- sniper-dashboard
+- launch
+- checklist
+- stripe
+- deployment
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # JH 구매대행 출시 점검표

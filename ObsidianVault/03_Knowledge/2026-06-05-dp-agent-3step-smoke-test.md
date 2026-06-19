@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - smoke-test
-  - agent
-  - model-change
-  - verification
-  - pipeline
-  - daily-plus
-  - knowledge
+- smoke-test
+- agent
+- model-change
+- verification
+- pipeline
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 에이전트용 3단계 스모크 테스트

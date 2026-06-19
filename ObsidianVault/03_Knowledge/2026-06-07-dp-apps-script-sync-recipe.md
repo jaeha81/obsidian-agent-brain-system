@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - google-apps-script
-  - webhook
-  - sheet
-  - normalization
-  - zapier
-  - daily-plus
-  - knowledge
+- google-apps-script
+- webhook
+- sheet
+- normalization
+- zapier
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 시트 동기화용 Apps Script 레시피

@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - yaml
-  - obsidian-graph
-  - color
-  - acl
-  - visualization
-  - daily-plus
-  - knowledge
+- yaml
+- obsidian-graph
+- color
+- acl
+- visualization
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # YAML 그래프 색상과 안전 ACL

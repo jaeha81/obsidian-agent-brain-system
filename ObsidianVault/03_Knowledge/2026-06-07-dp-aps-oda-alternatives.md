@@ -6,14 +6,15 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - autodesk
-  - aps
-  - oda
-  - cad
-  - api
-  - dxf
-  - daily-plus
-  - knowledge
+- autodesk
+- aps
+- oda
+- cad
+- api
+- dxf
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # APS와 ODA, 현실적인 대안 비교

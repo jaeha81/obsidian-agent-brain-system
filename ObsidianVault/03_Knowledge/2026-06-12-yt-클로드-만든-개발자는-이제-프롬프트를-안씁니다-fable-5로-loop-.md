@@ -1,20 +1,21 @@
 ---
-title: "클로드 만든 개발자는 이제 프롬프트를 안씁니다 | Fable 5로 Loop Engineering"
-source: "https://youtu.be/QI1FNnUfiZg?si=Xht7og4b6Y2pTdyK"
+title: 클로드 만든 개발자는 이제 프롬프트를 안씁니다 | Fable 5로 Loop Engineering
+source: https://youtu.be/QI1FNnUfiZg?si=Xht7og4b6Y2pTdyK
 source_type: youtube
 video_id: QI1FNnUfiZg
-channel: "개발동생"
-publish_date: "20260611"
+channel: 개발동생
+publish_date: '20260611'
 date: 2026-06-12
-captured_at: 2026-06-12T12:23:19
+captured_at: 2026-06-12 12:23:19
 tags:
-  - discord-watch
-  - dashboard-watch
-  - youtube
-  - discord_watch
+- discord-watch
+- dashboard-watch
+- youtube
+- discord_watch
 status: knowledge
 has_transcript: false
 transcript_status: none
+graph_cluster: youtube-learning
 ---
 
 # 클로드 만든 개발자는 이제 프롬프트를 안씁니다 | Fable 5로 Loop Engineering

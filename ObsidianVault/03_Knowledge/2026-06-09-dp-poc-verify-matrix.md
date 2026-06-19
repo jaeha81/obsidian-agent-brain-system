@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - poc
-  - verification
-  - test-plan
-  - go-nogo
-  - dxf
-  - daily-plus
-  - knowledge
+- poc
+- verification
+- test-plan
+- go-nogo
+- dxf
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # PoC 검증 매트릭스와 실패 대응

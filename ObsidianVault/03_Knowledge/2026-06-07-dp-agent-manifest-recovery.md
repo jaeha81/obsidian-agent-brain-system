@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - manifest
-  - recovery
-  - key-rotation
-  - idempotency
-  - integrity
-  - daily-plus
-  - knowledge
+- manifest
+- recovery
+- key-rotation
+- idempotency
+- integrity
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 에이전트 매니페스트 회복과 키 교체

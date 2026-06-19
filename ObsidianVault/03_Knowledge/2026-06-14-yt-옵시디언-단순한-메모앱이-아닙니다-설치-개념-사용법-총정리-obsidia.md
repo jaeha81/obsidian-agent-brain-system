@@ -1,20 +1,21 @@
 ---
-title: "옵시디언, 단순한 메모앱이 아닙니다 | 설치, 개념, 사용법 총정리 [Obsidian]"
-source: "https://youtu.be/jSFvVxmZQPQ?si=fcm-gUZ0DRwNJfGu"
+title: 옵시디언, 단순한 메모앱이 아닙니다 | 설치, 개념, 사용법 총정리 [Obsidian]
+source: https://youtu.be/jSFvVxmZQPQ?si=fcm-gUZ0DRwNJfGu
 source_type: youtube
 video_id: jSFvVxmZQPQ
-channel: "Aiden의 친절한 AI"
-publish_date: "20260612"
+channel: Aiden의 친절한 AI
+publish_date: '20260612'
 date: 2026-06-14
-captured_at: 2026-06-14T18:35:57
+captured_at: 2026-06-14 18:35:57
 tags:
-  - discord-watch
-  - dashboard-watch
-  - youtube
-  - discord_watch
+- discord-watch
+- dashboard-watch
+- youtube
+- discord_watch
 status: knowledge
 has_transcript: false
 transcript_status: none
+graph_cluster: youtube-learning
 ---
 
 # 옵시디언, 단순한 메모앱이 아닙니다 | 설치, 개념, 사용법 총정리 [Obsidian]

@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - mcp
-  - agent
-  - claude
-  - bridge
-  - daily-plus
-  - knowledge
+- obsidian
+- mcp
+- agent
+- claude
+- bridge
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 옵시디언과 에이전트 연결 다리

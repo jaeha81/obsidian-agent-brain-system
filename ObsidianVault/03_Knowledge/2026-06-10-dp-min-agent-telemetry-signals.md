@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - telemetry
-  - agent
-  - metrics
-  - monitoring
-  - p95
-  - daily-plus
-  - knowledge
+- telemetry
+- agent
+- metrics
+- monitoring
+- p95
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 최소 에이전트 텔레메트리 신호

@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - jcs
-  - sha256
-  - verification
-  - smoke-test
-  - plan-json
-  - daily-plus
-  - knowledge
+- jcs
+- sha256
+- verification
+- smoke-test
+- plan-json
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # JCS 검증용 1줄 스모크

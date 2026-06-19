@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - upsell
-  - pilot
-  - revenue
-  - payment
-  - pazhou
-  - daily-plus
-  - knowledge
+- upsell
+- pilot
+- revenue
+- payment
+- pazhou
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 파주권 번들 10일 파일럿

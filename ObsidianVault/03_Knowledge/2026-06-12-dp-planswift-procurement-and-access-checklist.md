@@ -8,11 +8,12 @@ owner: bucky
 status: user-approved
 approved_at: 2026-06-12
 tags:
-  - daily-plus
-  - experiment
-  - planswift
-  - procurement
-  - cad-to-estimate
+- daily-plus
+- experiment
+- planswift
+- procurement
+- cad-to-estimate
+graph_cluster: daily-practice
 ---
 
 # PlanSwift Procurement and Access Checklist

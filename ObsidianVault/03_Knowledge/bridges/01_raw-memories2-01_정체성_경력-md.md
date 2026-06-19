@@ -1,18 +1,19 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/memories2/01_정체성_경력.md"
+source_path: 01_RAW/memories2/01_정체성_경력.md
 created: 2026-05-27
 hubs:
-  - "Claude Code"
-  - "JH System"
-  - "Obsidian"
+- Claude Code
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "Claude Code JH System Obsidian"
+- knowledge-bridge
+- null
+summary: Claude Code JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 01_정체성_경력

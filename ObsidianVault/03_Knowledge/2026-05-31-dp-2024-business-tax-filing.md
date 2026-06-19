@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - tax
-  - business
-  - income
-  - korean-law
-  - 종합소득세
-  - daily-plus
-  - knowledge
+- tax
+- business
+- income
+- korean-law
+- 종합소득세
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 2024 개인사업 정산 신고

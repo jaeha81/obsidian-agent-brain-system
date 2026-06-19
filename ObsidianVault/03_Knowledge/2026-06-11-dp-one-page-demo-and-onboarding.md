@@ -7,12 +7,13 @@ category: voice-pipeline
 owner: distiller
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - one
-  - page
-  - demo
-  - and
+- - daily-plus
+- auto-implemented
+- one
+- page
+- demo
+- and
+graph_cluster: daily-practice
 ---
 
 # One-Page Demo and Onboarding

@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - ibujang
-  - ops-report
-  - quality-check
-  - deployment
-  - rollback
-  - daily-plus
-  - knowledge
+- ibujang
+- ops-report
+- quality-check
+- deployment
+- rollback
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 이부장 오늘의 운영 리포트

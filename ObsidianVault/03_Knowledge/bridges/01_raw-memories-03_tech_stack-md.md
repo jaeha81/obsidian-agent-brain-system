@@ -1,20 +1,21 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/memories/03_tech_stack.md"
+source_path: 01_RAW/memories/03_tech_stack.md
 created: 2026-05-27
 hubs:
-  - "Bucky"
-  - "Graphify"
-  - "Claude Code"
-  - "JH System"
-  - "Obsidian"
+- Bucky
+- Graphify
+- Claude Code
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "Bucky Graphify Claude Code JH System Obsidian"
+- knowledge-bridge
+- null
+summary: Bucky Graphify Claude Code JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 03_tech_stack

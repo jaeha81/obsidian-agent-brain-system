@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - excel
-  - ingest
-  - sku
-  - normalization
-  - apps-script
-  - daily-plus
-  - knowledge
+- excel
+- ingest
+- sku
+- normalization
+- apps-script
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 정규화 Excel 인제스트 스키마

@@ -1,19 +1,20 @@
 ---
-title: "Vibe Coding — AI 서비스 24분 완성 파이프라인"
-source: "https://youtu.be/nkYY_64Hu4o?si=QldBFD0_esJWQMIi"
+title: Vibe Coding — AI 서비스 24분 완성 파이프라인
+source: https://youtu.be/nkYY_64Hu4o?si=QldBFD0_esJWQMIi
 source_type: youtube
 date: 2026-05-25
-captured_at: 2026-05-25T00:00:00
+captured_at: 2026-05-25 00:00:00
 tags:
-  - vibe-coding
-  - landing-page
-  - deployment
-  - template
-  - #area/research
+- vibe-coding
+- landing-page
+- deployment
+- template
+- null
 status: processed
-summary: "YouTube 영상 학습 내용. AI 보조 개발로 기획부터 배포까지 24분 안에 완성하는 워크플로우."
+summary: YouTube 영상 학습 내용. AI 보조 개발로 기획부터 배포까지 24분 안에 완성하는 워크플로우.
 category: research
 next_action: review
+graph_cluster: misc
 ---
 
 # Vibe Coding — AI 서비스 24분 완성 파이프라인

@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - discord
-  - voice-api
-  - spatial-audio
-  - bot
-  - monitoring
-  - daily-plus
-  - knowledge
+- discord
+- voice-api
+- spatial-audio
+- bot
+- monitoring
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 디스코드 음성 API 변화 체크

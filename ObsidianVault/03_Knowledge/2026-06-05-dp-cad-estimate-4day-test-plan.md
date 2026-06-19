@@ -6,14 +6,15 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - cad
-  - estimate
-  - mvp
-  - testing
-  - dxf
-  - bim
-  - daily-plus
-  - knowledge
+- cad
+- estimate
+- mvp
+- testing
+- dxf
+- bim
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # CAD→견적 MVP 4일 테스트 계획

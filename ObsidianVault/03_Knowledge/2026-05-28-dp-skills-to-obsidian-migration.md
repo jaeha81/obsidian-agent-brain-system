@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - skills
-  - obsidian
-  - migration
-  - agent
-  - knowledge-base
-  - daily-plus
-  - knowledge
+- skills
+- obsidian
+- migration
+- agent
+- knowledge-base
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Skills를 옵시디언으로 옮기는 법

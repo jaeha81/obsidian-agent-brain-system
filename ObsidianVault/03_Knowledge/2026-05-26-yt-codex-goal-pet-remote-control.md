@@ -1,24 +1,25 @@
 ---
-title: "Codex Goal / Pet / Remote Control 적용 노트"
-source: "https://youtu.be/qMU5CB9M7hI?si=j13Q5cnPP4PTT66b"
+title: Codex Goal / Pet / Remote Control 적용 노트
+source: https://youtu.be/qMU5CB9M7hI?si=j13Q5cnPP4PTT66b
 source_type: youtube
-channel: "배움의 달인 (AI·자동화)"
+channel: 배움의 달인 (AI·자동화)
 date: 2026-05-26
-captured_at: 2026-05-26T23:20:00+09:00
+captured_at: 2026-05-26 23:20:00+09:00
 tags:
-  - youtube
-  - codex
-  - goal-mode
-  - bucky
-  - remote-control
-  - ai-agent
-  - #area/research
+- youtube
+- codex
+- goal-mode
+- bucky
+- remote-control
+- ai-agent
+- null
 status: knowledge
 has_transcript: true
-transcript_file: "qMU5CB9M7hI.ko-orig.vtt"
-summary: "영상은 Codex 앱을 오래 실행되는 목표형 에이전트로 쓰는 세 가지 사용 패턴을 설명한다."
+transcript_file: qMU5CB9M7hI.ko-orig.vtt
+summary: 영상은 Codex 앱을 오래 실행되는 목표형 에이전트로 쓰는 세 가지 사용 패턴을 설명한다.
 category: research
 next_action: review
+graph_cluster: youtube-learning
 ---
 
 # Codex Goal / Pet / Remote Control 적용 노트

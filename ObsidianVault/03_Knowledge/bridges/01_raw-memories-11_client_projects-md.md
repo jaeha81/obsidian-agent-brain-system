@@ -1,19 +1,20 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/memories/11_client_projects.md"
+source_path: 01_RAW/memories/11_client_projects.md
 created: 2026-05-27
 hubs:
-  - "Claude Code"
-  - "JH System"
-  - "Obsidian"
+- Claude Code
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-  - #area/client_consulting
-summary: "Claude Code JH System Obsidian"
+- knowledge-bridge
+- null
+- null
+summary: Claude Code JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 11_client_projects

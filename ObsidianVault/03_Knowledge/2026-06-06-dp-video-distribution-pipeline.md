@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - video
-  - distribution
-  - stt
-  - editing
-  - tiktok
-  - daily-plus
-  - knowledge
+- video
+- distribution
+- stt
+- editing
+- tiktok
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 영상→배포 자동화 파이프라인 스케치

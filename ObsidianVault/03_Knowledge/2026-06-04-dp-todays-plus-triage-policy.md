@@ -4,11 +4,12 @@ date: 2026-06-04
 source: daily-plus
 category: obsidian-queue
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 오늘의_플러스 트리아지 정책 — vault 텔레메트리 기반 실행 게이트, HMAC + 멱등성 키 적용
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 오늘의_플러스 Triage Policy

@@ -4,13 +4,15 @@ date: 2026-06-04
 source: daily-plus
 category: agent-prompting
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: Claude Opus 4.8 주요 변경사항 — trustworthy performance 중심 전환, Bucky/Claude 통합 마이그레이션 가이드
+- '#area/ai_automation'
+- '#status/active'
+summary: Claude Opus 4.8 주요 변경사항 — trustworthy performance 중심 전환, Bucky/Claude 통합
+  마이그레이션 가이드
 status: staged
 applied_at: 2026-06-11
 approval_required: true
 approval_note: Bucky approval needed before applying to integration
+graph_cluster: daily-practice
 ---
 
 # Claude Opus 4.8 Compatibility Brief

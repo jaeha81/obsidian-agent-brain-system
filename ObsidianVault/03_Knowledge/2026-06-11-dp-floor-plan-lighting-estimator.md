@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - lighting
-  - floor-plan
-  - estimator
-  - cad
-  - interior
-  - daily-plus
-  - knowledge
+- lighting
+- floor-plan
+- estimator
+- cad
+- interior
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Floor-Plan Lighting Estimator Concept

@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - landing
-  - onboarding
-  - conversion
-  - oauth
-  - subscription
-  - daily-plus
-  - knowledge
+- landing
+- onboarding
+- conversion
+- oauth
+- subscription
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 랜딩과 온보딩 체크리스트

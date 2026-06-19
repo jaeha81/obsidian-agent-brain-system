@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - fallback
-  - local-llm
-  - reliability
-  - dispatcher
-  - resilience
-  - daily-plus
-  - knowledge
+- fallback
+- local-llm
+- reliability
+- dispatcher
+- resilience
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 원격 실패 시 로컬 전환

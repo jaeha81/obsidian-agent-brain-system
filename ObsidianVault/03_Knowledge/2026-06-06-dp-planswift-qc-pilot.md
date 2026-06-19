@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - planswift
-  - qc
-  - pilot
-  - dxf
-  - pdf-scan
-  - daily-plus
-  - knowledge
+- planswift
+- qc
+- pilot
+- dxf
+- pdf-scan
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # PlanSwift QC 파일럿 테스트 계획

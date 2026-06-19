@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - vector-db
-  - rag
-  - postgres
-  - pgvector
-  - embedding
-  - daily-plus
-  - knowledge
+- vector-db
+- rag
+- postgres
+- pgvector
+- embedding
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 벡터 DB 시작 기준선

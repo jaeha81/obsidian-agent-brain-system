@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - voice
-  - privacy
-  - pii
-  - field
-  - compliance
-  - daily-plus
-  - knowledge
+- voice
+- privacy
+- pii
+- field
+- compliance
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 현장 음성 프라이버시 체크리스트

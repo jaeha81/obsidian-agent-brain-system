@@ -4,11 +4,12 @@ date: 2026-06-03
 source: daily-plus
 category: knowledge-candidate
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 검증형 핸드오프 흐름 — 멱등성 키 잠금 전 타임스탬프 + 서명 + SHA 검증, 정책 허용 시 커밋 또는 승인 대기 큐
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 검증형 핸드오프 흐름 (Verified Handoff Flow)

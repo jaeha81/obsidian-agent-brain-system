@@ -1,17 +1,18 @@
 ---
-title: "Hermes Agentic OS is Insane... just watch"
-source: "https://youtu.be/zqUdtL5l9yM"
+title: Hermes Agentic OS is Insane... just watch
+source: https://youtu.be/zqUdtL5l9yM
 source_type: youtube
-channel: "Jack Roberts"
-publish_date: "20260601"
+channel: Jack Roberts
+publish_date: '20260601'
 date: 2026-06-10
-captured_at: 2026-06-10T03:44:02
+captured_at: 2026-06-10 03:44:02
 tags:
-  - youtube
-  - knowledge
-  - auto-capture
+- youtube
+- knowledge
+- auto-capture
 status: knowledge
 has_transcript: false
+graph_cluster: youtube-learning
 ---
 
 # Hermes Agentic OS is Insane... just watch

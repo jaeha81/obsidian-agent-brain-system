@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - voice
-  - stt
-  - discord
-  - privacy
-  - pipeline
-  - daily-plus
-  - knowledge
+- voice
+- stt
+- discord
+- privacy
+- pipeline
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 음성 파이프라인 운영 기준표

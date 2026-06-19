@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - orchestration
-  - multi-agent
-  - conductor
-  - pipeline
-  - market
-  - daily-plus
-  - knowledge
+- orchestration
+- multi-agent
+- conductor
+- pipeline
+- market
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Three Scalable Orchestration Patterns

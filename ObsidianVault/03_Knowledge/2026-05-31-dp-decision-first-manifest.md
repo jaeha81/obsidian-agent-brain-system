@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - manifest
-  - deployment
-  - decision
-  - idempotency
-  - operations
-  - daily-plus
-  - knowledge
+- manifest
+- deployment
+- decision
+- idempotency
+- operations
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 결정 우선 압축 매니페스트

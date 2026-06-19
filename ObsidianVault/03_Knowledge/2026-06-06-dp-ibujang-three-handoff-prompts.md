@@ -4,13 +4,14 @@ date: 2026-06-06
 source: daily-plus
 category: agent-prompting
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 이부장 에이전트용 세 가지 핸드오프 명령 — 온보딩·데일리하이라이트·매니페스트 적용
 status: staged
 approval_required: true
 owner: bucky
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # I-Bujang Three Handoff Prompts

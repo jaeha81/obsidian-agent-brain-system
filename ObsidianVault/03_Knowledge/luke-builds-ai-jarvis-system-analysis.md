@@ -5,13 +5,15 @@ agent: Claude Code
 status: done
 created: 2026-06-07
 tags:
-  - "#area/ai_automation"
-  - "#topic/multi-agent"
-  - "#topic/agent-architecture"
-  - "#status/active"
-summary: "@luke.builds.ai TikTok 7개 영상 전수 분석 — Jarvis 멀티에이전트 시스템 아키텍처, 운영 패턴, JH 브레인시스템 적용 갭 분석"
+- '#area/ai_automation'
+- '#topic/multi-agent'
+- '#topic/agent-architecture'
+- '#status/active'
+summary: '@luke.builds.ai TikTok 7개 영상 전수 분석 — Jarvis 멀티에이전트 시스템 아키텍처, 운영 패턴, JH 브레인시스템
+  적용 갭 분석'
 category: ai_automation
 next_action: apply-gap-analysis
+graph_cluster: misc
 ---
 
 # @luke.builds.ai Jarvis System — 기술 분석 및 JH 적용 가이드

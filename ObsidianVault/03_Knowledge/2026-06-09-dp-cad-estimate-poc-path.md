@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - cad
-  - estimate
-  - ezdxf
-  - poc
-  - python
-  - daily-plus
-  - knowledge
+- cad
+- estimate
+- ezdxf
+- poc
+- python
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # CAD→견적 PoC 우선 경로

@@ -7,12 +7,13 @@ category: knowledge-candidate
 owner: distiller
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - three
-  - scalable
-  - orchestration
-  - patterns
+- - daily-plus
+- auto-implemented
+- three
+- scalable
+- orchestration
+- patterns
+graph_cluster: daily-practice
 ---
 
 # Three Scalable Orchestration Patterns

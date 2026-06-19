@@ -4,11 +4,12 @@ date: 2026-06-03
 source: daily-plus
 category: implementation-candidate
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 이부장 원클릭 파일럿 런칭 — 단일 파일 랜딩 + Stripe 결제 + 텔레메트리 24~72시간 내 시험
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 이부장 원클릭 파일럿 런칭

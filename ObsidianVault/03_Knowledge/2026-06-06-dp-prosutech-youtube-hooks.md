@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - youtube
-  - hook
-  - prosutech
-  - interior
-  - ai-content
-  - daily-plus
-  - knowledge
+- youtube
+- hook
+- prosutech
+- interior
+- ai-content
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # ProSuTech 유튜브 훅 템플릿

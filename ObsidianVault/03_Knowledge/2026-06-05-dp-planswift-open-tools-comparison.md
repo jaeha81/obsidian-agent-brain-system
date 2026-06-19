@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - planswift
-  - cad
-  - open-source
-  - takeoff
-  - automation
-  - daily-plus
-  - knowledge
+- planswift
+- cad
+- open-source
+- takeoff
+- automation
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # PlanSwift와 오픈 도구 비교표

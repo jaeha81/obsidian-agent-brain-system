@@ -7,12 +7,13 @@ category: knowledge-candidate
 owner: distiller
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - floor
-  - plan
-  - lighting
-  - estimator
+- - daily-plus
+- auto-implemented
+- floor
+- plan
+- lighting
+- estimator
+graph_cluster: daily-practice
 ---
 
 # Floor-Plan Lighting Estimator Concept

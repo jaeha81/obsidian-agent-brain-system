@@ -1,18 +1,19 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/memories/00_overview.md"
+source_path: 01_RAW/memories/00_overview.md
 created: 2026-05-27
 hubs:
-  - "Claude Code"
-  - "JH System"
-  - "Obsidian"
+- Claude Code
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "Claude Code JH System Obsidian"
+- knowledge-bridge
+- null
+summary: Claude Code JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 00_overview

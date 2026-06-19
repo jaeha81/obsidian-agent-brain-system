@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - queue
-  - workflow
-  - plugin
-  - agentbus
-  - daily-plus
-  - knowledge
+- obsidian
+- queue
+- workflow
+- plugin
+- agentbus
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 옵시디언 큐 짧은 후보

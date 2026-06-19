@@ -4,13 +4,14 @@ date: 2026-06-10
 source: daily-plus
 category: agent-prompting
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 이부장 오케스트레이터 프롬프트 — 금융 가드레일, 도메인 라우팅, 로그 구조 포함
 status: staged
 approval_required: true
 owner: bucky
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 이부장 오케스트레이터 프롬프트

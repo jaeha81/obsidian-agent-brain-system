@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - rbac
-  - secrets
-  - kms
-  - agent
-  - security
-  - daily-plus
-  - knowledge
+- rbac
+- secrets
+- kms
+- agent
+- security
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # RBAC와 시크릿 핸드오프 플레이북

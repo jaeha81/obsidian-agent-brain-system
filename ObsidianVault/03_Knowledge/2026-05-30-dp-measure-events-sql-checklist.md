@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - analytics
-  - sql
-  - events
-  - upsell
-  - stripe
-  - daily-plus
-  - knowledge
+- analytics
+- sql
+- events
+- upsell
+- stripe
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 측정 이벤트와 SQL 체크리스트

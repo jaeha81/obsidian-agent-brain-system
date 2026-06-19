@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - sniper-dashboard
-  - audit
-  - data-freshness
-  - cs
-  - supplier
-  - daily-plus
-  - knowledge
+- sniper-dashboard
+- audit
+- data-freshness
+- cs
+- supplier
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 구매대행 대시보드 핵심 점검

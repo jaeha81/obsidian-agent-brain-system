@@ -1,14 +1,5 @@
 ---
-type: knowledge-note
-date: 2026-06-03
-source: daily-plus
-category: knowledge-candidate
-tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: 영상 추출 우선순위 체크리스트 — 단계별 영상 파이프라인: 샷 경계·VAD·STT·화자 분리·키프레임 먼저, 메타데이터·OCR은 후속 단계
-status: applied
-applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 영상 추출 우선순위 체크리스트

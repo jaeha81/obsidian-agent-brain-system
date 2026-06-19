@@ -7,12 +7,13 @@ category: obsidian-queue
 owner: collector
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - daily
-  - plus
-  - curator
-  - copy
+- - daily-plus
+- auto-implemented
+- daily
+- plus
+- curator
+- copy
+graph_cluster: daily-practice
 ---
 
 # Daily Plus Curator Copy Template

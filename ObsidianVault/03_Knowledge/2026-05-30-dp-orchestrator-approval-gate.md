@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - orchestrator
-  - approval-gate
-  - checklist
-  - deployment
-  - security
-  - daily-plus
-  - knowledge
+- orchestrator
+- approval-gate
+- checklist
+- deployment
+- security
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 오케스트레이터 승인 게이트와 테스트 링크

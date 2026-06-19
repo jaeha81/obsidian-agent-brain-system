@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - verification
-  - rollback
-  - bucky
-  - codex
-  - agent-orchestration
-  - daily-plus
-  - knowledge
+- verification
+- rollback
+- bucky
+- codex
+- agent-orchestration
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 검증자와 롤백 템플릿 모음

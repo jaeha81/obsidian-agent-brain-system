@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - offline
-  - local-first
-  - queue
-  - atomic-write
-  - daily-plus
-  - knowledge
+- obsidian
+- offline
+- local-first
+- queue
+- atomic-write
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 로컬 에이전트의 오프라인 우선 경로

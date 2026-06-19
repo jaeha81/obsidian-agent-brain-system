@@ -1,18 +1,19 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/2026-05-25-discord-버키-진화-p0-완료-knowledge-capture-시스템-구축됨.md"
+source_path: 01_RAW/2026-05-25-discord-버키-진화-p0-완료-knowledge-capture-시스템-구축됨.md
 created: 2026-05-27
 hubs:
-  - "Bucky"
-  - "JH System"
-  - "Obsidian"
+- Bucky
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "Bucky JH System Obsidian"
+- knowledge-bridge
+- null
+summary: Bucky JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 2026-05-25-discord-버키-진화-p0-완료-knowledge-capture-시스템-구축됨

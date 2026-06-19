@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - stt
-  - samsung-tablet
-  - field
-  - smoke-test
-  - asr
-  - daily-plus
-  - knowledge
+- stt
+- samsung-tablet
+- field
+- smoke-test
+- asr
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 탭 울트라 현장 STT 점검

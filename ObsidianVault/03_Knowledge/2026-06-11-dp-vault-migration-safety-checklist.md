@@ -7,12 +7,13 @@ category: verification
 owner: codex
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - vault
-  - migration
-  - safety
-  - checklist
+- - daily-plus
+- auto-implemented
+- vault
+- migration
+- safety
+- checklist
+graph_cluster: daily-practice
 ---
 
 # Vault Migration Safety Checklist

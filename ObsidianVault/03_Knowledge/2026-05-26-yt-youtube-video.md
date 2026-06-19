@@ -1,25 +1,26 @@
 ---
-title: "언제까지 AI에게 매번 같은 설명을 다시 해야할까? | 현업이 알려주는 LLM Wiki (Feat. RAG와의 차이)"
-source: "https://youtu.be/4XBofMHVyyc?si=-AmPa26WHsb3SrWN"
+title: 언제까지 AI에게 매번 같은 설명을 다시 해야할까? | 현업이 알려주는 LLM Wiki (Feat. RAG와의 차이)
+source: https://youtu.be/4XBofMHVyyc?si=-AmPa26WHsb3SrWN
 source_type: youtube
-channel: ""
-publish_date: ""
+channel: ''
+publish_date: ''
 date: 2026-05-26
-captured_at: 2026-05-26T07:50:30
+captured_at: 2026-05-26 07:50:30
 tags:
-  - youtube
-  - knowledge
-  - auto-capture
-  - LLM
-  - RAG
-  - AI-memory
-  - prompt-engineering
-  - #area/research
+- youtube
+- knowledge
+- auto-capture
+- LLM
+- RAG
+- AI-memory
+- prompt-engineering
+- null
 status: knowledge
 has_transcript: false
-summary: "현업이 알려주는 LLM Wiki (Feat. RAG와의 차이)"
+summary: 현업이 알려주는 LLM Wiki (Feat. RAG와의 차이)
 category: research
 next_action: review
+graph_cluster: youtube-learning
 ---
 
 # 언제까지 AI에게 매번 같은 설명을 다시 해야할까?

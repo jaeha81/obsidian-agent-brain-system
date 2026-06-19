@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - on-device
-  - api-cost
-  - llm
-  - edge
-  - optimization
-  - daily-plus
-  - knowledge
+- on-device
+- api-cost
+- llm
+- edge
+- optimization
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 온디바이스 실험으로 API 비용 줄이기

@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - deployment
-  - obsidian
-  - template
-  - github
-  - install
-  - daily-plus
-  - knowledge
+- deployment
+- obsidian
+- template
+- github
+- install
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 원클릭 설치 배포 패키지

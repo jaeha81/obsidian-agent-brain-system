@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - mockup
-  - stripe
-  - obsidian
-  - bucky
-  - manifest
-  - daily-plus
-  - knowledge
+- mockup
+- stripe
+- obsidian
+- bucky
+- manifest
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 익스프레스 모크업 즉시 실행 매니페스트

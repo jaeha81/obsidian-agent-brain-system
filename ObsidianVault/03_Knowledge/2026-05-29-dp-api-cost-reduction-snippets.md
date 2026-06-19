@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - api-cost
-  - llm
-  - caching
-  - batching
-  - optimization
-  - daily-plus
-  - knowledge
+- api-cost
+- llm
+- caching
+- batching
+- optimization
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # API 비용 절감 실전 스니펫

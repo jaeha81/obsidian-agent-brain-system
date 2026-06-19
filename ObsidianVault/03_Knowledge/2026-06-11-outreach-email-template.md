@@ -6,11 +6,12 @@ priority: P2
 category: strategy
 status: active
 tags:
-  - email
-  - outreach
-  - sales
-  - template
-  - daily-plus
+- email
+- outreach
+- sales
+- template
+- daily-plus
+graph_cluster: marketing
 ---
 
 # 영업 이메일 템플릿 (문을 여는 한 줄)

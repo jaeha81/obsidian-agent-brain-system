@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - ai
-  - material-matching
-  - clip
-  - ocr
-  - interior
-  - daily-plus
-  - knowledge
+- ai
+- material-matching
+- clip
+- ocr
+- interior
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # AI 자재 매칭 1일 프로토타입

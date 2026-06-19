@@ -4,11 +4,13 @@ date: 2026-06-02
 source: daily-plus
 category: knowledge-candidate
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: Daily Plus 소스 가용성 가드 — ChatGPT Pulse 404/빈 카드 상태를 정상 수집 결과가 아닌 의도적 실패 이벤트로 처리
+- '#area/ai_automation'
+- '#status/active'
+summary: Daily Plus 소스 가용성 가드 — ChatGPT Pulse 404/빈 카드 상태를 정상 수집 결과가 아닌 의도적 실패 이벤트로
+  처리
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Daily Plus Source Availability Guard

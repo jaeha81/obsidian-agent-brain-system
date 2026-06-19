@@ -6,12 +6,13 @@ priority: P1
 category: strategy
 status: active
 tags:
-  - revenue
-  - pricing
-  - bundle
-  - subscription
-  - strategy
-  - daily-plus
+- revenue
+- pricing
+- bundle
+- subscription
+- strategy
+- daily-plus
+graph_cluster: revenue-ops
 ---
 
 # JH 수익 모델 프레임워크

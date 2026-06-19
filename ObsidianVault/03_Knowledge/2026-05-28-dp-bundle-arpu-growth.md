@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - revenue
-  - arpu
-  - bundle
-  - subscription
-  - upsell
-  - daily-plus
-  - knowledge
+- revenue
+- arpu
+- bundle
+- subscription
+- upsell
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 묶음 상품으로 ARPU 키우기

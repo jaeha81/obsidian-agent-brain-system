@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - yaml
-  - obsidian
-  - frontmatter
-  - jcs
-  - sha256
-  - daily-plus
-  - knowledge
+- yaml
+- obsidian
+- frontmatter
+- jcs
+- sha256
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 버키용 옵시디언 YAML 표준

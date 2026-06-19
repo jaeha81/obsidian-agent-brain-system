@@ -4,11 +4,12 @@ date: 2026-06-04
 source: daily-plus
 category: knowledge-candidate
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 영상/전사 워크플로우 컴퓨트 옵션 비교 — 로컬 vs 클라우드 비용, GPU 렌탈, 배치 처리 전략
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Compute and Cloud Tradeoffs

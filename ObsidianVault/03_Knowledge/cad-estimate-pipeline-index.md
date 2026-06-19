@@ -5,14 +5,16 @@ type: knowledge-index
 category: interior-tech
 status: active
 tags:
-  - cad
-  - estimate
-  - pipeline
-  - ezdxf
-  - ocr
-  - knowledge-index
-summary: CAD 파일에서 견적 자동 생성까지의 전체 파이프라인 설계 노트 인덱스. 7개 관련 Daily Plus 카드를 단일 파이프라인 흐름으로 연결.
+- cad
+- estimate
+- pipeline
+- ezdxf
+- ocr
+- knowledge-index
+summary: CAD 파일에서 견적 자동 생성까지의 전체 파이프라인 설계 노트 인덱스. 7개 관련 Daily Plus 카드를 단일 파이프라인 흐름으로
+  연결.
 next_action: review
+graph_cluster: misc
 ---
 
 # CAD→견적 파이프라인 인덱스

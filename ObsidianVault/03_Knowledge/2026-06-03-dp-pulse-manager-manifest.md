@@ -1,14 +1,5 @@
 ---
-type: knowledge-note
-date: 2026-06-03
-source: daily-plus
-category: knowledge-candidate
-tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: 이부장 펄스 매니저 매니페스트 — 오늘의_플러스 트리아지용 최소 매니페스트: HMAC + 변경 감지만, approve/implement/hold/archive CTA 포함
-status: applied
-applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 이부장 펄스 매니저 매니페스트

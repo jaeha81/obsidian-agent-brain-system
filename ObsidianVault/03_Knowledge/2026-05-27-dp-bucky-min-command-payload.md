@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - bucky
-  - discord
-  - idempotency
-  - hmac
-  - command-payload
-  - daily-plus
-  - knowledge
+- bucky
+- discord
+- idempotency
+- hmac
+- command-payload
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 버키용 최소 명령 페이로드

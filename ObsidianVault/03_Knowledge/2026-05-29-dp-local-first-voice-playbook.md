@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - stt
-  - local-first
-  - whisper
-  - privacy
-  - obsidian
-  - daily-plus
-  - knowledge
+- stt
+- local-first
+- whisper
+- privacy
+- obsidian
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 로컬 우선 음성 전사 플레이북

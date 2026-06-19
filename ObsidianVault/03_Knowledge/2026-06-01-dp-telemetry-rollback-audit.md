@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - telemetry
-  - rollback
-  - audit
-  - deployment
-  - monitoring
-  - daily-plus
-  - knowledge
+- telemetry
+- rollback
+- audit
+- deployment
+- monitoring
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 텔레메트리 롤백 감사 운영서

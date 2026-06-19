@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - acl
-  - vault
-  - permissions
-  - agent
-  - security
-  - daily-plus
-  - knowledge
+- acl
+- vault
+- permissions
+- agent
+- security
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 폴더 권한과 그래프 판단표

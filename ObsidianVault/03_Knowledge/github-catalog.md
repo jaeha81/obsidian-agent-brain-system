@@ -1,17 +1,5 @@
 ---
-tags: [github, catalog, development]
-  - #area/research
-updated: 2026-05-25
-github_user: jaeha81
-total_repos: 39
-active: 38
-stale: 1
-system_repos: 7
-project_repos: 32
-summary: "생성: 2026-05-25 | 전체: **39개** | 활성: 38 | 지연: 1 | 시스템: 7 | 프로젝트: 32"
-category: research
-status: active
-next_action: review
+graph_cluster: github-catalog
 ---
 
 # GitHub 레포지토리 카탈로그

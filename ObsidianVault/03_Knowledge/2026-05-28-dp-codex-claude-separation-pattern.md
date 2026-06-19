@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - codex
-  - claude
-  - orchestration
-  - planner-executor
-  - multi-agent
-  - daily-plus
-  - knowledge
+- codex
+- claude
+- orchestration
+- planner-executor
+- multi-agent
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Codex·Claude 분리 운영 패턴

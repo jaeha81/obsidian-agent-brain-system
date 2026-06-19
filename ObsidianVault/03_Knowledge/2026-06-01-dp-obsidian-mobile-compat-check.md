@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - mobile
-  - ios
-  - android
-  - plugin-compatibility
-  - daily-plus
-  - knowledge
+- obsidian
+- mobile
+- ios
+- android
+- plugin-compatibility
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 옵시디언 모바일 호환 점검

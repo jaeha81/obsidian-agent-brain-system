@@ -1,13 +1,14 @@
 ---
-title: "AI 뇌층 전략 — 기억 레이어가 진짜 경쟁력이다"
+title: AI 뇌층 전략 — 기억 레이어가 진짜 경쟁력이다
 date: 2026-06-18
-source: "GBrain (Garry Tan, YC CEO) 영상 분석"
+source: GBrain (Garry Tan, YC CEO) 영상 분석
 tags:
-  - strategy
-  - memory-layer
-  - knowledge-graph
-  - competitive-moat
+- strategy
+- memory-layer
+- knowledge-graph
+- competitive-moat
 status: reference
+graph_cluster: ai-ops
 ---
 
 # AI 뇌층 전략 — 기억 레이어가 진짜 경쟁력이다

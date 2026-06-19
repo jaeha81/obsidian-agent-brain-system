@@ -4,11 +4,12 @@ date: 2026-06-03
 source: daily-plus
 category: knowledge-candidate
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 웹훅과 Vault 쓰기 패턴 — 중복 방지, 변경 시만 쓰기, 웹훅 → Vault 안전 쓰기용 Obsidian 트리아지 노트 형식
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 웹훅과 Vault 쓰기 패턴

@@ -1,14 +1,5 @@
 ---
-type: knowledge-note
-date: 2026-06-03
-source: daily-plus
-category: knowledge-candidate
-tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: 이부장 최소 API 계약 — 핸드오프 API 계약 스펙: 필수 헤더 4종, 페이로드 예시 3개, HMAC 스모크 테스트, 커밋/롤백 레시피
-status: applied
-applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # 이부장 최소 API 계약 (Min API Contract)

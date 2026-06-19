@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - deployment
-  - verification
-  - rollback
-  - apps-script
-  - checklist
-  - daily-plus
-  - knowledge
+- deployment
+- verification
+- rollback
+- apps-script
+- checklist
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 배포 검증과 오류 복구 절차

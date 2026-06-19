@@ -1,17 +1,18 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/2026-05-26-chatgpt---오늘의-플러스-동기화-예시-스크립트.md"
+source_path: 01_RAW/2026-05-26-chatgpt---오늘의-플러스-동기화-예시-스크립트.md
 created: 2026-05-27
 hubs:
-  - "JH System"
-  - "Obsidian"
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "JH System Obsidian"
+- knowledge-bridge
+- null
+summary: JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 2026-05-26-chatgpt---오늘의-플러스-동기화-예시-스크립트

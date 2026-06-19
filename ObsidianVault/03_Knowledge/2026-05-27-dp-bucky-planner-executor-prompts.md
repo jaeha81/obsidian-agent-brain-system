@@ -4,11 +4,12 @@ date: 2026-05-27
 source: daily-plus
 category: agent-prompting
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: Bucky 플래너/실행자 역할 분리 프롬프트 — Discord/Obsidian/Claude/Codex 워크플로우 적용용
 status: staged
 next_action: Bucky 패킷 확인 후 실제 운영 시스템 프롬프트에 적용
+graph_cluster: daily-practice
 ---
 
 # Bucky 플래너·실행자 프롬프트 묶음

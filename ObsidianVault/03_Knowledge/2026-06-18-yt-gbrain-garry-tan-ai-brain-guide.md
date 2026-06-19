@@ -1,20 +1,21 @@
 ---
-title: "클로드 기억력 높이는 법 — YC 수장이 공개한 AI 두뇌 GBrain 설치 가이드"
-source: "https://youtu.be/4pgGVGA0IxU"
+title: 클로드 기억력 높이는 법 — YC 수장이 공개한 AI 두뇌 GBrain 설치 가이드
+source: https://youtu.be/4pgGVGA0IxU
 source_type: youtube
-channel: "메이커 에반 | Maker Evan"
-publish_date: "20260618"
+channel: 메이커 에반 | Maker Evan
+publish_date: '20260618'
 date: 2026-06-18
 captured_at: 2026-06-18
 tags:
-  - youtube
-  - knowledge
-  - gbrain
-  - memory-layer
-  - knowledge-graph
-  - mcp
+- youtube
+- knowledge
+- gbrain
+- memory-layer
+- knowledge-graph
+- mcp
 status: knowledge
 has_transcript: true
+graph_cluster: youtube-learning
 ---
 
 # 클로드 기억력 높이는 법 — YC 수장이 공개한 AI 두뇌 GBrain 설치 가이드

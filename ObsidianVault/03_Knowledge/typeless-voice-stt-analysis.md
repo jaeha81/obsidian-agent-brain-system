@@ -1,19 +1,5 @@
 ---
-title: "Typeless — AI 음성받아쓰기 서비스 분석"
-source: "https://www.typeless.com/affiliate/invite"
-source_type: url
-date: 2026-05-25
-captured_at: 2026-05-25T00:00:00
-tags:
-  - voice-stt
-  - ai-tool
-  - discord-integration
-  - bucky-upgrade
-  - #area/research
-status: processed
-summary: ""Speak, don't type" — 음성을 자연스러운 텍스트로 변환하는 AI 도구."
-category: research
-next_action: review
+graph_cluster: typeless-voice
 ---
 
 # Typeless — AI 음성받아쓰기 서비스 분석

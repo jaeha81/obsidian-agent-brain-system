@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - voice
-  - privacy
-  - pii-masking
-  - consent
-  - audit-log
-  - daily-plus
-  - knowledge
+- voice
+- privacy
+- pii-masking
+- consent
+- audit-log
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 현장 음성 프라이버시 규칙

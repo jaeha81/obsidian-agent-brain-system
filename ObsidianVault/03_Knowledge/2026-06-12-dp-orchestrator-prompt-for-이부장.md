@@ -8,11 +8,12 @@ owner: bucky
 status: user-approved
 approved_at: 2026-06-12
 tags:
-  - daily-plus
-  - agent-prompting
-  - orchestrator
-  - 이부장
-  - routing
+- daily-plus
+- agent-prompting
+- orchestrator
+- 이부장
+- routing
+graph_cluster: daily-practice
 ---
 
 # Orchestrator Prompt for 이부장

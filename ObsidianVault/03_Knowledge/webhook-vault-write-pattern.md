@@ -3,14 +3,15 @@ title: 웹훅 & Vault 쓰기 패턴 (이부장)
 date: 2026-06-03
 source: daily-plus/2026-06-03.md (Card 7)
 tags:
-  - ibujang
-  - webhook
-  - vault
-  - idempotency
-  - obsidian
-  - knowledge
+- ibujang
+- webhook
+- vault
+- idempotency
+- obsidian
+- knowledge
 category: knowledge
 status: distilled
+graph_cluster: misc
 ---
 
 # 웹훅과 Vault 쓰기 패턴

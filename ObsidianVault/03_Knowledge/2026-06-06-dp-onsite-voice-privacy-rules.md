@@ -4,11 +4,12 @@ date: 2026-06-06
 source: daily-plus
 category: voice-pipeline
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: 현장 음성 녹음 동의·PII 마스킹·보존 정책·감사 로그 규칙
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # On-Site Voice Privacy Rules

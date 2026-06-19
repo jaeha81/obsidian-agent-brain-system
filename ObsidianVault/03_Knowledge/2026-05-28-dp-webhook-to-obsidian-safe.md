@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - webhook
-  - obsidian
-  - hmac
-  - idempotency
-  - bridge
-  - daily-plus
-  - knowledge
+- webhook
+- obsidian
+- hmac
+- idempotency
+- bridge
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 웹훅에서 옵시디언으로 안전 전달

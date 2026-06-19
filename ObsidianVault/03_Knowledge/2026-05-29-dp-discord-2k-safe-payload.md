@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - discord
-  - payload
-  - obsidian
-  - bucky
-  - idempotency
-  - daily-plus
-  - knowledge
+- discord
+- payload
+- obsidian
+- bucky
+- idempotency
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # JH용 디스코드 2k 안전 페이로드

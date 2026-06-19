@@ -7,12 +7,13 @@ category: knowledge-candidate
 owner: distiller
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - runnable
-  - case
-  - cad
-  - estimate
+- - daily-plus
+- auto-implemented
+- runnable
+- case
+- cad
+- estimate
+graph_cluster: daily-practice
 ---
 
 # Runnable 6-Case CAD-to-Estimate PoC

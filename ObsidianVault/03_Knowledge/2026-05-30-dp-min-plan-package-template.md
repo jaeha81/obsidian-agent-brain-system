@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - plan
-  - manifest
-  - sha256
-  - bucky
-  - discord
-  - daily-plus
-  - knowledge
+- plan
+- manifest
+- sha256
+- bucky
+- discord
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 최소 계획 패키지 템플릿

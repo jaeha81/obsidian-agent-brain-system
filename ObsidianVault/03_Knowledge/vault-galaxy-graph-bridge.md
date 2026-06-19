@@ -2,15 +2,17 @@
 title: Vault Galaxy Graph — 지식 연결 허브 (MOC)
 created: 2026-06-07
 tags:
-  - moc
-  - graph
-  - knowledge-bridge
-  - galaxy
-  - "#area/research"
-  - "#status/active"
+- moc
+- graph
+- knowledge-bridge
+- galaxy
+- '#area/research'
+- '#status/active'
 category: knowledge
 status: active
-summary: "03_Knowledge, 04_Wiki, 00_System의 핵심 노드를 연결하는 Map of Content. Galaxy Graph 시각화를 위한 허브 노드."
+summary: 03_Knowledge, 04_Wiki, 00_System의 핵심 노드를 연결하는 Map of Content. Galaxy Graph
+  시각화를 위한 허브 노드.
+graph_cluster: misc
 ---
 
 # Vault Galaxy Graph — 지식 연결 허브

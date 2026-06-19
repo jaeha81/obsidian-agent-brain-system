@@ -6,14 +6,15 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - tts
-  - korean
-  - pricing
-  - google-cloud
-  - clova
-  - openai
-  - daily-plus
-  - knowledge
+- tts
+- korean
+- pricing
+- google-cloud
+- clova
+- openai
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 2026년 한국어 TTS 요금 비교

@@ -462,3 +462,48 @@ def screen_input():
         return jsonify({"ok": True, "type": ev})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ── G1: 쿼리→Wiki 피드백 루프 ──────────────────────────────────────────
+@os_bp.route("/query-to-wiki", methods=["POST"])
+def query_to_wiki():
+    """쿼리 결과를 01_RAW 노트로 저장 → wiki_gate 파이프라인 진입.
+
+    Body JSON:
+      query   (str, required)  — 검색 쿼리 또는 질문
+      answer  (str, required)  — 답변 본문
+      cluster (str, optional)  — graph_cluster (기본: misc)
+      source  (str, optional)  — 출처 레이블 (기본: query-feedback)
+      links   (list, optional) — 추가 wikilink 목록
+    """
+    import subprocess, sys
+
+    data = request.get_json(force=True) or {}
+    query = data.get("query", "").strip()
+    answer = data.get("answer", "").strip()
+    if not query or not answer:
+        return jsonify({"error": "query and answer are required"}), 400
+
+    cluster = data.get("cluster", "misc")
+    source = data.get("source", "query-feedback")
+    links = data.get("links", [])
+
+    script = Path(__file__).parent / "query_to_wiki.py"
+    cmd = [
+        sys.executable, "-X", "utf8", str(script),
+        "--query", query,
+        "--answer", answer,
+        "--cluster", cluster,
+        "--source", source,
+    ]
+    if links:
+        cmd += ["--links"] + links
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if result.returncode != 0:
+            return jsonify({"error": result.stderr}), 500
+        saved_path = result.stdout.strip().replace("[query_to_wiki] 저장: ", "")
+        return jsonify({"ok": True, "path": saved_path})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

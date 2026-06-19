@@ -3,14 +3,15 @@ title: 영상 파이프라인 체크리스트 & 도구체인
 date: 2026-06-03
 source: daily-plus/2026-06-03.md (Card 8, 9)
 tags:
-  - video
-  - pipeline
-  - content-automation
-  - whisper
-  - ffmpeg
-  - knowledge
+- video
+- pipeline
+- content-automation
+- whisper
+- ffmpeg
+- knowledge
 category: knowledge
 status: distilled
+graph_cluster: misc
 ---
 
 # 영상 추출 파이프라인 & 도구체인

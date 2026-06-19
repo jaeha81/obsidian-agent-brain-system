@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - preview
-  - deployment
-  - static
-  - docker
-  - edge
-  - daily-plus
-  - knowledge
+- preview
+- deployment
+- static
+- docker
+- edge
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 세 단계 미리보기 경로

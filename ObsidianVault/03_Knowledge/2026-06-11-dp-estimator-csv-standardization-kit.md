@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - csv
-  - estimator
-  - standardization
-  - google-apps-script
-  - interior
-  - daily-plus
-  - knowledge
+- csv
+- estimator
+- standardization
+- google-apps-script
+- interior
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Estimator CSV Standardization Kit

@@ -6,12 +6,13 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - vault-migration
-  - data-integrity
-  - verification
-  - daily-plus
-  - knowledge
+- obsidian
+- vault-migration
+- data-integrity
+- verification
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Obsidian 볼트 이동 실전 가이드

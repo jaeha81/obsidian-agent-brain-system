@@ -4,11 +4,13 @@ date: 2026-06-02
 source: daily-plus
 category: verification
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: 공개 대시보드 무결성 체크리스트 — 비교 보고서는 기존 Pulse Evolution 비교가 없는 날짜에만 생성, 404 상태는 보고서 생성 불가, 복구 캡처는 현재 상태 기반
+- '#area/ai_automation'
+- '#status/active'
+summary: 공개 대시보드 무결성 체크리스트 — 비교 보고서는 기존 Pulse Evolution 비교가 없는 날짜에만 생성, 404 상태는 보고서
+  생성 불가, 복구 캡처는 현재 상태 기반
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Public Dashboard Integrity Checklist

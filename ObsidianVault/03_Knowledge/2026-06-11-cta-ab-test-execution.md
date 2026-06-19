@@ -6,12 +6,13 @@ priority: P1
 category: strategy
 status: active
 tags:
-  - ab-test
-  - cta
-  - conversion
-  - pricing
-  - sniper
-  - daily-plus
+- ab-test
+- cta
+- conversion
+- pricing
+- sniper
+- daily-plus
+graph_cluster: marketing
 ---
 
 # CTA A/B 테스트 + 스나이퍼 가격 A/B 실행 계획

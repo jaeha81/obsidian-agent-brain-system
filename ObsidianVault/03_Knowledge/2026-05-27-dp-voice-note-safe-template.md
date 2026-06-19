@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - voice
-  - obsidian
-  - yaml-frontmatter
-  - stt
-  - privacy
-  - daily-plus
-  - knowledge
+- voice
+- obsidian
+- yaml-frontmatter
+- stt
+- privacy
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 음성노트 저장 안전 템플릿

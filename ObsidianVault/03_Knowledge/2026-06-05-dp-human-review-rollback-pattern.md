@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - human-review
-  - rollback
-  - canary
-  - feature-flag
-  - dashboard
-  - daily-plus
-  - knowledge
+- human-review
+- rollback
+- canary
+- feature-flag
+- dashboard
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 휴먼 검수와 롤백 운영 패턴

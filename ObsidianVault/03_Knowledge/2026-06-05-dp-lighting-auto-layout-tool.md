@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - lighting
-  - lux
-  - floor-plan
-  - ies
-  - interior-design
-  - daily-plus
-  - knowledge
+- lighting
+- lux
+- floor-plan
+- ies
+- interior-design
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 조도 계산 자동배치 도구 구상

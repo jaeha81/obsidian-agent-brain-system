@@ -6,14 +6,15 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - lighting
-  - floor-plan
-  - lux
-  - dxf
-  - interior
-  - calculation
-  - daily-plus
-  - knowledge
+- lighting
+- floor-plan
+- lux
+- dxf
+- interior
+- calculation
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 평면도 조도 산출 구현서

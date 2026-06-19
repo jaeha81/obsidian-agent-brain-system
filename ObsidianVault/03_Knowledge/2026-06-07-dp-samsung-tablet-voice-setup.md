@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - samsung-tablet
-  - voice
-  - asr
-  - android
-  - recording
-  - daily-plus
-  - knowledge
+- samsung-tablet
+- voice
+- asr
+- android
+- recording
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 삼성 태블릿 음성 입력 세팅

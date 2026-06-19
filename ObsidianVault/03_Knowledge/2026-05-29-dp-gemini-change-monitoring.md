@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - gemini
-  - api
-  - monitoring
-  - deprecation
-  - cli
-  - daily-plus
-  - knowledge
+- gemini
+- api
+- monitoring
+- deprecation
+- cli
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Gemini 변경 감시 온보딩

@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - html
-  - landing-page
-  - stripe
-  - telemetry
-  - tracking
-  - daily-plus
-  - knowledge
+- html
+- landing-page
+- stripe
+- telemetry
+- tracking
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 단일 HTML 랜딩과 추적 연결

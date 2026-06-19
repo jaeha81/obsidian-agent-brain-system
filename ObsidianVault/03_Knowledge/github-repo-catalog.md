@@ -1,21 +1,23 @@
 ---
 tags:
-  - github
-  - catalog
-  - knowledge
-  - agent-reference
-  - #area/research
-created: "2026-05-25"
-updated: "2026-05-25"
+- github
+- catalog
+- knowledge
+- agent-reference
+- null
+created: '2026-05-25'
+updated: '2026-05-25'
 github_user: jaeha81
 total_repos: 39
-data_source: "[[03_Knowledge/github-catalog]]"
-overview_source: "[[03_Projects/github-overview]]"
-cataloger_script: "scripts/github_repo_cataloger.py"
-summary: "**목적**: 에이전트가 jaeha81의 GitHub 레포 현황을 빠르게 파악하고, 작업을 올바른 레포로 라우팅하기 위한 구조화 지식 노트."
+data_source: '[[03_Knowledge/github-catalog]]'
+overview_source: '[[03_Projects/github-overview]]'
+cataloger_script: scripts/github_repo_cataloger.py
+summary: '**목적**: 에이전트가 jaeha81의 GitHub 레포 현황을 빠르게 파악하고, 작업을 올바른 레포로 라우팅하기 위한 구조화
+  지식 노트.'
 category: reference
 status: active
 next_action: review
+graph_cluster: github-catalog
 ---
 
 # GitHub 레포 카탈로그 — 에이전트 참조 노트

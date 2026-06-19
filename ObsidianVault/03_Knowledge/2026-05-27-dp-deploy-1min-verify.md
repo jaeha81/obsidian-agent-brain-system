@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - deployment
-  - webhook
-  - signature
-  - idempotency
-  - checklist
-  - daily-plus
-  - knowledge
+- deployment
+- webhook
+- signature
+- idempotency
+- checklist
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 배포 전 1분 검증 체크

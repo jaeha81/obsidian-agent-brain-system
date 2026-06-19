@@ -6,14 +6,15 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - cad
-  - estimate
-  - ezdxf
-  - poc
-  - autodesk
-  - interior
-  - daily-plus
-  - knowledge
+- cad
+- estimate
+- ezdxf
+- poc
+- autodesk
+- interior
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # Runnable 6-Case CAD-to-Estimate PoC

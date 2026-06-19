@@ -1,20 +1,21 @@
 ---
-title: "옵시디언 LLM Wiki, 아무 자료나 넣으면 안 됩니다 | LLM Wiki 만들기 전에 꼭 정해야 하는 2가지"
-source: "https://youtu.be/of7Sr3uOlkA?si=mzNnLbO519gH2-wV"
+title: 옵시디언 LLM Wiki, 아무 자료나 넣으면 안 됩니다 | LLM Wiki 만들기 전에 꼭 정해야 하는 2가지
+source: https://youtu.be/of7Sr3uOlkA?si=mzNnLbO519gH2-wV
 source_type: youtube
 video_id: of7Sr3uOlkA
-channel: "칼퇴연구소┃AI생산성"
-publish_date: "20260611"
+channel: 칼퇴연구소┃AI생산성
+publish_date: '20260611'
 date: 2026-06-12
-captured_at: 2026-06-12T20:52:59
+captured_at: 2026-06-12 20:52:59
 tags:
-  - discord-watch
-  - dashboard-watch
-  - youtube
-  - discord_watch
+- discord-watch
+- dashboard-watch
+- youtube
+- discord_watch
 status: knowledge
 has_transcript: false
 transcript_status: none
+graph_cluster: youtube-learning
 ---
 
 # 옵시디언 LLM Wiki, 아무 자료나 넣으면 안 됩니다 | LLM Wiki 만들기 전에 꼭 정해야 하는 2가지

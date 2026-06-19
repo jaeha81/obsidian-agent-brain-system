@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - launch
-  - gate
-  - upsell
-  - metrics
-  - automation
-  - daily-plus
-  - knowledge
+- launch
+- gate
+- upsell
+- metrics
+- automation
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 버키 실행형 런치 게이트

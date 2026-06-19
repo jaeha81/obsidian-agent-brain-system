@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - cro
-  - conversion
-  - cta
-  - ux
-  - ab-test
-  - daily-plus
-  - knowledge
+- cro
+- conversion
+- cta
+- ux
+- ab-test
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 고정 CTA가 만든 큰 차이

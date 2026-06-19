@@ -1,12 +1,5 @@
 ---
-tags: [bucky, evolution, nlp, stt, stripe, pattern]
-  - #area/research
-created: 2026-05-25
-type: knowledge
-status: implemented
-summary: "자연어 입력 → AI 최적 구조화 포맷 변환"
-category: research
-next_action: review
+graph_cluster: bucky-agent
 ---
 
 # Bucky 진화 — NLP 레이어 + 결제 + STT 고도화

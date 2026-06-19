@@ -1,15 +1,16 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/inbox/2026-04-27-claude-code.md"
+source_path: 01_RAW/inbox/2026-04-27-claude-code.md
 created: 2026-05-27
 hubs:
-  - "Claude Code"
-  - "AgentBus"
-  - "JH System"
-  - "Obsidian"
+- Claude Code
+- AgentBus
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
+- knowledge-bridge
+- null
+graph_cluster: misc
 ---
 
 # Bridge: 2026-04-27-claude-code

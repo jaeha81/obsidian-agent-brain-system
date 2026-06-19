@@ -4,11 +4,12 @@ date: 2026-06-01
 source: daily-plus
 category: agent-prompting
 tags:
-  - "#area/ai_automation"
-  - "#status/staged"
+- '#area/ai_automation'
+- '#status/staged'
 summary: Bucky용 범용 프롬프트 10종 — 메모 분류, 값 추출, 영상 요약, 파일 흡수, 정책 점검 등
 status: staged
 next_action: Bucky 패킷 확인 후 실제 운영 프롬프트에 선택 적용
+graph_cluster: daily-practice
 ---
 
 # Bucky 프롬프트 템플릿 모음 10종

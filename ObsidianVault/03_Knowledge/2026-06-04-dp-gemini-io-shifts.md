@@ -4,11 +4,12 @@ date: 2026-06-04
 source: daily-plus
 category: obsidian-queue
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: Google I/O 발표 기반 Gemini 소비자 AI 변화 — JH 에이전트 시스템 호환성 추적 포인트
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Gemini I/O Shifts to Watch

@@ -1,20 +1,21 @@
 ---
-title: "How I'd Learn AI From Scratch in 2026 (skip the useless 80%)"
-source: "https://youtu.be/msFxQ7OYPj8?si=APxPOXtbq9lEOa-e"
+title: How I'd Learn AI From Scratch in 2026 (skip the useless 80%)
+source: https://youtu.be/msFxQ7OYPj8?si=APxPOXtbq9lEOa-e
 source_type: youtube
 video_id: msFxQ7OYPj8
-channel: "Jeff Su"
-publish_date: "20260609"
+channel: Jeff Su
+publish_date: '20260609'
 date: 2026-06-17
-captured_at: 2026-06-17T08:07:08
+captured_at: 2026-06-17 08:07:08
 tags:
-  - discord-watch
-  - dashboard-watch
-  - youtube
-  - discord_watch
+- discord-watch
+- dashboard-watch
+- youtube
+- discord_watch
 status: knowledge
 has_transcript: false
 transcript_status: none
+graph_cluster: youtube-learning
 ---
 
 # How I'd Learn AI From Scratch in 2026 (skip the useless 80%)

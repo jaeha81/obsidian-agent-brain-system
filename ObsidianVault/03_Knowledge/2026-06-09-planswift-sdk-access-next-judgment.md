@@ -1,7 +1,7 @@
 ---
 type: knowledge-candidate
-project: "-"
-client: "-"
+project: '-'
+client: '-'
 source: daily-plus-dashboard
 agent: Bucky
 status: approved
@@ -11,11 +11,12 @@ approval_source: user (Daily Plus approve action)
 queue_status: registered
 next_action: promote-to-queue-when-priority
 tags:
-  - #area/planswift
-  - #area/sdk
-  - #status/approved
-summary: "PlanSwift SDK 접근 방법과 활용 가능성 판단 — 건축/인테리어 견적 자동화 연결 후보"
+- null
+- null
+- null
+summary: PlanSwift SDK 접근 방법과 활용 가능성 판단 — 건축/인테리어 견적 자동화 연결 후보
 category: tool-research
+graph_cluster: planswift
 ---
 
 # PlanSwift SDK 접근과 다음 판단

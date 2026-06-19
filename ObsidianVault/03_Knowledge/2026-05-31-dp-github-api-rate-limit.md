@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - github-api
-  - rate-limit
-  - automation
-  - quota
-  - caching
-  - daily-plus
-  - knowledge
+- github-api
+- rate-limit
+- automation
+- quota
+- caching
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # GitHub API 레이트리밋과 보관 정책

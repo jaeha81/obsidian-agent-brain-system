@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - manifest
-  - permissions
-  - revenue
-  - agent
-  - security
-  - daily-plus
-  - knowledge
+- manifest
+- permissions
+- revenue
+- agent
+- security
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 수익 우선 안전 매니페스트

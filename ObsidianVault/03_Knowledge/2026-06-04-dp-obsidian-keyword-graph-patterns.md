@@ -4,11 +4,12 @@ date: 2026-06-04
 source: daily-plus
 category: obsidian-queue
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: Obsidian 키워드 그래프 패턴 — WIP/에버그린 구분, 태그 기반 그래프 색상, MOC 구조 최적화
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Obsidian Keyword Graph Patterns

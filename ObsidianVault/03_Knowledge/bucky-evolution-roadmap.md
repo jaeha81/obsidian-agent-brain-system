@@ -1,20 +1,5 @@
 ---
-title: "Bucky 진화 로드맵"
-source: "user-directive-20260525"
-source_type: directive
-date: 2026-05-25
-captured_at: 2026-05-25T00:00:00
-tags:
-  - bucky
-  - evolution
-  - roadmap
-  - architecture
-  - #area/research
-  - #status/active
-status: active
-summary: "핵심 원칙: **"사용할수록 똑똑해지는 시스템"**"
-category: research
-next_action: review
+graph_cluster: bucky-agent
 ---
 
 # Bucky 진화 로드맵

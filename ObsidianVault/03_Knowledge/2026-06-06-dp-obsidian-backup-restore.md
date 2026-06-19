@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - backup
-  - restore
-  - aes256
-  - kms
-  - daily-plus
-  - knowledge
+- obsidian
+- backup
+- restore
+- aes256
+- kms
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 옵시디언 백업과 복구 체크리스트

@@ -7,12 +7,13 @@ category: knowledge-candidate
 owner: distiller
 status: auto-implemented
 tags:
-  - - daily-plus
-  - auto-implemented
-  - bluebeam
-  - and
-  - autodesk
-  - alternatives
+- - daily-plus
+- auto-implemented
+- bluebeam
+- and
+- autodesk
+- alternatives
+graph_cluster: daily-practice
 ---
 
 # Bluebeam and Autodesk Alternatives

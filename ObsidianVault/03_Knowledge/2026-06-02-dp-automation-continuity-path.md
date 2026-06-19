@@ -4,11 +4,13 @@ date: 2026-06-02
 source: daily-plus
 category: obsidian-queue
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
-summary: 자동화 연속성 경로 — BuckyDailyPlus는 반드시 Agent Brain System 경로에서만 동작, 레거시 경로 금지, 수집 실패 후 안전 복구 캡처
+- '#area/ai_automation'
+- '#status/active'
+summary: 자동화 연속성 경로 — BuckyDailyPlus는 반드시 Agent Brain System 경로에서만 동작, 레거시 경로 금지,
+  수집 실패 후 안전 복구 캡처
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # Automation Continuity Path

@@ -6,13 +6,14 @@ priority: P2
 category: knowledge
 status: distilled
 tags:
-  - ops
-  - snapshot
-  - dashboard
-  - manifest
-  - bucky
-  - daily-plus
-  - knowledge
+- ops
+- snapshot
+- dashboard
+- manifest
+- bucky
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 오늘 운영 스냅샷과 원클릭 액션

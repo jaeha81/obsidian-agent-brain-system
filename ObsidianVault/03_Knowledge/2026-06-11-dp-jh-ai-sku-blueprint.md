@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - sku
-  - voice-pipeline
-  - stt
-  - obsidian
-  - agent
-  - daily-plus
-  - knowledge
+- sku
+- voice-pipeline
+- stt
+- obsidian
+- agent
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # JH AI SKU Blueprint

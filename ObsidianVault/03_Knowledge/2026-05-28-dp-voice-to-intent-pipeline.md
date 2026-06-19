@@ -6,14 +6,15 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - stt
-  - whisper
-  - voice
-  - intent
-  - pipeline
-  - obsidian
-  - daily-plus
-  - knowledge
+- stt
+- whisper
+- voice
+- intent
+- pipeline
+- obsidian
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 음성에서 의도로 바로 넘기기

@@ -12,13 +12,14 @@ approved_by: user
 approved_at: 2026-06-12
 agent: Bucky
 tags:
-  - daily-plus
-  - distiller
-  - fail-safe
-  - "#area/ai_automation"
-  - "#status/approved"
-summary: "공식 Pulse가 404/빈 카드일 때 빈 대시보드를 만들지 않도록 수집 실패를 명확한 운영 이벤트로 차단한다."
+- daily-plus
+- distiller
+- fail-safe
+- '#area/ai_automation'
+- '#status/approved'
+summary: 공식 Pulse가 404/빈 카드일 때 빈 대시보드를 만들지 않도록 수집 실패를 명확한 운영 이벤트로 차단한다.
 next_action: implement
+graph_cluster: daily-log
 ---
 
 # Daily Plus source availability guard

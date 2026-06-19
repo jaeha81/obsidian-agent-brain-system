@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - pipeline
-  - diff
-  - efficiency
-  - deployment
-  - runbook
-  - daily-plus
-  - knowledge
+- pipeline
+- diff
+- efficiency
+- deployment
+- runbook
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 변경 시에만 내보내는 런북

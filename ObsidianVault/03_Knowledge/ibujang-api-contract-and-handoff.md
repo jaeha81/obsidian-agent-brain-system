@@ -3,14 +3,15 @@ title: 이부장 API 계약 & 검증형 핸드오프 패턴
 date: 2026-06-03
 source: daily-plus/2026-06-03.md (Card 4, 5)
 tags:
-  - ibujang
-  - api-contract
-  - handoff
-  - knowledge
-  - hmac
-  - idempotency
+- ibujang
+- api-contract
+- handoff
+- knowledge
+- hmac
+- idempotency
 category: knowledge
 status: distilled
+graph_cluster: misc
 ---
 
 # 이부장 최소 API 계약 & 검증형 핸드오프 흐름

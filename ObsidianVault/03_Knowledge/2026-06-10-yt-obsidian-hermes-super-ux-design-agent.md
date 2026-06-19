@@ -1,26 +1,28 @@
 ---
-title: "옵시디언과 헤르메스 AI로 슈퍼 UX 디자인 에이전트 만들기"
-source: "https://youtu.be/nmlYSLmmRBg?si=NH0fbp-oHZwjIsAy"
+title: 옵시디언과 헤르메스 AI로 슈퍼 UX 디자인 에이전트 만들기
+source: https://youtu.be/nmlYSLmmRBg?si=NH0fbp-oHZwjIsAy
 source_type: youtube
-channel: "유훈식 교수 : AI4UX"
-publish_date: "20260609"
+channel: '유훈식 교수 : AI4UX'
+publish_date: '20260609'
 date: 2026-06-10
-captured_at: 2026-06-10T00:00:00+09:00
+captured_at: 2026-06-10 00:00:00+09:00
 tags:
-  - youtube
-  - knowledge
-  - bucky
-  - ux
-  - hermes-agent
-  - obsidian
-  - markdown
+- youtube
+- knowledge
+- bucky
+- ux
+- hermes-agent
+- obsidian
+- markdown
 status: knowledge
 has_transcript: true
-transcript_source: "YouTube ko automatic captions via timedtext metadata"
+transcript_source: YouTube ko automatic captions via timedtext metadata
 verification:
-  - "watch extracted 40 frames from 38:47 video"
-  - "YouTube caption download initially hit 429; ko json3 caption was recovered from saved metadata URL"
-  - "OpenAI Whisper fallback hit insufficient_quota 429 and was not used"
+- watch extracted 40 frames from 38:47 video
+- YouTube caption download initially hit 429; ko json3 caption was recovered from
+  saved metadata URL
+- OpenAI Whisper fallback hit insufficient_quota 429 and was not used
+graph_cluster: youtube-learning
 ---
 
 # 옵시디언과 헤르메스 AI로 슈퍼 UX 디자인 에이전트 만들기

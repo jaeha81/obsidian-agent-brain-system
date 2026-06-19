@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - ab-test
-  - pricing
-  - stripe
-  - conversion
-  - manifest
-  - daily-plus
-  - knowledge
+- ab-test
+- pricing
+- stripe
+- conversion
+- manifest
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 가격 A/B와 결정 매니페스트

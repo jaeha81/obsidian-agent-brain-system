@@ -3,14 +3,15 @@ title: 이부장 펄스 매니저 매니페스트
 date: 2026-06-03
 source: daily-plus/2026-06-03.md (Card 6)
 tags:
-  - ibujang
-  - pulse
-  - manifest
-  - hmac
-  - daily-plus
-  - knowledge
+- ibujang
+- pulse
+- manifest
+- hmac
+- daily-plus
+- knowledge
 category: knowledge
 status: distilled
+graph_cluster: misc
 ---
 
 # 이부장 펄스 매니저 매니페스트

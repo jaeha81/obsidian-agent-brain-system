@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - planswift
-  - etl
-  - invoice
-  - sku
-  - mapping
-  - daily-plus
-  - knowledge
+- planswift
+- etl
+- invoice
+- sku
+- mapping
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # PlanSwift-송장 매핑 ETL 명세

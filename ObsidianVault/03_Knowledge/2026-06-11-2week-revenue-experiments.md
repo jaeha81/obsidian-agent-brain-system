@@ -6,11 +6,12 @@ priority: P1
 category: strategy
 status: active
 tags:
-  - revenue
-  - experiment
-  - 2weeks
-  - ab-test
-  - daily-plus
+- revenue
+- experiment
+- 2weeks
+- ab-test
+- daily-plus
+graph_cluster: misc
 ---
 
 # 2주 매출 실험 플랜

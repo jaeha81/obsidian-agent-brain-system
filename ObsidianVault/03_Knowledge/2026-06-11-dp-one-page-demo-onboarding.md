@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - demo
-  - onboarding
-  - voice-pipeline
-  - toss-payments
-  - stt
-  - daily-plus
-  - knowledge
+- demo
+- onboarding
+- voice-pipeline
+- toss-payments
+- stt
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # One-Page Demo and Onboarding Design

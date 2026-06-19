@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - samsung-tablet
-  - adb
-  - stt
-  - android
-  - install
-  - daily-plus
-  - knowledge
+- samsung-tablet
+- adb
+- stt
+- android
+- install
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 삼성 태블릿 원클릭 설치 가이드

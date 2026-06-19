@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - hmac
-  - manifest
-  - deployment-gate
-  - sha256
-  - key-rotation
-  - daily-plus
-  - knowledge
+- hmac
+- manifest
+- deployment-gate
+- sha256
+- key-rotation
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 매니페스트 HMAC 수용 기준

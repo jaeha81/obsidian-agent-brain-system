@@ -6,13 +6,14 @@ priority: P3
 category: knowledge
 status: distilled
 tags:
-  - obsidian
-  - ai-plugin
-  - local-llm
-  - embedding
-  - smart-environment
-  - daily-plus
-  - knowledge
+- obsidian
+- ai-plugin
+- local-llm
+- embedding
+- smart-environment
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 옵시디언 AI 플러그인 패턴

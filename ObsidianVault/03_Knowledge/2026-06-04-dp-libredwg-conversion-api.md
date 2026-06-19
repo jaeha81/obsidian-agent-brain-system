@@ -4,11 +4,12 @@ date: 2026-06-04
 source: daily-plus
 category: knowledge-candidate
 tags:
-  - "#area/ai_automation"
-  - "#status/active"
+- '#area/ai_automation'
+- '#status/active'
 summary: LibreDWG 오픈소스 DWG 변환 API — 라이선스 제약, CAD 견적 파이프라인 통합, Autodesk APS 비교
 status: applied
 applied_at: 2026-06-11
+graph_cluster: daily-practice
 ---
 
 # LibreDWG Conversion API MVP

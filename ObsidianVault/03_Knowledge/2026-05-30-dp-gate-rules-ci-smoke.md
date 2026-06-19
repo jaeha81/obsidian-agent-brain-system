@@ -6,13 +6,14 @@ priority: P1
 category: knowledge
 status: distilled
 tags:
-  - ci
-  - smoke-test
-  - gate
-  - deployment
-  - automation
-  - daily-plus
-  - knowledge
+- ci
+- smoke-test
+- gate
+- deployment
+- automation
+- daily-plus
+- knowledge
+graph_cluster: daily-practice
 ---
 
 # 게이트 규칙과 CI 스모크 테스트

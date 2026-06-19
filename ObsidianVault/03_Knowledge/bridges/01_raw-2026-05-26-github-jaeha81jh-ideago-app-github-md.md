@@ -1,17 +1,18 @@
 ---
 type: knowledge-bridge
-source_path: "01_RAW/2026-05-26-github---jaeha81jh-ideago-app-github.md"
+source_path: 01_RAW/2026-05-26-github---jaeha81jh-ideago-app-github.md
 created: 2026-05-27
 hubs:
-  - "JH System"
-  - "Obsidian"
+- JH System
+- Obsidian
 tags:
-  - knowledge-bridge
-  - #area/research
-summary: "JH System Obsidian"
+- knowledge-bridge
+- null
+summary: JH System Obsidian
 category: research
 status: active
 next_action: review
+graph_cluster: misc
 ---
 
 # Bridge: 2026-05-26-github---jaeha81jh-ideago-app-github
