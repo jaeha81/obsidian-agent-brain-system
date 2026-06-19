@@ -169,6 +169,12 @@ G1-preflight-dirty.patch
 G1-*.patch
 Api 재미나이*.txt
 
+# Patch artifacts (one-time bot patches — local only, not for commit)
+scripts/discord_bot_patched_*.py
+scripts/bucky_bot_supervisor_patched.py
+scripts/PATCH_NOTES_*.md
+scripts/REASSEMBLE_*.md
+
 # Token/secret files (never commit)
 token.txt
 
