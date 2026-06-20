@@ -20,7 +20,13 @@ from flask import Blueprint, Response, jsonify, request, stream_with_context
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = ROOT / "ObsidianVault"
 CONTEXT_PACKS_DIR = VAULT / "06_Context_Packs"
-GRAPHIFY_OUT = VAULT / "graphify-out"
+# graphify-out was moved to 09_Archive during vault consolidation (2026-06-20d)
+_GRAPHIFY_CANDIDATES = [
+    VAULT / "09_Archive" / "graphify-out",
+    VAULT / "graphify-out",
+    VAULT / "03_Projects" / "graphify-out",
+]
+GRAPHIFY_OUT = next((p for p in _GRAPHIFY_CANDIDATES if (p / "graph.json").exists()), _GRAPHIFY_CANDIDATES[0])
 GRAPH_JSON = GRAPHIFY_OUT / "graph.json"
 GRAPH_REPORT = GRAPHIFY_OUT / "GRAPH_REPORT.md"
 AGENTBUS_DIR = VAULT / "10_AgentBus"
