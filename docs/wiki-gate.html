@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiki Gate — JH Brain</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#04040e">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #04040e;
+    --card: rgba(10,10,22,0.72);
+    --border: rgba(0,212,255,0.15);
+    --cyan: #00d4ff;
+    --cyan2: #0af;
+    --green: #00ff88;
+    --yellow: #ffd700;
+    --red: #ff4466;
+    --text: #c9d1d9;
+    --muted: #586069;
+    --font: 'Space Grotesk', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,212,255,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 30% at 90% 80%, rgba(88,101,242,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav.jh-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(4,4,14,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1rem;
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.jh-nav::-webkit-scrollbar { display: none; }
+  nav.jh-nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.65rem 0.75rem;
+    white-space: nowrap;
+    transition: color 0.15s;
+    border-bottom: 2px solid transparent;
+  }
+  nav.jh-nav a:hover { color: var(--text); }
+  nav.jh-nav a.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  nav.jh-nav a.auth-end { margin-left: auto; color: #586069; }
+
+  .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .page-header h1 {
+    font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(0,212,255,0.4);
+  }
+  .page-header .sub { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--border);
+    background: rgba(0,212,255,0.06);
+    color: var(--cyan);
+    border-radius: 6px;
+    font-family: var(--font);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: rgba(0,212,255,0.14); border-color: var(--cyan); }
+  .btn:active { transform: scale(0.97); }
+  .btn.running { opacity: 0.6; cursor: wait; }
+  .btn-green { color: var(--green); border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.05); }
+  .btn-green:hover { background: rgba(0,255,136,0.12); border-color: var(--green); }
+
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+  @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.3;
+  }
+
+  .card-title {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .card-title span { color: var(--cyan); margin-right: 0.4rem; }
+
+  .stat-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.82rem;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+  .stat-val { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; }
+  .val-green { color: var(--green); }
+  .val-yellow { color: var(--yellow); }
+  .val-red { color: var(--red); }
+  .val-cyan { color: var(--cyan); }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 0.15rem 0.5rem; border-radius: 999px;
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .badge-green { background: rgba(0,255,136,0.12); color: var(--green); border: 1px solid rgba(0,255,136,0.25); }
+  .badge-yellow { background: rgba(255,215,0,0.10); color: var(--yellow); border: 1px solid rgba(255,215,0,0.25); }
+  .badge-red { background: rgba(255,68,102,0.10); color: var(--red); border: 1px solid rgba(255,68,102,0.25); }
+  .badge-blue { background: rgba(0,212,255,0.10); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25); }
+
+  /* Funnel chart */
+  .funnel { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
+  .funnel-row { display: flex; align-items: center; gap: 0.6rem; }
+  .funnel-label { width: 2.4rem; font-family: var(--mono); font-size: 0.7rem; color: var(--cyan); flex-shrink: 0; }
+  .funnel-name { width: 5.5rem; font-size: 0.75rem; color: var(--muted); flex-shrink: 0; }
+  .funnel-bar-wrap { flex: 1; background: rgba(255,255,255,0.04); border-radius: 4px; height: 14px; overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .funnel-count { width: 3rem; font-family: var(--mono); font-size: 0.72rem; text-align: right; flex-shrink: 0; }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl-item {
+    display: flex; align-items: flex-start; gap: 0.8rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.8rem;
+  }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-date { width: 5.5rem; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; flex-shrink: 0; }
+  .tl-type { width: 4.5rem; flex-shrink: 0; }
+  .tl-summary { color: var(--text); flex: 1; }
+
+  .big-num {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .big-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .summary-card {
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.12);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr; } }
+
+  .card-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+  .rule-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.8rem;
+  }
+  .rule-row:last-child { border-bottom: none; }
+  .rule-code { font-family: var(--mono); font-size: 0.72rem; color: var(--cyan); width: 3rem; flex-shrink: 0; }
+  .rule-name { flex: 1; color: var(--text); }
+  .rule-count { font-family: var(--mono); font-size: 0.78rem; width: 2rem; text-align: right; }
+
+  .spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid rgba(0,212,255,0.2);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.3rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: rgba(0,212,255,0.15);
+    border: 1px solid rgba(0,212,255,0.4);
+    color: var(--cyan);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition: all 0.25s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<nav class="jh-nav"></nav>
+<script src="/shared/nav.js"></script>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Wiki Gate</h1>
+      <div class="sub" id="last-run-info">마지막 실행: 로딩 중...</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" onclick="refresh()">새로고침</button>
+      <button class="btn btn-green" onclick="runAll()">전체 파이프라인 실행</button>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="big-num val-cyan" id="sum-lint-files">—</div>
+      <div class="big-label">Lint 검사 파일</div>
+    </div>
+    <div class="summary-card">
+      <div class="big-num val-cyan" id="sum-gate-scanned">—</div>
+      <div class="big-label">Gate 검사 노트</div>
+    </div>
+    <div class="summary-card">
+      <div class="big-num val-green" id="sum-promotions">—</div>
+      <div class="big-label">Wiki 승격</div>
+    </div>
+  </div>
+
+  <!-- 3-column grid -->
+  <div class="grid grid-3">
+
+    <!-- Lint Card -->
+    <div class="card">
+      <div class="card-title"><span>L</span>Lint 규칙 현황</div>
+      <div id="lint-rules">
+        <div class="rule-row"><span class="rule-code">L001</span><span class="rule-name">YAML frontmatter 없음</span><span class="rule-count val-green" id="r-L001">—</span></div>
+        <div class="rule-row"><span class="rule-code">L002</span><span class="rule-name">graph_cluster 없음</span><span class="rule-count" id="r-L002">—</span></div>
+        <div class="rule-row"><span class="rule-code">L003</span><span class="rule-name">draft 90일 미갱신</span><span class="rule-count" id="r-L003">—</span></div>
+        <div class="rule-row"><span class="rule-code">L004</span><span class="rule-name">고립 노트</span><span class="rule-count" id="r-L004">—</span></div>
+        <div class="rule-row"><span class="rule-code">L005</span><span class="rule-name">허용 도메인 외 태그</span><span class="rule-count" id="r-L005">—</span></div>
+        <div class="rule-row"><span class="rule-code">L006</span><span class="rule-name">콘텐츠 구조 미흡</span><span class="rule-count" id="r-L006">—</span></div>
+      </div>
+      <div class="card-actions">
+        <button class="btn" id="btn-lint" onclick="run('lint')">Lint 실행</button>
+        <span id="lint-badge" class="badge badge-blue" style="display:none"></span>
+      </div>
+    </div>
+
+    <!-- Gate Card -->
+    <div class="card">
+      <div class="card-title"><span>F</span>Gate 필터 파이프라인</div>
+      <div class="funnel" id="funnel-chart">
+        <div class="funnel-row">
+          <span class="funnel-label">F1</span>
+          <span class="funnel-name">Schema</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb-F1" style="width:0%;background:#ff4466"></div></div>
+          <span class="funnel-count val-red" id="fc-F1">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">F2</span>
+          <span class="funnel-name">Duplicate</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb-F2" style="width:0%;background:#ffd700"></div></div>
+          <span class="funnel-count val-yellow" id="fc-F2">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">F3</span>
+          <span class="funnel-name">Relevance</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb-F3" style="width:0%;background:#ff6644"></div></div>
+          <span class="funnel-count val-red" id="fc-F3">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">F4</span>
+          <span class="funnel-name">Link</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb-F4" style="width:0%;background:#ffaa00"></div></div>
+          <span class="funnel-count val-yellow" id="fc-F4">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">F5</span>
+          <span class="funnel-name">Age (48h)</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb-F5" style="width:0%;background:#00aaff"></div></div>
+          <span class="funnel-count val-cyan" id="fc-F5">—</span>
+        </div>
+      </div>
+      <div class="stat-row" style="margin-top:0.8rem">
+        <span class="stat-label">승격 성공</span>
+        <span class="stat-val val-green" id="gate-promos">—</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn" id="btn-gate" onclick="run('gate')">Gate 실행</button>
+        <span id="gate-badge" class="badge badge-blue" style="display:none"></span>
+      </div>
+    </div>
+
+    <!-- L007 Card -->
+    <div class="card">
+      <div class="card-title"><span>L7</span>링크 추천 (L007)</div>
+      <div class="stat-row">
+        <span class="stat-label">링크 부족 노트</span>
+        <span class="stat-val val-yellow" id="l7-under">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">자동 적용</span>
+        <span class="stat-val val-green" id="l7-applied">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">마지막 실행</span>
+        <span class="stat-val val-cyan" id="l7-date">—</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn" id="btn-link" onclick="run('link')">링크 추천 실행</button>
+        <span id="link-badge" class="badge badge-blue" style="display:none"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="card" style="margin-top:1rem">
+    <div class="card-title"><span>◈</span>최근 보고서 타임라인</div>
+    <div class="timeline" id="timeline">
+      <div class="tl-item" style="color:var(--muted);font-size:0.8rem">로딩 중...</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? '' : 'http://localhost:8765';
+
+const DEMO = {
+  lint: {
+    total_checked: 258, last_run: '2026-06-20', issues_total: 0,
+    rules: {
+      L001: {issues: 0}, L002: {issues: 249}, L003: {issues: 0},
+      L004: {issues: 4},  L005: {issues: 0},  L006: {issues: 0}
+    }
+  },
+  gate: {
+    total_scanned: 971, promotions: 0, last_run: '2026-06-20', failed_total: 971,
+    filters: {
+      F1: {name:'Schema', failed: 850},
+      F2: {name:'Duplicate', failed: 0},
+      F3: {name:'Relevance', failed: 120},
+      F4: {name:'Link', failed: 50},
+      F5: {name:'Age', failed: 2}
+    }
+  },
+  l007: { under_linked: 3, applied: 2, last_run: '2026-06-20' }
+};
+
+function showToast(msg, dur) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, dur || 2500);
+}
+
+function applyStatus(d) {
+  // Summary
+  document.getElementById('sum-lint-files').textContent = d.lint.total_checked || '—';
+  document.getElementById('sum-gate-scanned').textContent = d.gate.total_scanned || '—';
+  var promoEl = document.getElementById('sum-promotions');
+  promoEl.textContent = d.gate.promotions;
+  promoEl.className = 'big-num ' + (d.gate.promotions > 0 ? 'val-green' : 'val-cyan');
+
+  // Last run
+  var dates = [d.lint.last_run, d.gate.last_run, d.l007.last_run].filter(Boolean);
+  document.getElementById('last-run-info').textContent =
+    '마지막 실행: ' + (dates.length ? dates.sort().reverse()[0] : '—');
+
+  // Lint rules
+  var rules = d.lint.rules || {};
+  Object.keys(rules).forEach(function(r) {
+    var el = document.getElementById('r-' + r);
+    if (!el) return;
+    var n = rules[r].issues;
+    el.textContent = n;
+    el.className = 'rule-count ' + (n === 0 ? 'val-green' : n < 10 ? 'val-yellow' : 'val-red');
+  });
+
+  // Gate filters
+  var filters = d.gate.filters || {};
+  var maxFailed = Math.max(1, ...Object.values(filters).map(function(f){ return f.failed||0; }));
+  Object.keys(filters).forEach(function(fk) {
+    var failed = filters[fk].failed || 0;
+    var barEl = document.getElementById('fb-' + fk);
+    var countEl = document.getElementById('fc-' + fk);
+    if (barEl) barEl.style.width = Math.round(failed / maxFailed * 100) + '%';
+    if (countEl) countEl.textContent = failed;
+  });
+  document.getElementById('gate-promos').textContent = d.gate.promotions;
+
+  // L007
+  document.getElementById('l7-under').textContent = d.l007.under_linked;
+  document.getElementById('l7-applied').textContent = d.l007.applied;
+  document.getElementById('l7-date').textContent = d.l007.last_run || '—';
+
+  // Timeline
+  buildTimeline(d);
+}
+
+function buildTimeline(d) {
+  var items = [];
+  if (d.lint.last_run) {
+    var n = d.lint.issues_total;
+    items.push({date: d.lint.last_run, type: 'lint', summary: 'Wiki Lint — ' + d.lint.total_checked + '개 파일, ' + n + '건 이슈', ok: n === 0});
+  }
+  if (d.gate.last_run) {
+    var p = d.gate.promotions;
+    items.push({date: d.gate.last_run, type: 'gate', summary: 'Wiki Gate — ' + d.gate.total_scanned + '개 검사, 승격 ' + p + '개', ok: p > 0});
+  }
+  if (d.l007.last_run) {
+    items.push({date: d.l007.last_run, type: 'l007', summary: 'Link Suggest — 부족 ' + d.l007.under_linked + '개, 적용 ' + d.l007.applied + '개', ok: true});
+  }
+  items.sort(function(a,b){ return b.date > a.date ? 1 : -1; });
+
+  var tl = document.getElementById('timeline');
+  if (!items.length) {
+    tl.innerHTML = '<div class="tl-item" style="color:var(--muted)">보고서 없음</div>';
+    return;
+  }
+  tl.innerHTML = items.map(function(it) {
+    var typeBadge = {lint:'<span class="badge badge-blue">Lint</span>', gate:'<span class="badge badge-red">Gate</span>', l007:'<span class="badge badge-green">L007</span>'}[it.type]||'';
+    var statusDot = it.ok ? '<span style="color:var(--green)">●</span>' : '<span style="color:var(--yellow)">●</span>';
+    return '<div class="tl-item"><span class="tl-date">' + it.date + '</span><span class="tl-type">' + typeBadge + '</span><span class="tl-summary">' + statusDot + ' ' + it.summary + '</span></div>';
+  }).join('');
+}
+
+function refresh() {
+  document.getElementById('last-run-info').textContent = '마지막 실행: 로딩 중...';
+  fetch(API + '/os/wiki-gate/status', {signal: AbortSignal.timeout(3500), cache: 'no-store', credentials: 'same-origin'})
+    .then(function(r) { return r.json(); })
+    .then(function(d) { applyStatus(d); })
+    .catch(function() {
+      applyStatus(DEMO);
+      document.getElementById('last-run-info').textContent = '마지막 실행: (DEMO) 서버 연결 안됨';
+    });
+}
+
+function run(mode) {
+  var btnId = 'btn-' + mode;
+  var badgeId = mode + '-badge';
+  var btn = document.getElementById(btnId);
+  var badge = document.getElementById(badgeId);
+  btn.classList.add('running');
+  btn.innerHTML = '<span class="spinner"></span>실행 중...';
+  badge.style.display = 'none';
+
+  fetch(API + '/os/wiki-gate/run?mode=' + mode, {method:'POST', signal: AbortSignal.timeout(4000), credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      btn.classList.remove('running');
+      btn.textContent = {lint:'Lint 실행', gate:'Gate 실행', link:'링크 추천 실행'}[mode];
+      if (d.ok) {
+        badge.textContent = 'PID ' + d.pid;
+        badge.style.display = 'inline-flex';
+        badge.className = 'badge badge-green';
+        showToast(mode + ' 시작됨 (PID ' + d.pid + ')', 3000);
+        setTimeout(refresh, 4000);
+      } else {
+        showToast('오류: ' + (d.error || '알 수 없음'), 4000);
+      }
+    })
+    .catch(function() {
+      btn.classList.remove('running');
+      btn.textContent = {lint:'Lint 실행', gate:'Gate 실행', link:'링크 추천 실행'}[mode];
+      showToast('서버에 연결할 수 없습니다', 3000);
+    });
+}
+
+function runAll() {
+  ['lint', 'gate', 'link'].forEach(function(m, i) { setTimeout(function(){ run(m); }, i * 800); });
+}
+
+refresh();
+setInterval(refresh, 60000);
+</script>
+</body>
+</html>

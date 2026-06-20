@@ -59,6 +59,12 @@
       "short_name": "AI",
       "url": "/ai-usage.html",
       "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
+    },
+    {
+      "name": "Wiki Gate",
+      "short_name": "Wiki",
+      "url": "/wiki-gate.html",
+      "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
     }
   ],
   "categories": ["productivity", "business"]

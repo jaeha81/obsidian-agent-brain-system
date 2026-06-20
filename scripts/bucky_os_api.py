@@ -566,3 +566,90 @@ def query_to_wiki():
         return jsonify({"ok": True, "path": saved_path})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ------- Wiki Gate endpoints -------
+
+DAILY_DIR = VAULT / "07_Daily"
+
+
+def _latest_report(pattern):
+    """Return path of newest file matching glob pattern in DAILY_DIR."""
+    files = sorted(DAILY_DIR.glob(pattern), key=lambda p: p.name, reverse=True)
+    return files[0] if files else None
+
+
+@os_bp.route("/wiki-gate/status")
+def wiki_gate_status():
+    """Parse latest wiki-lint + wiki-gate + wiki-link-suggest reports."""
+    import re
+
+    out = {
+        "lint": {"total_checked": 0, "last_run": None, "issues_total": 0, "rules": {}},
+        "gate": {"total_scanned": 0, "promotions": 0, "last_run": None, "failed_total": 0, "filters": {}},
+        "l007": {"under_linked": 0, "applied": 0, "last_run": None},
+    }
+
+    lint_file = _latest_report("*-wiki-lint.md")
+    if lint_file:
+        text = lint_file.read_text(encoding="utf-8", errors="ignore")
+        out["lint"]["last_run"] = lint_file.name[:10]
+        m = re.search(r"(\d+)개 파일 검사", text)
+        if m:
+            out["lint"]["total_checked"] = int(m.group(1))
+        m = re.search(r"총 (\d+)건", text)
+        if m:
+            out["lint"]["issues_total"] = int(m.group(1))
+        for rule in ["L001", "L002", "L003", "L004", "L005", "L006"]:
+            out["lint"]["rules"][rule] = {"issues": text.count(f"[{rule}]")}
+
+    gate_file = _latest_report("*-wiki-gate-report.md")
+    if gate_file:
+        text = gate_file.read_text(encoding="utf-8", errors="ignore")
+        out["gate"]["last_run"] = gate_file.name[:10]
+        m = re.search(r"총 (\d+)개 검사", text)
+        if m:
+            out["gate"]["total_scanned"] = int(m.group(1))
+        m = re.search(r"(\d+)개 승격", text)
+        if m:
+            out["gate"]["promotions"] = int(m.group(1))
+        for fk, fname in {"F1": "Schema", "F2": "Duplicate", "F3": "Relevance", "F4": "Link", "F5": "Age"}.items():
+            out["gate"]["filters"][fk] = {"name": fname, "failed": text.count(f"❌ {fk}-")}
+        out["gate"]["failed_total"] = sum(v["failed"] for v in out["gate"]["filters"].values())
+
+    l007_file = _latest_report("*-wiki-link-suggest.md")
+    if l007_file:
+        text = l007_file.read_text(encoding="utf-8", errors="ignore")
+        out["l007"]["last_run"] = l007_file.name[:10]
+        m = re.search(r"(\d+)[개\s].*?링크 부족", text)
+        if m:
+            out["l007"]["under_linked"] = int(m.group(1))
+        m = re.search(r"(\d+)개.*?적용", text)
+        if m:
+            out["l007"]["applied"] = int(m.group(1))
+
+    return jsonify(out)
+
+
+@os_bp.route("/wiki-gate/run", methods=["POST"])
+def wiki_gate_run():
+    """Trigger wiki pipeline scripts asynchronously (mode: lint / gate / link)."""
+    import sys
+    mode = request.args.get("mode", "lint")
+    script_map = {
+        "lint": Path(__file__).parent / "wiki_lint.py",
+        "gate": Path(__file__).parent / "wiki_gate.py",
+        "link": Path(__file__).parent / "wiki_link_suggest.py",
+    }
+    script = script_map.get(mode)
+    if not script or not script.exists():
+        return jsonify({"error": f"unknown mode: {mode}"}), 400
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, "-X", "utf8", str(script)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return jsonify({"ok": True, "pid": proc.pid, "mode": mode})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

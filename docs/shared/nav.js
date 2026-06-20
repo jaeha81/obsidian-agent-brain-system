@@ -13,6 +13,7 @@
     { href: '/threads/',           label: '쓰레드자동화' },
     { href: '/workflow/',          label: '워크플로우' },
     { href: '/ai-usage.html',      label: 'AI사용량' },
+    { href: '/wiki-gate.html',     label: 'Wiki Gate' },
     { href: '/bucky-agent-os.html',label: 'BuckyOS' },
     { href: '/api/logout',         label: '로그아웃', cls: 'auth-end' },
   ];
