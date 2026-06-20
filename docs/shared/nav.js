@@ -13,6 +13,7 @@
     { href: '/shorts/',            label: '쇼츠' },
     { href: '/chsh-mining/',       label: 'CHSH마이닝' },
     { href: '/threads/',           label: '쓰레드자동화' },
+    { href: '/kmong/',             label: '크몽' },
     { href: '/workflow/',          label: '워크플로우' },
     { href: '/ai-usage.html',      label: 'AI사용량' },
     { href: '/wiki-gate.html',     label: 'Wiki Gate' },

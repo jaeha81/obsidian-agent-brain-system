@@ -161,8 +161,6 @@ JH_CHARLIE_CHANNEL_ID: str        = os.getenv("JH_CHARLIE_CHANNEL_ID", "").strip
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
-# 내 개발 채널: 사용자 자체 사이드 프로젝트 전용
-JH_MYDEV_CHANNEL_ID: str = os.getenv("JH_MYDEV_CHANNEL_ID", "").strip()
 # 쇼츠 수익화 전용 채널 (Vercel 대시보드 → Discord → 로컬 스킬)
 JH_SHORTS_CHANNEL_ID: str = os.getenv("JH_SHORTS_CHANNEL_ID", "").strip()
 _SHORTS_LOCAL_AGENT = Path(os.getenv(
@@ -204,7 +202,6 @@ ALLOWED_CHANNELS: set[str] = {
         JH_CHARLIE_CHANNEL_ID,
         JH_CLAUDE_CODE_CHANNEL_ID,
         JH_CODEX_CHANNEL_ID,
-        JH_MYDEV_CHANNEL_ID,
         JH_SHORTS_CHANNEL_ID,
         JH_CHSH_MINING_CHANNEL_ID,
         JH_THREADS_CHANNEL_ID,
@@ -601,7 +598,9 @@ _CHANNEL_ROLE_MAP: dict[str, str] = {
     "JH_CHAT_CHANNEL_ID":           "JHHUB_ROLE.md",
     "JH_REPO_DASHBOARD_CHANNEL_ID": "REPO_DASHBOARD_ROLE.md",
     "JH_WISHKET_CHANNEL_ID":        "WISHKET_ROLE.md",
+    "JH_KMONG_CHANNEL_ID":          "KMONG_ROLE.md",
     "JH_DAILYPLUS_CHANNEL_ID":      "DAILYPLUS_ROLE.md",
+    "JH_TASKBOARD_CHANNEL_ID":      "TASKBOARD_ROLE.md",
     "JH_CLAUDE_CODE_CHANNEL_ID":    "CLAUDE_CODE_ROLE.md",
     "JH_CODEX_CHANNEL_ID":          "CODEX_ROLE.md",
     "JH_MYINTRO_CHANNEL_ID":        "MYINTRO_ROLE.md",
@@ -625,7 +624,9 @@ def _get_channel_role_context(channel_id: str) -> str:
         JH_CHAT_CHANNEL_ID:           "JHHUB_ROLE.md",
         JH_REPO_DASHBOARD_CHANNEL_ID: "REPO_DASHBOARD_ROLE.md",
         JH_WISHKET_CHANNEL_ID:        "WISHKET_ROLE.md",
+        JH_KMONG_CHANNEL_ID:          "KMONG_ROLE.md",
         JH_DAILYPLUS_CHANNEL_ID:      "DAILYPLUS_ROLE.md",
+        JH_TASKBOARD_CHANNEL_ID:      "TASKBOARD_ROLE.md",
         JH_CLAUDE_CODE_CHANNEL_ID:    "CLAUDE_CODE_ROLE.md",
         JH_CODEX_CHANNEL_ID:          "CODEX_ROLE.md",
         JH_MYINTRO_CHANNEL_ID:        "MYINTRO_ROLE.md",
