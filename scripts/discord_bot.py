@@ -595,18 +595,64 @@ def _uses_charlie_context(channel_id: str, user_message: str = "") -> bool:
     )
 
 
+_CHANNEL_ROLE_DIR = _VAULT / "00_System" / "channel_roles"
+
+_CHANNEL_ROLE_MAP: dict[str, str] = {
+    "JH_CHAT_CHANNEL_ID":           "JHHUB_ROLE.md",
+    "JH_REPO_DASHBOARD_CHANNEL_ID": "REPO_DASHBOARD_ROLE.md",
+    "JH_WISHKET_CHANNEL_ID":        "WISHKET_ROLE.md",
+    "JH_DAILYPLUS_CHANNEL_ID":      "DAILYPLUS_ROLE.md",
+    "JH_CLAUDE_CODE_CHANNEL_ID":    "CLAUDE_CODE_ROLE.md",
+    "JH_CODEX_CHANNEL_ID":          "CODEX_ROLE.md",
+    "JH_MYINTRO_CHANNEL_ID":        "MYINTRO_ROLE.md",
+    "JH_SHORTS_CHANNEL_ID":         "SHORTS_ROLE.md",
+    "JH_CHSH_MINING_CHANNEL_ID":    "CHSH_MINING_ROLE.md",
+    "JH_THREADS_CHANNEL_ID":        "THREADS_ROLE.md",
+}
+
+def _load_channel_role_context(filename: str) -> str:
+    path = _CHANNEL_ROLE_DIR / filename
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace").strip()
+        return f"\n\n---\n\n# Channel Role Context\n\n{text}" if text else ""
+    except Exception:
+        return ""
+
+
+def _get_channel_role_context(channel_id: str) -> str:
+    """채널 ID에 해당하는 역할 컨텍스트 파일을 로드한다."""
+    channel_var_map = {
+        JH_CHAT_CHANNEL_ID:           "JHHUB_ROLE.md",
+        JH_REPO_DASHBOARD_CHANNEL_ID: "REPO_DASHBOARD_ROLE.md",
+        JH_WISHKET_CHANNEL_ID:        "WISHKET_ROLE.md",
+        JH_DAILYPLUS_CHANNEL_ID:      "DAILYPLUS_ROLE.md",
+        JH_CLAUDE_CODE_CHANNEL_ID:    "CLAUDE_CODE_ROLE.md",
+        JH_CODEX_CHANNEL_ID:          "CODEX_ROLE.md",
+        JH_MYINTRO_CHANNEL_ID:        "MYINTRO_ROLE.md",
+        JH_SHORTS_CHANNEL_ID:         "SHORTS_ROLE.md",
+        JH_CHSH_MINING_CHANNEL_ID:    "CHSH_MINING_ROLE.md",
+        JH_THREADS_CHANNEL_ID:        "THREADS_ROLE.md",
+    }
+    for ch_id, filename in channel_var_map.items():
+        if ch_id and str(channel_id) == str(ch_id):
+            return _load_channel_role_context(filename)
+    return ""
+
+
 def _load_agent_context(channel_id: str, user_message: str = "") -> str:
     context = _load_bucky_context()
     if _uses_charlie_context(channel_id, user_message):
         charlie_context = _read_charlie_context()
         if charlie_context:
-            return f"{context}\n\n{charlie_context}"
-    if not _uses_chris_context(channel_id, user_message):
-        return context
-    chris_context = _read_chris_role_context()
-    if not chris_context:
-        return context
-    return f"{context}\n\n{chris_context}"
+            context = f"{context}\n\n{charlie_context}"
+    if _uses_chris_context(channel_id, user_message):
+        chris_context = _read_chris_role_context()
+        if chris_context:
+            context = f"{context}\n\n{chris_context}"
+    role_context = _get_channel_role_context(channel_id)
+    if role_context:
+        context = f"{context}{role_context}"
+    return context
 
 
 _USERS_CONFIG_PATH = _ROOT / "configs" / "discord_users.yaml"

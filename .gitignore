@@ -63,6 +63,8 @@ ObsidianVault/00_System/*
 !ObsidianVault/00_System/AGENTS_CANONICAL.md
 !ObsidianVault/00_System/plugin-stack/
 !ObsidianVault/00_System/plugin-stack/**
+!ObsidianVault/00_System/channel_roles/
+!ObsidianVault/00_System/channel_roles/**
 !ObsidianVault/00_Dashboard/
 !ObsidianVault/00_Dashboard/**
 !ObsidianVault/08_Templates/

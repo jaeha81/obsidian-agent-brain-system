@@ -637,6 +637,23 @@ def wiki_gate_status():
     return jsonify(out)
 
 
+@os_bp.route("/charlie-status")
+def charlie_status():
+    """Charlie 감사관 현황 — docs/data/charlie_status.json 기반."""
+    candidates = [
+        ROOT / "docs" / "data" / "charlie_status.json",
+        ROOT / "data" / "charlie_status.json",
+    ]
+    for path in candidates:
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                return jsonify(data)
+            except Exception:
+                pass
+    return jsonify({"status": "no_data", "message": "charlie_audit.py를 실행하여 상태를 생성하세요."})
+
+
 @os_bp.route("/wiki-gate/run", methods=["POST"])
 def wiki_gate_run():
     """Trigger wiki pipeline scripts asynchronously (mode: lint / gate / link)."""

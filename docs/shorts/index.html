@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff4f4f">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>쇼츠 자동화 - JH Bucky</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
+})();
+</script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #ff4f4f;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header {
+    background: linear-gradient(135deg, #200d0d 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px; position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  header .title-block { flex: 1; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
+  .jh-nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .jh-nav a {
+    font-size: 0.78rem; color: var(--muted); text-decoration: none;
+    border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+  }
+  .jh-nav a:hover, .jh-nav a.active {
+    border-color: var(--accent); color: var(--accent); background: rgba(255,79,79,0.08);
+  }
+  .stats-bar {
+    display: flex; gap: 10px; padding: 14px 28px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 16px; flex: 1; min-width: 88px; text-align: center; transition: all 0.2s;
+  }
+  .stat-box:hover { border-color: var(--accent); }
+  .stat-box .num { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat-box .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .toolbar {
+    padding: 10px 28px; display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; border-bottom: 1px solid var(--border);
+  }
+  .btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { opacity: 0.85; }
+  .live-indicator {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    font-size: 0.76rem; color: var(--muted);
+  }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 5px var(--green); animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 18px 28px;
+  }
+  @media (max-width: 760px) { .main-grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+  }
+  .panel.full-width { grid-column: 1 / -1; }
+  .panel-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  }
+  .panel-header h2 { font-size: 0.95rem; font-weight: 600; color: var(--accent); }
+  .panel-header .count {
+    margin-left: auto; font-size: 0.76rem; color: var(--muted);
+    background: rgba(255,79,79,0.08); padding: 2px 8px; border-radius: 10px;
+  }
+  .metric-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid rgba(48,54,61,0.5); font-size: 0.84rem;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { color: var(--muted); }
+  .metric-value { font-weight: 600; color: var(--text); }
+  .metric-value.good  { color: var(--green); }
+  .metric-value.warn  { color: var(--yellow); }
+  .metric-value.bad   { color: var(--red); }
+  .metric-value.info  { color: var(--accent); }
+  .video-item {
+    padding: 10px 12px; border-radius: 7px; margin-bottom: 8px;
+    background: rgba(255,79,79,0.04); border: 1px solid rgba(255,79,79,0.12);
+    font-size: 0.83rem;
+  }
+  .video-item:last-child { margin-bottom: 0; }
+  .video-item .video-title { font-weight: 600; margin-bottom: 3px; }
+  .video-item .video-meta { color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
+  .video-item .video-stats { margin-top: 6px; display: flex; gap: 12px; font-size: 0.76rem; }
+  .video-item .video-stats span { color: var(--accent); }
+  .env-warning {
+    margin: 18px 28px; padding: 14px 18px;
+    background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3);
+    border-radius: 8px; font-size: 0.83rem; color: var(--yellow);
+  }
+  .empty-state { padding: 30px; text-align: center; color: var(--muted); font-size: 0.83rem; }
+  footer { padding: 18px 28px; text-align: center; color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 20px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+<header>
+  <div class="title-block">
+    <h1>쇼츠 자동화 수익 대시보드</h1>
+    <p>YouTube Shorts 업로드 현황 · 조회수 · 예상 수익 — Discord #jh-shorts 채널 연동</p>
+  </div>
+  <nav class="jh-nav"></nav>
+</header>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-box"><div class="num" id="statUploads">—</div><div class="lbl">업로드 수</div></div>
+  <div class="stat-box"><div class="num" id="statViews">—</div><div class="lbl">총 조회수</div></div>
+  <div class="stat-box"><div class="num" id="statRevenue">—</div><div class="lbl">예상 수익</div></div>
+  <div class="stat-box"><div class="num" id="statScheduled">—</div><div class="lbl">예약 업로드</div></div>
+  <div class="stat-box"><div class="num" id="statAvgViews">—</div><div class="lbl">평균 조회수</div></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn primary" onclick="requestUpload()">업로드 요청</button>
+  <button class="btn" onclick="requestSchedule()">스케줄 확인</button>
+  <button class="btn" onclick="requestStats()">통계 갱신</button>
+  <button class="btn" onclick="refresh()">새로고침</button>
+  <div class="live-indicator">
+    <span class="live-dot"></span>
+    <span id="lastUpdate">로딩 중...</span>
+  </div>
+</div>
+
+<div id="envWarning" class="env-warning" style="display:none">
+  .env 설정 필요 — YouTube API 키 및 채널 ID가 설정되지 않았습니다. Discord #jh-shorts 채널에서 설정을 요청하세요.
+</div>
+
+<div class="main-grid" id="mainGrid">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>수익 현황</h2>
+    </div>
+    <div id="revenueMetrics">
+      <div class="metric-row"><span class="metric-label">이번 달 예상 수익</span><span class="metric-value good" id="mMonthRevenue">—</span></div>
+      <div class="metric-row"><span class="metric-label">누적 총 수익</span><span class="metric-value" id="mTotalRevenue">—</span></div>
+      <div class="metric-row"><span class="metric-label">평균 영상당 수익</span><span class="metric-value" id="mAvgRevenue">—</span></div>
+      <div class="metric-row"><span class="metric-label">최고 조회수 영상</span><span class="metric-value info" id="mTopVideo">—</span></div>
+      <div class="metric-row"><span class="metric-label">마지막 업로드</span><span class="metric-value" id="mLastUpload">—</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2>업로드 스케줄</h2>
+      <span class="count" id="scheduleCount">0</span>
+    </div>
+    <div id="scheduleList">
+      <div class="empty-state">업로드 스케줄 없음</div>
+    </div>
+  </div>
+
+  <div class="panel full-width">
+    <div class="panel-header">
+      <h2>최근 업로드 영상</h2>
+      <span class="count" id="videoCount">0</span>
+    </div>
+    <div id="videoList">
+      <div class="empty-state">업로드된 영상이 없습니다. Discord #jh-shorts 채널에서 업로드를 요청하세요.</div>
+    </div>
+  </div>
+</div>
+
+<footer>Bucky Agent OS — 쇼츠 자동화 수익 대시보드 · Discord <a href="#">#jh-shorts</a> 채널 연동</footer>
+
+<script>
+const INTAKE = '/intake';
+const DEMO = {
+  uploads: 12, views: '48.3K', revenue: '₩24,000', scheduled: 3, avg_views: '4,025',
+  month_revenue: '₩8,500', total_revenue: '₩24,000', avg_per_video: '₩2,000',
+  top_video: 'AI 자동화 비법 3가지', last_upload: '2일 전',
+  videos: [
+    { title: 'AI 자동화 비법 3가지', views: '12,400', revenue: '₩5,200', date: '2일 전' },
+    { title: 'Claude Code 완전정복', views: '9,800', revenue: '₩4,100', date: '4일 전' },
+    { title: '옵시디언으로 Second Brain 만들기', views: '7,200', revenue: '₩3,000', date: '1주 전' },
+  ]
+};
+
+async function loadShortsStatus() {
+  let data = null;
+  try {
+    const r = await fetch('/api/shorts-status', { credentials: 'include' });
+    if (r.ok) data = await r.json();
+    else if (r.status === 404 || r.status === 503) {
+      document.getElementById('envWarning').style.display = 'block';
+      data = DEMO;
+    }
+  } catch(e) {
+    document.getElementById('envWarning').style.display = 'block';
+    data = DEMO;
+  }
+  if (data) applyStatus(data);
+  document.getElementById('lastUpdate').textContent = '최종 갱신: ' + new Date().toLocaleTimeString('ko-KR');
+}
+
+function applyStatus(d) {
+  if (d.uploads !== undefined)      document.getElementById('statUploads').textContent = d.uploads;
+  if (d.views)                      document.getElementById('statViews').textContent = d.views;
+  if (d.revenue)                    document.getElementById('statRevenue').textContent = d.revenue;
+  if (d.scheduled !== undefined)    document.getElementById('statScheduled').textContent = d.scheduled;
+  if (d.avg_views)                  document.getElementById('statAvgViews').textContent = d.avg_views;
+  if (d.month_revenue)              document.getElementById('mMonthRevenue').textContent = d.month_revenue;
+  if (d.total_revenue)              document.getElementById('mTotalRevenue').textContent = d.total_revenue;
+  if (d.avg_per_video)              document.getElementById('mAvgRevenue').textContent = d.avg_per_video;
+  if (d.top_video)                  document.getElementById('mTopVideo').textContent = d.top_video;
+  if (d.last_upload)                document.getElementById('mLastUpload').textContent = d.last_upload;
+
+  if (d.videos && d.videos.length) {
+    document.getElementById('videoCount').textContent = d.videos.length;
+    document.getElementById('videoList').innerHTML = d.videos.map(v => `
+      <div class="video-item">
+        <div class="video-title">${escHtml(v.title || v)}</div>
+        <div class="video-meta">${escHtml(v.date || '')}</div>
+        <div class="video-stats">
+          <span>조회수: ${escHtml(v.views || '—')}</span>
+          <span>수익: ${escHtml(v.revenue || '—')}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if (d.schedule && d.schedule.length) {
+    document.getElementById('scheduleCount').textContent = d.schedule.length;
+    document.getElementById('scheduleList').innerHTML = d.schedule.map(s => `
+      <div class="video-item">
+        <div class="video-title">${escHtml(s.title || s)}</div>
+        <div class="video-meta">${escHtml(s.scheduled_at || '')}</div>
+      </div>
+    `).join('');
+  }
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function requestUpload() {
+  await sendPayload({ action: 'shorts_upload', content: '쇼츠 자동 업로드 실행 요청' });
+  alert('업로드 요청이 전송되었습니다. #jh-shorts 채널에서 확인하세요.');
+}
+
+async function requestSchedule() {
+  await sendPayload({ action: 'shorts_schedule', content: '쇼츠 업로드 스케줄 현황 확인 요청' });
+  alert('스케줄 확인 요청이 전송되었습니다.');
+}
+
+async function requestStats() {
+  await sendPayload({ action: 'shorts_stats', content: 'YouTube Shorts 통계 갱신 요청' });
+  alert('통계 갱신 요청이 전송되었습니다.');
+}
+
+async function sendPayload(extra) {
+  const payload = { source: 'shorts-dashboard', target_channel: 'jh-shorts', source_dashboard_url: location.href, ...extra };
+  try {
+    await fetch(INTAKE, {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn('전송 실패:', e.message); }
+}
+
+function refresh() { loadShortsStatus(); }
+
+loadShortsStatus();
+setInterval(loadShortsStatus, 60000);
+</script>
+</body>
+</html>

@@ -449,7 +449,7 @@ async function loadTasks() {
   localTasks = JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY) || '[]');
 
   try {
-    const r = await fetch('./data/user_checklist.json?t=' + Date.now());
+    const r = await fetch('/data/user_checklist.json?t=' + Date.now());
     const d = await r.json();
     allTasks = [...(d.tasks || []), ...localTasks];
     document.getElementById('subline').textContent =
@@ -808,7 +808,7 @@ document.getElementById('addModal').addEventListener('click', e => {
 async function loadKmongItems() {
   const grid = document.getElementById('kmong-grid');
   try {
-    const r = await fetch('./data/kmong_work_items.json?t=' + Date.now());
+    const r = await fetch('/data/kmong_work_items.json?t=' + Date.now());
     const d = await r.json();
     const items = d.items || [];
     if (items.length === 0) {

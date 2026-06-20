@@ -154,6 +154,7 @@ body:not(.locked) .login-overlay { display: none; }
 }
 </style>
 <script src="/shared/auth.js"></script>
+<script src="/shared/nav.js" defer></script>
 </head>
 <body class="locked">
 <div class="login-overlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
@@ -174,6 +175,7 @@ body:not(.locked) .login-overlay { display: none; }
     <div class="subtitle">Bucky, Codex, Claude Code, Discord, Daily Plus, 대시보드, 프로젝트 지침을 낮은 토큰 비용으로 감시합니다. Charlie는 운영 이상을 보고하지만 자동 수정하지 않습니다.</div>
   </div>
   <div class="toolbar">
+    <nav class="jh-nav" style="margin-right:8px"></nav>
     <div id="stateBadge" class="badge"><span class="dot"></span><span>잠김</span></div>
     <button type="button" id="logoutButton">잠금</button>
   </div>
@@ -541,7 +543,7 @@ function render(data, bootstrap) {
 
 async function load() {
   try {
-    const res = await fetch("data/charlie_status.json?ts=" + Date.now(), { cache: "no-store" });
+    const res = await fetch("/data/charlie_status.json?ts=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     if (!data || (!data.state && !data.summary && !data.user_intent)) {
