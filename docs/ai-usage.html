@@ -17,8 +17,12 @@
   document.documentElement.style.visibility='hidden';
   if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
   else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
 })();
 </script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
 <style>
   :root { --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }
   * { box-sizing:border-box; }
@@ -88,20 +92,12 @@
 </head>
 <body>
 <header>
-  <nav>
-    <a href="index.html">레포대시보드</a>
-    <a href="wishket.html">위시켓</a>
-    <a href="daily-plus.html">오늘의플러스</a>
-    <a href="ai-usage.html" class="active">AI사용량</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
-    <a href="login.html" class="auth-start">로그인</a>
-    <a href="/api/logout">로그아웃</a>
-  </nav>
+  <nav class="jh-nav"></nav>
   <h1>AI Usage 대시보드</h1>
   <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
   <div class="gen-stamp">
     <span class="gen-label">페이지 생성 시각</span>
-    <time class="gen-time">2026-06-20 20:30:53 KST</time>
+    <time class="gen-time">2026-06-20 20:56:55 KST</time>
   </div>
 </header>
 <main>
@@ -113,14 +109,14 @@
           <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>232</strong><span>세션</span></div>
-          <div><strong>21,301</strong><span>메시지</span></div>
+          <div><strong>234</strong><span>세션</span></div>
+          <div><strong>21,613</strong><span>메시지</span></div>
           <div><strong>100%</strong><span>활성일</span></div>
           <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>토큰</dt><dd>총 10,315,281 / 캐시 1,119,040,116</dd></div>
+          <div><dt>토큰</dt><dd>총 10,548,010 / 캐시 1,147,302,516</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
           <div><dt>단가</dt><dd>세션당 $0.10 / 메시지당 $0.001</dd></div>
           <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
@@ -171,14 +167,14 @@
     <section class="panel">
       <h2>실제 감지 상태</h2>
       <div class="state-grid">
-        <div><strong>368</strong><span>최근 CLI 호출</span></div>
+        <div><strong>369</strong><span>최근 CLI 호출</span></div>
         <div><strong>0</strong><span>Claude 한도 이벤트</span></div>
         <div><strong>sonnet</strong><span>권장 Claude 모델</span></div>
       </div>
       <p class="note">최근 한도 이벤트 없음</p>
       <table>
         <thead><tr><th>모델</th><th>호출</th><th>성공</th><th>실패</th></tr></thead>
-        <tbody><tr><td>haiku</td><td>161</td><td>161</td><td>0</td></tr><tr><td>opus</td><td>55</td><td>55</td><td>0</td></tr><tr><td>sonnet</td><td>152</td><td>152</td><td>0</td></tr></tbody>
+        <tbody><tr><td>haiku</td><td>161</td><td>161</td><td>0</td></tr><tr><td>opus</td><td>55</td><td>55</td><td>0</td></tr><tr><td>sonnet</td><td>153</td><td>153</td><td>0</td></tr></tbody>
       </table>
       <p class="note"><strong>Sonnet 기본: 구현과 긴 분석은 Sonnet을 유지하되, 반복 분류/상태 확인은 Haiku로 분리합니다.</strong></p>
     </section>
@@ -243,12 +239,12 @@
 <tr><td>2026-06-17</td><td>8s / 853m</td><td>2s / 14m</td></tr>
 <tr><td>2026-06-18</td><td>53s / 4650m</td><td>0s / 0m</td></tr>
 <tr><td>2026-06-19</td><td>87s / 4175m</td><td>15s / 1840m</td></tr>
-<tr><td>2026-06-20</td><td>48s / 5787m</td><td>5s / 826m</td></tr></tbody>
+<tr><td>2026-06-20</td><td>50s / 6099m</td><td>5s / 826m</td></tr></tbody>
     </table>
   </section>
 </main>
 <footer>
-  생성: 2026-06-20 20:30:53 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
+  생성: 2026-06-20 20:56:55 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 </body>
 </html>

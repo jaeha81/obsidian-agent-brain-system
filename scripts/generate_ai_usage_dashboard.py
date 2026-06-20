@@ -306,8 +306,12 @@ def render_dashboard(
   document.documentElement.style.visibility='hidden';
   if(!getCookie('bucky_auth')){{location.replace('/login.html?r='+encodeURIComponent(location.pathname));}}
   else{{document.documentElement.style.visibility='';}}
+  if(window!==window.top){{document.documentElement.classList.add('in-iframe');}}
 }})();
 </script>
+<style>.in-iframe header,.in-iframe footer{{display:none!important}}</style>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
 <style>
   :root {{ --bg:#f6f8fb; --surface:#fff; --ink:#0f172a; --muted:#64748b; --line:#d8e0ea; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; }}
   * {{ box-sizing:border-box; }}
@@ -377,15 +381,7 @@ def render_dashboard(
 </head>
 <body>
 <header>
-  <nav>
-    <a href="index.html">레포대시보드</a>
-    <a href="wishket.html">위시켓</a>
-    <a href="daily-plus.html">오늘의플러스</a>
-    <a href="ai-usage.html" class="active">AI사용량</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
-    <a href="login.html" class="auth-start">로그인</a>
-    <a href="/api/logout">로그아웃</a>
-  </nav>
+  <nav class="jh-nav"></nav>
   <h1>AI Usage 대시보드</h1>
   <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
   <div class="gen-stamp">
