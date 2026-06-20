@@ -722,7 +722,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="graph-home">
           <div class="graph-home-header">
             <span style="font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">MEMORY GRAPH</span>
-            <span style="font-size:11px;color:var(--dim)" id="graph-subtitle">Loading…</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <label style="font-size:11px;color:var(--dim);white-space:nowrap">Nodes:
+                <input type="range" id="graph-limit-slider" min="50" max="6200" step="50" value="300"
+                  style="width:90px;vertical-align:middle;accent-color:var(--accent);cursor:pointer">
+                <span id="graph-limit-val" style="color:var(--accent);font-weight:700;min-width:34px;display:inline-block">300</span>
+              </label>
+              <span style="font-size:11px;color:var(--dim)" id="graph-subtitle">Loading…</span>
+            </div>
           </div>
           <div class="graph-canvas">
             <svg id="main-svg"></svg>
@@ -1073,6 +1080,7 @@ let mainSim = null, memSim = null;
 let mainZoom = null, memZoom = null;
 let allNodes = [], allEdges = [];
 let currentFilter = 'all';
+let graphNodeLimit = 300;
 
 /* ── DEMO DATA ── */
 const DEMO = {
@@ -1253,8 +1261,8 @@ function renderMainGraph(nodes, edges) {
 function renderMemoryGraph() {
   if (!graphData) return;
   if (memSim) { memSim.stop(); memSim = null; }
-  // Downsample same as main graph
-  const MAX_NODES = 300;
+  // Downsample same as main graph (controlled by slider)
+  const MAX_NODES = graphNodeLimit;
   const allN = graphData.nodes.map(d => ({...d}));
   const allE = graphData.edges.map(d => ({...d}));
   const degMap = {};
@@ -1653,7 +1661,7 @@ async function loadAll() {
   renderSpend(DEMO.spend);
 
   const [graphR, statsR, costR, activityR, memR, spendR] = await Promise.allSettled([
-    fetch(`${API}/os/graph`).then(r => r.json()),
+    fetch(`${API}/os/graph?limit=${graphNodeLimit}`).then(r => r.json()),
     fetch(`${API}/os/stats`).then(r => r.json()),
     fetch(`${API}/os/session-cost`).then(r => r.json()),
     fetch(`${API}/os/activity`).then(r => r.json()),
@@ -1680,8 +1688,8 @@ async function loadAll() {
     const degMap = {};
     allE.forEach(e => { degMap[e.source] = (degMap[e.source] || 0) + 1; degMap[e.target] = (degMap[e.target] || 0) + 1; });
     allN.forEach(n => n.degree = degMap[n.id] || 0);
-    // Downsample: keep top 300 nodes by degree to avoid simulation overload
-    const MAX_NODES = 300;
+    // Downsample: keep top N nodes by degree (controlled by slider)
+    const MAX_NODES = graphNodeLimit;
     const nodes = allN.length > MAX_NODES
       ? allN.sort((a, b) => b.degree - a.degree).slice(0, MAX_NODES)
       : allN;
@@ -1718,6 +1726,38 @@ document.querySelectorAll('.mem-filter').forEach(btn => {
     if (memSim) memSim.alpha(.3).restart();
   });
 });
+
+// ── GRAPH LIMIT SLIDER ──
+(function() {
+  const slider = document.getElementById('graph-limit-slider');
+  const valLabel = document.getElementById('graph-limit-val');
+  if (!slider) return;
+  slider.addEventListener('input', () => {
+    valLabel.textContent = slider.value;
+  });
+  slider.addEventListener('change', async () => {
+    graphNodeLimit = parseInt(slider.value, 10);
+    valLabel.textContent = graphNodeLimit;
+    try {
+      const graph = await fetch(`${API}/os/graph?limit=${graphNodeLimit}`).then(r => r.json());
+      if ((graph.nodes || []).length > 0) {
+        graphData = graph;
+        if (mainSim) { mainSim.stop(); mainSim = null; }
+        const allN = graph.nodes.map(d => ({...d}));
+        const nodeIds = new Set(allN.map(n => n.id));
+        const allE = graph.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target)).map(d => ({...d}));
+        const degMap = {};
+        allE.forEach(e => { degMap[e.source] = (degMap[e.source]||0)+1; degMap[e.target] = (degMap[e.target]||0)+1; });
+        allN.forEach(n => n.degree = degMap[n.id]||0);
+        const nodes = allN.length > graphNodeLimit ? allN.sort((a,b)=>b.degree-a.degree).slice(0,graphNodeLimit) : allN;
+        const visIds = new Set(nodes.map(n => n.id));
+        const edges = allE.filter(e => visIds.has(e.source) && visIds.has(e.target));
+        allNodes = allN; allEdges = allE;
+        renderMainGraph(nodes, edges);
+      }
+    } catch(e) { console.warn('Graph reload failed', e); }
+  });
+})();
 
 // ── INIT ──
 loadAll();
