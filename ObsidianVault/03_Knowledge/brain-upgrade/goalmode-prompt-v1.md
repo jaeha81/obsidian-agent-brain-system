@@ -1,3 +1,15 @@
+---
+title: 골모드(Goal Mode) 작동 명령 프롬프트 v1
+type: template
+area: ai_automation
+status: active
+source: idea
+created: 2026-06-06
+tags:
+  - area/ai_automation
+  - type/template
+  - status/active
+---
 # 골모드(Goal Mode) 작동 명령 프롬프트
 
 > 용도: obsidian-agent-brain-system에서 에이전트를 "목표 단위 자율 실행 모드"로 전환하는 명령 프롬프트.

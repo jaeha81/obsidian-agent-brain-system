@@ -1,3 +1,15 @@
+---
+title: brain-upgrade 갭 분석 요약
+type: reference
+area: obsidian_brain
+status: completed
+source: idea
+created: 2026-06-06
+tags:
+  - area/obsidian_brain
+  - type/reference
+  - status/completed
+---
 # 갭 분석: Neurolinked 주장 기능 vs 현재 시스템
 
 > 작성: 2026-06-06 (자율 작업) | 상태: **완성 — 2026-06-07 vault 연결 후 현재 시스템 상태 채움**

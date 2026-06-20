@@ -1,3 +1,15 @@
+---
+title: 클로드 코드 골모드 기동 핸드오프 명령
+type: template
+area: ai_automation
+status: active
+source: idea
+created: 2026-06-07
+tags:
+  - area/ai_automation
+  - type/template
+  - status/active
+---
 # 클로드 코드 넘김 명령 (골모드 작동)
 
 > 사용법: `obsidian-agent-brain-system` 폴더에서 Claude Code 실행 후, 아래 ``` 블록 전체를 복사해 붙여넣기.

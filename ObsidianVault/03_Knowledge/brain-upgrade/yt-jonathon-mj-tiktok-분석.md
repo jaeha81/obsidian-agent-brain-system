@@ -1,3 +1,16 @@
+---
+title: TikTok @jonathon.mj 전체 영상 분석
+type: reference
+area: research
+status: completed
+source: youtube
+created: 2026-06-06
+tags:
+  - area/research
+  - type/reference
+  - source/youtube
+  - status/completed
+---
 # TikTok @jonathon.mj 전체 영상 분석
 
 > 수집일: 2026-06-06 | 분석 대상: 공개 영상 39개 전체
