@@ -4,8 +4,8 @@ date: 2026-06-04
 source: daily-plus
 category: command-payload
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 이부장용 daily manifest diff 감지 + hash/멱등성 기반 게이트 publish 자동화 kit
 status: applied
 applied_at: 2026-06-11

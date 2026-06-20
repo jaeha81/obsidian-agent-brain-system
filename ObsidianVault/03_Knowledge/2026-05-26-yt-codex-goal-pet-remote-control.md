@@ -12,7 +12,7 @@ tags:
 - bucky
 - remote-control
 - ai-agent
-- null
+- source/youtube
 status: knowledge
 has_transcript: true
 transcript_file: qMU5CB9M7hI.ko-orig.vtt

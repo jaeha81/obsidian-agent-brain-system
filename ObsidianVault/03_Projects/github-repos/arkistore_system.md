@@ -3,6 +3,8 @@ tags:
   - github
   - project
   - #area/business_model
+  - source/web
+  - type/project
 repo: "https://github.com/jaeha81/arkistore_system"
 language: "Python"
 last_commit: "2026-03-18"

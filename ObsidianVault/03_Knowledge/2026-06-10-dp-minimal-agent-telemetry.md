@@ -4,8 +4,8 @@ date: 2026-06-10
 source: daily-plus
 category: verification
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 최소 에이전트 텔레메트리 — 5개 신호, 이벤트 스키마, 일별 상태 표시 기준
 status: applied
 applied_at: 2026-06-11

@@ -3,7 +3,6 @@ type: knowledge-hub
 created: 2026-05-27
 tags:
 - knowledge-hub
-- null
 summary: Bucky AgentBus Claude Code
 category: research
 status: active

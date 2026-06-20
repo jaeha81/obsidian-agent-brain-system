@@ -13,6 +13,10 @@ tags:
 - install
 - daily-plus
 - knowledge
+- source/today_plus
+- type/reference
+- source/web
+- area/obsidian_brain
 graph_cluster: daily-practice
 ---
 

@@ -11,9 +11,6 @@ approval_source: user (Daily Plus approve action)
 queue_status: registered
 next_action: promote-to-queue-when-priority
 tags:
-- null
-- null
-- null
 summary: PlanSwift SDK 접근 방법과 활용 가능성 판단 — 건축/인테리어 견적 자동화 연결 후보
 category: tool-research
 graph_cluster: planswift

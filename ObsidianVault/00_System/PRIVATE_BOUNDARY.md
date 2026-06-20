@@ -9,8 +9,8 @@ related:
   - ObsidianVault/00_System/LEGACY_SECRET_REVIEW_POLICY_2026-05-30.md
   - ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md
 tags:
-  - "#status/active"
-  - "#area/security"
+  - status/active
+  - area/security
 ---
 
 # _Private 보안 분리 정책 (PRIVATE_BOUNDARY)

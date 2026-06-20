@@ -9,7 +9,6 @@ hubs:
 - Obsidian
 tags:
 - knowledge-bridge
-- null
 graph_cluster: misc
 ---
 

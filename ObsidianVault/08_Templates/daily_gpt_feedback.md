@@ -7,9 +7,9 @@ type: "feedback"
 status: "inbox"
 priority: "p2"
 tags:
-  - "#area/gpt_feedback"
-  - "#type/feedback"
-  - "#source/chatgpt"
+  - area/gpt_feedback
+  - type/feedback
+  - source/chatgpt
 summary: ""
 next_action: ""
 keywords:

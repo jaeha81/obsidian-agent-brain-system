@@ -4,8 +4,8 @@ status: active
 created: 2026-06-18
 owner: Bucky
 tags:
-  - "#status/active"
-  - "#area/knowledge"
+  - status/active
+  - area/knowledge
   - relay
   - llm-wiki
   - pipeline

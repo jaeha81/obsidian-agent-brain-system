@@ -4,8 +4,8 @@ date: 2026-06-03
 source: daily-plus
 category: implementation-candidate
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 이부장 Stripe 웹훅 무결성 처리 — 서명 검증, 멱등성 키 저장, Obsidian 주문 기록, 중복 200 응답 패턴
 status: applied
 applied_at: 2026-06-11

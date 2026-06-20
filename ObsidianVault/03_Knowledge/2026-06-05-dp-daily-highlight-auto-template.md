@@ -4,8 +4,8 @@ date: 2026-06-05
 source: daily-plus
 category: agent-prompting
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 오늘의 하이라이트 자동 생성 템플릿 — 원본 링크 보존, Obsidian 카드 템플릿, 이부장 실행 프롬프트
 status: staged
 applied_at: 2026-06-11

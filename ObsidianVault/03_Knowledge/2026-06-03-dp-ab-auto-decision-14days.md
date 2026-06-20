@@ -4,8 +4,8 @@ date: 2026-06-03
 source: daily-plus
 category: knowledge-candidate
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 14일 30주문 자동 결정 — A/B 실험 자동 종료 및 프로모션 매니페스트, ARPU·전환율 기준으로 B 승격 또는 롤백 자동 판단
 status: applied
 applied_at: 2026-06-11

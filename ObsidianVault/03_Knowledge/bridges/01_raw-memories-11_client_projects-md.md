@@ -8,8 +8,6 @@ hubs:
 - Obsidian
 tags:
 - knowledge-bridge
-- null
-- null
 summary: Claude Code JH System Obsidian
 category: research
 status: active

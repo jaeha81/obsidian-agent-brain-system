@@ -14,7 +14,9 @@ tags:
 - RAG
 - AI-memory
 - prompt-engineering
-- null
+- type/reference
+- source/youtube
+- source/api
 status: knowledge
 has_transcript: false
 summary: 현업이 알려주는 LLM Wiki (Feat. RAG와의 차이)

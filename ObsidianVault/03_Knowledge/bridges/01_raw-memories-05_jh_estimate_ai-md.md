@@ -7,7 +7,6 @@ hubs:
 - Obsidian
 tags:
 - knowledge-bridge
-- null
 summary: JH System Obsidian
 category: research
 status: active

@@ -9,6 +9,7 @@ tags:
 - knowledge
 - hmac
 - idempotency
+- type/reference
 category: knowledge
 status: distilled
 graph_cluster: misc

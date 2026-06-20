@@ -4,8 +4,8 @@ date: 2026-06-09
 source: daily-plus
 category: voice-pipeline
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: JH 완성 패키지 매니페스트 — 비개발자 대상 Beginner/Intermediate/Advanced 3종 상품화 스키마
 status: applied
 applied_at: 2026-06-11

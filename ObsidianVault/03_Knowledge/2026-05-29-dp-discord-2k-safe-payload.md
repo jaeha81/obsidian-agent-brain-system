@@ -13,6 +13,10 @@ tags:
 - idempotency
 - daily-plus
 - knowledge
+- source/today_plus
+- type/reference
+- area/obsidian_brain
+- source/discord
 graph_cluster: daily-practice
 ---
 

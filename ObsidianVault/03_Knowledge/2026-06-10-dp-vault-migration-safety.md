@@ -4,8 +4,8 @@ date: 2026-06-10
 source: daily-plus
 category: verification
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: Vault Migration Safety Checklist — Git/오프라인 아카이브, rsync/Syncthing, 플러그인 상태
   관리 포함
 status: applied

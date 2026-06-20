@@ -7,8 +7,6 @@ tags:
 - stt-upgrade
 - landing-page
 - self-reflection
-- null
-- null
 status: active
 summary: '- 버키는 서브 에이전트들과 함께 사용자 데이터를 흡수, 시스템 품질을 올릴 것'
 category: research

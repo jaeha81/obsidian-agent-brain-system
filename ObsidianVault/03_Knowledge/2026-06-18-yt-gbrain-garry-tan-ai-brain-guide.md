@@ -13,6 +13,8 @@ tags:
 - memory-layer
 - knowledge-graph
 - mcp
+- type/reference
+- source/youtube
 status: knowledge
 has_transcript: true
 graph_cluster: youtube-learning

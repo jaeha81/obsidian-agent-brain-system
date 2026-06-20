@@ -4,8 +4,8 @@ date: 2026-06-04
 source: daily-plus
 category: agent-prompting
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 이부장 역할 수행을 위한 Bucky Discord 워크플로우 명령어 — 게이트 검증, 멱등성, vault 상태 확인 포함
 status: staged
 applied_at: 2026-06-11

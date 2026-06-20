@@ -6,8 +6,8 @@ tags:
 - graph
 - knowledge-bridge
 - galaxy
-- '#area/research'
-- '#status/active'
+- area/research
+- status/active
 category: knowledge
 status: active
 summary: 03_Knowledge, 04_Wiki, 00_System의 핵심 노드를 연결하는 Map of Content. Galaxy Graph

@@ -4,8 +4,8 @@ date: 2026-06-09
 source: daily-plus
 category: verification
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 3개 MVP 7일 런치 플랜 — 비개발자 첫 결제 7일 내 달성, cash flow 중심
 status: applied
 applied_at: 2026-06-11

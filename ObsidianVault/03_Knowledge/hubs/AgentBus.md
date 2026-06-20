@@ -4,8 +4,8 @@ created: 2026-05-27
 updated: 2026-06-08
 tags:
 - knowledge-hub
-- '#area/ai_automation'
-- '#area/research'
+- area/ai_automation
+- area/research
 summary: JH 에이전트 시스템의 메시지 버스 — Bucky/Codex/Claude Code 간 라우팅 허브
 category: research
 status: active

@@ -10,7 +10,6 @@ hubs:
 - Obsidian
 tags:
 - knowledge-bridge
-- null
 summary: Bucky Graphify Claude Code JH System Obsidian
 category: research
 status: active

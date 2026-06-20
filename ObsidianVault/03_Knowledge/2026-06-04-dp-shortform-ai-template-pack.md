@@ -4,8 +4,8 @@ date: 2026-06-04
 source: daily-plus
 category: agent-prompting
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 비개발자 AI 크리에이터용 숏폼 영상 8종 템플릿 팩 — Hook+Body+CTA 구조, 한국어 플랫폼 최적화
 status: staged
 applied_at: 2026-06-11

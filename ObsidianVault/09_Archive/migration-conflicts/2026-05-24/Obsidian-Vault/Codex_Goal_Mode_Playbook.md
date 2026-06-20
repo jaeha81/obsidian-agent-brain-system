@@ -12,6 +12,7 @@ tags:
   - workflow
   - #status/archive
   - #status/active
+  - area/obsidian_brain
 status: active
 ---
 

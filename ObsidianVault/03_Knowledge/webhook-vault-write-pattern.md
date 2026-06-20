@@ -9,6 +9,8 @@ tags:
 - idempotency
 - obsidian
 - knowledge
+- type/reference
+- area/obsidian_brain
 category: knowledge
 status: distilled
 graph_cluster: misc

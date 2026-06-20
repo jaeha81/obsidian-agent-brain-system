@@ -4,8 +4,8 @@ date: 2026-06-02
 source: daily-plus
 category: knowledge-candidate
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: Bucky 09시 보고 fail-safe — 빈 에러 캡처 강화, 실패를 needs-attention 보고로 처리, 기존 비교 보고서
   보호
 status: applied

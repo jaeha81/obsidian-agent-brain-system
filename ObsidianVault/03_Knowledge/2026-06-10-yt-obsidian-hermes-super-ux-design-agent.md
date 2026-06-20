@@ -14,6 +14,9 @@ tags:
 - hermes-agent
 - obsidian
 - markdown
+- type/reference
+- source/youtube
+- area/obsidian_brain
 status: knowledge
 has_transcript: true
 transcript_source: YouTube ko automatic captions via timedtext metadata

@@ -4,8 +4,8 @@ date: 2026-06-04
 source: daily-plus
 category: knowledge-candidate
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: whisper.cpp 온디바이스 STT 엔진 실용 가이드 — 한국어 지원, Discord 봇 통합, 성능 벤치마크
 status: applied
 applied_at: 2026-06-11

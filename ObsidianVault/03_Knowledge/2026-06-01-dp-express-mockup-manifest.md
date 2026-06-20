@@ -13,6 +13,9 @@ tags:
 - manifest
 - daily-plus
 - knowledge
+- source/today_plus
+- type/reference
+- area/obsidian_brain
 graph_cluster: daily-practice
 ---
 

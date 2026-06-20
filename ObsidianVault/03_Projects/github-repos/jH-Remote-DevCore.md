@@ -3,6 +3,8 @@ tags:
   - github
   - project
   - #area/business_model
+  - source/web
+  - type/project
 repo: "https://github.com/jaeha81/jH-Remote-DevCore"
 language: "JavaScript"
 last_commit: "2026-05-16"

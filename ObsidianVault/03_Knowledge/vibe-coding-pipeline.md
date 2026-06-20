@@ -9,7 +9,6 @@ tags:
 - landing-page
 - deployment
 - template
-- null
 status: processed
 summary: YouTube 영상 학습 내용. AI 보조 개발로 기획부터 배포까지 24분 안에 완성하는 워크플로우.
 category: research

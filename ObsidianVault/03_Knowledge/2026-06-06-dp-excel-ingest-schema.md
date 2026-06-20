@@ -4,8 +4,8 @@ date: 2026-06-06
 source: daily-plus
 category: voice-pipeline
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 벤더 목록·음성 캡처·PDF 테이블을 표준 행으로 정규화하는 Excel 인제스트 스키마
 status: applied
 applied_at: 2026-06-11

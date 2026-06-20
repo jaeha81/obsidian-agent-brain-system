@@ -4,8 +4,8 @@ date: 2026-06-09
 source: daily-plus
 category: verification
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 숏폼 훅 5개 + Trigger.dev 콘텐츠 자동화 파이프라인 패턴
 status: applied
 applied_at: 2026-06-11

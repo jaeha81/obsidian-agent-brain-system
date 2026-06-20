@@ -3,7 +3,6 @@ type: knowledge-bridge-index
 created: 2026-05-27
 tags:
 - knowledge-bridge-index
-- null
 summary: JH System Obsidian Bucky Graphify
 category: research
 status: active

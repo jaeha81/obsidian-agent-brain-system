@@ -7,12 +7,13 @@ category: verification
 owner: codex
 status: auto-implemented
 tags:
-- - daily-plus
+- daily-plus
 - auto-implemented
 - minimal
 - agent
 - telemetry
 - signals
+- source/today_plus
 graph_cluster: daily-practice
 ---
 

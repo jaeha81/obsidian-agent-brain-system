@@ -3,6 +3,8 @@ tags:
   - github
   - project
   - #area/business_model
+  - source/web
+  - type/project
 repo: "https://github.com/jaeha81/jh-WishDash"
 language: "TypeScript"
 last_commit: "2026-04-17"

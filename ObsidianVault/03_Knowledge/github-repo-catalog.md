@@ -4,7 +4,8 @@ tags:
 - catalog
 - knowledge
 - agent-reference
-- null
+- type/reference
+- source/web
 created: '2026-05-25'
 updated: '2026-05-25'
 github_user: jaeha81

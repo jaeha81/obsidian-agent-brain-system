@@ -8,7 +8,7 @@ project:
 owner: user
 priority: P2
 tags:
-  - "#status/inbox"
+  - status/inbox
   # - "#department/ai_automation"  # 해당 부문 태그 추가 (TAG_STANDARD §6 참조)
   # - "#source/discord"            # 출처 태그 추가 (TAG_STANDARD §5 참조)
 summary: ""

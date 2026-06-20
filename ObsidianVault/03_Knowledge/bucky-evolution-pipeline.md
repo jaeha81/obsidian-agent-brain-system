@@ -4,7 +4,6 @@ tags:
 - evolution
 - pipeline
 - vibe-coding
-- null
 created: 2026-05-25
 summary: 사용자 입력 (음성/텍스트/링크)
 category: research

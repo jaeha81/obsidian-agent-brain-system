@@ -9,7 +9,6 @@ hubs:
 - Obsidian
 tags:
 - knowledge-bridge
-- null
 summary: Bucky Claude Code JH System Obsidian
 category: research
 status: active

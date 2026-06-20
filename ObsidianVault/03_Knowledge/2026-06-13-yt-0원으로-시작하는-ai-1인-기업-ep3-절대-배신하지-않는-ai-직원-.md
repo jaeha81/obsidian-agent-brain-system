@@ -12,6 +12,8 @@ tags:
 - dashboard-watch
 - youtube
 - discord_watch
+- source/youtube
+- source/discord
 status: knowledge
 has_transcript: false
 transcript_status: none

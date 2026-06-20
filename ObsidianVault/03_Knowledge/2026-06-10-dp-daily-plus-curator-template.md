@@ -4,8 +4,8 @@ date: 2026-06-10
 source: daily-plus
 category: obsidian-queue
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: Daily Plus Curator Copy Template — 오늘의_플러스 카드 복사 템플릿, 견적 PDF 자동화, I-Manager
   curl 트리거
 status: applied

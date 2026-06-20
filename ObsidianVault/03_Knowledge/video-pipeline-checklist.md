@@ -9,6 +9,7 @@ tags:
 - whisper
 - ffmpeg
 - knowledge
+- type/reference
 category: knowledge
 status: distilled
 graph_cluster: misc

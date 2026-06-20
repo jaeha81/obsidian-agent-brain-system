@@ -4,8 +4,8 @@ date: 2026-05-28
 source: daily-plus
 category: agent-prompting
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: Gemini 플래너 + Codex 실행자 패턴 — Planner-Executor 구조로 안전하고 결정론적인 에이전트 협업 설계
 status: staged
 next_action: Bucky 패킷 확인 후 실제 에이전트 프롬프트에 반영

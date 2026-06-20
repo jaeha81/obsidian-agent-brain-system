@@ -9,7 +9,6 @@ hubs:
 - Obsidian
 tags:
 - knowledge-bridge
-- null
 summary: Codex Claude Code JH System Obsidian
 category: research
 status: active

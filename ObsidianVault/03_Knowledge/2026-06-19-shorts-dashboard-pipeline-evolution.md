@@ -4,10 +4,10 @@ project: shorts-dashboard
 date: 2026-06-19
 source: Claude Code Remote Session
 tags:
-- '#project/shorts-dashboard'
-- '#area/monetization'
-- '#area/ai_automation'
-- '#status/implemented'
+- project/shorts-dashboard
+- area/monetization
+- area/ai_automation
+- status/implemented
 graph_cluster: content-shorts
 ---
 

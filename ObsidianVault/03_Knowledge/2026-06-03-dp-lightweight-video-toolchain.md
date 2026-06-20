@@ -4,8 +4,8 @@ date: 2026-06-03
 source: daily-plus
 category: knowledge-candidate
 tags:
-- '#area/ai_automation'
-- '#status/active'
+- area/ai_automation
+- status/active
 summary: 가벼운 영상 도구체인 프롬프트 — ffmpeg, PySceneDetect, whisper.cpp, pyannote를 사용해 NDJSON
   매니페스트 출력하는 오프라인 영상 분석 파이프라인
 status: applied

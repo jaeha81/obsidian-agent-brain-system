@@ -10,6 +10,9 @@ tags:
 - youtube
 - knowledge
 - auto-capture
+- type/reference
+- source/youtube
+- source/api
 status: knowledge
 has_transcript: false
 graph_cluster: youtube-learning

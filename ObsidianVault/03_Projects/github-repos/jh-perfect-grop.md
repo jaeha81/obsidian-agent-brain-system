@@ -3,6 +3,8 @@ tags:
   - github
   - project
   - #area/business_model
+  - source/web
+  - type/project
 repo: "https://github.com/jaeha81/jh-perfect-grop"
 language: "JavaScript"
 last_commit: "2026-04-24"
