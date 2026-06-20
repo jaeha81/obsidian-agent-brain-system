@@ -181,12 +181,58 @@ def lint_l005(path: Path, text: str, fm: Optional[dict]) -> Optional[LintIssue]:
     return None
 
 
+# 구조 검사에 인정할 섹션 헤더 패턴 (정의/근거/예시/개요/요약/배경 등)
+_STRUCTURE_HEADERS = re.compile(
+    r"^#{1,3}\s+.*(정의|근거|예시|개요|요약|배경|결론|활용|사례|소개|목적|방법|효과|원칙|특징|분석|전략|구조|설명)",
+    re.MULTILINE | re.IGNORECASE,
+)
+_ANY_H2 = re.compile(r"^##\s+\S", re.MULTILINE)
+MIN_BODY_CHARS = 200  # 본문 최소 길이 (YAML 제외)
+
+
+def _strip_frontmatter(text: str) -> str:
+    if text.startswith("---"):
+        end = text.find("\n---", 3)
+        if end != -1:
+            return text[end + 4:]
+    return text
+
+
+def lint_l006(path: Path, text: str, fm: Optional[dict]) -> Optional[LintIssue]:
+    """L006: Wiki 콘텐츠 구조 미흡 (섹션 헤더 부족 또는 본문 빈약)."""
+    if fm is None:
+        return None  # L001이 먼저 잡음
+    # 허브 노트는 의도적으로 짧으므로 제외
+    if "hubs" in path.parts:
+        return None
+    body = _strip_frontmatter(text).strip()
+    # 본문이 너무 짧은 경우
+    if len(body) < MIN_BODY_CHARS:
+        return LintIssue(
+            rule="L006",
+            path=path,
+            message=f"본문 {len(body)}자 — 최소 {MIN_BODY_CHARS}자 미달",
+            hint="정의·근거·예시·개요 등 섹션을 추가해 내용을 보강하세요",
+        )
+    # H2 섹션이 하나도 없으면 구조 미흡
+    h2_count = len(_ANY_H2.findall(body))
+    if h2_count == 0:
+        return LintIssue(
+            rule="L006",
+            path=path,
+            message="H2 섹션(##) 없음 — 구조화되지 않은 단순 텍스트",
+            hint="## 정의 / ## 근거 / ## 예시 등 섹션으로 내용을 구조화하세요",
+        )
+    return None
+
+
 LINT_RULES = {
     "L001": lint_l001,
     "L002": lint_l002,
     "L003": lint_l003,
     "L004": lint_l004,
     "L005": lint_l005,
+    "L006": lint_l006,
 }
 
 
@@ -257,6 +303,7 @@ def save_report(report: LintReport, fix_hints: bool = False):
             "L003": "status=draft 90일 이상 미갱신",
             "L004": "고립 노트 (wikilink 없음)",
             "L005": "허용 도메인 외 태그만 사용",
+            "L006": "콘텐츠 구조 미흡 (섹션 헤더 부족·본문 빈약)",
         }
         lines.append(f"## {rule} — {rule_descs.get(rule, '')} ({len(issues)}건)")
         lines.append("")

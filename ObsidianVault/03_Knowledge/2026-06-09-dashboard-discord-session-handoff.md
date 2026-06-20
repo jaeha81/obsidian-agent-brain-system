@@ -95,3 +95,7 @@ Before final answer, report:
 다음 세션에서 아래 문장으로 시작하면 된다:
 
 > `G:\내 드라이브\obsidian-agent-brain-system`에서 `ObsidianVault\03_Knowledge\2026-06-09-dashboard-discord-session-handoff.md`를 읽고, 대시보드->Discord 채널 수신/세션 연속성 런타임 검증을 완료한 뒤 의도한 파일만 커밋/푸쉬해. 불필요한 채널 관련 변경과 미완료 임시파일도 정리해.
+
+## 관련 노트
+
+[[oabs-latent-project-asset-sample]] | [[oabs-second-brain-library-node-map]] | [[2026-06-02-dp-automation-continuity-path]]
