@@ -5,7 +5,7 @@
     { href: '/wishket/',           label: '위시켓' },
     { href: '/daily-plus/',        label: '오늘의플러스' },
     { href: '/task-board/',        label: '태스크보드' },
-    { href: '/claude-code/',       label: '앱세션' },
+    { href: '/claude-code/',       label: 'Claude앱' },
     { href: '/codex/',             label: 'Codex' },
     { href: '/chris/',             label: 'Chris' },
     { href: '/charlie/',           label: 'Charlie' },
