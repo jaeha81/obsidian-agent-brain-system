@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -24,10 +24,10 @@
   * { box-sizing:border-box; }
   body { margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
   header { background:#0f172a; color:#fff; padding:28px clamp(18px,4vw,48px) 24px; }
-  .jh-nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
-  .jh-nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
-  .jh-nav a.active, .jh-nav a:hover { color:#fff; border-color:#60a5fa; }
-  .jh-nav .auth-end { margin-left:auto; }
+  nav { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  nav a { color:#cbd5e1; text-decoration:none; border:1px solid #334155; border-radius:999px; padding:7px 12px; font-size:13px; }
+  nav a.active, nav a:hover { color:#fff; border-color:#60a5fa; }
+  nav .auth-start { margin-left:auto; }
   h1 { margin:0; font-size:clamp(28px,4vw,44px); letter-spacing:0; }
   header p { max-width:920px; color:#cbd5e1; line-height:1.65; margin:12px 0 0; }
   .gen-stamp { display:flex; align-items:baseline; gap:14px; margin-top:20px; padding:14px 20px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:10px; }
@@ -58,28 +58,11 @@
   dl div { display:grid; grid-template-columns:120px 1fr; gap:12px; }
   dt { font-weight:800; color:var(--ink); }
   dd { margin:0; }
-  /* ── Live alert banner ── */
-  #pressure-banner { display:none; position:sticky; top:0; z-index:100; padding:12px clamp(14px,3vw,42px); font-size:14px; font-weight:700; border-bottom:2px solid; }
-  #pressure-banner.critical { background:#fef2f2; color:#991b1b; border-color:#f87171; }
-  #pressure-banner.high { background:#fff7ed; color:#92400e; border-color:#fb923c; }
-  #pressure-banner.moderate { background:#fefce8; color:#713f12; border-color:#fcd34d; }
-  #live-status { font-size:12px; font-weight:400; margin-left:12px; opacity:.8; }
   .official-quota { border-top:1px solid var(--line); padding-top:12px; }
   .quota-title { margin:0 0 10px; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
   .quota-dl { display:grid; gap:6px; margin:0; }
   .quota-dl div { display:grid; grid-template-columns:130px 1fr; gap:8px; }
   .uncollected { color:var(--amber) !important; font-style:italic; }
-  /* ── Total spend & model-stats ── */
-  .spend-grid { display:grid; grid-template-columns:repeat(3,minmax(200px,1fr)); gap:14px; margin-bottom:14px; }
-  .spend-card { border:1px solid var(--line); border-radius:8px; padding:16px; background:#fbfdff; display:grid; gap:6px; }
-  .spend-card .amount { font-size:26px; font-weight:800; color:var(--ink); }
-  .spend-card .label { font-size:12px; color:var(--muted); }
-  .spend-total { border:2px solid var(--blue); background:#eff6ff; }
-  .spend-total .amount { color:var(--blue); }
-  .saving-grid { display:grid; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:12px; }
-  .saving-card { border:1px solid var(--line); border-radius:8px; padding:14px; background:#f0fdf4; }
-  .saving-card strong { display:block; font-size:16px; color:var(--green); }
-  .saving-card span { font-size:12px; color:var(--muted); }
   .ops-grid { display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:12px; }
   .ops-grid div { border:1px solid var(--line); border-radius:8px; background:#fbfdff; padding:14px; }
   .ops-grid strong { display:block; margin-bottom:8px; }
@@ -102,20 +85,23 @@
   footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
   @media (max-width:900px) { .agent-grid, .ops-grid, .guardrails, .bucky-grid, .state-grid { grid-template-columns:1fr; } .metric-grid { grid-template-columns:repeat(2,1fr); } dl div, .quota-dl div { grid-template-columns:1fr; } }
 </style>
-<script src="/shared/nav.js" defer></script>
-<script src="/shared/auth.js"></script>
 </head>
 <body>
-<div id="pressure-banner" role="alert"></div>
 <header>
-  <nav class="jh-nav"></nav>
+  <nav>
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html">위시켓</a>
+    <a href="daily-plus.html">오늘의플러스</a>
+    <a href="ai-usage.html" class="active">AI사용량</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/api/logout">로그아웃</a>
+  </nav>
   <h1>AI Usage 대시보드</h1>
   <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
   <div class="gen-stamp">
     <span class="gen-label">페이지 생성 시각</span>
-    <time class="gen-time">2026-06-12 08:00:36 KST</time>
-    <span class="gen-label" style="margin-left:auto">실시간 압력</span>
-    <span id="live-pressure-badge" style="font-size:14px;font-weight:700;color:#94a3b8">로딩 중…</span>
+    <time class="gen-time">2026-06-20 20:30:53 KST</time>
   </div>
 </header>
 <main>
@@ -127,16 +113,16 @@
           <span>한도 위험</span>
         </div>
         <div class="metric-grid">
-          <div><strong>81</strong><span>세션</span></div>
-          <div><strong>12,418</strong><span>메시지</span></div>
+          <div><strong>232</strong><span>세션</span></div>
+          <div><strong>21,301</strong><span>메시지</span></div>
           <div><strong>100%</strong><span>활성일</span></div>
           <div><strong>100%</strong><span>목표 사용률</span></div>
         </div>
         <div class="bar"><span style="width:100%"></span></div>
         <dl>
-          <div><dt>토큰</dt><dd>총 6,071,927 / 캐시 636,558,286</dd></div>
+          <div><dt>토큰</dt><dd>총 10,315,281 / 캐시 1,119,040,116</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 $0.29 / 메시지당 $0.002</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.10 / 메시지당 $0.001</dd></div>
           <div><dt>운영안</dt><dd>한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다.</dd></div>
         </dl>
         <div class="official-quota">
@@ -157,16 +143,16 @@
           <span>균형</span>
         </div>
         <div class="metric-grid">
-          <div><strong>55</strong><span>세션</span></div>
-          <div><strong>11,952</strong><span>메시지</span></div>
-          <div><strong>100%</strong><span>활성일</span></div>
-          <div><strong>80.9%</strong><span>목표 사용률</span></div>
+          <div><strong>52</strong><span>세션</span></div>
+          <div><strong>6,684</strong><span>메시지</span></div>
+          <div><strong>85.7%</strong><span>활성일</span></div>
+          <div><strong>76.5%</strong><span>목표 사용률</span></div>
         </div>
-        <div class="bar"><span style="width:80.9%"></span></div>
+        <div class="bar"><span style="width:76.5%"></span></div>
         <dl>
           <div><dt>토큰</dt><dd>미수집</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 $0.42 / 메시지당 $0.002</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.45 / 메시지당 $0.003</dd></div>
           <div><dt>운영안</dt><dd>균형: 현재 배분을 유지하면서 작업 단위를 작게 관리합니다.</dd></div>
         </dl>
         <div class="official-quota">
@@ -185,16 +171,16 @@
     <section class="panel">
       <h2>실제 감지 상태</h2>
       <div class="state-grid">
-        <div><strong>670</strong><span>최근 CLI 호출</span></div>
-        <div><strong>54</strong><span>Claude 한도 이벤트</span></div>
-        <div><strong>haiku</strong><span>권장 Claude 모델</span></div>
+        <div><strong>368</strong><span>최근 CLI 호출</span></div>
+        <div><strong>0</strong><span>Claude 한도 이벤트</span></div>
+        <div><strong>sonnet</strong><span>권장 Claude 모델</span></div>
       </div>
-      <p class="note">2026-06-10T10:43:42 · opus · You&#x27;re out of extra usage · resets 11:40am (Asia/Seoul)</p>
+      <p class="note">최근 한도 이벤트 없음</p>
       <table>
         <thead><tr><th>모델</th><th>호출</th><th>성공</th><th>실패</th></tr></thead>
-        <tbody><tr><td>codex-default</td><td>31</td><td>29</td><td>2</td></tr><tr><td>haiku</td><td>23</td><td>14</td><td>9</td></tr><tr><td>opus</td><td>8</td><td>0</td><td>8</td></tr><tr><td>sonnet</td><td>608</td><td>570</td><td>38</td></tr></tbody>
+        <tbody><tr><td>haiku</td><td>161</td><td>161</td><td>0</td></tr><tr><td>opus</td><td>55</td><td>55</td><td>0</td></tr><tr><td>sonnet</td><td>152</td><td>152</td><td>0</td></tr></tbody>
       </table>
-      <p class="note"><strong>Haiku 우선: 상태 확인, 분류, 짧은 요약, 태그/추출은 Haiku로 보내고 Sonnet 절약: 구현, 파일 편집, 테스트 수정, 긴 분석에만 Sonnet을 사용합니다.</strong></p>
+      <p class="note"><strong>Sonnet 기본: 구현과 긴 분석은 Sonnet을 유지하되, 반복 분류/상태 확인은 Haiku로 분리합니다.</strong></p>
     </section>
 
   <section class="panel">
@@ -246,156 +232,23 @@
       <div><strong>한도 fallback</strong><span>막히면 핸드오프를 저장하고 작업을 큐에 넣은 뒤 에이전트를 전환해 다음 리셋 창 이후 재개합니다.</span></div>
     </div>
   </section>
-  <!-- Phase 2-2: 총 AI 구독 비용 통합 뷰 -->
-  <section class="panel" id="section-spend-summary">
-    <h2>총 AI 구독 비용 <small id="spend-updated" style="font-size:12px;font-weight:400;color:var(--muted)"></small></h2>
-    <div class="spend-grid" id="spend-cards">
-      <div class="spend-card"><div class="amount">—</div><div class="label">로딩 중…</div></div>
-    </div>
-    <div id="spend-note" style="font-size:13px;color:var(--muted);margin-top:8px"></div>
-  </section>
-
-  <!-- Phase 3-2: 모델 비용 최적화 통계 -->
-  <section class="panel" id="section-model-stats">
-    <h2>모델 비용 최적화 현황</h2>
-    <div class="spend-grid" id="model-cost-summary">
-      <div class="spend-card"><div class="amount" id="stat-total">—</div><div class="label">추정 누적 비용</div></div>
-      <div class="spend-card spend-total"><div class="amount" id="stat-saving">—</div><div class="label">Haiku 라우팅 절감 가능</div></div>
-      <div class="spend-card"><div class="amount" id="stat-optimized">—</div><div class="label">최적화 후 예상 비용</div></div>
-    </div>
-    <div class="saving-grid" id="saving-cards" style="margin-top:14px"></div>
-    <p class="note" id="model-recommendation" style="margin-top:12px"></p>
-  </section>
-
   <section class="panel">
     <h2>일별 사용량</h2>
     <table>
       <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
-      <tbody><tr><td>2026-06-05</td><td>4s / 151m</td><td>2s / 810m</td></tr>
-<tr><td>2026-06-06</td><td>25s / 2558m</td><td>9s / 2733m</td></tr>
-<tr><td>2026-06-07</td><td>22s / 4621m</td><td>14s / 2148m</td></tr>
-<tr><td>2026-06-08</td><td>6s / 356m</td><td>5s / 316m</td></tr>
-<tr><td>2026-06-09</td><td>8s / 1138m</td><td>3s / 2158m</td></tr>
-<tr><td>2026-06-10</td><td>9s / 2209m</td><td>20s / 2962m</td></tr>
-<tr><td>2026-06-11</td><td>4s / 680m</td><td>2s / 825m</td></tr>
-<tr><td>2026-06-12</td><td>3s / 705m</td><td>0s / 0m</td></tr></tbody>
+      <tbody><tr><td>2026-06-13</td><td>1s / 81m</td><td>0s / 0m</td></tr>
+<tr><td>2026-06-14</td><td>4s / 417m</td><td>1s / 561m</td></tr>
+<tr><td>2026-06-15</td><td>4s / 502m</td><td>4s / 1056m</td></tr>
+<tr><td>2026-06-16</td><td>27s / 4836m</td><td>25s / 2387m</td></tr>
+<tr><td>2026-06-17</td><td>8s / 853m</td><td>2s / 14m</td></tr>
+<tr><td>2026-06-18</td><td>53s / 4650m</td><td>0s / 0m</td></tr>
+<tr><td>2026-06-19</td><td>87s / 4175m</td><td>15s / 1840m</td></tr>
+<tr><td>2026-06-20</td><td>48s / 5787m</td><td>5s / 826m</td></tr></tbody>
     </table>
   </section>
 </main>
 <footer>
-  생성: 2026-06-12 08:00:36 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
+  생성: 2026-06-20 20:30:53 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
-<script src="/auth-ui.js"></script>
-<script>
-(function(){
-  const PRESSURE_LABELS = { critical: '🔴 한도 위험 — 호출 일시 중단 권고', high: '🟠 한도 압력 높음 — 속도 조절 필요', moderate: '🟡 한도 주의 — 사용량 점검', ok: '🟢 정상' };
-  const BADGE_COLORS = { critical: '#ef4444', high: '#f97316', moderate: '#eab308', ok: '#22c55e' };
-
-  function updatePressure(data) {
-    const pressure = data.pressure || 'ok';
-    const note = data.pressure_note || '';
-    const banner = document.getElementById('pressure-banner');
-    const badge = document.getElementById('live-pressure-badge');
-
-    if (badge) {
-      badge.textContent = PRESSURE_LABELS[pressure] || pressure;
-      badge.style.color = BADGE_COLORS[pressure] || '#94a3b8';
-    }
-
-    if (pressure === 'critical' || pressure === 'high' || pressure === 'moderate') {
-      banner.className = pressure;
-      const ts = data.latest_limit_event ? ` (최근 이벤트: ${data.latest_limit_event.timestamp || '—'} ${data.latest_limit_event.model || ''})` : '';
-      banner.innerHTML = `${PRESSURE_LABELS[pressure]}<span id="live-status">${note}${ts}</span>`;
-      banner.style.display = 'block';
-    } else {
-      banner.style.display = 'none';
-    }
-  }
-
-  function fetchPressure() {
-    fetch('/agent-os/spend/remaining', { credentials: 'same-origin' })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) updatePressure(data); })
-      .catch(() => {});
-  }
-
-  fetchPressure();
-  setInterval(fetchPressure, 60000);
-})();
-
-/* ── Phase 2-2: 총 AI 구독 비용 ── */
-(function(){
-  function krwFmt(n){ return n.toLocaleString('ko-KR') + '원'; }
-  function usdFmt(n){ return '$' + n.toFixed(0); }
-
-  function renderSpend(data) {
-    const subs = data.subscriptions || [];
-    const cards = document.getElementById('spend-cards');
-    if (!cards) return;
-
-    let html = '';
-    subs.forEach(s => {
-      const active = s.status === 'active';
-      const dim = active ? '' : 'opacity:.45;';
-      html += `<div class="spend-card" style="${dim}">
-        <div style="font-size:18px">${s.icon || '💳'} ${s.provider}</div>
-        <div class="amount">${usdFmt(s.monthly_usd)}<span style="font-size:13px;font-weight:400;color:var(--muted)">/월</span></div>
-        <div class="label">${s.plan} · ${active ? '활성' : '비활성'} · ≈ ${krwFmt(s.currency_krw || 0)}</div>
-      </div>`;
-    });
-
-    html += `<div class="spend-card spend-total">
-      <div class="label">월 총 구독</div>
-      <div class="amount">${usdFmt(data.total_monthly_usd || 0)}</div>
-      <div class="label">≈ ${krwFmt(data.total_monthly_krw || 0)}</div>
-    </div>`;
-
-    cards.innerHTML = html;
-
-    const upd = document.getElementById('spend-updated');
-    if (upd) upd.textContent = '· ' + (data.updated_at || '').slice(0, 16);
-    const note = document.getElementById('spend-note');
-    if (note && data.note) note.textContent = '📝 ' + data.note;
-  }
-
-  fetch('/agent-os/spend/summary', { credentials: 'same-origin' })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => { if (data) renderSpend(data); })
-    .catch(() => {});
-})();
-
-/* ── Phase 3-2: 모델 비용 최적화 ── */
-(function(){
-  function renderModelStats(data) {
-    const cost = data.cost_estimate || {};
-    const el = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
-    el('stat-total',    '$' + (cost.total_usd || 0).toFixed(2));
-    el('stat-saving',   '$' + (cost.saving_potential_usd || 0).toFixed(2));
-    el('stat-optimized','$' + (cost.optimized_usd || 0).toFixed(2));
-
-    const cards = document.getElementById('saving-cards');
-    if (cards) {
-      const top = data.top_savings || [];
-      if (top.length === 0) {
-        cards.innerHTML = '<p style="color:var(--muted);font-size:13px">CLI 로그 데이터 없음 (cli-tools.jsonl 축적 후 표시)</p>';
-      } else {
-        cards.innerHTML = top.map(s =>
-          `<div class="saving-card">
-            <strong>$${s.potential_saving_usd.toFixed(2)} 절감 가능</strong>
-            <span>${s.model} · ${s.calls}회 → Haiku 전환 시</span>
-          </div>`
-        ).join('');
-      }
-    }
-    const rec = document.getElementById('model-recommendation');
-    if (rec) rec.textContent = data.recommendation || '';
-  }
-
-  fetch('/agent-os/model-stats', { credentials: 'same-origin' })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => { if (data) renderModelStats(data); })
-    .catch(() => {});
-})();
-</script>
 </body>
 </html>
