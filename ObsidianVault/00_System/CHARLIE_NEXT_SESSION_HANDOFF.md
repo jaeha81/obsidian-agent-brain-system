@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-next-session-handoff
 status: active
 created: 2026-06-15
@@ -152,3 +152,6 @@ Before context compression or session exhaustion, the agent must tell the user:
 - Which files preserve the state.
 - What the next session must read.
 - What must not be repeated.
+
+*Related: [[bucky-system-hub]]*
+

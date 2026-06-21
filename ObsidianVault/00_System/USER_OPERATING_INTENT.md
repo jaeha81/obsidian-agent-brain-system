@@ -1,4 +1,4 @@
----
+﻿---
 type: operating-intent
 status: active
 created: 2026-06-15
@@ -149,3 +149,6 @@ Minimum next-session handoff fields:
 - exact user question to ask next
 
 The default automation for this is `python -X utf8 scripts/session_continuity.py`. Session close flows may call `scripts/session_end.py` with `--pending`, `--completed`, `--blocker`, and `--next-read` to create the same durable transfer.
+
+*Related: [[bucky-system-hub]]*
+

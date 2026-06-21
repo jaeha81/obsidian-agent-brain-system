@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-agent-coordination
 status: active
 created: 2026-06-15
@@ -81,3 +81,6 @@ Pause and report if:
 - Agents ignore the user's Daily Plus/GPT to Obsidian feedback loop and behave like the knowledge base is disposable context.
 - Session-end reasons, next-session reading order, and preserved lessons are not recorded before a context-heavy session ends.
 - A report ends without stating the next work directive when unresolved work remains.
+
+*Related: [[bucky-system-hub]]*
+

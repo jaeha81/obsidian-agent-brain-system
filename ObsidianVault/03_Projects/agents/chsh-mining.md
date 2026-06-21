@@ -1,4 +1,4 @@
-# CHSH Mining Bot — Bucky Context Pack
+﻿# CHSH Mining Bot — Bucky Context Pack
 
 > 상태: **활성**  
 > 갱신일: 2026-06-19  
@@ -188,3 +188,6 @@ python main.py --discord
 | Evolution | Claude CLI subprocess | Claude CLI subprocess (동일) |
 | Discord 알림 | 단일 webhook | 4채널 webhook 분리 |
 | 에이전트 추적 | agent_states 테이블 | agent_states 테이블 (동일) |
+
+*Related: [[agents-hub]]*
+

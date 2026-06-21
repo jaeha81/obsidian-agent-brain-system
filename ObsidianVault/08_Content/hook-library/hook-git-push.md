@@ -1,4 +1,4 @@
----
+﻿---
 id: IMPL-RA-07
 type: hook-template
 trigger: git-push
@@ -48,3 +48,6 @@ tags: [#hook, #automation, #git]
 
 ## Trigger.dev Job 참조
 → `scripts/trigger_jobs/job-git-push.js`
+
+*Related: [[technical-patterns-hub]]*
+

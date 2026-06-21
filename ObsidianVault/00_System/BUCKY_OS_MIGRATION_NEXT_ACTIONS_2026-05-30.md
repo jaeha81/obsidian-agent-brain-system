@@ -1,4 +1,4 @@
----
+﻿---
 type: migration-next-actions
 status: active
 owner: Bucky
@@ -52,3 +52,6 @@ python -X utf8 scripts/preflight_check.py
 - Do not quote or copy secret-like source lines into packets.
 - Do not treat old Mneme, rank, or Agent Room docs as current authority.
 - Do not claim raw archive data redaction complete; secret-like legacy files remain quarantined even when their operating-rule decisions are accounted for.
+
+*Related: [[bucky-system-hub]]*
+

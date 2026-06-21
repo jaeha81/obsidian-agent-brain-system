@@ -1,4 +1,4 @@
----
+﻿---
 id: IMPL-RA-10
 type: hook-template
 trigger: session-end
@@ -47,3 +47,6 @@ tags: [#hook, #automation, #session]
 
 ## Trigger.dev Job 참조
 → `scripts/trigger_jobs/job-session-end.js`
+
+*Related: [[technical-patterns-hub]]*
+

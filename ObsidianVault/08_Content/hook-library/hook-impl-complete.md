@@ -1,4 +1,4 @@
----
+﻿---
 id: IMPL-RA-08
 type: hook-template
 trigger: impl-complete
@@ -51,3 +51,6 @@ tags: [#hook, #automation, #implementation]
 
 ## Trigger.dev Job 참조
 → `scripts/trigger_jobs/job-impl-complete.js`
+
+*Related: [[technical-patterns-hub]]*
+

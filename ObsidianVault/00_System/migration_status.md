@@ -1,4 +1,4 @@
----
+﻿---
 tags: [migration, status]
 updated: 2026-05-30
 generated_by: Agent-M (migration_crosscheck)
@@ -197,3 +197,6 @@ G드라이브 내 아카이브로 보존 권장. 이관 필요 시 `09_Archive/g
 4. **05_TASK_LOCKS 이관 여부 결정**: migrator MIGRATION_MAP에 추가 여부를 결정한 후 스크립트 수정.
 
 5. **99_ARCHIVE 정책 결정**: 이관 불필요 시 G드라이브에 보존. 이관 원할 경우 `09_Archive/gdrive-legacy/` 경로로 수동 처리.
+
+*Related: [[bucky-system-hub]]*
+

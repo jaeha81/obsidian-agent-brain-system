@@ -48,6 +48,9 @@ CONVERSATION_URL = f"{API_BASE}/conversation"
 # 페이지당 대화 수 (최대 100)
 PAGE_SIZE = 100
 
+# 런타임에 캡처된 Bearer 토큰 (route 인터셉터로 획득)
+_bearer_token: str | None = None
+
 
 def _cdp_available() -> bool:
     """CDP가 실행 중인지 확인."""
@@ -171,25 +174,28 @@ def build_markdown(conv_meta: dict, messages: list[dict]) -> str:
 async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
     """chatgpt.com API GET 헬퍼.
 
-    CDP 경로에서는 page.evaluate(fetch()) 우선 — 브라우저 실제 쿠키 사용.
+    CDP 경로에서는 page.evaluate(fetch()) 우선 — 브라우저 실제 쿠키 + Bearer 토큰 사용.
     page가 없으면 ctx.request 로 폴백.
     """
+    global _bearer_token
     if page is not None:
         try:
             data = await page.evaluate(
-                """async (u) => {
-                    const r = await fetch(u, {credentials: 'include'});
+                """async ([u, token]) => {
+                    const headers = token ? {Authorization: 'Bearer ' + token} : {};
+                    const r = await fetch(u, {credentials: 'include', headers});
                     if (!r.ok) return null;
                     return await r.json();
                 }""",
-                url,
+                [url, _bearer_token],
             )
             return data  # None이면 호출부에서 처리
         except Exception as e:
             log.warning(f"page.evaluate 실패, ctx.request로 폴백: {e}")
     if ctx is not None:
         try:
-            resp = await ctx.request.get(url, timeout=15000)
+            headers = {"Authorization": f"Bearer {_bearer_token}"} if _bearer_token else {}
+            resp = await ctx.request.get(url, timeout=15000, headers=headers)
             if resp.ok:
                 return await resp.json()
         except Exception as e:
@@ -452,7 +458,9 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 args=["--disable-blink-features=AutomationControlled"],
             )
 
-        # ── chatgpt.com 열린 탭 탐색 (CDP 경로에서 쿠키 보장용)
+        # ── chatgpt.com 열린 탭 탐색 + Bearer 토큰 캡처
+        global _bearer_token
+        _bearer_token = None
         chatgpt_page = None
         if use_cdp:
             for _ctx in browser.contexts:
@@ -464,21 +472,46 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                     break
             if chatgpt_page:
                 log.info(f"chatgpt.com 탭 발견: {chatgpt_page.url[:60]}")
+                # route 인터셉터로 Bearer 토큰 캡처
+                async def _capture_token(route, request):
+                    global _bearer_token
+                    auth = request.headers.get("authorization", "")
+                    if auth.startswith("Bearer ") and not _bearer_token:
+                        _bearer_token = auth[7:]
+                        log.info(f"Bearer 토큰 캡처 완료 ({len(_bearer_token)}자)")
+                    await route.continue_()
+                await chatgpt_page.route("**/backend-api/**", _capture_token)
+                # 페이지 새로고침 → 토큰 포함 요청 발생
+                log.info("chatgpt.com/pulse 새로고침 — Bearer 토큰 대기 중...")
+                await chatgpt_page.goto("https://chatgpt.com/pulse", wait_until="domcontentloaded")
+                await chatgpt_page.wait_for_timeout(4000)
+                if _bearer_token:
+                    log.info("Bearer 토큰 확보 완료")
+                else:
+                    log.warning("Bearer 토큰 미확보 — 일부 API 접근 제한될 수 있음")
             else:
                 log.warning("chatgpt.com 탭 없음 — context.request 폴백 (쿠키 미보장)")
 
-        # ── 세션 확인: page.evaluate(fetch) 우선, 폴백은 context.request
+        # ── 세션 확인: /api/auth/session 우선 (NextAuth), 폴백은 /backend-api/me
         log.info("ChatGPT 세션 확인 중...")
         api_ok = False
         try:
-            _me = await _api_get(f"{API_BASE}/me", page=chatgpt_page, ctx=context)
-            if _me:
-                # 게스트 세션: email 빈 값 + id가 "ua-"로 시작
-                api_ok = bool(_me.get("email")) or not str(_me.get("id", "")).startswith("ua-")
-                if not api_ok:
-                    log.warning(f"게스트 세션 감지 (id={_me.get('id','')[:12]}, email 없음)")
+            _sess = await _api_get("https://chatgpt.com/api/auth/session", page=chatgpt_page, ctx=context)
+            if _sess and _sess.get("user", {}).get("email"):
+                _user = _sess["user"]
+                api_ok = True
+                log.info(f"세션 확인 OK (NextAuth): {_user.get('email')} / {_user.get('id','')[:20]}")
             else:
-                log.warning("세션 확인 실패 (응답 없음)")
+                # 폴백: /backend-api/me (구형 체크 — ua- 접두사 아닌 경우만 ok)
+                _me = await _api_get(f"{API_BASE}/me", page=chatgpt_page, ctx=context)
+                if _me:
+                    api_ok = bool(_me.get("email")) or not str(_me.get("id", "")).startswith("ua-")
+                    if api_ok:
+                        log.info(f"세션 확인 OK (backend-api/me): {_me.get('email')}")
+                    else:
+                        log.warning(f"게스트 세션 감지 (id={_me.get('id','')[:12]}, email 없음)")
+                else:
+                    log.warning("세션 확인 실패 (응답 없음)")
         except Exception as _e:
             log.warning(f"세션 확인 오류: {_e}")
 

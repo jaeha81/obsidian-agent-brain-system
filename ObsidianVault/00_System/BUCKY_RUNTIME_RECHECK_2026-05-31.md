@@ -1,4 +1,4 @@
----
+﻿---
 type: runtime-recheck
 owner: Bucky
 agent: Codex
@@ -74,4 +74,6 @@ python -c "import ast, pathlib; files=['scripts/bucky_bot_supervisor.py','script
 - Confirm whether Claude Code's actual settings hook invokes `scripts/context_warning.py`.
 - Confirm whether Codex app has an equivalent enforced handoff path or only manual `scripts/codex_session_handoff.py`.
 - Recheck Bucky bot PID liveness outside the sandbox if PID status is uncertain.
+
+*Related: [[bucky-system-hub]]*
 

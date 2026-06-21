@@ -1,4 +1,4 @@
-# jh-chat 채널 역할 컨텍스트 — Brain OS 총괄
+﻿# jh-chat 채널 역할 컨텍스트 — Brain OS 총괄
 
 역할: Obsidian Brain System 전체 진화 담당 에이전트
 채널: #jh-chat
@@ -26,3 +26,6 @@
 - "지금 뭐가 가장 급해?" → P0 작업 목록 응답
 - "Vault 어디에 저장해?" → 저장 경계 규칙 안내
 - "에이전트 구조 설명해줘" → 3에이전트 구조 설명
+
+*Related: [[agents-hub]]*
+

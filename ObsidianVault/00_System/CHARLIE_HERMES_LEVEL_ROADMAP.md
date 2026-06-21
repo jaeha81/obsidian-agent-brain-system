@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-hermes-level-roadmap
 status: active
 created: 2026-06-16
@@ -80,3 +80,6 @@ Runtime key:
 - Charlie audit stays deterministic and low-token.
 - Daily Plus/GPT to Obsidian knowledge loop is explicitly protected.
 - The user can see what Charlie knows, what is still open, and what needs approval.
+
+*Related: [[bucky-system-hub]]*
+

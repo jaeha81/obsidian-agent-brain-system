@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-expert-agent-roster
 status: active
 created: 2026-06-16
@@ -53,3 +53,6 @@ Specialists may recommend actions. They do not own approval. User approval is st
 - Changing permissions or force-writing status files.
 - Changing authority documents beyond the user's current request.
 - Assigning work to Claude Code or Bucky.
+
+*Related: [[bucky-system-hub]]*
+

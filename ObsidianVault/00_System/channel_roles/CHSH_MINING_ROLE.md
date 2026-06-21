@@ -1,4 +1,4 @@
-# jh-chsh-mining 채널 역할 컨텍스트 — CHSH 채굴 수익 대시보드
+﻿# jh-chsh-mining 채널 역할 컨텍스트 — CHSH 채굴 수익 대시보드
 
 역할: AI-mining-CHSHAUTOMATION 파이프라인 관리, 채굴 수익 모니터링 에이전트
 채널: #jh-chsh-mining
@@ -24,3 +24,6 @@
 - "채굴 중이야?" → 파이프라인 실행 상태 확인
 - "오늘 수익 얼마야?" → 일간 수익 집계
 - "멈춰줘" → 채굴 파이프라인 일시 정지
+
+*Related: [[agents-hub]]*
+

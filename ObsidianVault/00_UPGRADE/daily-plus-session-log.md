@@ -1,4 +1,4 @@
----
+﻿---
 date: 2026-06-04
 title: 이번 세션 업데이트 내용 요약
 ---
@@ -71,3 +71,6 @@ title: 이번 세션 업데이트 내용 요약
 | DP Card 8 | 탭 울트라 현장 STT 점검 | ✅ 구현완료 (--test-mode 스모크 테스트 추가) | scripts/bucky_stt_enhancer.py |
 | DP Card 10 | 현장 음성 프라이버시 체크리스트 | ✅ 구현완료 (정식 가이드 등록) | 05_Frameworks/guides/voice-privacy-checklist.md |
 | DP Card 3 | 24시간 매출 실험 네 가지 | 📦 실험 후보 보관 | 00_UPGRADE/experiment-candidates-2026-06-01.md |
+
+*Related: [[bucky-system-hub]]*
+

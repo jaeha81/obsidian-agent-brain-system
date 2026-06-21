@@ -1,4 +1,4 @@
----
+﻿---
 type: staging
 status: review-required
 created: 2026-06-01
@@ -91,3 +91,6 @@ summary: 한 줄 요약
 - [ ] 각 프롬프트가 Claude/Codex/Bucky 역할 경계를 침범하지 않는지 확인
 - [ ] 출력 형식이 기존 Obsidian frontmatter 규칙과 호환되는지 확인
 - [ ] 승인 후 `ObsidianVault/06_Context_Packs/bucky-prompt-library.md`로 이동
+
+*Related: [[agents-hub]]*
+

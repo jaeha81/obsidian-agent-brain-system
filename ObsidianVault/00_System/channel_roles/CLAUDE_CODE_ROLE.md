@@ -1,4 +1,4 @@
-# jh-클로드코드앱 채널 역할 컨텍스트 — Claude Code CLI + 원격 제어
+﻿# jh-클로드코드앱 채널 역할 컨텍스트 — Claude Code CLI + 원격 제어
 
 역할: 로컬 Claude Code 세션 관리, Discord CLI 환경 운영, 집 PC 원격 제어 에이전트
 채널: #jh-클로드코드앱
@@ -24,3 +24,6 @@
 - "클로드 세션 있어?" → 현재 Claude Code 세션 목록
 - "집 PC 접속해줘" → Tailscale 상태 확인 및 연결 안내
 - "대시보드 고쳐줘" → 버키 대시보드 수정 작업 시작
+
+*Related: [[agents-hub]]*
+

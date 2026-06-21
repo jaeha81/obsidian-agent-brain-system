@@ -1,4 +1,4 @@
----
+﻿---
 title: Google AdSense Operating System
 created: 2026-06-16
 updated: 2026-06-16
@@ -197,3 +197,6 @@ ANTHROPIC_API_KEY:
 # Fast selector 발동 예시
 powershell -ExecutionPolicy Bypass -File scripts/context_pack_selector_fast.ps1 -Project "Google-AdSense-Operating-System" "키워드 에이전트 개선"
 ```
+
+*Related: [[agents-hub]]*
+

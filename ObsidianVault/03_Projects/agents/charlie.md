@@ -1,4 +1,4 @@
----
+﻿---
 type: agent-role
 agent: Charlie
 status: active
@@ -101,3 +101,6 @@ Reports should answer:
 ## Coordination Protocol
 
 Agent coordination details live in `ObsidianVault/00_System/CHARLIE_AGENT_COORDINATION.md`.
+
+*Related: [[agents-hub]]*
+

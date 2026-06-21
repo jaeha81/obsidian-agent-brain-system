@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-session-handoff-template
 status: active
 created: 2026-06-15
@@ -93,3 +93,6 @@ Charlie/Codex/Bucky must ask the user which number to continue before starting u
 ## Compression Ban
 
 Do not rely on chat compression to transfer operating state. Write a durable handoff node and update `ObsidianVault/00_System/CHARLIE_NEXT_SESSION_HANDOFF.md` before moving sessions.
+
+*Related: [[bucky-system-hub]]*
+

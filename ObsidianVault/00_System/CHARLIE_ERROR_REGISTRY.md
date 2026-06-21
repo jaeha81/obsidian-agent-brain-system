@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-error-registry
 status: active
 created: 2026-06-15
@@ -25,3 +25,6 @@ This registry records system-level errors and recurrence rules for the Obsidian 
 ## Repeat Pattern Rule
 
 When the same symptom appears twice, Charlie reports it as `[반복 패턴 경보]` and proposes a prevention rule.
+
+*Related: [[bucky-system-hub]]*
+

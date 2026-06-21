@@ -1,4 +1,4 @@
----
+﻿---
 type: charlie-change-log
 status: active
 created: 2026-06-15
@@ -30,3 +30,6 @@ Charlie records system-level changes that may affect stability, authority, routi
 ## Policy
 
 Charlie does not block normal improvements. Charlie records and reports changes when they affect authority, runtime confidence, user intent, or repeat-error prevention.
+
+*Related: [[bucky-system-hub]]*
+

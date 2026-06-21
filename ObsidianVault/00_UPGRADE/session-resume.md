@@ -1,4 +1,4 @@
----
+﻿---
 type: session-resume
 last_updated: 2026-05-27
 context_budget: minimal
@@ -182,3 +182,6 @@ G:\내 드라이브\obsidian-agent-brain-system 에서 이어가세요.
 금지: AgentBus queue 이동/삭제/재시도/아카이브 금지.
 목표: Discord voice E2E 증거 또는 Gemini key 여부만 확인하고, 가능한 작업만 진행.
 ```
+
+*Related: [[bucky-system-hub]]*
+
