@@ -75,6 +75,7 @@ jobs:
         id: diff
         run: |
           git add docs/index.html docs/wishket.html docs/daily-plus.html \
+            "docs/wishket/index.html" "docs/daily-plus/index.html" \
             ObsidianVault/10_AgentBus/wishket_inbox/ \
             ObsidianVault/10_AgentBus/outbox/ \
             ObsidianVault/10_AgentBus/reports/ \
