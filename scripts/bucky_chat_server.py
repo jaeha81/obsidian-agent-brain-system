@@ -69,7 +69,19 @@ PUBLIC_PATHS = {
     "/favicon.ico",
     "/manifest.json",
     "/sw.js",
+    "/bni-proposal.html",
+    "/bni-proposal.data.json",
+    "/portfolio/state",
 }
+
+PORTFOLIO_STATE_PATH = ROOT / "data" / "portfolio_state.json"
+
+
+def _portfolio_published() -> bool:
+    try:
+        return bool(json.loads(PORTFOLIO_STATE_PATH.read_text(encoding="utf-8")).get("published", True))
+    except Exception:
+        return True
 PUBLIC_PREFIXES = ("/icons/",)
 PROTECTED_API_PATHS = {
     "/chat",
@@ -546,6 +558,48 @@ def dispatch_collab_inquiry_codex_review(request_id: str):
         },
     )
     return jsonify({"status": "ok", "request_id": request_id, "codex_path": str(review_path)}), 200
+
+
+@app.get("/bni-proposal.html")
+def serve_bni_proposal():
+    if not _portfolio_published() and not _is_authenticated_request():
+        placeholder = (
+            "<!DOCTYPE html><html lang='ko'><head><meta charset='UTF-8'>"
+            "<meta name='viewport' content='width=device-width,initial-scale=1.0'>"
+            "<title>이재하 — 준비 중</title>"
+            "<style>body{font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;"
+            "justify-content:center;min-height:100vh;margin:0;background:#f5f4f1;color:#0a0a0b}"
+            ".wrap{text-align:center}.title{font-size:20px;font-weight:700;margin-bottom:8px}"
+            ".sub{font-size:13px;color:#6b7280}</style></head><body>"
+            "<div class='wrap'><div class='title'>이재하</div>"
+            "<div class='sub'>현재 소개 페이지를 준비 중입니다.</div></div></body></html>"
+        )
+        return placeholder, 200, {"Content-Type": "text/html; charset=utf-8"}
+    return send_from_directory(DOCS_DIR, "bni-proposal.html")
+
+
+@app.get("/portfolio/state")
+def get_portfolio_state():
+    return jsonify({"published": _portfolio_published()})
+
+
+@app.post("/portfolio/visibility")
+def set_portfolio_visibility():
+    if not _is_authenticated_request():
+        return jsonify({"error": "authentication required"}), 401
+    data = request.get_json(silent=True) or {}
+    published = bool(data.get("published"))
+    state = {"published": published}
+    PORTFOLIO_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PORTFOLIO_STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    queue_file = _enqueue_dashboard_payload({
+        "dashboard_type": "user_portfolio",
+        "action": "visibility_toggle",
+        "published": published,
+        "title": "소개 페이지 공개 상태 변경",
+        "summary": f"소개 페이지가 {'공개' if published else '비공개'}로 변경되었습니다.",
+    })
+    return jsonify({"status": "ok", "published": published, "queue_file": queue_file}), 200
 
 
 @app.route("/tablet-intake", methods=["OPTIONS"])

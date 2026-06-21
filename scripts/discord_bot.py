@@ -3926,6 +3926,34 @@ async def _handle_jh_tasks(message: Message) -> None:
             await message.channel.send(f"⚠️ 오류: {e}")
         return
 
+    if content == "!portfolio-approve":
+        import json as _json3
+        _root_pa = Path(__file__).resolve().parent.parent
+        _pending_pa = _root_pa / "data" / "portfolio_pending_content.json"
+        _data_pa = _root_pa / "docs" / "bni-proposal.data.json"
+        if not _pending_pa.exists():
+            await message.channel.send("⚠️ 대기 중인 콘텐츠 변경이 없습니다.")
+            return
+        try:
+            pending = _json3.loads(_pending_pa.read_text(encoding="utf-8"))
+            fields = pending.get("fields") or {}
+            existing = {}
+            if _data_pa.exists():
+                existing = _json3.loads(_data_pa.read_text(encoding="utf-8"))
+            backup_pa = _root_pa / "data" / "portfolio_data_backup.json"
+            backup_pa.write_text(_json3.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
+            existing.update(fields)
+            _data_pa.write_text(_json3.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
+            _pending_pa.unlink()
+            lines = ["✅ **소개 페이지 콘텐츠 반영 완료**"]
+            for k, v in fields.items():
+                lines.append(f"- `{k}`: {str(v)[:120]}")
+            lines.append(f"- 백업: `data/portfolio_data_backup.json`")
+            await message.channel.send("\n".join(lines))
+        except Exception as _e:
+            await message.channel.send(f"⚠️ 반영 실패: {_e}")
+        return
+
     if content.startswith("!reject ") or content.startswith("!거절 "):
         parts = content.split(None, 2)
         key = parts[1].strip() if len(parts) > 1 else ""
@@ -4687,16 +4715,17 @@ class BuckyDiscordBot(discord.Client):
         _failed_dir = _queue_dir / "failed"
 
         _channel_map = {
-            "repo":        lambda: JH_REPO_DASHBOARD_CHANNEL_ID,
-            "wishket":     lambda: JH_WISHKET_CHANNEL_ID,
-            "kmong":       lambda: JH_KMONG_CHANNEL_ID,
-            "collab":      lambda: JH_MYINTRO_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
-            "daily_plus":  lambda: JH_DAILYPLUS_CHANNEL_ID,
-            "task_board":  lambda: JH_TASKBOARD_CHANNEL_ID,
-            "taskboard":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
-            "checklist":   lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
+            "repo":          lambda: JH_REPO_DASHBOARD_CHANNEL_ID,
+            "wishket":       lambda: JH_WISHKET_CHANNEL_ID,
+            "kmong":         lambda: JH_KMONG_CHANNEL_ID,
+            "collab":        lambda: JH_MYINTRO_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
+            "user_portfolio":lambda: JH_MYINTRO_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
+            "daily_plus":    lambda: JH_DAILYPLUS_CHANNEL_ID,
+            "task_board":    lambda: JH_TASKBOARD_CHANNEL_ID,
+            "taskboard":     lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: task-board.html
+            "checklist":     lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
             "knowledge_intake": lambda: JH_CHRIS_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
-            "charlie":     lambda: JH_CHARLIE_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
+            "charlie":       lambda: JH_CHARLIE_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
         }
 
         print("[IntakeConsumer] 시작", flush=True)
@@ -4817,6 +4846,38 @@ class BuckyDiscordBot(discord.Client):
             return
 
         if await _handle_collab_proposal_approval_payload(payload, channel):
+            return
+
+        if dashboard_type == "user_portfolio" and channel:
+            import datetime as _dt
+            if action == "visibility_toggle":
+                published = bool(payload.get("published"))
+                state_str = "공개" if published else "비공개"
+                await channel.send(
+                    f"📢 **[소개 페이지 공개 상태 변경]** → `{state_str}`\n"
+                    f"- 변경 시각: {_dt.datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+                    f"- 적용: 즉시 반영 (승인 게이트 면제)"
+                )
+                return
+            if action == "content_edit":
+                fields = payload.get("fields") or {}
+                _ROOT = Path(__file__).resolve().parent.parent
+                _data_path = _ROOT / "docs" / "bni-proposal.data.json"
+                _pending_path = _ROOT / "data" / "portfolio_pending_content.json"
+                try:
+                    import json as _json2
+                    _pending_path.parent.mkdir(parents=True, exist_ok=True)
+                    _pending_path.write_text(_json2.dumps({"fields": fields, "request_id": request_id}, ensure_ascii=False, indent=2), encoding="utf-8")
+                except Exception as _e:
+                    print(f"[user_portfolio] pending 저장 실패: {_e}", flush=True)
+                lines = ["**[소개 페이지 콘텐츠 편집 요청]** — 검수 후 승인 필요"]
+                for k, v in fields.items():
+                    lines.append(f"- `{k}`: {str(v)[:200]}")
+                lines.append("")
+                lines.append("승인: `!portfolio-approve` 입력 시 반영됩니다.")
+                await channel.send("\n".join(lines))
+                return
+            await channel.send(f"[소개 페이지 관리] action: `{action}` 수신됨 (`request_id`: {request_id[:12]})")
             return
 
         if dashboard_type == "kmong" and channel:

@@ -294,6 +294,32 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
   .reveal{opacity:1;transform:none}
   @page{size:A4;margin:10mm}
 }
+
+/* ── Admin Nav ── */
+#admin-nav{position:fixed;bottom:0;left:0;right:0;z-index:2000;background:var(--ink-mid);border-top:2px solid var(--gold);padding:10px 20px;display:none;align-items:center;gap:12px;flex-wrap:wrap}
+#admin-nav.visible{display:flex}
+.admin-nav-label{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-right:4px;white-space:nowrap}
+.admin-nav-status{font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap}
+.admin-nav-btn{padding:6px 14px;background:var(--gold);color:var(--ink);border:none;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap}
+.admin-nav-btn:hover{background:var(--gold-lt)}
+.admin-nav-btn.secondary{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1)}
+.admin-nav-btn.secondary:hover{background:rgba(255,255,255,.1)}
+/* ── Admin Content Panel ── */
+#admin-content-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2999}
+#admin-content-panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3000;background:var(--ink-mid);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:28px;width:min(480px,90vw);max-height:80vh;overflow:auto}
+.acp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.acp-title{font-size:14px;font-weight:700;color:var(--white)}
+.acp-close{background:none;border:none;color:rgba(255,255,255,.45);cursor:pointer;font-size:20px;line-height:1;padding:0}
+.acp-field{margin-bottom:14px}
+.acp-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-bottom:6px}
+.acp-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;color:var(--white);font-size:13px;padding:8px 12px;resize:vertical;box-sizing:border-box;font-family:inherit}
+.acp-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.acp-note{font-size:10px;color:rgba(255,255,255,.28);margin-top:10px}
+/* ── Inbox action buttons ── */
+.inbox-actions{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+.inbox-act-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;color:rgba(255,255,255,.6);cursor:pointer;font-size:12px;padding:3px 7px;transition:background .15s}
+.inbox-act-btn:hover{background:rgba(255,255,255,.1)}
+.inbox-act-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;color:rgba(255,255,255,.6);font-size:11px;padding:3px 6px;cursor:pointer}
 </style>
 <script src="/shared/auth.js"></script>
 </head>
@@ -528,16 +554,11 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
 </section>
 
 <!-- ── Client Inquiry Inbox ── -->
-<section id="inbox" class="section reveal">
+<section id="inbox" class="section reveal" style="display:none">
   <p class="section-eyebrow">Client Inbox</p>
   <h2 class="section-title">의뢰 인박스</h2>
-  <p class="section-sub">이 소개 페이지를 통해 들어온 고객 의뢰를 한눈에 확인합니다. 현재 샘플 데이터로 구성되어 있으며, Gmail 연동 시 실제 수신 의뢰가 자동으로 이 화면에 표시됩니다.</p>
-  <div class="inbox-stats-row">
-    <div class="inbox-stat-card"><span class="inbox-stat-num">5</span><span class="inbox-stat-label">총 의뢰 건수</span></div>
-    <div class="inbox-stat-card"><span class="inbox-stat-num">3</span><span class="inbox-stat-label">이번 달 수신</span></div>
-    <div class="inbox-stat-card"><span class="inbox-stat-num">3</span><span class="inbox-stat-label">검토 완료</span></div>
-    <div class="inbox-stat-card"><span class="inbox-stat-num" style="color:var(--gold)">2</span><span class="inbox-stat-label">답변 대기</span></div>
-  </div>
+  <p class="section-sub">이 소개 페이지를 통해 들어온 고객 의뢰를 확인합니다. 인증된 관리자만 열람 가능합니다.</p>
+  <div class="inbox-stats-row" id="inbox-stats-live"></div>
   <div class="inbox-panel">
     <div class="inbox-toolbar">
       <span class="inbox-toolbar-title">
@@ -546,57 +567,8 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
       </span>
       <span class="inbox-gmail-note"><span class="gmail-dot"></span>Gmail 연동 준비 중</span>
     </div>
-    <div class="inbox-list">
-      <div class="inbox-item unread">
-        <div class="inbox-unread-dot"></div>
-        <div class="inbox-sender-col"><div class="inbox-sender-name">김민준 대표</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
-        <div class="inbox-subject-col">
-          <div class="inbox-subject-line">AI 자동화 컨설팅 협업 제안 드립니다</div>
-          <div class="inbox-preview-text">저희 회사에서 반복되는 견적·스케줄 업무를 자동화하고 싶습니다. AI 에이전트 도입 가능성에 대해 미팅 요청드립니다.</div>
-        </div>
-        <span class="inbox-type-badge collab">협업 제안</span>
-        <span class="inbox-item-date">2026-06-10</span>
-      </div>
-      <div class="inbox-item unread">
-        <div class="inbox-unread-dot"></div>
-        <div class="inbox-sender-col"><div class="inbox-sender-name">박서연</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
-        <div class="inbox-subject-col">
-          <div class="inbox-subject-line">사무실 인테리어 리모델링 견적 문의</div>
-          <div class="inbox-preview-text">서울 강남구 사무실 150평 리모델링을 계획 중입니다. 현장 방문 견적 일정을 협의하고 싶습니다.</div>
-        </div>
-        <span class="inbox-type-badge estimate">견적·의뢰</span>
-        <span class="inbox-item-date">2026-06-09</span>
-      </div>
-      <div class="inbox-item read">
-        <div class="inbox-unread-dot"></div>
-        <div class="inbox-sender-col"><div class="inbox-sender-name">이현우 팀장</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
-        <div class="inbox-subject-col">
-          <div class="inbox-subject-line">부동산 중개업무 AI 자동화 시스템 구축 문의</div>
-          <div class="inbox-preview-text">매물 관리와 고객 응대를 자동화할 수 있는지 확인하고 싶습니다. Wishket 프로필을 통해 소개 받았습니다.</div>
-        </div>
-        <span class="inbox-type-badge ai">AI 자동화</span>
-        <span class="inbox-item-date">2026-06-07</span>
-      </div>
-      <div class="inbox-item read">
-        <div class="inbox-unread-dot"></div>
-        <div class="inbox-sender-col"><div class="inbox-sender-name">최지영</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
-        <div class="inbox-subject-col">
-          <div class="inbox-subject-line">32평 아파트 주거 공간 전체 설계 의뢰</div>
-          <div class="inbox-preview-text">내년 초 입주 예정 아파트 인테리어 전체 설계를 맡기고 싶습니다. 모던 미니멀 스타일을 선호합니다.</div>
-        </div>
-        <span class="inbox-type-badge interior">인테리어·건축</span>
-        <span class="inbox-item-date">2026-06-05</span>
-      </div>
-      <div class="inbox-item read">
-        <div class="inbox-unread-dot"></div>
-        <div class="inbox-sender-col"><div class="inbox-sender-name">정유나 PD</div><div class="inbox-sender-src">소개 페이지 폼</div></div>
-        <div class="inbox-subject-col">
-          <div class="inbox-subject-line">AI 콘텐츠 파이프라인 공동 제작 제안</div>
-          <div class="inbox-preview-text">유튜브 채널 콘텐츠 기획·제작을 AI로 자동화하는 프로젝트에 함께하고 싶습니다. 비개발자 AI 채널 협업 제안입니다.</div>
-        </div>
-        <span class="inbox-type-badge collab">협업 제안</span>
-        <span class="inbox-item-date">2026-06-02</span>
-      </div>
+    <div class="inbox-list" id="inbox-list-live">
+      <div style="padding:20px;text-align:center;color:var(--ink-light);font-size:13px">불러오는 중...</div>
     </div>
   </div>
 </section>
@@ -662,13 +634,44 @@ body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--stone);color
           문의 보내기
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
-        <a href="collab-admin.html" style="display:inline-block;margin-top:12px;color:var(--gold-lt);font-size:12px;text-decoration:none">협업문의 관리자</a>
       </form>
     </div>
   </div>
 </div>
 
 </main>
+
+<!-- ── Admin Nav (인증 시만 표시) ── -->
+<div id="admin-nav" role="toolbar" aria-label="관리자 도구">
+  <span class="admin-nav-label">관리자</span>
+  <span class="admin-nav-status" id="admin-publish-badge">상태 확인 중...</span>
+  <button class="admin-nav-btn" id="admin-toggle-btn" onclick="adminToggleVisibility()">공개 전환</button>
+  <button class="admin-nav-btn secondary" onclick="adminToggleContentPanel()">콘텐츠 편집</button>
+  <a href="collab-admin.html" class="admin-nav-btn secondary" style="text-decoration:none">의뢰 관리</a>
+  <button class="admin-nav-btn secondary" onclick="adminScrollToInbox()">인박스</button>
+</div>
+
+<!-- ── Admin Content Edit Panel ── -->
+<div id="admin-content-overlay" onclick="adminToggleContentPanel()"></div>
+<div id="admin-content-panel" role="dialog" aria-modal="true" aria-label="콘텐츠 편집">
+  <div class="acp-header">
+    <span class="acp-title">소개서 콘텐츠 편집</span>
+    <button class="acp-close" onclick="adminToggleContentPanel()">×</button>
+  </div>
+  <div class="acp-field">
+    <label class="acp-label">핵심 태그라인 (줄바꿈: 엔터)</label>
+    <textarea class="acp-textarea" id="admin-tagline" rows="2"></textarea>
+  </div>
+  <div class="acp-field">
+    <label class="acp-label">서브 설명</label>
+    <textarea class="acp-textarea" id="admin-sub" rows="3"></textarea>
+  </div>
+  <div class="acp-footer">
+    <button class="admin-nav-btn secondary" onclick="adminToggleContentPanel()">취소</button>
+    <button class="admin-nav-btn" onclick="adminSubmitContentEdit()">검수 요청 전송</button>
+  </div>
+  <p class="acp-note">* #jh-내소개 채널로 검수 요청이 전송됩니다. 채널에서 승인 후 반영됩니다.</p>
+</div>
 
 <footer class="footer">
   <span class="footer-left">이재하 — AI × 건축 전문가 소개</span>
@@ -753,6 +756,151 @@ backdrop.addEventListener('click',closeNav);
 
 /* ── Portfolio: block right-click on demo images ── */
 document.querySelectorAll('.portfolio-img').forEach(img=>{img.addEventListener('contextmenu',e=>e.preventDefault())});
+
+/* ── Admin: helpers ── */
+const COLLAB_BASE='http://127.0.0.1:8765';
+function _getCookie(n){const m=document.cookie.match('(?:^|; )'+n+'=([^;]*)');return m?decodeURIComponent(m[1]):null}
+function _isAuthed(){return !!(_getCookie('bucky_auth'))}
+
+/* ── Admin: init ── */
+async function adminInit(){
+  if(!_isAuthed())return;
+  document.getElementById('admin-nav').classList.add('visible');
+  document.body.style.paddingBottom='52px';
+  await adminLoadPortfolioState();
+  await adminLoadInbox();
+  await adminLoadContentData();
+}
+
+/* ── Phase 4: Portfolio state & toggle ── */
+async function adminLoadPortfolioState(){
+  try{
+    const res=await fetch(COLLAB_BASE+'/portfolio/state',{credentials:'include'});
+    const d=await res.json();
+    const pub=d.published!==false;
+    const badge=document.getElementById('admin-publish-badge');
+    const btn=document.getElementById('admin-toggle-btn');
+    if(badge){badge.textContent='현재: '+(pub?'공개':'비공개');badge.style.color=pub?'#4ade80':'rgba(255,100,100,.8)'}
+    if(btn){btn.textContent=pub?'비공개로 전환':'공개로 전환';btn.dataset.target=pub?'false':'true'}
+  }catch(e){console.warn('[admin] portfolio/state 실패:',e)}
+}
+async function adminToggleVisibility(){
+  const btn=document.getElementById('admin-toggle-btn');
+  const target=btn&&btn.dataset.target==='true';
+  try{
+    const res=await fetch(COLLAB_BASE+'/portfolio/visibility',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({published:target})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    await adminLoadPortfolioState();
+  }catch(e){alert('공개 상태 변경 실패: '+e.message)}
+}
+
+/* ── Phase 1: Inbox live ── */
+async function adminLoadInbox(){
+  const section=document.getElementById('inbox');
+  const listEl=document.getElementById('inbox-list-live');
+  const statsEl=document.getElementById('inbox-stats-live');
+  if(!section||!listEl)return;
+  section.style.display='';
+  try{
+    const res=await fetch(COLLAB_BASE+'/collab/inquiries',{credentials:'include'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    const items=(d.items||[]);
+    const now=new Date().toISOString().slice(0,7);
+    const total=items.length;
+    const thisMonth=items.filter(i=>(i.created_at||'').startsWith(now)).length;
+    const reviewed=items.filter(i=>i.status&&i.status!=='new').length;
+    const pending=items.filter(i=>!i.status||i.status==='new').length;
+    if(statsEl)statsEl.innerHTML=`
+      <div class="inbox-stat-card"><span class="inbox-stat-num">${total}</span><span class="inbox-stat-label">총 의뢰 건수</span></div>
+      <div class="inbox-stat-card"><span class="inbox-stat-num">${thisMonth}</span><span class="inbox-stat-label">이번 달 수신</span></div>
+      <div class="inbox-stat-card"><span class="inbox-stat-num">${reviewed}</span><span class="inbox-stat-label">검토 완료</span></div>
+      <div class="inbox-stat-card"><span class="inbox-stat-num" style="color:var(--gold)">${pending}</span><span class="inbox-stat-label">답변 대기</span></div>`;
+    if(!items.length){listEl.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink-light);font-size:13px">수신된 의뢰가 없습니다.</div>';return}
+    listEl.innerHTML=items.map(item=>{
+      const isNew=!item.status||item.status==='new';
+      const t=item.inquiry_type||'';
+      const cls=t.includes('협업')?'collab':t.includes('견적')?'estimate':t.includes('AI')?'ai':t.includes('인테리어')||t.includes('건축')?'interior':'collab';
+      const typeLabel=t||'기타';
+      const rid=item.request_id||'';
+      return `<div class="inbox-item ${isNew?'unread':'read'}">
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-sender-col"><div class="inbox-sender-name">${item.name||'(이름 없음)'}</div><div class="inbox-sender-src">${item.source||'소개 페이지 폼'}</div></div>
+        <div class="inbox-subject-col">
+          <div class="inbox-subject-line">${item.summary||'(제목 없음)'}</div>
+          <div class="inbox-preview-text">${(item.body||'').slice(0,120)}</div>
+        </div>
+        <span class="inbox-type-badge ${cls}">${typeLabel}</span>
+        <span class="inbox-item-date">${(item.created_at||'').slice(0,10)}</span>
+        <div class="inbox-actions">
+          <button class="inbox-act-btn" onclick="adminDispatchToDiscord('${rid}')" title="Discord 전송">전송</button>
+          <select class="inbox-act-select" onchange="adminSetStatus('${rid}',this.value);this.value=''">
+            <option value="">상태▾</option>
+            <option value="review">검토중</option>
+            <option value="approved">승인</option>
+            <option value="rejected">거절</option>
+          </select>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){if(listEl)listEl.innerHTML=`<div style="padding:20px;text-align:center;color:var(--ink-light);font-size:13px">의뢰 불러오기 실패: ${e.message}</div>`}
+}
+async function adminDispatchToDiscord(rid){
+  try{
+    const res=await fetch(`${COLLAB_BASE}/collab/inquiries/${rid}/discord-dispatch`,{method:'POST',credentials:'include'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    alert('#jh-내소개 채널로 전송했습니다.');
+  }catch(e){alert('전송 실패: '+e.message)}
+}
+async function adminSetStatus(rid,status){
+  if(!rid||!status)return;
+  try{
+    const res=await fetch(`${COLLAB_BASE}/collab/inquiries/${rid}/status`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    adminLoadInbox();
+  }catch(e){alert('상태 변경 실패: '+e.message)}
+}
+function adminScrollToInbox(){const el=document.getElementById('inbox');if(el){el.style.display='';el.scrollIntoView({behavior:'smooth'})}}
+
+/* ── Phase 3: Content edit ── */
+async function adminLoadContentData(){
+  try{
+    const res=await fetch('/bni-proposal.data.json');
+    if(!res.ok)return;
+    const d=await res.json();
+    const tEl=document.getElementById('admin-tagline');
+    const sEl=document.getElementById('admin-sub');
+    if(tEl&&d.hero_tagline)tEl.value=d.hero_tagline.replace(/<br>/g,'\n');
+    if(sEl&&d.hero_sub)sEl.value=d.hero_sub;
+    const taglinePageEl=document.querySelector('.hero-tagline');
+    if(taglinePageEl&&d.hero_tagline)taglinePageEl.innerHTML=d.hero_tagline;
+    const subPageEl=document.querySelector('.hero-sub');
+    if(subPageEl&&d.hero_sub)subPageEl.textContent=d.hero_sub;
+  }catch(e){console.warn('[admin] content data 실패:',e)}
+}
+function adminToggleContentPanel(){
+  const panel=document.getElementById('admin-content-panel');
+  const overlay=document.getElementById('admin-content-overlay');
+  const open=panel&&panel.style.display==='block';
+  if(panel)panel.style.display=open?'none':'block';
+  if(overlay)overlay.style.display=open?'none':'block';
+}
+async function adminSubmitContentEdit(){
+  const tagline=(document.getElementById('admin-tagline')?.value||'').trim();
+  const sub=(document.getElementById('admin-sub')?.value||'').trim();
+  if(!tagline&&!sub){alert('변경 내용이 없습니다.');return}
+  const fields={};
+  if(tagline)fields.hero_tagline=tagline.replace(/\n/g,'<br>');
+  if(sub)fields.hero_sub=sub;
+  try{
+    const res=await fetch(COLLAB_BASE+'/intake',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({dashboard_type:'user_portfolio',action:'content_edit',title:'소개 페이지 콘텐츠 편집 요청',summary:'콘텐츠 편집: '+Object.keys(fields).join(', '),fields})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    alert('#jh-내소개 채널에 검수 요청을 보냈습니다. 승인 후 반영됩니다.');
+    adminToggleContentPanel();
+  }catch(e){alert('전송 실패: '+e.message)}
+}
+
+adminInit();
 </script>
 </body>
 </html>
