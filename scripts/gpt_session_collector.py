@@ -50,6 +50,7 @@ PAGE_SIZE = 100
 
 # 런타임에 캡처된 Bearer 토큰 (route 인터셉터로 획득)
 _bearer_token: str | None = None
+_last_status_code: int | None = None  # _api_get이 마지막으로 본 HTTP 상태 코드
 
 
 def _cdp_available() -> bool:
@@ -177,7 +178,8 @@ async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
     CDP 경로에서는 page.evaluate(fetch()) 우선 — 브라우저 실제 쿠키 + Bearer 토큰 사용.
     page가 없으면 ctx.request 로 폴백.
     """
-    global _bearer_token
+    global _bearer_token, _last_status_code
+    _last_status_code = None
     if page is not None:
         try:
             data = await page.evaluate(
@@ -196,7 +198,10 @@ async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
                 [url, _bearer_token],
             )
             if isinstance(data, dict) and "__error__" in data:
-                log.warning(f"API HTTP {data['__error__']} (msg={data.get('__msg__', '')}): {url[-60:]}")
+                raw_err = data['__error__']
+                if isinstance(raw_err, int):
+                    _last_status_code = raw_err
+                log.warning(f"API HTTP {raw_err} (msg={data.get('__msg__', '')}): {url[-60:]}")
                 return None
             return data  # None이면 호출부에서 처리
         except Exception as e:
@@ -207,6 +212,7 @@ async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
             resp = await ctx.request.get(url, timeout=15000, headers=headers)
             if resp.ok:
                 return await resp.json()
+            _last_status_code = resp.status
             log.warning(f"ctx.request HTTP {resp.status}: {url[-60:]}")
         except Exception as e:
             log.warning(f"ctx.request 실패: {e}")
@@ -268,36 +274,45 @@ async def fetch_conversation_list(
     return all_convs
 
 
-async def fetch_conversation_messages(page_ctx, conv_id: str, *, page=None) -> list[dict]:
+async def fetch_conversation_messages(
+    page_ctx, conv_id: str, *, page=None
+) -> tuple[list[dict], int | None]:
     """
     비공식 /conversation/{id} API로 단일 대화의 전체 메시지를 수집한다.
-    반환: [{"role": "user"|"assistant", "content": "..."}]
-    429 Rate Limit 시 60초 대기 후 1회 재시도.
+    반환: ([messages], last_http_status)
+    - 429 Rate Limit: 300초(5분) 대기 후 1회 재시도
+    - 기타 오류: 60초 대기 후 1회 재시도
     """
     import asyncio as _aio
     url = f"{CONVERSATION_URL}/{conv_id}"
 
+    last_status: int | None = None
     for attempt in range(2):
         try:
             data = await _api_get(url, page=page, ctx=page_ctx)
+            last_status = _last_status_code
             if data is None:
                 if attempt == 0:
-                    log.warning(f"대화 메시지 429/오류 — 60초 대기 후 재시도: {conv_id}")
-                    await _aio.sleep(60)
+                    if last_status == 429:
+                        log.warning(f"429 Rate Limit — 300초 대기 후 재시도: {conv_id}")
+                        await _aio.sleep(300)
+                    else:
+                        log.warning(f"HTTP {last_status} 오류 — 60초 대기 후 재시도: {conv_id}")
+                        await _aio.sleep(60)
                     continue
-                log.error(f"대화 메시지 API 오류 (재시도 후도 실패): {conv_id}")
-                return []
+                log.error(f"대화 메시지 API 오류 (재시도 후도 실패, HTTP {last_status}): {conv_id}")
+                return [], last_status
             break
         except Exception as e:
             log.error(f"대화 메시지 요청 실패 ({conv_id}): {e}")
-            return []
+            return [], last_status
     else:
-        return []
+        return [], last_status
 
     # 메시지 트리 파싱
     mapping = data.get("mapping", {})
     if not mapping:
-        return []
+        return [], None
 
     messages = []
     try:
@@ -305,7 +320,7 @@ async def fetch_conversation_messages(page_ctx, conv_id: str, *, page=None) -> l
     except Exception as e:
         log.error(f"메시지 트리 파싱 실패 ({conv_id}): {e}")
 
-    return messages
+    return messages, None
 
 
 def _flatten_message_tree(mapping: dict) -> list[dict]:
@@ -600,7 +615,9 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
         log.info(f"수집 대상: {len(convs)}개 대화")
 
         consecutive_errors = 0
+        consecutive_429s = 0
         MAX_CONSECUTIVE_ERRORS = 5
+        MAX_CONSECUTIVE_429 = 3   # 연속 429 → 15분 글로벌 일시정지
         REQUEST_DELAY = 1.5  # 요청 간 딜레이(초) — 429 Rate Limit 방지
 
         for i, conv_meta in enumerate(convs, 1):
@@ -611,10 +628,11 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
             log.info(f"[{i}/{len(convs)}] 수집 중: {title[:50]} ({conv_id[:8]}...)")
 
             try:
-                messages = await fetch_conversation_messages(context, conv_id, page=chatgpt_page)
+                messages, http_status = await fetch_conversation_messages(context, conv_id, page=chatgpt_page)
             except Exception as e:
                 log.error(f"메시지 수집 실패 ({conv_id}): {e} — 건너뜀")
                 consecutive_errors += 1
+                http_status = None
                 if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
                     log.warning(f"연속 {consecutive_errors}회 오류 — Bearer 토큰 갱신 시도")
                     if await _refresh_bearer_token():
@@ -624,13 +642,24 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
             if not messages:
                 log.warning(f"메시지 없음, 건너뜀: {conv_id}")
                 consecutive_errors += 1
-                if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                    log.warning(f"연속 {consecutive_errors}회 빈 응답 — Bearer 토큰 갱신 시도")
-                    if await _refresh_bearer_token():
+                if http_status == 429:
+                    consecutive_429s += 1
+                    if consecutive_429s >= MAX_CONSECUTIVE_429:
+                        log.warning(f"연속 {consecutive_429s}회 429 — 900초(15분) 글로벌 일시정지")
+                        await asyncio.sleep(900)
+                        consecutive_429s = 0
                         consecutive_errors = 0
+                        await _refresh_bearer_token()
+                else:
+                    consecutive_429s = 0
+                    if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                        log.warning(f"연속 {consecutive_errors}회 빈 응답 — Bearer 토큰 갱신 시도")
+                        if await _refresh_bearer_token():
+                            consecutive_errors = 0
                 continue
 
             consecutive_errors = 0
+            consecutive_429s = 0
             saved = save_conversation(conv_meta, messages, dry_run=dry_run)
             if saved:
                 saved_paths.append(saved)
