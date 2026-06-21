@@ -24,13 +24,18 @@ from pathlib import Path
 from datetime import datetime, timezone, date
 
 # ── 설정 ──────────────────────────────────────────────────────────────────────
+import urllib.request as _urllib_req
+
 VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 OUTPUT_BASE = VAULT_BASE / "01_RAW" / "gpt-sessions"
 
-# 전용 Playwright 프로파일 (실제 Chrome 프로파일과 독립 — 충돌 없음)
-# 환경변수 GPT_COLLECTOR_PROFILE_DIR 로 오버라이드 가능
+# 독립 전용 프로파일 (fallback — CDP가 없을 때 사용)
 _DEDICATED_PROFILE = Path(__file__).resolve().parent.parent / ".gpt_collector_profile"
 PROFILE_DIR = Path(os.environ.get("GPT_COLLECTOR_PROFILE_DIR", str(_DEDICATED_PROFILE)))
+
+# Pulse 수집기와 동일한 CDP 포트 (기존 Chrome에 연결 — 프로파일 잠금 없음)
+CDP_PORT = int(os.environ.get("GPT_COLLECTOR_DEBUG_PORT", "9222"))
+CDP_URL = f"http://127.0.0.1:{CDP_PORT}"
 
 STATE_FILE = Path(__file__).parent / ".gpt_collector_state.json"
 BROWSER_CHANNEL = "chrome"
@@ -42,6 +47,15 @@ CONVERSATION_URL = f"{API_BASE}/conversation"
 
 # 페이지당 대화 수 (최대 100)
 PAGE_SIZE = 100
+
+
+def _cdp_available() -> bool:
+    """CDP가 실행 중인지 확인."""
+    try:
+        _urllib_req.urlopen(f"{CDP_URL}/json/version", timeout=2)
+        return True
+    except Exception:
+        return False
 # ─────────────────────────────────────────────────────────────────────────────
 
 logging.basicConfig(
@@ -368,17 +382,15 @@ async def login_mode():
 # ── 수집 모드 ─────────────────────────────────────────────────────────────────
 
 async def collect_mode(dry_run: bool = False, full: bool = False):
-    """전용 Playwright 프로파일 세션으로 ChatGPT 대화를 증분 수집한다.
+    """ChatGPT 대화를 증분 수집한다.
 
-    실제 Chrome과 독립된 전용 프로파일을 사용하므로 Chrome 실행 여부와 무관하게 동작한다.
-    최초 실행 전 --login으로 전용 프로파일에 세션을 저장해야 한다.
+    우선순위:
+    1. CDP 경로: Pulse 수집기가 열어둔 Chrome(포트 9222)에 연결 — 프로파일 잠금 없음
+    2. 전용 프로파일 경로: CDP 없을 때 headless Playwright 사용
     """
     from playwright.async_api import async_playwright
 
-    if not PROFILE_DIR.exists():
-        log.error(f"전용 프로파일이 없습니다: {PROFILE_DIR}")
-        log.error("먼저 --login 플래그로 전용 프로파일에 ChatGPT 로그인을 완료하세요.")
-        sys.exit(1)
+    use_cdp = _cdp_available()
 
     state = load_state()
     last_collected_str = state.get("last_collected_at")
@@ -395,67 +407,110 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
     now_utc = datetime.now(timezone.utc)
 
     async with async_playwright() as p:
-        context = await p.chromium.launch_persistent_context(
-            user_data_dir=str(PROFILE_DIR),
-            headless=True,
-            channel=BROWSER_CHANNEL,
-            args=["--disable-blink-features=AutomationControlled"],
-        )
-
-        page = await context.new_page()
-
-        # ChatGPT 접속 및 로그인 확인
-        log.info("ChatGPT 접속 중...")
-        try:
-            await page.goto("https://chatgpt.com/", wait_until="networkidle", timeout=60000)
-        except Exception as e:
-            log.error(f"ChatGPT 접속 실패: {e}")
-            await context.close()
-            sys.exit(1)
-
-        if "login" in page.url or "auth" in page.url:
-            log.warning("ChatGPT 세션 만료 감지 — 자동 재로그인 시도 중...")
-            await context.close()
-
-            # gpt_auto_login 모듈로 Google OAuth 자동 재연결 시도
-            try:
-                sys.path.insert(0, str(Path(__file__).resolve().parent))
-                from gpt_auto_login import auto_reconnect
-                reconnected = await auto_reconnect(PROFILE_DIR, context_label="GPT 세션 수집")
-            except Exception as _e:
-                log.error(f"자동 재로그인 모듈 오류: {_e}")
-                reconnected = False
-
-            if not reconnected:
-                log.error("자동 재로그인 실패. #jh-코덱스앱에서 !gpt-login 명령을 실행하세요.")
+        if use_cdp:
+            log.info(f"CDP 경로: 기존 Chrome에 연결 ({CDP_URL})")
+            browser = await p.chromium.connect_over_cdp(CDP_URL)
+            contexts = browser.contexts
+            context = contexts[0] if contexts else await browser.new_context()
+        else:
+            log.info("전용 프로파일 경로: headless Chrome 시작")
+            if not PROFILE_DIR.exists():
+                log.error(f"전용 프로파일이 없습니다: {PROFILE_DIR}")
+                log.error("먼저 --login 플래그로 ChatGPT 로그인을 완료하세요.")
                 sys.exit(1)
-
-            # 재로그인 성공 — 기존 playwright(p)로 새 컨텍스트 재생성
-            log.info("재로그인 성공 — 새 컨텍스트로 수집 재시작")
             context = await p.chromium.launch_persistent_context(
                 user_data_dir=str(PROFILE_DIR),
                 headless=True,
                 channel=BROWSER_CHANNEL,
                 args=["--disable-blink-features=AutomationControlled"],
             )
-            page = await context.new_page()
-            await page.goto("https://chatgpt.com/", wait_until="networkidle", timeout=60000)
-            if "login" in page.url or "auth" in page.url:
-                log.error("재로그인 후에도 세션 확인 실패.")
+
+        page = await context.new_page()
+        # CDP 사용 시 context/browser를 닫으면 사용자 Chrome이 종료되므로 page만 닫음
+        async def _cleanup():
+            if use_cdp:
+                await page.close()
+            else:
                 await context.close()
+
+        # ChatGPT 접속 및 로그인 확인
+        log.info("ChatGPT 접속 중...")
+        try:
+            await page.goto("https://chatgpt.com/", wait_until="domcontentloaded", timeout=90000)
+        except Exception as e:
+            # domcontentloaded 타임아웃이어도 페이지 URL로 세션 만료 여부 재판단
+            log.warning(f"ChatGPT goto 경고 (계속 진행): {e}")
+
+        # API 헬스체크 (URL 리다이렉트 없이 401만 반환하는 경우 대비)
+        url_expired = "login" in page.url or "auth" in page.url
+        api_ok = False
+        if not url_expired:
+            try:
+                _probe = await context.request.get(f"{API_BASE}/me", timeout=10000)
+                api_ok = _probe.ok
+            except Exception:
+                api_ok = False
+
+        if url_expired or not api_ok:
+            if use_cdp:
+                # CDP 경로: 실제 Chrome 세션 만료 → 사용자 직접 ChatGPT 재로그인 필요
+                log.error(
+                    f"ChatGPT 세션 만료 감지 (url_expired={url_expired}, api_ok={api_ok}). "
+                    "Chrome에서 chatgpt.com 에 직접 로그인하세요."
+                )
+                await _cleanup()
                 sys.exit(1)
+            else:
+                # 전용 프로파일 경로: 자동 재로그인 시도
+                log.warning(f"ChatGPT 세션 만료 감지 — 자동 재로그인 시도 중...")
+                await context.close()
+
+                try:
+                    sys.path.insert(0, str(Path(__file__).resolve().parent))
+                    from gpt_auto_login import auto_reconnect
+                    reconnected = await auto_reconnect(PROFILE_DIR, context_label="GPT 세션 수집")
+                except Exception as _e:
+                    log.error(f"자동 재로그인 모듈 오류: {_e}")
+                    reconnected = False
+
+                if not reconnected:
+                    log.error("자동 재로그인 실패. python scripts/gpt_session_collector.py --login 으로 수동 재로그인 후 재시도하세요.")
+                    sys.exit(1)
+
+                log.info("재로그인 성공 — 새 컨텍스트로 수집 재시작")
+                context = await p.chromium.launch_persistent_context(
+                    user_data_dir=str(PROFILE_DIR),
+                    headless=True,
+                    channel=BROWSER_CHANNEL,
+                    args=["--disable-blink-features=AutomationControlled"],
+                )
+                page = await context.new_page()
+                try:
+                    await page.goto("https://chatgpt.com/", wait_until="domcontentloaded", timeout=90000)
+                except Exception as _ge:
+                    log.warning(f"재로그인 후 goto 경고: {_ge}")
+                try:
+                    _probe2 = await context.request.get(f"{API_BASE}/me", timeout=10000)
+                    if not _probe2.ok:
+                        log.error(f"재로그인 후 API 인증 실패 (HTTP {_probe2.status}). --login 으로 수동 재로그인하세요.")
+                        await context.close()
+                        sys.exit(1)
+                except Exception as _pe:
+                    log.error(f"재로그인 후 API 확인 오류: {_pe}")
+                    await context.close()
+                    sys.exit(1)
 
         # API 요청은 page context를 통해 쿠키가 자동 포함됨
         try:
             convs = await fetch_conversation_list(context, since=since)
         except Exception as e:
             log.error(f"대화 목록 조회 실패: {e}")
-            await context.close()
+            await _cleanup()
             sys.exit(1)
 
         if not convs:
             log.info("새로운 대화 없음 — 종료")
-            await context.close()
+            await _cleanup()
             return
 
         # 이미 수집된 대화 제외 (full 모드가 아닐 때)
@@ -489,7 +544,7 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 if not dry_run:
                     collected_ids.add(conv_id)
 
-        await context.close()
+        await _cleanup()
 
     # 상태 업데이트
     if not dry_run:
