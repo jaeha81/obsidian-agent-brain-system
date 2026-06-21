@@ -182,15 +182,21 @@ async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
         try:
             data = await page.evaluate(
                 """async ([u, token]) => {
-                    const headers = token ? {Authorization: 'Bearer ' + token} : {};
-                    const r = await fetch(u, {credentials: 'include', headers});
-                    if (!r.ok) return {__error__: r.status};
-                    return await r.json();
+                    try {
+                        const headers = token ? {Authorization: 'Bearer ' + token} : {};
+                        const r = await fetch(u, {credentials: 'include', headers});
+                        if (!r.ok) return {__error__: r.status, __url__: u};
+                        const text = await r.text();
+                        if (!text) return {__error__: 'empty_body', __url__: u};
+                        return JSON.parse(text);
+                    } catch(e) {
+                        return {__error__: 'js_exception', __msg__: String(e), __url__: u};
+                    }
                 }""",
                 [url, _bearer_token],
             )
             if isinstance(data, dict) and "__error__" in data:
-                log.warning(f"API HTTP {data['__error__']}: {url[-60:]}")
+                log.warning(f"API HTTP {data['__error__']} (msg={data.get('__msg__', '')}): {url[-60:]}")
                 return None
             return data  # None이면 호출부에서 처리
         except Exception as e:
@@ -201,6 +207,7 @@ async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
             resp = await ctx.request.get(url, timeout=15000, headers=headers)
             if resp.ok:
                 return await resp.json()
+            log.warning(f"ctx.request HTTP {resp.status}: {url[-60:]}")
         except Exception as e:
             log.warning(f"ctx.request 실패: {e}")
     return None
