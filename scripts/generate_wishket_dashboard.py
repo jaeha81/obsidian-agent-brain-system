@@ -195,6 +195,9 @@ def update_dashboard(projects: list[dict]) -> bool:
         print(f"WARNING: TRACKER_STATES 주입 실패: {e}")
 
     DASHBOARD_PATH.write_text(updated, encoding="utf-8")
+    index_path = ROOT / "docs" / "wishket" / "index.html"
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    index_path.write_text(updated, encoding="utf-8")
     return True
 
 

@@ -1135,6 +1135,9 @@ def generate(date: str | None) -> Path:
         encoding="utf-8",
         newline="\n",
     )
+    index_output = DOCS / "daily-plus" / "index.html"
+    index_output.parent.mkdir(parents=True, exist_ok=True)
+    index_output.write_text(html_text, encoding="utf-8", newline="\n")
     return output
 
 

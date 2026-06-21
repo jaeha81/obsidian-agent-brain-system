@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -22,10 +22,10 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
   header { background: #0f172a; color: #fff; padding: 28px clamp(18px, 4vw, 48px) 22px; }
-  .jh-nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
-  .jh-nav a { color: #cbd5e1; text-decoration: none; border: 1px solid #334155; border-radius: 999px; padding: 7px 12px; font-size: 13px; }
-  .jh-nav a.active, .jh-nav a:hover { color: #fff; border-color: #60a5fa; }
-  .jh-nav .auth-end { margin-left: auto; }
+  nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  nav a { color: #cbd5e1; text-decoration: none; border: 1px solid #334155; border-radius: 999px; padding: 7px 12px; font-size: 13px; }
+  nav a.active, nav a:hover { color: #fff; border-color: #60a5fa; }
+  nav .auth-start { margin-left: auto; }
   h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: 0; }
   header p { color: #cbd5e1; max-width: 920px; line-height: 1.65; margin: 12px 0 0; }
   main { padding: 24px clamp(14px, 3vw, 42px) 48px; }
@@ -151,12 +151,18 @@
     .command-tray { left: 8px; right: 8px; bottom: 8px; max-height: 88vh; overflow: auto; }
   }
 </style>
-<script src="/shared/nav.js" defer></script>
-<script src="/shared/auth.js"></script>
 </head>
 <body>
 <header>
-  <nav class="jh-nav"></nav>
+  <nav>
+    <a href="index.html">레포대시보드</a>
+    <a href="wishket.html">위시켓</a>
+    <a href="daily-plus.html" class="active">오늘의플러스</a>
+    <a href="ai-usage.html">AI사용량</a>
+    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
+    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/api/logout">로그아웃</a>
+  </nav>
   <h1>오늘의 플러스 운영 리포트</h1>
   <p>ChatGPT Pulse 수집 결과를 Bucky가 운영 관점으로 분류한 대시보드입니다. 첫 오늘의 플러스(2026-05-27) 대비 얼마나 진화했는지, 오늘 무엇이 처리됐고 무엇을 구현해야 하는지, 어떤 항목이 효율성과 호환성 측면에서 우선인지 한 화면에서 확인합니다.</p>
 </header>
@@ -174,30 +180,30 @@
   </nav>
   <section id="summary" class="hero-grid">
     <div class="panel">
-      <h2>2026-06-16 처리 요약</h2>
+      <h2>2026-06-21 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-06-16T06:44:41+09:00</span>
-        <span class="pill">리포트: staged</span>
+        <span class="pill">수집: 2026-06-21T08:00:23+09:00</span>
+        <span class="pill">리포트: processed</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
       <div class="summary">
-        <div class="stat blue"><strong>4</strong><span>오늘의 플러스 후보</span></div>
+        <div class="stat blue"><strong>5</strong><span>오늘의 플러스 후보</span></div>
         <div class="stat green"><strong>0</strong><span>직접 구현 반영</span></div>
         <div class="stat amber"><strong>4</strong><span>큐 또는 스테이징</span></div>
-        <div class="stat red"><strong>0</strong><span>사용자 승인 필요</span></div>
+        <div class="stat red"><strong>1</strong><span>사용자 승인 필요</span></div>
       </div>
       <p class="muted">오늘의 플러스는 원문을 보존하고, 바로 구현하지 않는 항목은 큐/승인대기로 분리합니다. 현재 대시보드 기준 직접 적용된 후보는 0개이며, 운영 파이프라인 자체는 수집, 진화 리포트, Bucky 처리까지 연결되어 있습니다.</p>
     </div>
     <aside class="panel">
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="stat blue"><strong>76</strong><span>평균 효율성</span></div>
-        <div class="stat green"><strong>85</strong><span>평균 호환성</span></div>
+        <div class="stat blue"><strong>77</strong><span>평균 효율성</span></div>
+        <div class="stat green"><strong>86</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>지식 후보</strong><span>2</span></div>
-<div class="mini"><strong>Obsidian 큐</strong><span>1</span></div>
-<div class="mini"><strong>검증 자동화</strong><span>1</span></div>
+        <div class="mini"><strong>검증 자동화</strong><span>3</span></div>
+<div class="mini"><strong>지식 후보</strong><span>1</span></div>
+<div class="mini"><strong>실험 후보</strong><span>1</span></div>
       </div>
     </aside>
   </section>
@@ -240,9 +246,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-06-16</strong><p>4 후보 · 효율 76 · 호환 85</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>-4</strong><p>후보 수 변화 · 효율 -5 · 호환 +10</p></div>
-        <div class="compare-card"><span>누적</span><strong>165</strong><p>20일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-06-21</strong><p>5 후보 · 효율 77 · 호환 86</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 -4 · 호환 +11</p></div>
+        <div class="compare-card"><span>누적</span><strong>179</strong><p>23일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -446,6 +452,36 @@
           </div>
           <div class="trend-num">4 후보 · 0 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-19</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:33%"></span>
+            <span class="trend approval" style="width:8%"></span>
+            <span class="trend applied" style="width:17%"></span>
+          </div>
+          <div class="trend-num">4 후보 · 1 승인 · 2 구현</div>
+        </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-20</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:42%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
+        </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-21</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:42%"></span>
+            <span class="trend approval" style="width:8%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">5 후보 · 1 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -462,7 +498,9 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 4</strong><span>Public dashboard integrity</span><em>스테이징</em></li>
+        <li><strong>P1 Card 2</strong><span>백업 보존과 검증 루틴 — `queued`</span><em>큐 대기</em></li>
+<li><strong>P1 Card 3</strong><span>서명 승인 웹훅과 멱등 처리 — `queued`</span><em>큐 대기</em></li>
+<li><strong>P3 Card 4</strong><span>광고·AI 고지용 빠른 복붙문구 — `needs-user-approval`</span><em>승인 필요</em></li>
       </ul>
     </div>
   </section>
@@ -558,7 +596,7 @@
   <section id="daily-plus-candidates">
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P3&#x27;: 3, &#x27;P1&#x27;: 1} · 상태 {&#x27;staged&#x27;: 4}</span>
+      <span class="muted">우선순위 {&#x27;P3&#x27;: 3, &#x27;P1&#x27;: 2} · 상태 {&#x27;staged&#x27;: 1, &#x27;queued&#x27;: 3, &#x27;needs-user-approval&#x27;: 1}</span>
     </div>
     <div class="grid">
 
@@ -568,9 +606,9 @@
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 1. Daily Plus source availability guard</h3>
+        <h3>Card 1. Card 1 — `rejected`</h3>
         <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
-        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
+        <p class="action">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>65</strong></div>
@@ -588,79 +626,19 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>ChatGPT Pulse 직접 접근 또는 카드 추출이 실패하면 해당 실패를 명확한 운영 이벤트로 남긴다. 404 Not Found, 로그인 필요, 카드 0개 상태는 정상 수집으로 저장하지 않는다.</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="2" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
-        <div class="candidate-top">
-          <span class="badge priority">P3</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 2. Bucky 09시 보고 fail-safe</h3>
-        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
-        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
-            <div class="bar"><span class="mid" style="width:65%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
-            <div class="bar"><span class="good" style="width:82%"></span></div>
-          </div>
-        </div>
-        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>daily_plus_morning_report.py는 빈/오류 캡처를 감지하면 needs-attention 보고서를 남긴다. 공식 Pulse가 정상일 때는 대시보드와 후보 비교표를 갱신하고, 실패할 때는 기존 정상 대시보드를 보호한다.</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P3" data-category="obsidian-queue">
-        <div class="candidate-top">
-          <span class="badge priority">P3</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
-        </div>
-        <h3>Card 3. Tomorrow automation continuity</h3>
-        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
-        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
-            <div class="bar"><span class="good" style="width:84%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
-          </div>
-        </div>
-        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>BuckyDailyPlus는 Obsidian Agent Brain System 기준으로만 동작해야 한다. 이전 시스템 경로를 실행 백엔드로 사용하지 않고, 수집 실패 시 복구 캡처를 남겨 다음 단계가 완전히 끊기지 않게 한다.</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="2" data-status="queued" data-priority="P1" data-category="verification">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status queued">큐 대기</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 4. Public dashboard integrity</h3>
+        <h3>Card 2. 백업 보존과 검증 루틴 — `queued`</h3>
         <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="action">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>88</strong></div>
@@ -678,7 +656,97 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>대시보드는 Pulse Evolution 후보가 있는 날짜만 정상 생성한다. 복구 캡처는 후보를 제공하므로 오늘 상태를 사용자에게 설명할 수 있고, 단순 404 스텁은 대시보드를 덮지 못한다. --- *Auto-collected by `chatgpt_daily_collector.py`.*</p>
+          <p></p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="3" data-status="queued" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status queued">큐 대기</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 3. 서명 승인 웹훅과 멱등 처리 — `queued`</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p></p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="4" data-status="needs-user-approval" data-priority="P3" data-category="experiment">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status needs-user-approval">승인 필요</span>
+          <span class="badge risk risk-medium">medium</span>
+        </div>
+        <h3>Card 4. 광고·AI 고지용 빠른 복붙문구 — `needs-user-approval`</h3>
+        <p class="meta">실험 후보 · owner: bucky · target: 00_UPGRADE/next-plan.md</p>
+        <p class="action">사업 실험 후보로 보관하고, 구현 전 기대효과와 측정 지표를 정한다.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>58</strong></div>
+            <div class="bar"><span class="low" style="width:58%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>76</strong></div>
+            <div class="bar"><span class="mid" style="width:76%"></span></div>
+          </div>
+        </div>
+        <p class="next">사업 실험 후보로 보관하고, 구현 전 기대효과와 측정 지표를 정한다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p></p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="5" data-status="queued" data-priority="P3" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P3</span>
+          <span class="badge status queued">큐 대기</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 5. 대량 업로드 자동 중단 규칙 — `queued`</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p></p>
         </details>
       </article>
     </div>
@@ -693,9 +761,9 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-16.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-16.md</code></div>
-      <div>생성 시각: <code>2026-06-16 06:47:02 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-21.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-21.md</code></div>
+      <div>생성 시각: <code>2026-06-21 09:26:55 KST</code></div>
     </div>
   </section>
 </main>
