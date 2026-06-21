@@ -139,19 +139,12 @@
   footer { padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }
   @media (max-width:700px) { .stat-row { grid-template-columns:repeat(2,1fr); } .project-grid { grid-template-columns:1fr; } }
 </style>
+<script src="/shared/nav.js" defer></script>
 <script src="/shared/auth.js"></script>
 </head>
 <body>
 <header>
-  <nav>
-    <a href="index.html">레포대시보드</a>
-    <a href="wishket.html" class="active">위시켓</a>
-    <a href="daily-plus.html">오늘의플러스</a>
-    <a href="ai-usage.html">AI사용량</a>
-    <a href="bucky-agent-os.html">BuckyOS</a>
-    <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
-    <a href="/api/logout" class="auth-end">로그아웃</a>
-  </nav>
+  <nav class="jh-nav"></nav>
   <h1>위시켓 자동화 대시보드</h1>
   <p>Wishket 공고 자동 수집 · 스코어링 · 제안서 생성 파이프라인. P1/P2 우선 공고를 빠르게 확인하고 지원하세요.</p>
   <div class="gen-stamp">
