@@ -385,7 +385,9 @@ function getWkBuckyEndpoint() {
   const stored = localStorage.getItem(WK_BUCKY_URL_KEY) || '';
   if (stored) return stored.replace(/\/$/, '');
   const h = location.hostname;
-  if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.ts.net')) return '';
+  // ts.net에서 접근 중이면 같은 origin을 Bucky 서버로 자동 사용
+  if (h === 'localhost' || h === '127.0.0.1') return location.origin;
+  if (h.endsWith('.ts.net')) return location.origin;
   return '';
 }
 function getWkWebhookUrl() {
@@ -394,10 +396,23 @@ function getWkWebhookUrl() {
 
 async function postToIntake(payload) {
   const base = getWkBuckyEndpoint();
-  const url = base ? base + '/intake' : '/intake';
-  const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+  if (base) {
+    try {
+      const res = await fetch(base + '/intake', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      if (res.ok) return res.json().catch(() => ({}));
+      if (res.status !== 404 && res.status !== 502 && res.status !== 503) throw new Error('HTTP ' + res.status);
+    } catch (e) {
+      if (!(e instanceof TypeError)) throw e; // network error → try webhook
+    }
+  }
+  // fallback: Discord webhook
+  const wh = getWkWebhookUrl();
+  if (wh) {
+    const text = `**[위시켓 대시보드]** ${payload.action || payload.type || '요청'}\n\`\`\`json\n${JSON.stringify(payload, null, 2).slice(0, 1800)}\n\`\`\``;
+    await sendWkWebhook(wh, text);
+    return { ok: true, via: 'webhook' };
+  }
+  throw new Error('Bucky URL 또는 Discord Webhook이 설정되지 않았습니다. 하단 "Bucky 연동 설정"에서 URL을 입력하세요.');
 }
 
 async function sendWkWebhook(url, content) {
