@@ -16,6 +16,16 @@ graph_cluster: misc
 
 [[Bucky]] [[Graphify]] [[Obsidian]]
 
+## Knowledge Hubs
+
+[[agents-hub]]
+[[bucky-system-hub]]
+[[project-milestones]]
+[[project-timeline-hub]]
+[[technical-patterns-hub]]
+[[youtube-insights-hub]]
+[[dp-notes-hub]]
+
 ## Function
 
-This hub gives bridge notes a stable, functional graph target for system knowledge.
+This hub gives bridge notes a stable, functional graph target for system knowledge. It also serves as the root connector for all knowledge sub-hubs.

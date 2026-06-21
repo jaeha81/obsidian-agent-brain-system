@@ -1,7 +1,7 @@
 ---
 type: goal-record
 date: 2026-06-09
-slug: brain-upgrade
+slug: obsidianvault/00_dashboard/goals/2026-06-09-brain-upgrade
 status: COMPLETE
 goal: "vault를 정적 노트 저장소 → 능동 브레인으로 업그레이드 (영구 기억 + 노트 자동 주입 + 목표 위임 루프 + 패턴 감지)"
 ---
