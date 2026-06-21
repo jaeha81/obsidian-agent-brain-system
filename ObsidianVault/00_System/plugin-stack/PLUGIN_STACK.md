@@ -103,3 +103,5 @@ Discord 명령 → bucky_multi_dispatcher.py (병렬 분배)
 - `claudian` — 최근 커밋 활동 확인 필요
 - `jh-local-graph-view` — 커스텀 플러그인, 유지 필요
 - `infranodus-graph-view` — 유료 서비스 연동, 구독 상태 확인
+
+[[bucky-system-hub]]

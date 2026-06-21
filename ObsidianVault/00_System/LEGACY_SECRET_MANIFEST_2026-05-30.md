@@ -60,3 +60,5 @@ This report intentionally omits secret values and line text. It records only pat
 | secret-audit-mentioned | `ObsidianVault/09_Archive/sessions/2026-05-17-06-40-51-844-codex-20260517-064047-codex.md` | token_word | 25 | quarantined; targeted redaction review required before promotion |
 | secret-audit-mentioned | `ObsidianVault/09_Archive/sessions/2026-05-17-07-18-31-857-codex-20260517-071827-codex.md` | token_word | 26, 50 | quarantined; targeted redaction review required before promotion |
 | secret-audit-mentioned | `ObsidianVault/09_Archive/sessions/2026-05-20-09-03-03-126-codex-20260520-session-end-codex.md` | token_word | 9 | quarantined; targeted redaction review required before promotion |
+
+[[bucky-system-hub]]

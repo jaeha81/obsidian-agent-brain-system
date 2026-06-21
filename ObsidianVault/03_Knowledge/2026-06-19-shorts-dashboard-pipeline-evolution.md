@@ -120,3 +120,5 @@ UI: "🔄 자동 수리" 버튼 + 실시간 로그 표시 + Shotstack 키 무효
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]

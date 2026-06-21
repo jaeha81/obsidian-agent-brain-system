@@ -56,3 +56,5 @@ GBrain skill pack reference ? conventions, obsidian workflows, and agent guideli
 ## Timeline
 
 - **2026-06-21** | Skills Hub created ? 24 skill pages linked
+
+[[technical-patterns-hub]]

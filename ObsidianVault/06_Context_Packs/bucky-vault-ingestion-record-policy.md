@@ -146,3 +146,5 @@ related_notes:
 ## Dispatch Rule
 
 When Bucky asks Claude Code/Codex to create durable evidence, it should name the exact record shape and destination path instead of asking for an unstructured summary.
+
+[[bucky-system-hub]]

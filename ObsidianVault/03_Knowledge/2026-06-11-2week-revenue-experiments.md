@@ -162,3 +162,5 @@ document.querySelectorAll('.cta-primary').forEach(btn => {
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]

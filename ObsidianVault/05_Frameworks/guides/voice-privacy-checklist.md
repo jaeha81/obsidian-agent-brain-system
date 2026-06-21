@@ -151,3 +151,5 @@ Vault: 04_SiteLog/{날짜}_{장소코드}_transcript.md
 2. 3차 클라우드 처리 시 사용자 실시간 확인 필요
 3. 변환 완료 후 원본 WAV 즉시 삭제
 4. Vault에는 마스킹된 텍스트만 보관
+
+[[technical-patterns-hub]]

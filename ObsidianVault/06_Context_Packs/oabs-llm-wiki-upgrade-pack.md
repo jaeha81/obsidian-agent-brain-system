@@ -97,3 +97,4 @@ Use ObsidianVault/00_System/oabs-library-taxonomy-standard.md as the catalog rul
 - Context Pack: ObsidianVault/06_Context_Packs/Graphify/OABS_second_brain_graphify_pack.md
 - Bridge node: ObsidianVault/03_Knowledge/oabs-second-brain-library-node-map.md
 
+[[bucky-system-hub]]

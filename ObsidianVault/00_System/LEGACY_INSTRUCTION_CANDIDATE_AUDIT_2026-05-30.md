@@ -212,3 +212,5 @@ These wildcard groups cover the remaining low-score inventory candidates. They a
 5. Treat API pricing/free-tier catalogs as candidate lists only; verify with official docs at decision time.
 6. If a file is mojibake or duplicated, do not repair by guessing. Find a readable duplicate or record it as archive-only until verified.
 7. Re-run `python -X utf8 scripts/legacy_residue_scanner.py --report ObsidianVault/00_System/LEGACY_RESIDUE_SCAN_2026-05-30.md` after each cleanup pass.
+
+[[bucky-system-hub]]

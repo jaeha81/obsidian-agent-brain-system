@@ -33,3 +33,5 @@ When a project lacks a local instruction packet, agents must not import another 
 |---|---|
 | Obsidian Agent Brain System | `ObsidianVault/06_Context_Packs/bucky-*.md` (all) |
 | shorts-dashboard | `ObsidianVault/06_Context_Packs/bucky-shorts-dashboard.md` |
+
+[[bucky-system-hub]]

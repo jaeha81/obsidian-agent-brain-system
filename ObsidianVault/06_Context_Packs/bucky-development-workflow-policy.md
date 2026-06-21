@@ -87,3 +87,5 @@ For non-trivial work, save or report:
 ## Legacy Replacement
 
 Old “Plan First” rules are now applied through Bucky packets. They do not authorize broad prework, full-vault rereads, or automatic commit/push.
+
+[[bucky-system-hub]]

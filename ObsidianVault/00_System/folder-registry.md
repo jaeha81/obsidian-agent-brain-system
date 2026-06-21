@@ -65,3 +65,5 @@ status: active
 |------|------|------|
 | 2026-06-02 | 06_Knowledge + 06_Projects + 06_Resources 이동 | ✅ 완료 (G1에서 빈 폴더 잔존 확인·제거) |
 | 2026-06-13 | G1 전체 (껍데기 4 삭제 + Inbox·99_Archive 병합) | 스냅샷: `00_System/G1-preflight-snapshot.txt` / dirty patch: 레포 루트 `G1-preflight-dirty.patch` |
+
+[[bucky-system-hub]]

@@ -142,3 +142,5 @@ No review findings in current operating scope.
 | write_or_sync | `ObsidianVault/00_System/LEGACY_INSTRUCTION_INVENTORY_2026-05-30.md` | 271 | \| audit-mentioned \| 6 \| `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/07_Archive/sessions/2026-04-22-session-log.md` \| name:sync, content:approval, source:legacy-import, audit-mentioned \| --- / type: report / sourc |
 | write_or_sync | `ObsidianVault/00_System/LEGACY_INSTRUCTION_INVENTORY_2026-05-30.md` | 284 | \| audit-mentioned \| 5 \| `ObsidianVault/03_Projects/github-repos/H-Sisyphus-handoff.md` \| name:sync, content:approval, audit-mentioned \| --- / tags: / - github \| |
 | ... | ... | ... | 537 additional allowed mentions omitted |
+
+[[bucky-system-hub]]

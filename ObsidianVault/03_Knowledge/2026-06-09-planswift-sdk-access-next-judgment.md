@@ -51,3 +51,5 @@ PlanSwift SDK 활용을 검토할 때 확인할 항목:
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]

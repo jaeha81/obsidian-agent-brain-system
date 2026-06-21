@@ -132,3 +132,5 @@ const SNIPER_PRICES = {
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]

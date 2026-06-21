@@ -135,3 +135,5 @@ AI 렌더링으로 80% 줄인 사례를 공유해도 될까요?
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]

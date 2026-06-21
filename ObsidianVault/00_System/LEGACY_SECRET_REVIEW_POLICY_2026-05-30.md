@@ -48,3 +48,5 @@ This policy governs archive/import sources that may contain API keys, tokens, pa
 - The register must not include matched values, webhook URLs, matched line text, or excerpts.
 - `archive-only`, `covered-quarantined`, and `partial-promoted-quarantined` are safe operating decisions because they do not require reopening the secret-like source broadly.
 - `pending-targeted-redaction` means the source cannot be used for additional promotion until a targeted redaction pass reviews only the manifest-listed lines.
+
+[[bucky-system-hub]]

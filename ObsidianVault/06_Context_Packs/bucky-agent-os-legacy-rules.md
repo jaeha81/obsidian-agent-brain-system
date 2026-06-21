@@ -118,3 +118,5 @@ Require explicit user approval for:
 ## Historical Source Access
 
 Only read historical source material when a current Context Pack is insufficient and the request requires exact evidence. Narrow by file path, date, task id, or keyword first.
+
+[[bucky-system-hub]]

@@ -17,3 +17,5 @@ type: system
 - `G:\내 드라이브\obsidian-agent-brain-system\` (이 저장소)
 - `ObsidianVault\` (Vault 루트)
 - `scripts\` (스크립트)
+
+[[bucky-system-hub]]

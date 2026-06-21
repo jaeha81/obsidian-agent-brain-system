@@ -374,3 +374,5 @@ Scope: archive/import and bridge/hub sources that look instruction-like. This re
 | audit-mentioned | 4 | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/01-daily/2026-05-03-retrospective.md` | name:sync, source:legacy-import, audit-mentioned | --- / type: workflow / source: claude |
 | audit-mentioned | 4 | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/03_Prompts/templates/decision-log.md` | name:instruction, source:legacy-import, audit-mentioned | --- / date: <% tp.date.now("YYYY-MM-DD") %> / type: decision |
 | audit-mentioned | 4 | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/05_Logs/daily/2026-04-22-retrospective.md` | name:sync, source:legacy-import, audit-mentioned | --- / type: workflow / source: claude |
+
+[[bucky-system-hub]]

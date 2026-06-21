@@ -159,3 +159,5 @@ graph_cluster: revenue-ops
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]

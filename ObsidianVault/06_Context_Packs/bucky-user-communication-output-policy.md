@@ -78,3 +78,5 @@ next_action: <first step>
 ## Source Handling Note
 
 One source signal came from a secret-like legacy inventory excerpt, not from reopening the quarantined source file. Do not reopen or quote that source unless a targeted redaction pass is approved and documented under `LEGACY_SECRET_REVIEW_POLICY_2026-05-30.md`.
+
+[[bucky-system-hub]]

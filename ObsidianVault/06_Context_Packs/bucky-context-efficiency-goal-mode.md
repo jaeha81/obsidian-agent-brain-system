@@ -74,3 +74,5 @@ Flag these patterns as operational errors:
 - direct execution of legacy scripts before classification;
 - premature closeout before verification evidence is saved;
 - expanding a screen/runtime error into unrelated architecture cleanup.
+
+[[bucky-system-hub]]

@@ -63,3 +63,5 @@ graph_cluster: daily-log
 
 ## 관련 노트
 - [[hubs/JH System]]
+
+[[technical-patterns-hub]]
