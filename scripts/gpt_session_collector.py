@@ -425,38 +425,21 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 args=["--disable-blink-features=AutomationControlled"],
             )
 
-        page = await context.new_page()
-        # CDP 사용 시 context/browser를 닫으면 사용자 Chrome이 종료되므로 page만 닫음
-        async def _cleanup():
-            if use_cdp:
-                await page.close()
-            else:
-                await context.close()
-
-        # ChatGPT 접속 및 로그인 확인
-        log.info("ChatGPT 접속 중...")
-        try:
-            await page.goto("https://chatgpt.com/", wait_until="domcontentloaded", timeout=90000)
-        except Exception as e:
-            # domcontentloaded 타임아웃이어도 페이지 URL로 세션 만료 여부 재판단
-            log.warning(f"ChatGPT goto 경고 (계속 진행): {e}")
-
-        # 로그인 확인: /me 응답에서 email이 비어있으면 게스트 세션 (id "ua-" 접두사)
-        url_expired = "login" in page.url or "auth" in page.url
+        # ── 세션 확인: 페이지 열지 않고 context.request로만 체크 (CDP 탭 번쩍임 방지)
+        log.info("ChatGPT 세션 확인 중...")
         api_ok = False
-        if not url_expired:
-            try:
-                _probe = await context.request.get(f"{API_BASE}/me", timeout=10000)
-                if _probe.ok:
-                    _me = await _probe.json()
-                    # 게스트 세션: email 빈 값 + id가 "ua-"로 시작
-                    api_ok = bool(_me.get("email")) or not str(_me.get("id", "")).startswith("ua-")
-                    if not api_ok:
-                        log.warning(f"게스트 세션 감지 (id={_me.get('id','')[:12]}, email 없음) — 로그인 필요")
-            except Exception:
-                api_ok = False
+        try:
+            _probe = await context.request.get(f"{API_BASE}/me", timeout=15000)
+            if _probe.ok:
+                _me = await _probe.json()
+                # 게스트 세션: email 빈 값 + id가 "ua-"로 시작
+                api_ok = bool(_me.get("email")) or not str(_me.get("id", "")).startswith("ua-")
+                if not api_ok:
+                    log.warning(f"게스트 세션 감지 (id={_me.get('id','')[:12]}, email 없음)")
+        except Exception as _e:
+            log.warning(f"세션 확인 오류: {_e}")
 
-        if url_expired or not api_ok:
+        if not api_ok:
             # 세션 만료 — 자동 재로그인 시도하지 않음 (Google OAuth 자동화 불안정)
             if use_cdp:
                 log.error(
@@ -469,20 +452,23 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                     "  python scripts/gpt_session_collector.py --login\n"
                     "브라우저에서 ChatGPT 로그인 후 창을 닫으면 자동 저장됩니다."
                 )
-            await _cleanup()
+            if not use_cdp:
+                await context.close()
             sys.exit(1)
 
-        # API 요청은 page context를 통해 쿠키가 자동 포함됨
+        # API 요청은 context.request를 통해 쿠키 자동 포함 (별도 page 불필요)
         try:
             convs = await fetch_conversation_list(context, since=since)
         except Exception as e:
             log.error(f"대화 목록 조회 실패: {e}")
-            await _cleanup()
+            if not use_cdp:
+                await context.close()
             sys.exit(1)
 
         if not convs:
             log.info("새로운 대화 없음 — 종료")
-            await _cleanup()
+            if not use_cdp:
+                await context.close()
             return
 
         # 이미 수집된 대화 제외 (full 모드가 아닐 때)
@@ -516,7 +502,8 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 if not dry_run:
                     collected_ids.add(conv_id)
 
-        await _cleanup()
+        if not use_cdp:
+            await context.close()
 
     # 상태 업데이트
     if not dry_run:
