@@ -168,12 +168,42 @@ def build_markdown(conv_meta: dict, messages: list[dict]) -> str:
 
 # ── API 수집 ──────────────────────────────────────────────────────────────────
 
+async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
+    """chatgpt.com API GET 헬퍼.
+
+    CDP 경로에서는 page.evaluate(fetch()) 우선 — 브라우저 실제 쿠키 사용.
+    page가 없으면 ctx.request 로 폴백.
+    """
+    if page is not None:
+        try:
+            data = await page.evaluate(
+                """async (u) => {
+                    const r = await fetch(u, {credentials: 'include'});
+                    if (!r.ok) return null;
+                    return await r.json();
+                }""",
+                url,
+            )
+            return data  # None이면 호출부에서 처리
+        except Exception as e:
+            log.warning(f"page.evaluate 실패, ctx.request로 폴백: {e}")
+    if ctx is not None:
+        try:
+            resp = await ctx.request.get(url, timeout=15000)
+            if resp.ok:
+                return await resp.json()
+        except Exception as e:
+            log.warning(f"ctx.request 실패: {e}")
+    return None
+
+
 async def fetch_conversation_list(
-    page_ctx, since: datetime | None = None
+    page_ctx, since: datetime | None = None, *, page=None
 ) -> list[dict]:
     """
     비공식 /conversations API를 페이지네이션으로 전체 조회.
     since 가 주어지면 해당 시각 이후 업데이트된 대화만 반환.
+    page 인자가 있으면 page.evaluate(fetch())로 요청 (CDP 쿠키 보장).
     """
     all_convs = []
     offset = 0
@@ -183,12 +213,10 @@ async def fetch_conversation_list(
         log.info(f"대화 목록 조회: offset={offset}")
 
         try:
-            response = await page_ctx.request.get(url)
-            if not response.ok:
-                log.error(f"대화 목록 API 오류 {response.status}: {url}")
+            data = await _api_get(url, page=page, ctx=page_ctx)
+            if data is None:
+                log.error(f"대화 목록 API 오류 (None 응답): {url}")
                 break
-
-            data = await response.json()
         except Exception as e:
             log.error(f"대화 목록 요청 실패: {e}")
             break
@@ -224,7 +252,7 @@ async def fetch_conversation_list(
     return all_convs
 
 
-async def fetch_conversation_messages(page_ctx, conv_id: str) -> list[dict]:
+async def fetch_conversation_messages(page_ctx, conv_id: str, *, page=None) -> list[dict]:
     """
     비공식 /conversation/{id} API로 단일 대화의 전체 메시지를 수집한다.
     반환: [{"role": "user"|"assistant", "content": "..."}]
@@ -232,11 +260,10 @@ async def fetch_conversation_messages(page_ctx, conv_id: str) -> list[dict]:
     url = f"{CONVERSATION_URL}/{conv_id}"
 
     try:
-        response = await page_ctx.request.get(url)
-        if not response.ok:
-            log.error(f"대화 메시지 API 오류 {response.status}: {conv_id}")
+        data = await _api_get(url, page=page, ctx=page_ctx)
+        if data is None:
+            log.error(f"대화 메시지 API 오류 (None 응답): {conv_id}")
             return []
-        data = await response.json()
     except Exception as e:
         log.error(f"대화 메시지 요청 실패 ({conv_id}): {e}")
         return []
@@ -425,17 +452,33 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 args=["--disable-blink-features=AutomationControlled"],
             )
 
-        # ── 세션 확인: 페이지 열지 않고 context.request로만 체크 (CDP 탭 번쩍임 방지)
+        # ── chatgpt.com 열린 탭 탐색 (CDP 경로에서 쿠키 보장용)
+        chatgpt_page = None
+        if use_cdp:
+            for _ctx in browser.contexts:
+                for _pg in _ctx.pages:
+                    if "chatgpt.com" in _pg.url:
+                        chatgpt_page = _pg
+                        break
+                if chatgpt_page:
+                    break
+            if chatgpt_page:
+                log.info(f"chatgpt.com 탭 발견: {chatgpt_page.url[:60]}")
+            else:
+                log.warning("chatgpt.com 탭 없음 — context.request 폴백 (쿠키 미보장)")
+
+        # ── 세션 확인: page.evaluate(fetch) 우선, 폴백은 context.request
         log.info("ChatGPT 세션 확인 중...")
         api_ok = False
         try:
-            _probe = await context.request.get(f"{API_BASE}/me", timeout=15000)
-            if _probe.ok:
-                _me = await _probe.json()
+            _me = await _api_get(f"{API_BASE}/me", page=chatgpt_page, ctx=context)
+            if _me:
                 # 게스트 세션: email 빈 값 + id가 "ua-"로 시작
                 api_ok = bool(_me.get("email")) or not str(_me.get("id", "")).startswith("ua-")
                 if not api_ok:
                     log.warning(f"게스트 세션 감지 (id={_me.get('id','')[:12]}, email 없음)")
+            else:
+                log.warning("세션 확인 실패 (응답 없음)")
         except Exception as _e:
             log.warning(f"세션 확인 오류: {_e}")
 
@@ -456,9 +499,9 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 await context.close()
             sys.exit(1)
 
-        # API 요청은 context.request를 통해 쿠키 자동 포함 (별도 page 불필요)
+        # API 요청: page.evaluate 우선 (CDP 쿠키 보장), 폴백은 context.request
         try:
-            convs = await fetch_conversation_list(context, since=since)
+            convs = await fetch_conversation_list(context, since=since, page=chatgpt_page)
         except Exception as e:
             log.error(f"대화 목록 조회 실패: {e}")
             if not use_cdp:
@@ -487,7 +530,7 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
             log.info(f"[{i}/{len(convs)}] 수집 중: {title[:50]} ({conv_id[:8]}...)")
 
             try:
-                messages = await fetch_conversation_messages(context, conv_id)
+                messages = await fetch_conversation_messages(context, conv_id, page=chatgpt_page)
             except Exception as e:
                 log.error(f"메시지 수집 실패 ({conv_id}): {e} — 건너뜀")
                 continue
