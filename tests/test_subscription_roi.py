@@ -1,9 +1,21 @@
+import json
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from scripts.subscription_roi import AgentReport, collect_cli_usage_state, summarize_usage, usage_recommendation
+from scripts.subscription_roi import (
+    AgentReport,
+    collect_cli_usage_state,
+    efficiency_signals,
+    resolve_quota,
+    summarize_usage,
+    usage_recommendation,
+    window_distribution,
+)
 from scripts.generate_ai_usage_dashboard import render_dashboard
+
+KST = timezone(timedelta(hours=9))
 
 
 class SubscriptionRoiTests(unittest.TestCase):
@@ -109,6 +121,126 @@ class SubscriptionRoiTests(unittest.TestCase):
         self.assertIn("You are out of extra usage", html)
         self.assertIn("Haiku 우선", html)
         self.assertIn("Sonnet 절약", html)
+
+    def test_window_distribution_buckets_events_into_reset_windows(self):
+        now = datetime(2026, 6, 21, 12, 0, tzinfo=KST)
+        # current window [07:00, 12:00); previous [02:00, 07:00)
+        events = [
+            datetime(2026, 6, 21, 11, 0, tzinfo=KST),  # current
+            datetime(2026, 6, 21, 5, 0, tzinfo=KST),   # previous
+            datetime(2026, 6, 21, 3, 0, tzinfo=KST),   # previous
+        ]
+        windows = window_distribution(events, reset_hours=5, now=now, lookback_windows=8)
+
+        self.assertEqual(len(windows), 8)
+        self.assertTrue(windows[-1]["is_current"])
+        self.assertEqual(windows[-1]["count"], 1)   # current window
+        self.assertEqual(windows[-2]["count"], 2)   # previous window
+
+    def test_efficiency_signals_model_mix_and_limit_risk(self):
+        now = datetime(2026, 6, 21, 12, 0, tzinfo=KST)
+        claude = AgentReport(name="Claude Code")
+        claude.add_session("2026-06-21", 4, 100, 50, 10, [now - timedelta(minutes=20)])
+        codex = AgentReport(name="Codex")
+        codex.add_session("2026-06-21", 2, 80, 30, 0, [now - timedelta(minutes=15)])
+        cli_state = {
+            "models": {"haiku": {"calls": 3}, "sonnet": {"calls": 1}},
+            "limit_events": 1,
+            "limit_event_times": [now - timedelta(minutes=30)],
+            "latest_limit_event": {"timestamp": (now - timedelta(minutes=30)).isoformat()},
+        }
+
+        signals = efficiency_signals(claude, codex, cli_state, reset_hours=5, now=now)
+
+        self.assertEqual(signals["model_mix"]["percent"]["haiku"], 75.0)
+        self.assertEqual(signals["model_mix"]["percent"]["sonnet"], 25.0)
+        self.assertEqual(signals["status"], "LIMIT-RISK")
+        self.assertEqual(signals["per_agent"]["Claude Code"]["status"], "LIMIT-RISK")
+        self.assertEqual(signals["limit_frequency"]["recent"], 1)
+
+    def test_efficiency_signals_flags_idle_when_current_window_empty(self):
+        now = datetime(2026, 6, 21, 12, 0, tzinfo=KST)
+        claude = AgentReport(name="Claude Code")
+        # five events in an older window, none in the current window
+        old = datetime(2026, 6, 21, 1, 0, tzinfo=KST)
+        claude.add_session("2026-06-21", 5, 100, 50, 10, [old] * 5)
+        codex = AgentReport(name="Codex")
+
+        signals = efficiency_signals(claude, codex, {}, reset_hours=5, now=now)
+
+        self.assertEqual(signals["per_agent"]["Claude Code"]["status"], "IDLE")
+        self.assertTrue(signals["per_agent"]["Claude Code"]["idle"])
+
+    def test_resolve_quota_auto_then_manual_then_none(self):
+        now = datetime(2026, 6, 21, 12, 0, tzinfo=KST)
+        cli_state = {
+            "latest_limit_event": {
+                "timestamp": (now - timedelta(hours=1)).isoformat(),
+                "detail": "out of usage",
+            }
+        }
+        missing = Path(tempfile.gettempdir()) / "no_such_quota_override_xyz.json"
+
+        # auto only
+        auto = resolve_quota(cli_state, reset_hours=5, now=now, override_path=missing)
+        self.assertEqual(auto["Claude Code"]["source"], "estimated")
+        self.assertIsNotNone(auto["Claude Code"]["reset_at"])
+        self.assertIsNone(auto["Codex"]["source"])
+
+        # manual override wins
+        with tempfile.TemporaryDirectory() as td:
+            override = Path(td) / "ai_usage_quota.json"
+            override.write_text(
+                json.dumps(
+                    {
+                        "Claude Code": {
+                            "reset_at": "2026-06-21T14:00:00+09:00",
+                            "limit_status": "5h 창 80% 소진",
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            manual = resolve_quota(cli_state, reset_hours=5, now=now, override_path=override)
+            self.assertEqual(manual["Claude Code"]["source"], "manual")
+            self.assertEqual(manual["Claude Code"]["limit_status"], "5h 창 80% 소진")
+
+        # neither auto nor manual
+        none = resolve_quota({}, reset_hours=5, now=now, override_path=missing)
+        self.assertIsNone(none["Claude Code"]["source"])
+        self.assertIsNone(none["Codex"]["source"])
+
+    def test_render_dashboard_includes_gauge_charts_and_status(self):
+        now = datetime(2026, 6, 21, 12, 0, tzinfo=KST)
+        claude = AgentReport(name="Claude Code")
+        claude.add_session("2026-06-21", 20, 1000, 500, 250, [now - timedelta(minutes=10)])
+        codex = AgentReport(name="Codex")
+        codex.add_session("2026-06-21", 10, 800, 300, 0, [now - timedelta(minutes=5)])
+        usage_state = {
+            "total_calls": 4,
+            "limit_events": 0,
+            "limit_event_times": [],
+            "recommended_claude_model": "sonnet",
+            "latest_limit_event": None,
+            "models": {"haiku": {"calls": 3, "successes": 3, "failures": 0},
+                       "sonnet": {"calls": 1, "successes": 1, "failures": 0}},
+        }
+
+        html = render_dashboard(
+            reports=[claude, codex],
+            days=1,
+            generated_at="2026-06-21 12:00 KST",
+            reset_hours=5,
+            usage_state=usage_state,
+            now=now,
+        )
+
+        self.assertIn("효율 신호", html)
+        self.assertIn("모델 믹스", html)
+        self.assertIn("지금 할 것", html)
+        self.assertIn("현재창 부하", html)
+        self.assertIn("실토큰", html)
+        self.assertNotIn("목표 사용률", html)
 
 
 if __name__ == "__main__":

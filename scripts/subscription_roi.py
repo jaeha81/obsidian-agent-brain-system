@@ -46,6 +46,7 @@ CLAUDE_PROJECTS = USER_HOME / ".claude" / "projects"
 VAULT_REPORTS = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault/00_System/roi-reports")
 ROOT = Path(__file__).resolve().parents[1]
 CLI_TOOLS_LOG = ROOT / "ObsidianVault" / "05_Logs" / "cli-tools.jsonl"
+QUOTA_OVERRIDE_PATH = ROOT / "data" / "ai_usage_quota.json"
 
 SUB_COST_MONTHLY = 100  # USD per service
 CLI_LIMIT_PATTERNS = re.compile(
@@ -53,6 +54,36 @@ CLI_LIMIT_PATTERNS = re.compile(
     r"too many requests|429|사용\s*한도|구독\s*한도|한도\s*초과|할당량\s*초과)",
     re.IGNORECASE,
 )
+
+
+def _parse_ts(value: object) -> datetime | None:
+    """Parse an ISO timestamp string into a KST-aware datetime, or None."""
+    if not value:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=KST)
+    return dt.astimezone(KST)
+
+
+def _humanize_delta(delta: timedelta) -> str:
+    """Render a timedelta as '3h 12m', or '리셋 지남' when already past."""
+    total = int(delta.total_seconds())
+    if total <= 0:
+        return "리셋 지남"
+    hours, rem = divmod(total, 3600)
+    minutes = rem // 60
+    if hours:
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
 
 
 @dataclass
@@ -74,17 +105,28 @@ class AgentReport:
     total_cached_tokens: int = 0
     active_days: set = field(default_factory=set)
     by_day: dict = field(default_factory=lambda: defaultdict(DailyStats))
+    # Per-message timestamps for reset-window bucketing (added Phase 1-1)
+    event_times: list = field(default_factory=list)
     # Official quota tracking — populated externally; None means not yet collected
     official_limit_status: str | None = None
     last_limit_event: str | None = None
     reset_at: str | None = None
     remaining_until_reset: str | None = None
+    quota_source: str | None = None  # "estimated" | "manual" | None
 
     @property
     def total_tokens(self) -> int:
         return self.total_input_tokens + self.total_output_tokens
 
-    def add_session(self, day: str, messages: int, in_tok: int, out_tok: int, cached: int) -> None:
+    def add_session(
+        self,
+        day: str,
+        messages: int,
+        in_tok: int,
+        out_tok: int,
+        cached: int,
+        event_times: list | None = None,
+    ) -> None:
         self.total_sessions += 1
         self.total_messages += messages
         self.total_input_tokens += in_tok
@@ -97,12 +139,15 @@ class AgentReport:
         s.input_tokens += in_tok
         s.output_tokens += out_tok
         s.cached_tokens += cached
+        if event_times:
+            self.event_times.extend(event_times)
 
 
-def parse_codex_file(path: Path) -> tuple[str, int, int, int, int]:
-    """Return (day_iso, msg_count, in_tok, out_tok, cached_tok)."""
+def parse_codex_file(path: Path) -> tuple[str, int, int, int, int, list[datetime]]:
+    """Return (day_iso, msg_count, in_tok, out_tok, cached_tok, event_times)."""
     msg_count = 0
     in_tok = out_tok = cached_tok = 0
+    event_times: list[datetime] = []
     day = path.parent.name
     month = path.parent.parent.name
     year = path.parent.parent.parent.name
@@ -122,6 +167,9 @@ def parse_codex_file(path: Path) -> tuple[str, int, int, int, int]:
                 payload = rec.get("payload", {}) or {}
                 if t in ("user_message", "agent_message", "response_item", "message"):
                     msg_count += 1
+                    ts = _parse_ts(rec.get("timestamp") or payload.get("timestamp"))
+                    if ts:
+                        event_times.append(ts)
                 # token usage often in token_count or usage payload
                 usage = payload.get("usage") or payload.get("token_usage") or {}
                 if isinstance(usage, dict):
@@ -131,13 +179,14 @@ def parse_codex_file(path: Path) -> tuple[str, int, int, int, int]:
     except OSError:
         pass
 
-    return day_iso, msg_count, in_tok, out_tok, cached_tok
+    return day_iso, msg_count, in_tok, out_tok, cached_tok, event_times
 
 
-def parse_claude_file(path: Path) -> tuple[str, int, int, int, int]:
-    """Return (day_iso, msg_count, in_tok, out_tok, cached_tok). Day taken from mtime."""
+def parse_claude_file(path: Path) -> tuple[str, int, int, int, int, list[datetime]]:
+    """Return (day_iso, msg_count, in_tok, out_tok, cached_tok, event_times). Day from mtime."""
     msg_count = 0
     in_tok = out_tok = cached_tok = 0
+    event_times: list[datetime] = []
     try:
         mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=KST)
         day_iso = mtime.strftime("%Y-%m-%d")
@@ -157,6 +206,9 @@ def parse_claude_file(path: Path) -> tuple[str, int, int, int, int]:
                 t = rec.get("type", "")
                 if t in ("user", "assistant"):
                     msg_count += 1
+                    ts = _parse_ts(rec.get("timestamp"))
+                    if ts:
+                        event_times.append(ts)
                 msg = rec.get("message") or {}
                 usage = msg.get("usage") if isinstance(msg, dict) else None
                 if isinstance(usage, dict):
@@ -166,7 +218,7 @@ def parse_claude_file(path: Path) -> tuple[str, int, int, int, int]:
     except OSError:
         pass
 
-    return day_iso, msg_count, in_tok, out_tok, cached_tok
+    return day_iso, msg_count, in_tok, out_tok, cached_tok, event_times
 
 
 def collect_codex(since: datetime, project_filter: str | None = None) -> AgentReport:
@@ -180,8 +232,8 @@ def collect_codex(since: datetime, project_filter: str | None = None) -> AgentRe
             continue
         if mtime < since:
             continue
-        day, msgs, in_t, out_t, cached = parse_codex_file(jsonl)
-        rep.add_session(day, msgs, in_t, out_t, cached)
+        day, msgs, in_t, out_t, cached, ev_times = parse_codex_file(jsonl)
+        rep.add_session(day, msgs, in_t, out_t, cached, ev_times)
     return rep
 
 
@@ -201,8 +253,8 @@ def collect_claude(since: datetime, project_filter: str | None = None) -> AgentR
                 continue
             if mtime < since:
                 continue
-            day, msgs, in_t, out_t, cached = parse_claude_file(jsonl)
-            rep.add_session(day, msgs, in_t, out_t, cached)
+            day, msgs, in_t, out_t, cached, ev_times = parse_claude_file(jsonl)
+            rep.add_session(day, msgs, in_t, out_t, cached, ev_times)
     return rep
 
 
@@ -223,6 +275,7 @@ def collect_cli_usage_state(
         "failures": 0,
         "limit_events": 0,
         "latest_limit_event": None,
+        "limit_event_times": [],
         "recommended_claude_model": "sonnet",
         "models": models,
     }
@@ -275,6 +328,9 @@ def collect_cli_usage_state(
         command = str(rec.get("command") or "").lower()
         if "claude" in command and not success and CLI_LIMIT_PATTERNS.search(detail):
             state["limit_events"] = int(state["limit_events"]) + 1
+            ev_ts = _parse_ts(timestamp)
+            if ev_ts:
+                state["limit_event_times"].append(ev_ts)  # type: ignore[union-attr]
             state["latest_limit_event"] = {
                 "timestamp": timestamp,
                 "model": model,
@@ -385,6 +441,209 @@ def usage_recommendation(agent_name: str, summary: dict[str, object]) -> str:
         f"{status}: {action} "
         f"Fallback: create a handoff, queue the blocked task, and switch lanes until the next reset window."
     )
+
+
+def window_distribution(
+    event_times: list[datetime],
+    reset_hours: float,
+    now: datetime,
+    lookback_windows: int = 8,
+) -> list[dict]:
+    """Bucket events into the past `lookback_windows` reset windows (oldest first).
+
+    Each window: {start, end, count, is_current}. The current window is the most
+    recent (ends at `now`).
+    """
+    if reset_hours <= 0:
+        reset_hours = 5
+    span = timedelta(hours=reset_hours)
+    windows: list[dict] = []
+    for i in range(lookback_windows):
+        end = now - span * i
+        start = end - span
+        count = sum(1 for t in event_times if t and start <= t < end)
+        windows.append({"start": start, "end": end, "count": count, "is_current": i == 0})
+    windows.reverse()  # oldest -> newest for left-to-right charting
+    return windows
+
+
+def _model_family(name: str) -> str:
+    n = (name or "").lower()
+    for fam in ("opus", "sonnet", "haiku"):
+        if fam in n:
+            return fam
+    return "기타"
+
+
+def efficiency_signals(
+    claude: AgentReport,
+    codex: AgentReport,
+    cli_state: dict[str, object] | None,
+    reset_hours: float,
+    now: datetime,
+    lookback_windows: int = 8,
+) -> dict[str, object]:
+    """Compute the four real efficiency signals + per-agent status.
+
+    Signals: model_mix, agent_balance, limit_frequency, idle_warning.
+    Status (per agent + global): LIMIT-RISK | IDLE | BALANCED.
+    """
+    cli_state = cli_state or {}
+    models = cli_state.get("models") or {}
+
+    # --- model_mix ---
+    fam_calls = {"haiku": 0, "sonnet": 0, "opus": 0, "기타": 0}
+    if isinstance(models, dict):
+        for mname, stats in models.items():
+            if isinstance(stats, dict):
+                fam_calls[_model_family(mname)] += int(stats.get("calls", 0) or 0)
+    total_calls = sum(fam_calls.values())
+    model_mix = {
+        "counts": fam_calls,
+        "total": total_calls,
+        "percent": {
+            k: (round(v / total_calls * 100, 1) if total_calls else 0.0)
+            for k, v in fam_calls.items()
+        },
+    }
+
+    # --- limit_frequency (mapped to reset windows) ---
+    limit_times = cli_state.get("limit_event_times") or []
+    if not isinstance(limit_times, list):
+        limit_times = []
+    limit_windows = window_distribution(limit_times, reset_hours, now, lookback_windows)
+    recent_limit = limit_windows[-1]["count"]
+    if len(limit_windows) >= 2:
+        recent_limit += limit_windows[-2]["count"]
+    limit_frequency = {
+        "windows": limit_windows,
+        "total": int(cli_state.get("limit_events", 0) or 0),
+        "recent": recent_limit,
+        "latest": cli_state.get("latest_limit_event"),
+    }
+
+    # --- agent_balance ---
+    c_sess, x_sess = claude.total_sessions, codex.total_sessions
+    if c_sess and x_sess:
+        ratio = c_sess / x_sess
+        heavier = claude.name if ratio >= 1 else codex.name
+        mult = ratio if ratio >= 1 else 1 / ratio
+    else:
+        heavier = claude.name if c_sess >= x_sess else codex.name
+        mult = 0.0
+    agent_balance = {
+        "claude_sessions": c_sess,
+        "codex_sessions": x_sess,
+        "claude_messages": claude.total_messages,
+        "codex_messages": codex.total_messages,
+        "heavier": heavier,
+        "multiple": round(mult, 1),
+    }
+
+    # --- per-agent window load + idle + status ---
+    per_agent: dict[str, dict] = {}
+    for report, is_claude in ((claude, True), (codex, False)):
+        win = window_distribution(report.event_times, reset_hours, now, lookback_windows)
+        loads = [w["count"] for w in win]
+        current = loads[-1] if loads else 0
+        peak = max(loads) if loads else 0
+        idle = peak > 0 and current < max(1, peak * 0.3)
+        if is_claude and recent_limit > 0:
+            status = "LIMIT-RISK"
+        elif idle:
+            status = "IDLE"
+        else:
+            status = "BALANCED"
+        per_agent[report.name] = {
+            "status": status,
+            "windows": win,
+            "current_load": current,
+            "peak_load": peak,
+            "idle": idle,
+        }
+
+    idle_warning = all(per_agent[r.name]["idle"] for r in (claude, codex))
+    if recent_limit > 0:
+        gstatus = "LIMIT-RISK"
+    elif idle_warning:
+        gstatus = "IDLE"
+    else:
+        gstatus = "BALANCED"
+
+    return {
+        "model_mix": model_mix,
+        "limit_frequency": limit_frequency,
+        "agent_balance": agent_balance,
+        "per_agent": per_agent,
+        "status": gstatus,
+        "idle_warning": idle_warning,
+    }
+
+
+def resolve_quota(
+    cli_state: dict[str, object] | None,
+    reset_hours: float,
+    now: datetime,
+    override_path: Path | str | None = None,
+) -> dict[str, dict]:
+    """Merge auto-estimated and manual quota per agent.
+
+    Auto: latest Claude limit event + reset_hours -> reset_at (label 'estimated').
+    Manual: data/ai_usage_quota.json overrides auto (label 'manual').
+    Neither: all None (caller renders '미수집').
+    """
+    agents = ["Claude Code", "Codex"]
+    out: dict[str, dict] = {
+        a: {
+            "limit_status": None,
+            "reset_at": None,
+            "remaining_until_reset": None,
+            "source": None,
+        }
+        for a in agents
+    }
+
+    # auto estimate — only Claude limit events are tracked in the CLI log
+    latest = (cli_state or {}).get("latest_limit_event")
+    if isinstance(latest, dict) and latest.get("timestamp"):
+        ts = _parse_ts(latest.get("timestamp"))
+        if ts:
+            reset_at = ts + timedelta(hours=reset_hours)
+            out["Claude Code"].update(
+                {
+                    "limit_status": latest.get("detail") or "최근 한도 이벤트 기준 추정",
+                    "reset_at": reset_at.isoformat(),
+                    "remaining_until_reset": _humanize_delta(reset_at - now),
+                    "source": "estimated",
+                }
+            )
+
+    # manual override
+    path = Path(override_path) if override_path else QUOTA_OVERRIDE_PATH
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            data = {}
+        if isinstance(data, dict):
+            for a in agents:
+                entry = data.get(a)
+                if not isinstance(entry, dict):
+                    continue
+                reset_at = entry.get("reset_at")
+                limit_status = entry.get("limit_status")
+                if reset_at:
+                    out[a]["reset_at"] = reset_at
+                    rt = _parse_ts(reset_at)
+                    out[a]["remaining_until_reset"] = (
+                        _humanize_delta(rt - now) if rt else None
+                    )
+                if limit_status:
+                    out[a]["limit_status"] = limit_status
+                if reset_at or limit_status:
+                    out[a]["source"] = "manual"
+
+    return out
 
 
 def render_report(reports: list[AgentReport], days: int) -> str:

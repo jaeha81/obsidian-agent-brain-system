@@ -15,12 +15,15 @@ if str(ROOT) not in sys.path:
 from scripts.subscription_roi import (  # noqa: E402
     SUB_COST_MONTHLY,
     AgentReport,
+    _humanize_delta,
+    _parse_ts,
     collect_cli_usage_state,
     collect_claude,
     collect_codex,
+    efficiency_signals,
     format_int,
+    resolve_quota,
     summarize_usage,
-    usage_recommendation,
 )
 
 
@@ -46,87 +49,246 @@ def env_int(name: str, default: int) -> int:
         return default
 
 
-def status_class(recommendation: str) -> str:
-    if recommendation.startswith("UNDERUSED"):
-        return "underused"
-    if recommendation.startswith("LIMIT-RISK"):
-        return "limit"
-    return "balanced"
-
-
-def status_label(recommendation: str) -> str:
-    key = recommendation.split(":", 1)[0]
-    return {
-        "LIMIT-RISK": "한도 위험",
-        "UNDERUSED": "사용 여유",
-        "BALANCED": "균형",
-    }.get(key, key)
-
-
-def plan_label(recommendation: str) -> str:
-    key = recommendation.split(":", 1)[0]
-    if key == "LIMIT-RISK":
-        return "한도 위험: 작업을 작은 세션으로 나누고, 핸드오프 노트를 먼저 저장한 뒤 다른 에이전트를 검수나 분석 대기로 둡니다. 막히면 핸드오프를 만들고 작업을 큐에 넣은 다음 다음 리셋 창까지 라인을 전환합니다."
-    if key == "UNDERUSED":
-        return "사용 여유: 해당 에이전트에 검수, 정리, 저위험 자동화 작업을 더 배정할 수 있습니다."
-    return "균형: 현재 배분을 유지하면서 작업 단위를 작게 관리합니다."
-
-
 def _quota_val(val: object) -> str:
     if val is None or str(val).strip() == "":
         return "공식 잔여량 미수집"
     return str(val)
 
 
-def render_agent_card(report: AgentReport, days: int, reset_hours: float, target_sessions_per_reset: int) -> str:
+# --- efficiency status (efficiency_signals based, replaces fake utilization) ---
+def signal_class(status: str) -> str:
+    return {"LIMIT-RISK": "limit", "IDLE": "underused", "BALANCED": "balanced"}.get(status, "balanced")
+
+
+def signal_label(status: str) -> str:
+    return {"LIMIT-RISK": "한도 위험", "IDLE": "유휴", "BALANCED": "균형"}.get(status, status)
+
+
+def agent_action(name: str, status: str) -> str:
+    is_codex = "codex" in name.lower()
+    if status == "LIMIT-RISK":
+        return "핸드오프 노트를 먼저 저장하고, 다음 리셋 창까지 다른 에이전트를 검수·분석 대기로 둡니다."
+    if status == "IDLE":
+        if is_codex:
+            return "유휴 — 미검수 diff·실패 테스트 분석·문서 검증을 배정합니다."
+        return "유휴 — 저위험 backlog(문서·테스트·리팩토링)를 배정합니다."
+    return "균형 — 현재 배분을 유지하고 작업 단위를 작게 가져갑니다."
+
+
+def humanize_tokens(n: int) -> str:
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M"
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}K"
+    return str(n)
+
+
+def src_badge(source: str | None) -> str:
+    if source == "manual":
+        return '<em class="src manual">확정</em>'
+    if source == "estimated":
+        return '<em class="src est">추정</em>'
+    return ""
+
+
+# --- SVG chart helpers (server-side, no build step) ---
+def _stacked_bar_svg(segments: list[tuple[float, str, str]], height: int = 22) -> str:
+    total = sum(max(0.0, v) for v, _, _ in segments) or 1.0
+    parts, x = [], 0.0
+    for v, color, label in segments:
+        w = max(0.0, v) / total * 100
+        if w <= 0:
+            continue
+        parts.append(
+            f'<rect x="{x:.2f}" y="0" width="{w:.2f}" height="{height}" fill="{color}">'
+            f"<title>{esc(label)}</title></rect>"
+        )
+        x += w
+    return (
+        f'<svg class="chart" viewBox="0 0 100 {height}" preserveAspectRatio="none" '
+        f'role="img">{"".join(parts)}</svg>'
+    )
+
+
+def _legend(items: list[tuple[str, str]]) -> str:
+    spans = "".join(
+        f'<span class="lg"><i style="background:{c}"></i>{esc(label)}</span>' for c, label in items
+    )
+    return f'<div class="legend">{spans}</div>'
+
+
+def render_window_gauge(quota_entry: dict, reset_hours: float, now: datetime) -> str:
+    reset_at = quota_entry.get("reset_at")
+    rt = _parse_ts(reset_at) if reset_at else None
+    if not rt:
+        return (
+            '<div class="gauge-wrap">'
+            '<svg class="gauge" viewBox="0 0 100 8" preserveAspectRatio="none" role="img">'
+            '<rect width="100" height="8" rx="4" fill="var(--line)"/></svg>'
+            '<span class="gauge-label">리셋창 미수집 — 한도 이벤트/수동 입력 시 표시</span></div>'
+        )
+    span = timedelta(hours=reset_hours)
+    start = rt - span
+    frac = (now - start).total_seconds() / span.total_seconds()
+    frac = min(1.0, max(0.0, frac))
+    pct = frac * 100
+    remaining = quota_entry.get("remaining_until_reset") or _humanize_delta(rt - now)
+    color = "var(--red)" if frac > 0.85 else ("var(--amber)" if frac > 0.6 else "var(--green)")
+    return (
+        '<div class="gauge-wrap">'
+        '<svg class="gauge" viewBox="0 0 100 8" preserveAspectRatio="none" role="img">'
+        '<rect width="100" height="8" rx="4" fill="var(--line)"/>'
+        f'<rect width="{pct:.1f}" height="8" rx="4" fill="{color}"/></svg>'
+        f'<span class="gauge-label">리셋창 {pct:.0f}% 경과 · 잔여 {esc(remaining)} '
+        f"{src_badge(quota_entry.get('source'))}</span></div>"
+    )
+
+
+def render_model_mix(model_mix: dict) -> str:
+    if not model_mix or model_mix.get("total", 0) == 0:
+        return '<p class="note">모델 호출 로그 없음</p>'
+    pct = model_mix["percent"]
+    rows = [
+        ("haiku", pct["haiku"], "var(--green)", "Haiku"),
+        ("sonnet", pct["sonnet"], "var(--blue)", "Sonnet"),
+        ("opus", pct["opus"], "#7c3aed", "Opus"),
+        ("기타", pct["기타"], "var(--muted)", "기타"),
+    ]
+    segs = [(v, c, f"{name} {v}%") for _, v, c, name in rows]
+    legend = _legend([(c, f"{name} {v}%") for _, v, c, name in rows if v > 0])
+    return _stacked_bar_svg(segs) + legend
+
+
+def render_agent_split(ab: dict) -> str:
+    c, x = ab.get("claude_sessions", 0), ab.get("codex_sessions", 0)
+    if not (c or x):
+        return '<p class="note">세션 데이터 없음</p>'
+    segs = [(c, "var(--blue)", f"Claude {c}세션"), (x, "var(--green)", f"Codex {x}세션")]
+    legend = _legend([("var(--blue)", f"Claude {c}"), ("var(--green)", f"Codex {x}")])
+    mult = ab.get("multiple", 0)
+    note = (
+        f'<p class="note">{esc(ab.get("heavier", ""))}가 {mult:g}배 더 활발</p>'
+        if mult
+        else '<p class="note">한쪽 데이터만 존재</p>'
+    )
+    return _stacked_bar_svg(segs) + legend + note
+
+
+def render_limit_freq(windows: list[dict]) -> str:
+    counts = [w.get("count", 0) for w in windows]
+    peak = max(counts) if counts else 0
+    if peak == 0:
+        return f'<p class="note">최근 {len(windows) or 8}개 리셋 창에 한도 이벤트 없음</p>'
+    n = len(windows)
+    bw = 100 / n
+    bars = []
+    for i, w in enumerate(windows):
+        h = w.get("count", 0) / peak * 100
+        x = i * bw + bw * 0.15
+        color = "var(--red)" if w.get("count", 0) > 0 else "var(--line)"
+        bars.append(
+            f'<rect x="{x:.2f}" y="{100 - h:.2f}" width="{bw * 0.7:.2f}" height="{h:.2f}" '
+            f'fill="{color}"><title>{w.get("count", 0)}건</title></rect>'
+        )
+    return (
+        '<svg class="chart vbar" viewBox="0 0 100 100" preserveAspectRatio="none" '
+        f'role="img">{"".join(bars)}</svg>'
+        '<p class="note">최근 8개 리셋 창의 한도 이벤트 (좌→우, 우측이 최신)</p>'
+    )
+
+
+def render_daily_spark(reports: list[AgentReport]) -> str:
+    days = sorted({d for r in reports for d in r.by_day if d != "unknown"})[-14:]
+    if not days:
+        return '<p class="note">기간 내 일별 데이터 없음</p>'
+    peak = max(
+        (r.by_day[d].sessions for r in reports for d in days if d in r.by_day),
+        default=0,
+    ) or 1
+    n = len(days)
+    gw = 100 / n
+    colors = ["var(--blue)", "var(--green)"]
+    bars = []
+    for i, d in enumerate(days):
+        for j, r in enumerate(reports[:2]):
+            stats = r.by_day.get(d)
+            sess = stats.sessions if stats else 0
+            h = sess / peak * 100
+            bw = gw * 0.4
+            x = i * gw + gw * 0.1 + j * bw
+            bars.append(
+                f'<rect x="{x:.2f}" y="{100 - h:.2f}" width="{bw * 0.9:.2f}" height="{h:.2f}" '
+                f'fill="{colors[j % 2]}"><title>{esc(d)} · {esc(r.name)} {sess}세션</title></rect>'
+            )
+    legend = _legend([("var(--blue)", "Claude 세션"), ("var(--green)", "Codex 세션")])
+    return (
+        '<svg class="chart vbar" viewBox="0 0 100 100" preserveAspectRatio="none" '
+        f'role="img">{"".join(bars)}</svg>'
+        + legend
+    )
+
+
+def render_agent_card(
+    report: AgentReport,
+    days: int,
+    reset_hours: float,
+    status_entry: dict,
+    quota_entry: dict,
+    now: datetime,
+) -> str:
     summary = summarize_usage(
         report,
         days=days,
         monthly_usd=SUB_COST_MONTHLY,
         reset_hours=reset_hours,
-        target_sessions_per_reset=target_sessions_per_reset,
     )
-    recommendation = usage_recommendation(report.name, summary)
+    status = status_entry.get("status", "BALANCED")
     cost_per_session = summary["cost_per_session_usd"]
     cost_per_message = summary["cost_per_message_usd"]
     cost_session_text = "N/A" if cost_per_session is None else f"${cost_per_session:.2f}"
     cost_message_text = "N/A" if cost_per_message is None else f"${cost_per_message:.3f}"
 
     is_codex = "codex" in report.name.lower()
-    total_tok = int(summary["total_tokens"])
+    in_tok = int(summary["input_tokens"])
+    out_tok = int(summary["output_tokens"])
     cached_tok = int(summary["cached_tokens"])
-    token_text = "미수집" if (is_codex and total_tok == 0) else f"총 {format_int(total_tok)} / 캐시 {format_int(cached_tok)}"
+    real_tok = in_tok + out_tok
+    if is_codex and real_tok == 0 and cached_tok == 0:
+        token_text = "미수집"
+    else:
+        prompt_total = in_tok + cached_tok
+        hit = round(cached_tok / prompt_total * 100) if prompt_total else 0
+        token_text = f"실토큰 {humanize_tokens(real_tok)} · 캐시적중 {hit}%"
 
-    official_status = _quota_val(summary.get("official_limit_status"))
-    last_event = _quota_val(summary.get("last_limit_event"))
-    reset_at_val = _quota_val(summary.get("reset_at"))
-    remaining_val = _quota_val(summary.get("remaining_until_reset"))
+    official_status = _quota_val(quota_entry.get("limit_status"))
+    reset_at_val = _quota_val(quota_entry.get("reset_at"))
+    remaining_val = _quota_val(quota_entry.get("remaining_until_reset"))
     quota_cls = "uncollected" if official_status == "공식 잔여량 미수집" else ""
+    src = src_badge(quota_entry.get("source"))
 
     return f"""
-      <article class="agent-card {status_class(recommendation)}">
+      <article class="agent-card {signal_class(status)}">
         <div class="agent-head">
           <h3>{esc(report.name)}</h3>
-          <span>{esc(status_label(recommendation))}</span>
+          <span>{esc(signal_label(status))}</span>
         </div>
+        <p class="action"><strong>지금 할 것</strong> {esc(agent_action(report.name, status))}</p>
         <div class="metric-grid">
           <div><strong>{format_int(int(summary["sessions"]))}</strong><span>세션</span></div>
           <div><strong>{format_int(int(summary["messages"]))}</strong><span>메시지</span></div>
           <div><strong>{summary["active_day_percent"]}%</strong><span>활성일</span></div>
-          <div><strong>{summary["session_utilization_percent"]}%</strong><span>목표 사용률</span></div>
+          <div><strong>{status_entry.get("current_load", 0)}</strong><span>현재창 부하</span></div>
         </div>
-        <div class="bar"><span style="width:{esc(summary["session_utilization_percent"])}%"></span></div>
+        {render_window_gauge(quota_entry, reset_hours, now)}
         <dl>
           <div><dt>토큰</dt><dd>{esc(token_text)}</dd></div>
           <div><dt>예산</dt><dd>{days}일 기준 ${summary["prorated_budget_usd"]:.2f}, 월 ${SUB_COST_MONTHLY}</dd></div>
           <div><dt>단가</dt><dd>세션당 {cost_session_text} / 메시지당 {cost_message_text}</dd></div>
-          <div><dt>운영안</dt><dd>{esc(plan_label(recommendation))}</dd></div>
         </dl>
         <div class="official-quota">
-          <h4 class="quota-title">공식 잔여량 (Official Quota)</h4>
+          <h4 class="quota-title">공식 잔여량 (Official Quota) {src}</h4>
           <dl class="quota-dl">
             <div><dt>한도 상태</dt><dd class="{quota_cls}">{esc(official_status)}</dd></div>
-            <div><dt>최근 한도 이벤트</dt><dd class="{quota_cls}">{esc(last_event)}</dd></div>
             <div><dt>리셋 예정</dt><dd class="{quota_cls}">{esc(reset_at_val)}</dd></div>
             <div><dt>리셋까지 잔여</dt><dd class="{quota_cls}">{esc(remaining_val)}</dd></div>
           </dl>
@@ -169,14 +331,14 @@ def render_bucky_routing() -> str:
     routes = [
         {
             "condition": "Claude 여유 있음",
-            "when": "목표 사용률 < 85%",
+            "when": "최근 리셋 창 한도 이벤트 없음 (균형)",
             "action": "구현 · 수정 · 테스트 작업 배정",
             "detail": "Assign implementation, code edits, and test runs to Claude Code. Use for long coding sessions and repository-level changes.",
             "cls": "route-ok",
         },
         {
             "condition": "Claude 한도 도달",
-            "when": "목표 사용률 > 85%",
+            "when": "현재/직전 리셋 창에 한도 이벤트",
             "action": "Codex로 전환: 검수 · 재현 · 핸드오프 · 작업분해",
             "detail": "Save handoff notes immediately, then switch to Codex for code review, test reproduction, handoff compilation, and task decomposition until the next reset window.",
             "cls": "route-limit",
@@ -190,7 +352,7 @@ def render_bucky_routing() -> str:
         },
         {
             "condition": "리셋 전 여유 큼",
-            "when": "사용률 < 50% & 리셋 임박",
+            "when": "현재 창 부하 낮음 & 리셋 임박",
             "action": "저위험 backlog 자동 추천",
             "detail": "When significant quota remains before the next reset window, recommend low-risk backlog items: documentation updates, minor refactors, and test coverage improvements.",
             "cls": "route-backlog",
@@ -275,6 +437,23 @@ def render_cli_usage_state(usage_state: dict[str, object] | None) -> str:
 """
 
 
+def render_efficiency_panel(signals: dict[str, object]) -> str:
+    mm = signals.get("model_mix", {}) or {}
+    ab = signals.get("agent_balance", {}) or {}
+    lf = signals.get("limit_frequency", {}) or {}
+    status = str(signals.get("status", "BALANCED"))
+    return f"""
+    <section class="panel">
+      <h2>효율 신호 <span class="status-pill {signal_class(status)}">{esc(signal_label(status))}</span></h2>
+      <div class="signal-grid">
+        <div class="signal-box"><h4>모델 믹스</h4>{render_model_mix(mm)}</div>
+        <div class="signal-box"><h4>Claude vs Codex 배분</h4>{render_agent_split(ab)}</div>
+        <div class="signal-box"><h4>한도 도달 빈도</h4>{render_limit_freq(lf.get("windows", []))}</div>
+      </div>
+    </section>
+"""
+
+
 def render_dashboard(
     reports: list[AgentReport],
     days: int,
@@ -282,11 +461,38 @@ def render_dashboard(
     reset_hours: float,
     target_sessions_per_reset: int = 2,
     usage_state: dict[str, object] | None = None,
+    signals: dict[str, object] | None = None,
+    quota: dict[str, dict] | None = None,
+    now: datetime | None = None,
 ) -> str:
-    cards = "\n".join(render_agent_card(report, days, reset_hours, target_sessions_per_reset) for report in reports)
+    if now is None:
+        now = datetime.now(KST)
+    claude = reports[0] if reports else AgentReport(name="Claude Code")
+    codex = reports[1] if len(reports) > 1 else AgentReport(name="Codex")
+    if signals is None:
+        signals = efficiency_signals(claude, codex, usage_state, reset_hours, now)
+    if quota is None:
+        quota = resolve_quota(usage_state, reset_hours, now)
+
+    per_agent = signals.get("per_agent", {})  # type: ignore[union-attr]
+    default_status = {"status": "BALANCED", "current_load": 0}
+    default_quota = {"limit_status": None, "reset_at": None, "remaining_until_reset": None, "source": None}
+    cards = "\n".join(
+        render_agent_card(
+            report,
+            days,
+            reset_hours,
+            per_agent.get(report.name, default_status),
+            quota.get(report.name, default_quota),
+            now,
+        )
+        for report in reports
+    )
     daily_rows = render_daily_rows(reports)
     bucky_routing = render_bucky_routing()
     cli_state = render_cli_usage_state(usage_state)
+    efficiency_panel = render_efficiency_panel(signals)
+    daily_spark = render_daily_spark(reports)
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -376,7 +582,29 @@ def render_dashboard(
   .guardrails div {{ border-left:4px solid var(--blue); background:#fbfdff; padding:14px; border-radius:8px; }}
   .guardrails strong {{ display:block; margin-bottom:6px; }}
   footer {{ padding:22px clamp(14px,3vw,42px); color:var(--muted); border-top:1px solid var(--line); font-size:13px; }}
-  @media (max-width:900px) {{ .agent-grid, .ops-grid, .guardrails, .bucky-grid, .state-grid {{ grid-template-columns:1fr; }} .metric-grid {{ grid-template-columns:repeat(2,1fr); }} dl div, .quota-dl div {{ grid-template-columns:1fr; }} }}
+  .action {{ margin:0; padding:10px 12px; background:#f1f5f9; border:1px solid var(--line); border-radius:8px; font-size:13px; color:var(--ink); line-height:1.5; }}
+  .action strong {{ color:var(--blue); margin-right:6px; }}
+  .limit .action {{ background:#fef2f2; border-color:#fecaca; }}
+  .underused .action {{ background:#fff7ed; border-color:#fed7aa; }}
+  .gauge-wrap {{ display:grid; gap:6px; }}
+  .gauge {{ width:100%; height:8px; display:block; }}
+  .gauge-label {{ font-size:12px; color:var(--muted); }}
+  .src {{ font-style:normal; font-weight:800; font-size:11px; padding:1px 6px; border-radius:999px; }}
+  .src.est {{ color:var(--amber); background:#fff7ed; border:1px solid #fed7aa; }}
+  .src.manual {{ color:var(--green); background:#f0fdf4; border:1px solid #bbf7d0; }}
+  .signal-grid {{ display:grid; grid-template-columns:repeat(3,minmax(220px,1fr)); gap:14px; }}
+  .signal-box {{ border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfdff; display:grid; gap:8px; align-content:start; }}
+  .signal-box h4 {{ margin:0; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }}
+  .chart {{ width:100%; display:block; border-radius:6px; }}
+  .chart.vbar {{ height:90px; background:#fff; border:1px solid var(--line); }}
+  .legend {{ display:flex; flex-wrap:wrap; gap:10px; }}
+  .legend .lg {{ display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); }}
+  .legend .lg i {{ width:11px; height:11px; border-radius:3px; display:inline-block; }}
+  .status-pill {{ font-size:13px; font-weight:800; padding:3px 10px; border-radius:999px; border:1px solid var(--line); vertical-align:middle; margin-left:8px; }}
+  .status-pill.balanced {{ color:var(--green); background:#f0fdf4; border-color:#bbf7d0; }}
+  .status-pill.underused {{ color:var(--amber); background:#fff7ed; border-color:#fed7aa; }}
+  .status-pill.limit {{ color:var(--red); background:#fef2f2; border-color:#fecaca; }}
+  @media (max-width:900px) {{ .agent-grid, .ops-grid, .guardrails, .bucky-grid, .state-grid, .signal-grid {{ grid-template-columns:1fr; }} .metric-grid {{ grid-template-columns:repeat(2,1fr); }} dl div, .quota-dl div {{ grid-template-columns:1fr; }} }}
 </style>
 </head>
 <body>
@@ -393,6 +621,7 @@ def render_dashboard(
   <section class="agent-grid">
     {cards}
   </section>
+  {efficiency_panel}
   {cli_state}
   <section class="panel">
     <h2>Bucky 운영 규칙</h2>
@@ -412,6 +641,7 @@ def render_dashboard(
   </section>
   <section class="panel">
     <h2>일별 사용량</h2>
+    {daily_spark}
     <table>
       <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
       <tbody>{daily_rows}</tbody>

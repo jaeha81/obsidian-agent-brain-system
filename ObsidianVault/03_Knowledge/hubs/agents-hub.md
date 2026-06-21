@@ -5,7 +5,7 @@ status: active
 created: '2026-06-21T00:00:00.000Z'
 category: system
 ingested_via: put_page
-ingested_at: '2026-06-21T00:28:02.467Z'
+ingested_at: '2026-06-21T02:01:05.245Z'
 source_kind: put_page
 tags:
   - agents
@@ -34,6 +34,21 @@ JH ecosystem agent roles and channel assignment reference.
 [[docs/wishket/agent]]
 [[docs/workflow/agent]]
 
+## Channel Role Definitions
+
+[[channel-role-chsh-mining]]
+[[channel-role-claude-code]]
+[[channel-role-codex]]
+[[channel-role-dailyplus]]
+[[channel-role-jhhub]]
+[[channel-role-kmong]]
+[[channel-role-myintro]]
+[[channel-role-repo-dashboard]]
+[[channel-role-shorts]]
+[[channel-role-taskboard]]
+[[channel-role-threads]]
+[[channel-role-wishket]]
+
 ## System Agents
 
 [[agents]]
@@ -44,6 +59,7 @@ JH ecosystem agent roles and channel assignment reference.
 - **2026-06-18** | Channel-independent agent architecture migration completed
 - **2026-06-20** | 14 channel agents fully operational with role files
 - **2026-06-21** | Agents Hub created for knowledge graph connectivity
+- **2026-06-21** | Channel role definitions linked to hub
 
 ## Function
 
