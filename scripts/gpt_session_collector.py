@@ -184,11 +184,14 @@ async def _api_get(url: str, *, page=None, ctx=None) -> dict | None:
                 """async ([u, token]) => {
                     const headers = token ? {Authorization: 'Bearer ' + token} : {};
                     const r = await fetch(u, {credentials: 'include', headers});
-                    if (!r.ok) return null;
+                    if (!r.ok) return {__error__: r.status};
                     return await r.json();
                 }""",
                 [url, _bearer_token],
             )
+            if isinstance(data, dict) and "__error__" in data:
+                log.warning(f"API HTTP {data['__error__']}: {url[-60:]}")
+                return None
             return data  # None이면 호출부에서 처리
         except Exception as e:
             log.warning(f"page.evaluate 실패, ctx.request로 폴백: {e}")
@@ -262,16 +265,26 @@ async def fetch_conversation_messages(page_ctx, conv_id: str, *, page=None) -> l
     """
     비공식 /conversation/{id} API로 단일 대화의 전체 메시지를 수집한다.
     반환: [{"role": "user"|"assistant", "content": "..."}]
+    429 Rate Limit 시 60초 대기 후 1회 재시도.
     """
+    import asyncio as _aio
     url = f"{CONVERSATION_URL}/{conv_id}"
 
-    try:
-        data = await _api_get(url, page=page, ctx=page_ctx)
-        if data is None:
-            log.error(f"대화 메시지 API 오류 (None 응답): {conv_id}")
+    for attempt in range(2):
+        try:
+            data = await _api_get(url, page=page, ctx=page_ctx)
+            if data is None:
+                if attempt == 0:
+                    log.warning(f"대화 메시지 429/오류 — 60초 대기 후 재시도: {conv_id}")
+                    await _aio.sleep(60)
+                    continue
+                log.error(f"대화 메시지 API 오류 (재시도 후도 실패): {conv_id}")
+                return []
+            break
+        except Exception as e:
+            log.error(f"대화 메시지 요청 실패 ({conv_id}): {e}")
             return []
-    except Exception as e:
-        log.error(f"대화 메시지 요청 실패 ({conv_id}): {e}")
+    else:
         return []
 
     # 메시지 트리 파싱
@@ -492,6 +505,28 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
             else:
                 log.warning("chatgpt.com 탭 없음 — context.request 폴백 (쿠키 미보장)")
 
+        async def _refresh_bearer_token() -> bool:
+            """Bearer 토큰 만료 시 chatgpt.com/pulse 재방문으로 갱신."""
+            global _bearer_token
+            if chatgpt_page is None:
+                return False
+            old_token = _bearer_token
+            _bearer_token = None
+            try:
+                log.info("Bearer 토큰 갱신 시도: chatgpt.com/pulse 재방문...")
+                await chatgpt_page.goto("https://chatgpt.com/pulse", wait_until="domcontentloaded")
+                await chatgpt_page.wait_for_timeout(4000)
+                if _bearer_token:
+                    log.info(f"Bearer 토큰 갱신 완료 ({len(_bearer_token)}자)")
+                    return True
+                _bearer_token = old_token
+                log.warning("Bearer 토큰 갱신 실패 — 이전 토큰 유지")
+                return False
+            except Exception as e:
+                _bearer_token = old_token
+                log.error(f"Bearer 토큰 갱신 오류: {e}")
+                return False
+
         # ── 세션 확인: /api/auth/session 우선 (NextAuth), 폴백은 /backend-api/me
         log.info("ChatGPT 세션 확인 중...")
         api_ok = False
@@ -557,7 +592,13 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
 
         log.info(f"수집 대상: {len(convs)}개 대화")
 
+        consecutive_errors = 0
+        MAX_CONSECUTIVE_ERRORS = 5
+        REQUEST_DELAY = 1.5  # 요청 간 딜레이(초) — 429 Rate Limit 방지
+
         for i, conv_meta in enumerate(convs, 1):
+            if i > 1:
+                await asyncio.sleep(REQUEST_DELAY)
             conv_id = conv_meta.get("id", "unknown")
             title = conv_meta.get("title", "Untitled")
             log.info(f"[{i}/{len(convs)}] 수집 중: {title[:50]} ({conv_id[:8]}...)")
@@ -566,12 +607,23 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
                 messages = await fetch_conversation_messages(context, conv_id, page=chatgpt_page)
             except Exception as e:
                 log.error(f"메시지 수집 실패 ({conv_id}): {e} — 건너뜀")
+                consecutive_errors += 1
+                if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                    log.warning(f"연속 {consecutive_errors}회 오류 — Bearer 토큰 갱신 시도")
+                    if await _refresh_bearer_token():
+                        consecutive_errors = 0
                 continue
 
             if not messages:
                 log.warning(f"메시지 없음, 건너뜀: {conv_id}")
+                consecutive_errors += 1
+                if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                    log.warning(f"연속 {consecutive_errors}회 빈 응답 — Bearer 토큰 갱신 시도")
+                    if await _refresh_bearer_token():
+                        consecutive_errors = 0
                 continue
 
+            consecutive_errors = 0
             saved = save_conversation(conv_meta, messages, dry_run=dry_run)
             if saved:
                 saved_paths.append(saved)
