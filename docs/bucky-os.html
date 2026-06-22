@@ -598,6 +598,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
       Workflow
     </div>
+    <div class="nav-item" onclick="switchPage('video',this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+      Video
+    </div>
   </div>
 
   <div class="agents-section">
@@ -1053,6 +1057,62 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
       </div><!-- /wf-wrap -->
     </div><!-- /page-workflow -->
+
+    <!-- ═══ VIDEO PAGE ═══ -->
+    <div class="page" id="page-video">
+      <div style="max-width:640px; margin:2rem auto; padding:0 1rem;">
+        <div style="margin-bottom:2rem;">
+          <h2 style="font-size:1.5rem; font-weight:700; margin:0 0 .5rem;">🎬 Video → Knowledge</h2>
+          <p style="color:var(--text-muted); margin:0; font-size:.9rem;">YouTube URL을 입력하면 Bucky가 자동으로 세컨드브레인에 저장합니다. 결과는 Discord <b>#jh-video</b>에서 확인하세요.</p>
+        </div>
+
+        <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem;">
+          <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.5rem;">영상 URL</label>
+            <input type="url" id="video-url-input"
+                   placeholder="https://youtu.be/... 또는 https://www.youtube.com/watch?v=..."
+                   onkeydown="if(event.key==='Enter')submitVideoIntake()"
+                   style="width:100%; padding:.75rem 1rem; border-radius:8px; border:1px solid var(--border);
+                          background:var(--bg); color:var(--text); font-size:.95rem; box-sizing:border-box;
+                          outline:none; transition:border-color .2s;"
+                   onfocus="this.style.borderColor='var(--accent)'"
+                   onblur="this.style.borderColor='var(--border)'" />
+          </div>
+
+          <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; padding:.75rem; background:var(--bg); border-radius:8px; border:1px solid var(--border); cursor:pointer;" onclick="document.getElementById('video-deep-mode').click()">
+            <input type="checkbox" id="video-deep-mode" style="width:16px; height:16px; cursor:pointer; accent-color:var(--accent);" onclick="event.stopPropagation()" />
+            <div>
+              <div style="font-weight:600; font-size:.9rem;">Deep 분석 모드</div>
+              <div style="font-size:.8rem; color:var(--text-muted);">핵심 개념·프레임워크·wikilink 자동 추출 (Claude Haiku)</div>
+            </div>
+          </div>
+
+          <button onclick="submitVideoIntake()" id="video-submit-btn"
+                  style="width:100%; padding:.875rem; border-radius:8px; background:var(--accent); color:#fff;
+                         border:none; font-size:1rem; font-weight:600; cursor:pointer; transition:opacity .2s;">
+            🚀 세컨드브레인에 저장
+          </button>
+        </div>
+
+        <div id="video-status" style="display:none; padding:1rem 1.25rem; border-radius:10px;
+             background:var(--bg-secondary); border:1px solid var(--border); font-size:.9rem; line-height:1.6;">
+        </div>
+
+        <div style="margin-top:2rem; padding:1rem; background:var(--bg-secondary); border-radius:10px; border:1px solid var(--border);">
+          <div style="font-size:.75rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.75rem;">진입점</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+            <div style="padding:.75rem; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+              <div style="font-size:.85rem; font-weight:600; margin-bottom:.25rem;">🌐 이 대시보드</div>
+              <div style="font-size:.75rem; color:var(--text-muted);">URL 입력 → 버튼 클릭</div>
+            </div>
+            <div style="padding:.75rem; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+              <div style="font-size:.85rem; font-weight:600; margin-bottom:.25rem;">💬 Discord #jh-video</div>
+              <div style="font-size:.75rem; color:var(--text-muted);">URL 붙여넣기만 해도 자동 처리</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-video -->
 
   </div><!-- /content -->
 </div><!-- /main -->
@@ -1764,6 +1824,61 @@ loadAll();
 checkServer();
 setInterval(checkServer, 8000);
 setInterval(loadAll, 60000);
+
+// ── VIDEO INTAKE ──
+async function submitVideoIntake() {
+  const url = (document.getElementById('video-url-input').value || '').trim();
+  const deep = document.getElementById('video-deep-mode').checked;
+  const statusEl = document.getElementById('video-status');
+  const btn = document.getElementById('video-submit-btn');
+
+  if (!url || !/^https?:\/\//i.test(url)) {
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '⚠️ 유효한 URL을 입력하세요.';
+    return;
+  }
+
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '⏳ Bucky에게 전송 중...';
+  btn.disabled = true;
+  btn.style.opacity = '.6';
+
+  const ep = (localStorage.getItem('dailyPlusBuckyOsIntakeUrl') || 'http://localhost:8765').replace(/\/$/, '');
+
+  try {
+    const res = await fetch(ep + '/intake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dashboard_type: 'video_watch',
+        action: 'watch',
+        capture_target: url,
+        title: url,
+        deep_mode: deep,
+        tags: ['dashboard-watch', 'youtube'],
+        request_id: 'vid-' + Date.now(),
+        source: 'bucky-os-dashboard',
+      }),
+    });
+
+    if (res.ok) {
+      statusEl.innerHTML =
+        '✅ 전송 완료!<br>' +
+        '<span style="color:var(--text-muted);font-size:.85rem;">Discord <b>#jh-video</b> 채널에서 분석 결과를 확인하세요.' +
+        (deep ? ' (Deep 모드: 핵심 개념·wikilink 추출 중)' : '') + '</span>';
+      document.getElementById('video-url-input').value = '';
+    } else {
+      statusEl.innerHTML = '❌ 전송 실패: HTTP ' + res.status + '<br><span style="font-size:.8rem;color:var(--text-muted);">Bucky 서버(localhost:8765) 실행 여부를 확인하세요.</span>';
+    }
+  } catch (e) {
+    statusEl.innerHTML =
+      '❌ Bucky 연결 실패<br>' +
+      '<span style="font-size:.8rem;color:var(--text-muted);">' + e.message + '<br>설정에서 Intake URL을 확인하세요.</span>';
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
 </script>
 </body>
 </html>

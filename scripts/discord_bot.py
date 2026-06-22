@@ -3638,7 +3638,13 @@ async def _init_jh_channels(client) -> None:
     global JH_VIDEO_CHANNEL_ID
     if not client.guilds:
         return
-    guild = client.guilds[0]
+    _target_guild_id = os.getenv("DISCORD_GUILD_ID", "").strip()
+    if _target_guild_id:
+        guild = discord.utils.get(client.guilds, id=int(_target_guild_id))
+        if not guild:
+            guild = client.guilds[0]
+    else:
+        guild = client.guilds[0]
     _specs = [
         ("jh-chat",         "JH_CHAT_CHANNEL_ID",           "💬 JH ↔ Bucky 대화 전용"),
         ("jh-레포대시보드",  "JH_REPO_DASHBOARD_CHANNEL_ID", "📦 Repo 대시보드 → Bucky 라우팅"),
@@ -4955,9 +4961,9 @@ class BuckyDiscordBot(discord.Client):
                 return
             if action == "content_edit":
                 fields = payload.get("fields") or {}
-                _ROOT = Path(__file__).resolve().parent.parent
-                _data_path = _ROOT / "docs" / "bni-proposal.data.json"
-                _pending_path = _ROOT / "data" / "portfolio_pending_content.json"
+                _proj_root = Path(__file__).resolve().parent.parent
+                _data_path = _proj_root / "docs" / "bni-proposal.data.json"
+                _pending_path = _proj_root / "data" / "portfolio_pending_content.json"
                 try:
                     import json as _json2
                     _pending_path.parent.mkdir(parents=True, exist_ok=True)
