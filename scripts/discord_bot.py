@@ -161,6 +161,7 @@ JH_CHARLIE_CHANNEL_ID: str        = os.getenv("JH_CHARLIE_CHANNEL_ID", "").strip
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
+JH_VIDEO_CHANNEL_ID: str       = os.getenv("JH_VIDEO_CHANNEL_ID", "").strip()
 # 쇼츠 수익화 전용 채널 (Vercel 대시보드 → Discord → 로컬 스킬)
 JH_SHORTS_CHANNEL_ID: str = os.getenv("JH_SHORTS_CHANNEL_ID", "").strip()
 _SHORTS_LOCAL_AGENT = Path(os.getenv(
@@ -205,6 +206,7 @@ ALLOWED_CHANNELS: set[str] = {
         JH_SHORTS_CHANNEL_ID,
         JH_CHSH_MINING_CHANNEL_ID,
         JH_THREADS_CHANNEL_ID,
+        JH_VIDEO_CHANNEL_ID,
     )
     if c
 } | JH_WORK_CHANNEL_IDS  # 작업 채널 자동 포함
@@ -303,8 +305,12 @@ def _get_whisper_model():
 
 BUCKY_SYSTEM_PROMPT: str = os.getenv(
     "BUCKY_SYSTEM_PROMPT",
-    "당신은 Bucky입니다. Obsidian 지식 관리 시스템과 연결된 AI 에이전트로, "
-    "사용자의 요청에 간결하고 정확하게 한국어로 답변합니다.",
+    "당신은 Bucky입니다. 사용자의 개인 AI 비서입니다.\n\n"
+    "Discord 답변 필수 규칙:\n"
+    "1. 기술 용어·코드 블록·영어 전문 용어 사용 금지. 쉬운 한국어로만 설명.\n"
+    "2. 짧고 핵심만. 불필요한 나열·설명 금지.\n"
+    "3. 답변 전 gbrain.query()로 관련 맥락을 먼저 확인해 이전 대화 흐름 파악.\n"
+    "4. 저장·작업 완료 시 gbrain.add_timeline_entry()로 기록.",
 )
 
 # ── 동적 컨텍스트 로더 (BUCKY_CONTEXT.md, 5분 캐시) ─────────────────────────
@@ -1568,12 +1574,12 @@ async def _handle_dashboard_watch_payload(payload: dict, channel) -> bool:
         await channel.send("\n".join(lines))
 
     try:
-        from bucky_youtube_capture import capture_youtube
+        from video_to_knowledge import process as _v2k_process
         if channel:
             async with channel.typing():
-                yt_result = await asyncio.to_thread(lambda: capture_youtube(watch_url, tags))
+                yt_result = await asyncio.to_thread(lambda: _v2k_process(watch_url, deep=True, tags=tags))
         else:
-            yt_result = await asyncio.to_thread(lambda: capture_youtube(watch_url, tags))
+            yt_result = await asyncio.to_thread(lambda: _v2k_process(watch_url, deep=True, tags=tags))
     except Exception as exc:
         if channel:
             await channel.send(f"⚠️ YouTube watch 처리 실패: `{type(exc).__name__}: {exc}`")
@@ -1584,14 +1590,19 @@ async def _handle_dashboard_watch_payload(payload: dict, channel) -> bool:
             await channel.send(f"⚠️ YouTube watch 저장 실패: `{yt_result.get('error', '')}`")
         return True
 
+    _k = yt_result.get("knowledge") or {}
     reply_lines = [
         "✅ **YouTube 지식 저장 완료**",
         f"- title: {yt_result.get('title') or title}",
         f"- path: `{yt_result.get('filepath', '')}`",
         f"- transcript: {'yes' if yt_result.get('has_transcript') else 'no'}",
     ]
-    if yt_result.get("summary"):
-        reply_lines.append(f"\n```text\n{str(yt_result['summary'])[:500]}\n```")
+    if _k.get("one_line"):
+        reply_lines.append(f"- 핵심: {_k['one_line']}")
+    if _k.get("jh_apply_points"):
+        reply_lines.append("- 적용포인트: " + " / ".join(_k["jh_apply_points"][:2]))
+    if _k.get("summary"):
+        reply_lines.append(f"\n```text\n{str(_k['summary'])[:500]}\n```")
     if channel:
         for chunk in split_message("\n".join(reply_lines)):
             await channel.send(chunk)
@@ -1783,8 +1794,8 @@ async def _handle_daily_plus_intake_payload(message: Message, content: str, chan
                 attachment_paths.extend(str(note) for note in notes)
 
             if target.startswith("http") and _YOUTUBE_PATTERN.search(target):
-                from bucky_youtube_capture import capture_youtube
-                yt_result = await asyncio.to_thread(capture_youtube, target, tags)
+                from video_to_knowledge import process as _v2k_process
+                yt_result = await asyncio.to_thread(_v2k_process, target, "ko", False, tags)
                 if yt_result.get("success") and yt_result.get("filepath"):
                     saved_paths.append(str(yt_result["filepath"]))
                 else:
@@ -1939,14 +1950,15 @@ async def _auto_capture_url_bg(url: str, notify_channel=None) -> None:
 
         is_youtube = bool(_YOUTUBE_PATTERN.search(url))
         if is_youtube:
-            from bucky_youtube_capture import capture_youtube
-            result = await asyncio.to_thread(capture_youtube, url)
+            from video_to_knowledge import process as _v2k_process
+            result = await asyncio.to_thread(_v2k_process, url)
             if result["success"]:
+                _summary = (result.get("knowledge") or {}).get("summary", "")
                 msg = (
                     f"📺 **YouTube 지식 캡처 완료!**\n"
                     f"📝 {result['title']}\n"
                     f"{'트랜스크립트 포함 ✅' if result['has_transcript'] else '트랜스크립트 없음'}\n"
-                    f"```\n{result['summary'][:300]}\n```" if result.get("summary") else ""
+                    f"```\n{_summary[:300]}\n```" if _summary else ""
                 )
                 print(f"[AutoCapture] YouTube 저장: {result['filepath']}", flush=True)
                 if notify_channel:
@@ -2741,13 +2753,24 @@ async def ask_bucky(
         if bucky_context else ""
     )
 
+    # gbrain 컨텍스트 recall 지시 (Bucky가 MCP로 실행)
+    _safe_query = user_message[:80].replace('"', "'").replace("\n", " ")
+    gbrain_recall_hint = (
+        f"# GBrain 컨텍스트 지시\n\n"
+        f"답변 전 반드시: gbrain.query(\"{_safe_query}\", recency='on', limit=3)\n"
+        f"→ 관련 이전 대화·결정·패턴을 확인한 뒤 답변하라.\n\n"
+        if context_need != "LOW" else ""
+    )
+
     prompt = (
         f"{context_section}"
         f"{prev_ctx_block}"
         f"{session_anchor}"
+        f"{gbrain_recall_hint}"
         "# Discord 대화\n\n"
         f"{intent_hint}\n"
-        "실행 작업이면 '요약→실행안→저장위치→다음행동' 순서로, 단순 질문이면 간결하게."
+        "실행 작업이면 '요약→실행안→저장위치→다음행동' 순서로, 단순 질문이면 간결하게.\n"
+        "응답은 쉬운 한국어로, 기술 용어·코드 블록 금지."
         f"{rag_block}\n\n"
         f"{transcript}"
     )
@@ -3627,6 +3650,7 @@ async def _init_jh_channels(client) -> None:
         ("jh-charlie",       "JH_CHARLIE_CHANNEL_ID",        "Charlie system audit, home PC continuity, drift warnings, and user confirmations"),
         ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
         ("jh-코덱스앱",      "JH_CODEX_CHANNEL_ID",          "🔍 Codex 앱 세션 요청/상태 보고"),
+        ("jh-video",         "JH_VIDEO_CHANNEL_ID",          "🎬 영상 URL → Bucky 세컨드브레인 자동 저장"),
     ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
@@ -4726,6 +4750,7 @@ class BuckyDiscordBot(discord.Client):
             "checklist":     lambda: JH_TASKBOARD_CHANNEL_ID,   # alias: checklist.html
             "knowledge_intake": lambda: JH_CHRIS_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
             "charlie":       lambda: JH_CHARLIE_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
+            "video_watch":   lambda: JH_VIDEO_CHANNEL_ID or JH_CHAT_CHANNEL_ID,
         }
 
         print("[IntakeConsumer] 시작", flush=True)
@@ -4775,6 +4800,73 @@ class BuckyDiscordBot(discord.Client):
         action = str(payload.get("action") or "")
         title = str(payload.get("title") or payload.get("summary") or "")
         request_id = str(payload.get("request_id") or "")
+
+        # Video watch: 대시보드 또는 jh-video 채널에서 영상 URL → 세컨드브레인 저장
+        if dashboard_type == "video_watch":
+            watch_url = str(payload.get("capture_target") or payload.get("url") or "").strip()
+            deep = bool(payload.get("deep_mode", False))
+            _tags = payload.get("tags") or ["dashboard-watch", "youtube"]
+            if isinstance(_tags, str):
+                _tags = [t.strip() for t in _tags.split(",") if t.strip()]
+
+            if not watch_url:
+                if channel:
+                    await channel.send("⚠️ 영상 URL이 비어 있습니다.")
+                return
+
+            if channel:
+                await channel.send(
+                    f"🎬 **영상 분석 시작**\n"
+                    f"- URL: `{watch_url[:120]}`\n"
+                    f"- Deep 모드: {'ON ✅' if deep else 'OFF'}"
+                )
+            try:
+                import sys as _sys
+                _scripts_dir = str(_ROOT / "scripts")
+                if _scripts_dir not in _sys.path:
+                    _sys.path.insert(0, _scripts_dir)
+                from video_to_knowledge import process as _v2k_process
+                if channel:
+                    async with channel.typing():
+                        _v2k_result = await asyncio.to_thread(
+                            lambda: _v2k_process(watch_url, deep=deep, tags=_tags)
+                        )
+                else:
+                    _v2k_result = await asyncio.to_thread(
+                        lambda: _v2k_process(watch_url, deep=deep, tags=_tags)
+                    )
+            except Exception as _exc:
+                print(f"[VideoWatch] 처리 오류: {_exc}", flush=True)
+                if channel:
+                    await channel.send(f"⚠️ 영상 처리 오류: `{type(_exc).__name__}: {_exc}`")
+                return
+
+            if not _v2k_result.get("success"):
+                if channel:
+                    await channel.send(f"❌ 저장 실패: `{_v2k_result.get('error', '')}`")
+                return
+
+            _k = _v2k_result.get("knowledge") or {}
+            _dup = " (중복 — 기존 노트 반환)" if _v2k_result.get("duplicate") else ""
+            _lines = [
+                f"✅ **세컨드브레인 저장 완료**{_dup}",
+                f"- 제목: {_v2k_result.get('title', '')}",
+                f"- 트랜스크립트: {'있음 ✅' if _v2k_result.get('has_transcript') else '없음'}",
+                f"- 파일: `{Path(_v2k_result.get('filepath', '')).name}`",
+            ]
+            if _k.get("one_line"):
+                _lines.append(f"- 한 줄 핵심: {_k['one_line']}")
+            if _k.get("jh_apply_points"):
+                _lines.append("**JH 적용 포인트:**")
+                _lines.extend(f"  · {p}" for p in _k["jh_apply_points"][:3])
+            if _k.get("summary"):
+                _lines.append(f"\n```\n{str(_k['summary'])[:400]}\n```")
+
+            if channel:
+                for chunk in split_message("\n".join(_lines)):
+                    await channel.send(chunk)
+            print(f"[VideoWatch] 완료: {_v2k_result.get('filepath', '')}", flush=True)
+            return
 
         # Repo dashboard intake should brief the user with portfolio context,
         # not stop at the generic three-line intake acknowledgement.
@@ -5355,6 +5447,24 @@ class BuckyDiscordBot(discord.Client):
 
         content = message.content.strip()
         channel_id = str(message.channel.id)
+
+        # ── #jh-video: YouTube URL 붙여넣기 → 세컨드브레인 자동 저장 ──────────────
+        if JH_VIDEO_CHANNEL_ID and channel_id == JH_VIDEO_CHANNEL_ID:
+            _yt_url = _extract_youtube_url_from_text(content)
+            if _yt_url:
+                await self._process_intake_payload(
+                    {
+                        "dashboard_type": "video_watch",
+                        "action": "watch",
+                        "capture_target": _yt_url,
+                        "title": _yt_url,
+                        "tags": ["discord-video", "youtube"],
+                        "request_id": f"discord-vid-{message.id}",
+                    },
+                    message.channel,
+                )
+                return
+            # URL 없는 메시지는 Bucky 자연어 처리로 fall-through
 
         # ── #jh-shorts: Vercel 버튼 → Webhook → 로컬 스킬 실행 ──────────────────
         if JH_SHORTS_CHANNEL_ID and channel_id == JH_SHORTS_CHANNEL_ID:
