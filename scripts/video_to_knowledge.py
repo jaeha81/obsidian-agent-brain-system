@@ -123,9 +123,60 @@ def process_local_video(video_path: Path, language: str = "ko") -> dict:
 
 # ── YouTube 처리 (bucky_youtube_capture 재사용) ───────────────────────────────
 
+def _whisper_fallback_youtube(video_id: str, language: str = "ko") -> str:
+    """yt-dlp로 오디오 다운로드 후 Whisper STT — 자막 없는 영상 폴백."""
+    try:
+        import yt_dlp
+        import whisper as _whisper
+    except ImportError as e:
+        print(f"[Whisper/yt-dlp] 미설치: {e}", flush=True)
+        return ""
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ydl_opts = {
+                "quiet": True,
+                "no_warnings": True,
+                "format": "bestaudio/best",
+                "outtmpl": str(Path(tmpdir) / "audio.%(ext)s"),
+                "postprocessors": [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "wav",
+                    "preferredquality": "128",
+                }],
+            }
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            audio_files = list(Path(tmpdir).glob("audio.*"))
+            if not audio_files:
+                print("[Whisper] 오디오 다운로드 실패", flush=True)
+                return ""
+
+            audio_path = audio_files[0]
+            print(f"[Whisper] STT 시작 (model=base, lang={language}, file={audio_path.name})...", flush=True)
+            model = _whisper.load_model("base")
+            opts = {"language": language} if language else {}
+            result = model.transcribe(str(audio_path), **opts)
+            text = result.get("text", "").strip()
+            print(f"[Whisper] STT 완료: {len(text)}자", flush=True)
+            return text[:8000]
+    except Exception as e:
+        print(f"[Whisper] STT 폴백 실패: {e}", flush=True)
+        return ""
+
+
 def process_youtube(url: str, language: str = "ko") -> tuple[dict, str]:
-    """YouTube URL → 메타데이터 + 트랜스크립트."""
+    """YouTube URL → 메타데이터 + 트랜스크립트.
+
+    자막 우선순위:
+    1. youtube-transcript-api (한국어 → 영어 → 자동생성)
+    2. yt-dlp VTT/SRT 자막 파일
+    3. Whisper STT 폴백 (자막 없는 영상)
+    """
     sys.path.insert(0, str(ROOT / "scripts"))
+    meta = {"url": url, "title": "", "source_type": "youtube", "channel": "",
+            "publish_date": "", "thumbnail": "", "video_id": ""}
     try:
         from bucky_youtube_capture import fetch_youtube_meta, fetch_transcript, extract_video_id
         video_id = extract_video_id(url)
@@ -134,11 +185,16 @@ def process_youtube(url: str, language: str = "ko") -> tuple[dict, str]:
         meta["source_type"] = "youtube"
         print(f"[YouTube] 메타: {meta.get('title', '?')}", flush=True)
         transcript = fetch_transcript(video_id, language)
+
+        # 자막 없으면 Whisper STT 폴백
+        if not transcript:
+            print(f"[YouTube] 자막 없음 → Whisper STT 폴백", flush=True)
+            transcript = _whisper_fallback_youtube(video_id, language)
+
         return meta, transcript
     except Exception as e:
         print(f"[YouTube] 처리 실패: {e}", flush=True)
-        return {"url": url, "title": "", "source_type": "youtube", "channel": "",
-                "publish_date": "", "thumbnail": "", "video_id": ""}, ""
+        return meta, ""
 
 
 # ── Bucky CLI(구독) 기반 지식 추출 ──────────────────────────────────────────
@@ -162,17 +218,14 @@ def _run_bucky_safe(prompt: str, timeout: int = 120) -> str:
         return ""
 
 
-def extract_knowledge_deep(title: str, transcript: str, description: str,
-                            meta: dict, api_key: str = "") -> dict:
-    """Bucky CLI(구독)로 구조화된 지식 추출."""
-    content = transcript or description or title
-    prompt = f"""당신은 JH의 지식 큐레이터 에이전트입니다.
+_KNOWLEDGE_PROMPT_TEMPLATE = """\
+당신은 JH의 지식 큐레이터 에이전트입니다.
 다음 영상 내용을 분석하여 Obsidian 지식 노트로 구조화하세요.
 
 영상 제목: {title}
-채널: {meta.get('channel', '')}
+채널: {channel}
 내용 (트랜스크립트/설명):
-{content[:5000]}
+{content}
 
 JH 시스템 맥락:
 - Bucky: AI 오케스트레이터 에이전트
@@ -181,7 +234,7 @@ JH 시스템 맥락:
 - vibe-coding: AI 가속 개발 방법론
 - 목표: 1인 창업자 레버리지 극대화
 
-기존 지식 노트 (wikilink 후보): {', '.join(EXISTING_NODES)}
+기존 지식 노트 (wikilink 후보): {existing_nodes}
 
 아래 JSON 형식으로만 응답하세요 (코드블록 없이 순수 JSON, 반드시 한국어):
 {{
@@ -195,15 +248,63 @@ JH 시스템 맥락:
   "one_line": "15자 이내 핵심"
 }}"""
 
+
+def _extract_json(raw: str) -> dict | None:
+    """응답에서 JSON 객체 추출."""
+    try:
+        m = re.search(r'\{[\s\S]+\}', raw)
+        if m:
+            return json.loads(m.group())
+    except Exception:
+        pass
+    return None
+
+
+def _call_claude_api(prompt: str, timeout: int = 120) -> str:
+    """Anthropic API 직접 호출 — Bucky CLI 폴백."""
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return ""
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return msg.content[0].text if msg.content else ""
+    except Exception as e:
+        print(f"[Claude API] 직접 호출 실패: {e}", flush=True)
+        return ""
+
+
+def extract_knowledge_deep(title: str, transcript: str, description: str,
+                            meta: dict, api_key: str = "") -> dict:
+    """구조화된 지식 추출. Bucky CLI 우선, 실패 시 Claude API 직접 호출."""
+    content = transcript or description or title
+    prompt = _KNOWLEDGE_PROMPT_TEMPLATE.format(
+        title=title,
+        channel=meta.get("channel", ""),
+        content=content[:5000],
+        existing_nodes=", ".join(EXISTING_NODES),
+    )
+
+    # 1차: Bucky CLI (구독 경로)
     raw = _run_bucky_safe(prompt, timeout=180)
     if raw:
-        try:
-            # JSON 블록 추출 시도
-            m = re.search(r'\{[\s\S]+\}', raw)
-            if m:
-                return json.loads(m.group())
-        except Exception as e:
-            print(f"[Bucky] JSON 파싱 실패: {e}", flush=True)
+        parsed = _extract_json(raw)
+        if parsed:
+            return parsed
+        print(f"[Bucky] JSON 파싱 실패, Claude API 폴백", flush=True)
+
+    # 2차: Claude API 직접 호출
+    raw = _call_claude_api(prompt, timeout=120)
+    if raw:
+        parsed = _extract_json(raw)
+        if parsed:
+            print(f"[Claude API] 지식 추출 성공", flush=True)
+            return parsed
 
     return {
         "summary": description[:300] if description else "요약 없음",
@@ -218,7 +319,7 @@ JH 시스템 맥락:
 
 
 def simple_summary(title: str, content: str, api_key: str = "") -> str:
-    """Bucky CLI(구독)로 3줄 요약. 실패 시 content 앞부분 반환."""
+    """3줄 요약. Bucky CLI 우선, 실패 시 Claude API 직접 호출, 최후 content 앞부분."""
     if not content:
         return ""
     prompt = (
@@ -226,6 +327,9 @@ def simple_summary(title: str, content: str, api_key: str = "") -> str:
         f"제목: {title}\n내용: {content[:2000]}"
     )
     result = _run_bucky_safe(prompt, timeout=60)
+    if result:
+        return result
+    result = _call_claude_api(prompt, timeout=60)
     return result if result else content[:300]
 
 

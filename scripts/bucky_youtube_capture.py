@@ -134,19 +134,32 @@ def fetch_youtube_meta(url: str) -> dict:
 
 # ── 트랜스크립트 수집 ────────────────────────────────────────────────────────
 
+_VTT_META_PREFIXES = (
+    "WEBVTT", "Kind:", "Language:", "Position:", "Align:", "Size:",
+    "Translator:", "Reviewer:", "NOTE ", "REGION",
+)
+
+
 def _parse_subtitle_text(content: str, fmt: str) -> str:
-    """VTT/SRT 파일에서 순수 텍스트 추출."""
+    """VTT/SRT 파일에서 순수 텍스트 추출. VTT 헤더 메타 및 중복 줄 제거."""
     lines = []
+    seen: set[str] = set()
     for line in content.split("\n"):
         line = line.strip()
         if not line:
             continue
-        if fmt == "vtt" and (line.startswith("WEBVTT") or "-->" in line):
-            continue
+        if fmt == "vtt":
+            if "-->" in line:
+                continue
+            if any(line.startswith(p) for p in _VTT_META_PREFIXES):
+                continue
         if fmt == "srt" and ("-->" in line or line.isdigit()):
             continue
-        line = re.sub(r"<[^>]+>", "", line)
-        if line:
+        line = re.sub(r"<[^>]+>", "", line)  # HTML 태그 제거
+        line = re.sub(r"&amp;", "&", line)
+        line = re.sub(r"\s+", " ", line).strip()
+        if line and line not in seen:
+            seen.add(line)
             lines.append(line)
     return " ".join(lines)[:6000]
 
