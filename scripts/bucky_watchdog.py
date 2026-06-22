@@ -28,6 +28,7 @@ load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK_URL", "")
 BUCKY_SCRIPT = str(_ROOT / "scripts" / "discord_bot.py")
+CHAT_SERVER_SCRIPT = str(_ROOT / "scripts" / "bucky_chat_server.py")
 ERROR_LOG_DIR = _ROOT / "ObsidianVault" / "10_AgentBus" / "error-logs"
 STATE_FILE = _ROOT / ".agent" / "watchdog_state.json"
 
@@ -152,6 +153,22 @@ def start_bucky() -> subprocess.Popen:
     return proc
 
 
+def start_chat_server() -> subprocess.Popen:
+    python = sys.executable
+    env = {**os.environ}
+    log_path = _ROOT / "logs" / "chat_server_watchdog.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_fh = open(log_path, "a", encoding="utf-8")
+    proc = subprocess.Popen(
+        [python, "-X", "utf8", CHAT_SERVER_SCRIPT, "--port", "8765"],
+        stdout=log_fh,
+        stderr=log_fh,
+        env=env,
+    )
+    log(f"BuckyChatServer 시작 (PID {proc.pid})")
+    return proc
+
+
 def collect_output(proc: subprocess.Popen, timeout: float = 2.0) -> tuple[str, str]:
     try:
         out, err = proc.communicate(timeout=timeout)
@@ -166,9 +183,18 @@ def run() -> None:
     log("Watchdog 시작")
     state = load_state()
     proc: subprocess.Popen | None = None
+    chat_proc: subprocess.Popen | None = None
 
     while True:
-        # 프로세스가 없거나 종료됐으면 시작
+        # ── bucky_chat_server 감시 ──────────────────────────────────────────
+        if chat_proc is None or chat_proc.poll() is not None:
+            if chat_proc is not None and chat_proc.poll() is not None:
+                log(f"BuckyChatServer 종료 (exit={chat_proc.poll()}) — 재시작")
+                send_webhook("⚠️ **BuckyChatServer 다운** — 자동 재시작")
+            time.sleep(2)
+            chat_proc = start_chat_server()
+
+        # ── Discord 봇 감시 ─────────────────────────────────────────────────
         if proc is None or proc.poll() is not None:
             exit_code = proc.poll() if proc is not None else None
 

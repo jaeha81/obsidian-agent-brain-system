@@ -3635,6 +3635,7 @@ async def _init_jh_channels(client) -> None:
     global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_KMONG_CHANNEL_ID, JH_MYINTRO_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
     global JH_CHRIS_CHANNEL_ID, JH_CHARLIE_CHANNEL_ID
     global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID
+    global JH_VIDEO_CHANNEL_ID
     if not client.guilds:
         return
     guild = client.guilds[0]
@@ -3694,6 +3695,7 @@ async def _init_jh_channels(client) -> None:
         ("JH_CHARLIE_CHANNEL_ID",        JH_CHARLIE_CHANNEL_ID),
         ("JH_CLAUDE_CODE_CHANNEL_ID",    JH_CLAUDE_CODE_CHANNEL_ID),
         ("JH_CODEX_CHANNEL_ID",          JH_CODEX_CHANNEL_ID),
+        ("JH_VIDEO_CHANNEL_ID",          JH_VIDEO_CHANNEL_ID),
     ]
     for _env_key, _ch_id in _intake_env_keys:
         if _ch_id:
