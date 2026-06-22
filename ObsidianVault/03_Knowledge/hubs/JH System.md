@@ -1,6 +1,7 @@
 ---
 type: knowledge-hub
 created: 2026-05-27
+updated: 2026-06-22
 tags:
 - knowledge-hub
 summary: Bucky Graphify Obsidian
