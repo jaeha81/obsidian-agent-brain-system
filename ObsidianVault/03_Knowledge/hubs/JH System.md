@@ -25,6 +25,9 @@ graph_cluster: misc
 [[technical-patterns-hub]]
 [[youtube-insights-hub]]
 [[dp-notes-hub]]
+[[bridge-indexes-hub]]
+[[docs-hub]]
+[[system-pages-hub]]
 
 ## Function
 
