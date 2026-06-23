@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JP Golf — 일본 골프장 AI 예약 서비스</title>
+<style>
+  :root {
+    --green: #1a7a4a;
+    --green-light: #2ea865;
+    --green-pale: #e8f5ee;
+    --gold: #c8960a;
+    --gold-light: #f5d76e;
+    --dark: #1a1a2e;
+    --gray: #5a5a6a;
+    --bg: #f4f7f4;
+    --white: #ffffff;
+    --border: #d0ddd4;
+    --shadow: 0 2px 16px rgba(26,122,74,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--dark) 0%, #0d3d2a 100%);
+    color: white;
+    padding: 48px 24px 36px;
+    text-align: center;
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--gold-light); }
+  .header p {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.72);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+
+  /* Section */
+  .section { margin-bottom: 32px; }
+  .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--green-pale);
+  }
+
+  /* Card Grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+  .card h3 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+  }
+  .card p {
+    font-size: 0.82rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  /* Flow */
+  .flow {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+  }
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 0;
+    position: relative;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 52px;
+    bottom: -4px;
+    width: 2px;
+    background: var(--border);
+  }
+  .step-num {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .step-num.gold { background: var(--gold); }
+  .step-num.gray { background: #8a8a9a; }
+  .step-body h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--dark);
+  }
+  .step-body p {
+    font-size: 0.8rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+  .step-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+  .tag-ai { background: #e3f0fb; color: #1a6fb5; }
+  .tag-human { background: var(--green-pale); color: var(--green); }
+  .tag-auto { background: #fff3d6; color: #b07a00; }
+
+  /* Highlight box */
+  .highlight {
+    background: linear-gradient(135deg, var(--green-pale) 0%, #f0faf4 100%);
+    border: 1.5px solid var(--green-light);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .highlight h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .highlight p {
+    font-size: 0.83rem;
+    color: var(--dark);
+    line-height: 1.6;
+  }
+
+  /* Two column */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .header h1 { font-size: 1.8rem; }
+  }
+
+  /* List */
+  .check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .check-list li {
+    font-size: 0.83rem;
+    color: var(--dark);
+    padding-left: 20px;
+    position: relative;
+  }
+  .check-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--green-light);
+    font-weight: 700;
+  }
+
+  /* Comparison */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .compare-table th {
+    background: var(--dark);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+  .compare-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: #f9faf9; }
+  .before { color: #c0392b; }
+  .after { color: var(--green); font-weight: 600; }
+
+  /* Transcript */
+  .transcript-box {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-size: 0.78rem;
+    color: #b0b8c0;
+    line-height: 1.8;
+    max-height: 220px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.75rem;
+    color: #8a8a9a;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">Business Plan Dashboard</div>
+  <h1>JP <span>Golf</span> 예약</h1>
+  <p>일본 골프장 AI 상담 + 예약 대행 서비스 — 사업 기획 요약</p>
+</div>
+
+<div class="container">
+
+  <!-- 핵심 포지션 -->
+  <div class="section">
+    <div class="section-title">핵심 포지셔닝</div>
+    <div class="highlight">
+      <h3>오직 하나만 — 일본 골프장 티타임 예약</h3>
+      <p>차량·호텔·비행기 예약 없음. 골프장 부킹만 제공함으로써 <strong>여행업 사업자 등록 불필요</strong>. 통신판매 신고만으로 개인사업자 즉시 운영 가능. 락쿠텐 고라(楽天GORA) 2,000개+ 일본 골프장 DB 활용.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">⛳</div>
+        <h3>서비스 범위</h3>
+        <p>일본 골프장 티타임 예약 단일 서비스. 호텔·항공·차량 제외.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>AI 상담봇</h3>
+        <p>GPT 기반 자연어 상담. 여행 일정·라운딩 수·선호 코스 자동 수집.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <h3>자동 요약</h3>
+        <p>상담 완료 시 고객 요구사항을 채팅창에 구조화하여 상담사 전달.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📲</div>
+        <h3>간편 확정</h3>
+        <p>상담사가 락쿠텐 고라에서 가용 확인 후 예약 확인서 번역·전달.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 서비스 플로우 -->
+  <div class="section">
+    <div class="section-title">서비스 플로우</div>
+    <div class="flow">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>고객 사이트 진입</h4>
+            <p>구글처럼 검색창 하나만 있는 깔끔한 화면. "어느 지역 골프 여행을 계획하시나요?"</p>
+            <span class="step-tag tag-ai">AI</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>AI 상담 — 기본 정보 수집</h4>
+            <p>여행 지역 / 날짜(몇 박) / 라운딩 횟수 / 희망 티오프 시간 / 선호 골프장 / 비행기 발권 여부 수집</p>
+            <span class="step-tag tag-ai">AI 자동</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>요구사항 정리 & 요약 전달</h4>
+            <p>AI가 상담 내용 전체를 채팅창에 구조화하여 남김. "상담사가 확인 후 가능 여부와 비용을 안내드리겠습니다."</p>
+            <span class="step-tag tag-auto">AI → 상담사</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num gold">4</div>
+          <div class="step-body">
+            <h4>상담사 — 락쿠텐 고라 가용 확인</h4>
+            <p>락쿠텐 고라에서 희망 골프장·날짜·티타임 가용 여부·가격 확인. (향후 AI 자동화 목표)</p>
+            <span class="step-tag tag-human">상담사 수동</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num gold">5</div>
+          <div class="step-body">
+            <h4>고객 확정 → 예약 진행</h4>
+            <p>비용·시간 안내 후 고객 OK → 상담사가 직접 예약. 예약 확인서 번역 후 전달.</p>
+            <span class="step-tag tag-human">상담사</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num gray">6</div>
+          <div class="step-body">
+            <h4>[미래] 풀 자동화</h4>
+            <p>AI가 락쿠텐 고라 직접 조회 → 가용 티타임·가격 자동 제시 → 예약만 사람이 확정.</p>
+            <span class="step-tag tag-ai">AI 자동화 목표</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 비교 / 기술 -->
+  <div class="two-col">
+    <div class="section">
+      <div class="section-title">Before vs After</div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="compare-table">
+          <thead>
+            <tr><th>항목</th><th>기존 (수동)</th><th>AI 도입 후</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>상담</td>
+              <td class="before">사장님이 직접 문자 대응</td>
+              <td class="after">AI 자동 상담</td>
+            </tr>
+            <tr>
+              <td>정보 수집</td>
+              <td class="before">일일이 질문</td>
+              <td class="after">AI 자동 추출·정리</td>
+            </tr>
+            <tr>
+              <td>가용 확인</td>
+              <td class="before">락쿠텐 고라 수동 검색</td>
+              <td class="after">(미래) AI 자동 조회</td>
+            </tr>
+            <tr>
+              <td>예약</td>
+              <td class="before">수동</td>
+              <td class="after">상담사 확정 후 예약</td>
+            </tr>
+            <tr>
+              <td>확인서</td>
+              <td class="before">일본어 원문 그대로</td>
+              <td class="after">AI 번역·번역본 발송</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">기술 스택 / 법적 요건</div>
+      <div class="card">
+        <h3 style="font-size:0.88rem;font-weight:700;color:var(--dark);margin-bottom:12px;">기술 구성</h3>
+        <ul class="check-list">
+          <li>GPT / Claude API — AI 상담봇</li>
+          <li>락쿠텐 고라(楽天GORA) — 일본 골프장 2,000+ DB</li>
+          <li>웹훅 + 채팅 UI — 요약 전달 채널</li>
+          <li>번역 API — 예약 확인서 한국어 변환</li>
+          <li>(미래) 락쿠텐 고라 API/스크래핑 — 가용 자동 조회</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <h3 style="font-size:0.88rem;font-weight:700;color:var(--dark);margin-bottom:12px;">법적 요건</h3>
+        <ul class="check-list">
+          <li>여행업 허가 불필요 (부킹만 제공)</li>
+          <li>통신판매업 신고만으로 개인사업자 운영 가능</li>
+          <li>호텔·항공·차량 패키지 판매 시 여행업 필요 — 제외</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 운영 포인트 -->
+  <div class="section">
+    <div class="section-title">운영 핵심 포인트</div>
+    <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card">
+        <div class="card-icon">✈️</div>
+        <h3>비행기 시간 파악</h3>
+        <p>첫날 라운딩 가능 여부는 비행기 도착 시간 기준. AI가 자동 확인 및 추천 시간대 제시.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⏱️</div>
+        <h3>틈새 운영</h3>
+        <p>상담사는 하루 종일 대기 불필요. 중간 빈 시간에 PC에서 채팅창 확인 후 예약만 처리.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📬</div>
+        <h3>예약 확인 자동화</h3>
+        <p>락쿠텐 고라 예약 확인서 → AI 번역 → 고객 발송. 수동 번역 작업 완전 제거.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 트랜스크립트 원문 -->
+  <div class="section">
+    <div class="section-title">음성 트랜스크립트 원문 (Whisper 추출)</div>
+    <div class="transcript-box">5분걸프 할건데 자 다시 한번 설명할게요 그럼요 5분걸프에 서비스를 가져올건데 다른건 아무것도 안하고 5분걸프에 홀프장 부킹 서비스만 해줄거야 손님들한테 아무것도 필요없어 그 이유가 뭐냐면 차량을 해주거나 호텔을 예약해주거나 이런게 들어가면 여행업이 되서 여행업 사업자도 무칑이 있어야 돼 근데 부킹을 하잖아? 부킹만 하잖아? 그러면 개인사업자도 바로 할 수 있어 통신 판매에 신고만 하면 돼 [...] 락쿠텐고라 라는 사이트가 있는데 거기에 들어가면 일본 전국 2000개 골프장에 치이와 이런 시간들이 다 나와 [...] 마지막에 손님한테 뭐를 받냐면 상담 다 했어 그래? 그러면 이런 내용이 나왔잖아 얘가 그걸 정리를 하는거야 손님한테 여행 날짜 언제부터 며칠까지 라운딩 몇번 사람은 몇명인지 어디 골프장을 가고 싶은지 이 내용을 정리해서 상담창에 딱 남겨놓기만 하면 돼 [...] 상담사가 확인되는대로 이 가능 여부와 비용을 확인해서 안내 드리겠습니다</div>
+    <p style="font-size:0.72rem;color:#8a8a9a;margin-top:8px;">파일: Jp-golf.m4a | Whisper small 모델 | 추출일: 2026-06-23</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  JP Golf Dashboard — Generated by Bucky AI System · 2026-06-23
+</div>
+
+</body>
+</html>
