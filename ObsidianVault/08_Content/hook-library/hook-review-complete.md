@@ -1,4 +1,4 @@
-﻿---
+---
 id: IMPL-RA-11
 type: hook-template
 trigger: review-complete
@@ -66,4 +66,3 @@ tags: [#hook, #automation, #codex, #review]
 → `scripts/trigger_jobs/job-review-complete.js`
 
 *Related: [[technical-patterns-hub]]*
-

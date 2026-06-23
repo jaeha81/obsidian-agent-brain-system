@@ -1,4 +1,4 @@
-﻿---
+---
 id: IMPL-RA-07
 type: hook-template
 trigger: git-push
@@ -50,4 +50,3 @@ tags: [#hook, #automation, #git]
 → `scripts/trigger_jobs/job-git-push.js`
 
 *Related: [[technical-patterns-hub]]*
-

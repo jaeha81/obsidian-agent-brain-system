@@ -1,4 +1,4 @@
-﻿---
+---
 id: IMPL-RA-09
 type: hook-template
 trigger: session-start
@@ -49,4 +49,3 @@ tags: [#hook, #automation, #session]
 → `scripts/trigger_jobs/job-session-start.js`
 
 *Related: [[technical-patterns-hub]]*
-

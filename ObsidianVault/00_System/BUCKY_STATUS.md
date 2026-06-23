@@ -1,6 +1,6 @@
 ---
 type: bucky-status
-updated: 2026-06-20T23:02:04.806Z
+updated: 2026-06-22T18:45:07.520Z
 pc: 집 PC
 hostname: P0517A-22H2T8
 username: user1

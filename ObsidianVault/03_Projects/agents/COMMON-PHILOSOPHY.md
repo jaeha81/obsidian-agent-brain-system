@@ -110,4 +110,3 @@ next_action: review
 - [[rank-system]]
 - [[sub-agents]]
 - [[user-brain]]
-

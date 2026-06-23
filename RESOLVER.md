@@ -18,3 +18,8 @@ Format: each row = one intent pattern → skill reference.
 | wikilink | [skills/obsidian-master-skill/SKILL.md](skills/obsidian-master-skill/SKILL.md) |
 | frontmatter | [skills/obsidian-master-skill/SKILL.md](skills/obsidian-master-skill/SKILL.md) |
 | second brain | [skills/obsidian-master-skill/SKILL.md](skills/obsidian-master-skill/SKILL.md) |
+
+
+<!-- gbrain:retrieval-reflex:resolver-rows -->
+- retrieval-reflex | a named person/company/project/place becomes the subject; a brain-page pointer appears in context; "who is", "what do we know about", "tell me about"; about to assert a non-trivial detail about a named entity
+<!-- /gbrain:retrieval-reflex:resolver-rows -->
