@@ -9,9 +9,12 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import json
+import os
 import subprocess
 import sys
 import time
+import urllib.request
 
 from generate_daily_plus_dashboard import (
     ROOT,
@@ -29,6 +32,46 @@ from daily_graphify_evolution import run_daily_graphify_evolution
 
 
 PUBLIC_URL = "https://jaeha81.github.io/obsidian-agent-brain-system/daily-plus.html"
+
+_GBRAIN_URL = "http://localhost:8787/mcp"
+_GBRAIN_TOKEN = os.environ.get(
+    "GBRAIN_TOKEN",
+    "Bearer gbrain_df591891043aaadcfe912558300f9aad84873cfca7545511487a7cc6dea8f440",
+)
+
+
+def _try_gbrain_timeline(date: str, candidates: int, applied: int, status: str) -> None:
+    """Best-effort: write daily-plus summary to gbrain timeline for evolution loop.
+    Silently no-ops when gbrain is offline — never blocks the report pipeline.
+    """
+    summary = (
+        f"Daily Plus {date}: candidates={candidates}, applied={applied}, status={status}, "
+        f"dashboard={PUBLIC_URL}"
+    )
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": "add_timeline_entry",
+            "arguments": {"slug": f"daily-plus/{date}", "summary": summary, "date": date},
+        },
+    }
+    try:
+        req = urllib.request.Request(
+            _GBRAIN_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": _GBRAIN_TOKEN,
+                "Accept": "application/json, text/event-stream",
+            },
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=5).read()
+        print(f"[daily-plus-morning-report] gbrain timeline entry saved: {date}")
+    except Exception as exc:
+        print(f"[daily-plus-morning-report] gbrain timeline skipped: {exc}", file=sys.stderr)
 
 
 def _safe_int(value: object, default: int = 0) -> int:
@@ -324,6 +367,15 @@ public_url: {PUBLIC_URL}
 def main() -> None:
     report = build_report()
     print(f"[daily-plus-morning-report] wrote {report}")
+    # Evolution loop: record daily-plus summary in gbrain for future session recall
+    report_text = report.read_text(encoding="utf-8")
+    meta = parse_frontmatter(report_text)
+    date = meta.get("date") or report.stem[:8]
+    candidates_raw = parse_candidates(report_text)
+    attach_statuses(date, candidates_raw)
+    applied = sum(1 for c in candidates_raw if c.status == "applied")
+    status = meta.get("status", "ready")
+    _try_gbrain_timeline(date, len(candidates_raw), applied, status)
 
 
 if __name__ == "__main__":

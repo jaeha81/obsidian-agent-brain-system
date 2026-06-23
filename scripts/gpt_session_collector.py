@@ -312,7 +312,7 @@ async def fetch_conversation_messages(
     # 메시지 트리 파싱
     mapping = data.get("mapping", {})
     if not mapping:
-        return [], None
+        return [], last_status
 
     messages = []
     try:
@@ -320,7 +320,7 @@ async def fetch_conversation_messages(
     except Exception as e:
         log.error(f"메시지 트리 파싱 실패 ({conv_id}): {e}")
 
-    return messages, None
+    return messages, last_status
 
 
 def _flatten_message_tree(mapping: dict) -> list[dict]:
