@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-20",
+    "last_updated": "2026-06-23",
     "last_completed": "CL-053"
   },
   "tasks": [
@@ -854,6 +854,17 @@
       "category": "자동감지",
       "status": "pending",
       "added": "2026-06-20",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-063",
+      "title": "락쿠텐 고라 API/스크래핑 가능 여부 조사 (Codex 배정 필요), 자연어 상담 에이전트 실제 구현 (별도 세션 권장)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-23",
       "source": "discord-auto",
       "refs": []
     }
