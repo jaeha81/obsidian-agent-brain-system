@@ -180,10 +180,10 @@
   </nav>
   <section id="summary" class="hero-grid">
     <div class="panel">
-      <h2>2026-06-23 처리 요약</h2>
+      <h2>2026-06-24 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-06-23T00:44:42+09:00</span>
-        <span class="pill">리포트: unknown</span>
+        <span class="pill">수집: 2026-06-24T08:00:24+09:00</span>
+        <span class="pill">리포트: staged</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
       <div class="summary">
@@ -197,14 +197,12 @@
     <aside class="panel">
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="stat blue"><strong>80</strong><span>평균 효율성</span></div>
-        <div class="stat green"><strong>74</strong><span>평균 호환성</span></div>
+        <div class="stat blue"><strong>83</strong><span>평균 효율성</span></div>
+        <div class="stat green"><strong>88</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>명령 페이로드</strong><span>2</span></div>
+        <div class="mini"><strong>검증 자동화</strong><span>4</span></div>
 <div class="mini"><strong>지식 후보</strong><span>1</span></div>
-<div class="mini"><strong>Obsidian 큐</strong><span>1</span></div>
-<div class="mini"><strong>에이전트 프롬프트</strong><span>1</span></div>
       </div>
     </aside>
   </section>
@@ -247,9 +245,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-06-23</strong><p>5 후보 · 효율 80 · 호환 74</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 -1 · 호환 -1</p></div>
-        <div class="compare-card"><span>누적</span><strong>189</strong><p>25일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-06-24</strong><p>5 후보 · 효율 83 · 호환 88</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 +2 · 호환 +13</p></div>
+        <div class="compare-card"><span>누적</span><strong>194</strong><p>26일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -503,6 +501,16 @@
           </div>
           <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-24</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:42%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -519,8 +527,10 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 2</strong><span>운영자 재현 점검 명령서</span><em>스테이징</em></li>
-<li><strong>P1 Card 4</strong><span>복구 실행 원샷 플레이북</span><em>스테이징</em></li>
+        <li><strong>P1 Card 2</strong><span>운영자용 한 줄 검증팩</span><em>스테이징</em></li>
+<li><strong>P1 Card 3</strong><span>배포 전 검증 체크리스트</span><em>스테이징</em></li>
+<li><strong>P1 Card 4</strong><span>검증된 벤더 기준 스냅샷</span><em>스테이징</em></li>
+<li><strong>P1 Card 5</strong><span>오케스트레이터 임계값 조정안</span><em>스테이징</em></li>
       </ul>
     </div>
   </section>
@@ -616,7 +626,7 @@
   <section id="daily-plus-candidates">
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P3&#x27;: 1, &#x27;P1&#x27;: 2, &#x27;P2&#x27;: 2} · 상태 {&#x27;staged&#x27;: 5}</span>
+      <span class="muted">우선순위 {&#x27;P3&#x27;: 1, &#x27;P1&#x27;: 4} · 상태 {&#x27;staged&#x27;: 5}</span>
     </div>
     <div class="grid">
 
@@ -650,123 +660,123 @@
         </details>
       </article>
 
-      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="command-payload">
+      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="verification">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-medium">medium</span>
-        </div>
-        <h3>Card 2. 운영자 재현 점검 명령서</h3>
-        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
-        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
-        <div class="bars">
-          <div>
-            <div class="bar-label"><span>효율성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
-          </div>
-          <div>
-            <div class="bar-label"><span>호환성</span><strong>70</strong></div>
-            <div class="bar"><span class="mid" style="width:70%"></span></div>
-          </div>
-        </div>
-        <p class="next">명령 구조, idempotency, 재시도 규칙을 먼저 문서화한다.</p>
-        <div class="command-actions" role="group" aria-label="Bucky 지시">
-          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
-          <button type="button" class="command-btn queue" data-action="queue">후보</button>
-        </div>
-        <details>
-          <summary>근거 보기</summary>
-          <p>운영자 재현 점검 명령서 운영자 재현 점검 명령서 아래는 “웹훅 영수증 검증→스냅샷/청크 복구→재실행(replay)”를 최소한의 시간으로 처리할 수 있도록 만든 **운영자 체크리스트(복붙용 명령어 모음)**입니다. 처음 보는 분도 바로 쓸 수 있게 배경을 아주 짧게 정리했어요. 왜 필요한가 외부 시스템이 우리 오케스트레이터에 보낸 **웹훅 영수증(X‑Signature, X‑Timesta...</p>
-        </details>
-      </article>
-
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P2" data-category="obsidian-queue">
-        <div class="candidate-top">
-          <span class="badge priority">P2</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 3. 옵시디언 수집 상태 점검</h3>
-        <p class="meta">Obsidian 큐 · owner: collector · target: 10_AgentBus / Obsidian queue</p>
-        <p class="action">Convert queue ideas into AgentBus task templates or inbox rules.</p>
+        <h3>Card 2. 운영자용 한 줄 검증팩</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>84</strong></div>
-            <div class="bar"><span class="good" style="width:84%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
           </div>
         </div>
-        <p class="next">AgentBus 템플릿 또는 inbox 규칙으로 큐에 올린 뒤 중복 방지를 확인한다.</p>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>옵시디언 수집 상태 점검 옵시디언 수집 상태 점검 운영자가 바로 써먹을 수 있는 “에이전트 헬스 스펙”을 정리했어요—각 에이전트의 수집 성공/실패, 실패율, 드리프트, 파일 신선도(나이) 히스토그램, 커밋 타임스탬프를 계산하고, 중대한 변화(Material change) 가 생겼을 때만 경보를 쏘는 설계입니다. 목적과 범위 목적: 데이터 수집 파이프라인(에이전트별)의 건강 상태를 실시간...</p>
+          <p>운영자용 한 줄 검증팩 운영자용 한 줄 검증팩 이건 “웹훅 영수증 검증·재전송(Replay)·감사증적 남기기”를 운영자가 바로 붙여넣어 쓸 수 있는 원라인러 팩이에요. 처음 보는 분도 쓸 수 있게 간단 배경→즉시 사용 예시 순서로 정리했습니다. 왜 필요한가 검증(HMAC): 수신한 웹훅이 진짜인지 위·변조 여부 확인 재전송(Replay): 장애/유실 시 동일 페이로드를 멱등(Idempo...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="command-payload">
+      <article class="candidate" data-card="3" data-status="staged" data-priority="P1" data-category="verification">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
           <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-medium">medium</span>
+          <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 4. 복구 실행 원샷 플레이북</h3>
-        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
-        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
+        <h3>Card 3. 배포 전 검증 체크리스트</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>86</strong></div>
-            <div class="bar"><span class="good" style="width:86%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>70</strong></div>
-            <div class="bar"><span class="mid" style="width:70%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
           </div>
         </div>
-        <p class="next">명령 구조, idempotency, 재시도 규칙을 먼저 문서화한다.</p>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>복구 실행 원샷 플레이북 복구 실행 원샷 플레이북 운영 중 장애가 나도 “짧은 한 줄”로 바로 복구·검증까지 돌릴 수 있는 운영자(Ops) 원라이너 모음을 정리했어요. 처음 보는 분도 바로 써먹도록 배경→명령→주의점을 아주 간단히 붙였습니다. 1) 단일 스냅샷 재생(리플레이) + HMAC 서명 + 멱등키 상황: 특정 날짜의 백필(백업·스냅샷) 파일을 재투입해야 할 때, 중복 실행 방지(...</p>
+          <p>배포 전 검증 체크리스트 배포 전 검증 체크리스트 에이전트 작업을 “출발 전에” 자동 점검해 주는 사전 검증기(Pre‑Dispatch Validator) 제안이에요—버키(Bucky)가 모든 잡을 워커에 보내기 전에 딱 한 번 호출해서, 메타데이터/비용/안전/승인/중복을 가볍게 막아주는 단일 API입니다. 개요 엔드포인트: POST /validate 역할: 실행 전 검증 → 통과(pass...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="5" data-status="staged" data-priority="P2" data-category="agent-prompting">
+      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="verification">
         <div class="candidate-top">
-          <span class="badge priority">P2</span>
+          <span class="badge priority">P1</span>
           <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-medium">medium</span>
+          <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 5. 48~72시간 모델 비용 예측</h3>
-        <p class="meta">에이전트 프롬프트 · owner: bucky · target: 03_Projects/agents / Bucky planner-executor prompts</p>
-        <p class="action">Stage prompt changes as role-specific snippets and keep approval notes.</p>
+        <h3>Card 4. 검증된 벤더 기준 스냅샷</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>78</strong></div>
-            <div class="bar"><span class="mid" style="width:78%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>62</strong></div>
-            <div class="bar"><span class="low" style="width:62%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
           </div>
         </div>
-        <p class="next">Bucky/Claude/Codex 역할 경계를 건드리므로 review request로 먼저 검토한다.</p>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>48~72시간 모델 비용 예측 48~72시간 모델 비용 예측 예산·토큰 소모를 자동으로 예측하고 경보까지 내주는 “48/72시간 지출 예측 스펙”을 한 번에 복붙해 쓸 수 있게 정리했어요. 목적 지난 7일·24시간 사용량과 구독 버킷(잔액/한도)을 가지고 48h/72h 지출을 결정론적으로 예측 임계치(NOTICE/URGENT/AUTO) 진입 시에만 중복 없는(alert storm 방지)...</p>
+          <p>검증된 벤더 기준 스냅샷 검증된 벤더 기준 스냅샷 간단히 말하면, 2026년 현재 주요 AI 벤더들이 정확한 가격 정책과 토큰·스루풋 제한을 공개 문서로 제공하며, 이 정보를 아키텍처나 비용 최적화에 바로 사용할 수 있습니다 — 여기에 그 핵심을 모아뒀습니다. 6 🌐 OpenAI API — 가격 및 레이트 리밋 • OpenAI 공식 문서에 GPT‑5.5, GPT‑5.4 계열 등 모델별...</p>
+        </details>
+      </article>
+
+      <article class="candidate" data-card="5" data-status="staged" data-priority="P1" data-category="verification">
+        <div class="candidate-top">
+          <span class="badge priority">P1</span>
+          <span class="badge status staged">스테이징</span>
+          <span class="badge risk risk-low">low</span>
+        </div>
+        <h3>Card 5. 오케스트레이터 임계값 조정안</h3>
+        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
+        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <div class="bars">
+          <div>
+            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
+            <div class="bar"><span class="good" style="width:88%"></span></div>
+          </div>
+          <div>
+            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
+            <div class="bar"><span class="good" style="width:90%"></span></div>
+          </div>
+        </div>
+        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <div class="command-actions" role="group" aria-label="Bucky 지시">
+          <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
+          <button type="button" class="command-btn queue" data-action="queue">후보</button>
+        </div>
+        <details>
+          <summary>근거 보기</summary>
+          <p>오케스트레이터 임계값 조정안 오케스트레이터 임계값 조정안 여기에 당신에게 이 내용을 공유하는 이유는, 클라우드/AI 인프라 비용‑리소스 제어를 실시간으로 자동화/예측 가능하게 만드는 최전선 전략과 업계 표준 가격 정보가 결합된 현재의 실사용 비용 구조를 기반으로, 운영자가 적절한 게이트(임계값), 폴백, 속도 제한 정책을 설계하려는 경우 정확한 숫자와 기준이 무엇인지 알아야 하기 때문입...</p>
         </details>
       </article>
     </div>
@@ -781,9 +791,9 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-23.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-23.md</code></div>
-      <div>생성 시각: <code>2026-06-23 07:04:39 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-24.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-24.md</code></div>
+      <div>생성 시각: <code>2026-06-24 08:00:45 KST</code></div>
     </div>
   </section>
 </main>
