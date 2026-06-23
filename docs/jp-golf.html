@@ -17,6 +17,10 @@
     --white: #ffffff;
     --border: #d0ddd4;
     --shadow: 0 2px 16px rgba(26,122,74,0.10);
+    --blue: #1a6fb5;
+    --blue-pale: #e3f0fb;
+    --purple: #6c3dbf;
+    --purple-pale: #f0ebff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -42,7 +46,20 @@
     letter-spacing: 1.5px;
     padding: 4px 12px;
     border-radius: 20px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .header-v2-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 12px;
+    border-radius: 20px;
     margin-bottom: 16px;
+    margin-left: 8px;
     text-transform: uppercase;
   }
   .header h1 {
@@ -55,12 +72,46 @@
   .header p {
     font-size: 1rem;
     color: rgba(255,255,255,0.72);
-    max-width: 480px;
+    max-width: 520px;
     margin: 0 auto;
+  }
+  .header-update-note {
+    display: inline-block;
+    margin-top: 14px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.85);
   }
 
   /* Layout */
   .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+
+  /* Version tabs */
+  .version-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0;
+  }
+  .version-tab {
+    padding: 8px 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gray);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    cursor: default;
+    letter-spacing: 0.5px;
+  }
+  .version-tab.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+  .version-tab.v1 { color: #8a8a9a; }
 
   /* Section */
   .section { margin-bottom: 32px; }
@@ -74,6 +125,66 @@
     padding-bottom: 8px;
     border-bottom: 2px solid var(--green-pale);
   }
+
+  /* Alert banner */
+  .alert-v2 {
+    background: linear-gradient(135deg, #fff3d6 0%, #fff9ed 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .alert-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .alert-content h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #8a5a00;
+    margin-bottom: 4px;
+  }
+  .alert-content p {
+    font-size: 0.82rem;
+    color: #6a4500;
+    line-height: 1.5;
+  }
+
+  /* OS Vision box */
+  .os-vision {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0d3d2a 100%);
+    border-radius: 16px;
+    padding: 28px 28px;
+    color: white;
+    margin-bottom: 16px;
+  }
+  .os-vision h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--gold-light);
+  }
+  .os-vision p {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .os-stack {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .os-chip {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .os-chip.active { background: var(--green); border-color: var(--green); }
 
   /* Card Grid */
   .card-grid {
@@ -102,6 +213,24 @@
     font-size: 0.82rem;
     color: var(--gray);
     line-height: 1.5;
+  }
+  .card.v2-new {
+    border-color: var(--green-light);
+    background: linear-gradient(135deg, #f8fffe 0%, var(--green-pale) 100%);
+  }
+  .card.v2-new .card-icon { }
+  .card-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #e74c3c;
+    color: white;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
   }
 
   /* Flow */
@@ -148,6 +277,8 @@
     z-index: 1;
   }
   .step-num.gold { background: var(--gold); }
+  .step-num.blue { background: var(--blue); }
+  .step-num.purple { background: var(--purple); }
   .step-num.gray { background: #8a8a9a; }
   .step-body h4 {
     font-size: 0.9rem;
@@ -168,10 +299,13 @@
     padding: 2px 8px;
     border-radius: 6px;
     margin-top: 4px;
+    margin-right: 4px;
   }
-  .tag-ai { background: #e3f0fb; color: #1a6fb5; }
+  .tag-ai { background: var(--blue-pale); color: var(--blue); }
   .tag-human { background: var(--green-pale); color: var(--green); }
   .tag-auto { background: #fff3d6; color: #b07a00; }
+  .tag-new { background: #fde8e8; color: #c0392b; }
+  .tag-future { background: var(--purple-pale); color: var(--purple); }
 
   /* Highlight box */
   .highlight {
@@ -193,6 +327,117 @@
     line-height: 1.6;
   }
 
+  /* Roadmap */
+  .roadmap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .roadmap-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .roadmap-level {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+  }
+  .roadmap-level.active {
+    background: var(--green-pale);
+    border-color: var(--green-light);
+  }
+  .level-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--gray);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+  .level-badge.current { background: var(--green); }
+  .level-badge.near { background: var(--gold); }
+  .level-badge.mid { background: var(--blue); }
+  .level-badge.far { background: var(--purple); }
+  .level-body h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 2px;
+  }
+  .level-body p {
+    font-size: 0.78rem;
+    color: var(--gray);
+  }
+  .level-arrow {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--gray);
+    font-weight: 600;
+  }
+
+  /* Agent Architecture */
+  .agent-arch {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .agent-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .agent-layer {
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .layer-current { background: var(--green-pale); border: 1.5px solid var(--green-light); }
+  .layer-next { background: var(--blue-pale); border: 1.5px solid #a0c8e8; }
+  .layer-future { background: var(--purple-pale); border: 1.5px dashed #b8a0e0; }
+  .layer-infra { background: #fff3d6; border: 1.5px solid #e8c870; }
+  .layer-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .layer-body h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 2px;
+  }
+  .layer-body p {
+    font-size: 0.78rem;
+    color: var(--gray);
+  }
+  .layer-status {
+    margin-left: auto;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .status-building { background: var(--green-pale); color: var(--green); }
+  .status-next { background: var(--blue-pale); color: var(--blue); }
+  .status-future { background: var(--purple-pale); color: var(--purple); }
+  .status-infra { background: #fff3d6; color: #8a6000; }
+
   /* Two column */
   .two-col {
     display: grid;
@@ -203,6 +448,7 @@
     .two-col { grid-template-columns: 1fr; }
     .card-grid { grid-template-columns: 1fr 1fr; }
     .header h1 { font-size: 1.8rem; }
+    .os-stack { flex-direction: column; }
   }
 
   /* List */
@@ -226,7 +472,7 @@
     font-weight: 700;
   }
 
-  /* Comparison */
+  /* Compare table */
   .compare-table {
     width: 100%;
     border-collapse: collapse;
@@ -250,6 +496,38 @@
   .before { color: #c0392b; }
   .after { color: var(--green); font-weight: 600; }
 
+  /* Capital strategy */
+  .capital-box {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2a1a4e 100%);
+    border-radius: 12px;
+    padding: 22px 24px;
+    color: white;
+  }
+  .capital-box h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+  .capital-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .capital-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.85);
+  }
+  .capital-item::before {
+    content: '→';
+    color: var(--gold-light);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
   /* Transcript */
   .transcript-box {
     background: #1a1a2e;
@@ -258,7 +536,7 @@
     font-size: 0.78rem;
     color: #b0b8c0;
     line-height: 1.8;
-    max-height: 220px;
+    max-height: 200px;
     overflow-y: auto;
     font-family: 'Courier New', monospace;
   }
@@ -272,21 +550,306 @@
     border-top: 1px solid var(--border);
     margin-top: 16px;
   }
+
+  /* Divider */
+  .v1-divider {
+    border: none;
+    border-top: 2px dashed var(--border);
+    margin: 32px 0 24px;
+  }
+  .v1-label {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #8a8a9a;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-badge">Business Plan Dashboard</div>
+  <div>
+    <div class="header-badge">Business Plan Dashboard</div>
+    <div class="header-v2-badge">V2 Updated</div>
+  </div>
   <h1>JP <span>Golf</span> 예약</h1>
-  <p>일본 골프장 AI 상담 + 예약 대행 서비스 — 사업 기획 요약</p>
+  <p>일본 골프장 AI 완전 자연어 상담 + 자동 예약 대행 서비스 — JP 사업 OS 기반</p>
+  <div class="header-update-note">2차 업데이트 반영 · 2026-06-23 · 음성 브리핑 기반</div>
 </div>
 
 <div class="container">
 
-  <!-- 핵심 포지션 -->
+  <!-- V2 Alert -->
+  <div class="alert-v2">
+    <div class="alert-icon">⚡</div>
+    <div class="alert-content">
+      <h3>2차 업데이트 — 완전 자동화 + JP OS 비전</h3>
+      <p>1차(상담사 반수동 운영)에서 2차(완전 자연어 AI 자동화 + 계좌 연동 결제 + 글로벌 교차 확장 + JP 사업 OS 기반 구축)로 전면 업그레이드. 골프 부킹 자동화가 완료되면 JP 사업 전체 OS가 가동됩니다.</p>
+    </div>
+  </div>
+
+  <!-- JP OS Vision -->
   <div class="section">
-    <div class="section-title">핵심 포지셔닝</div>
+    <div class="section-title">JP Golf = JP 사업 운영체제</div>
+    <div class="os-vision">
+      <h2>골프 부킹이 곧 JP의 OS 기반이다</h2>
+      <p>JP Golf 골프 자동화가 마스터되는 순간, 동일한 AI 시스템 위에 호텔·픽업·항공·엔터테인먼트·금융 사업이 모두 올라갑니다. 하나의 기둥을 완벽하게 세우는 것이 전체 JP 사업의 기반이 됩니다.</p>
+      <div class="os-stack">
+        <div class="os-chip active">골프 부킹 (현재 구축)</div>
+        <div class="os-chip">호텔</div>
+        <div class="os-chip">픽업 차량</div>
+        <div class="os-chip">항공권</div>
+        <div class="os-chip">엔터테인먼트</div>
+        <div class="os-chip">여신금융</div>
+        <div class="os-chip">AI / 데이터센터</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2차 핵심 변경 -->
+  <div class="section">
+    <div class="section-title">2차 핵심 변경 — 1차 vs 2차 비교</div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="compare-table">
+        <thead>
+          <tr><th>항목</th><th>1차 (기존)</th><th>2차 (업데이트)</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>상담 방식</td>
+            <td class="before">폼/항목별 AI 수집</td>
+            <td class="after">100% 자연어 대화 (사람 같은 AI)</td>
+          </tr>
+          <tr>
+            <td>골프장 검색</td>
+            <td class="before">상담사가 락쿠텐 고라 수동 검색</td>
+            <td class="after">AI가 일본 사이트 직접 자동 조회</td>
+          </tr>
+          <tr>
+            <td>가격·시간 제시</td>
+            <td class="before">상담사 → 고객 수동 안내</td>
+            <td class="after">AI가 자동 조회 후 직접 제시</td>
+          </tr>
+          <tr>
+            <td>예약 확정</td>
+            <td class="before">상담사 수동 예약</td>
+            <td class="after">고객 OK 후 AI 자동 예약</td>
+          </tr>
+          <tr>
+            <td>결제 확인</td>
+            <td class="before">수동 확인</td>
+            <td class="after">계좌 입금 AI 연동 → 자동 확인·발송</td>
+          </tr>
+          <tr>
+            <td>에이전트 범위</td>
+            <td class="before">골프 부킹 단일</td>
+            <td class="after">호텔·픽업·항공 에이전트 확장 예정</td>
+          </tr>
+          <tr>
+            <td>서비스 범위</td>
+            <td class="before">한국 → 일본 단방향</td>
+            <td class="after">글로벌 교차 (한·일·중)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 자연어 상담 플로우 V2 -->
+  <div class="section">
+    <div class="section-title">2차 서비스 플로우 — 완전 자연어 자동화</div>
+    <div class="flow">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>고객 진입 — 자연어 채팅 시작</h4>
+            <p>단순 채팅 인터페이스 하나. "어디로 골프 여행 계획 중이세요?" — 자연스럽게 시작.</p>
+            <span class="step-tag tag-ai">AI</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>AI 자연어 상담 — 정보 자동 감지</h4>
+            <p>사람과 대화하는 것처럼 자연스럽게 대화하면서 날짜·인원·지역·선호 골프장·티오프 시간을 AI가 자동으로 캐치. 딱딱한 폼 없음.</p>
+            <span class="step-tag tag-ai">AI 자동</span>
+            <span class="step-tag tag-new">V2 NEW</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>AI 확인 — 수집 내용 정리 후 고객 검증</h4>
+            <p>AI가 대화에서 파악한 내용을 구조화해 고객에게 제시. "제가 이해한 게 맞나요?" → 고객 OK.</p>
+            <span class="step-tag tag-ai">AI</span>
+            <span class="step-tag tag-new">V2 NEW</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num blue">4</div>
+          <div class="step-body">
+            <h4>AI 자동 검색 — 일본 사이트 직접 조회</h4>
+            <p>AI가 락쿠텐 고라 등 일본 골프 예약 사이트를 직접 검색. 가용 티타임·가격·코스 정보를 자동 수집해 고객에게 제시.</p>
+            <span class="step-tag tag-ai">AI 자동</span>
+            <span class="step-tag tag-new">V2 NEW</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num blue">5</div>
+          <div class="step-body">
+            <h4>재상담 루프 — 고객 요구사항 반영</h4>
+            <p>마음에 안 드는 게 있으면 ("다른 골프장", "시간 변경") 즉시 재검색·재제시. 완벽히 원하는 옵션 찾을 때까지 반복.</p>
+            <span class="step-tag tag-ai">AI</span>
+            <span class="step-tag tag-new">V2 NEW</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num gold">6</div>
+          <div class="step-body">
+            <h4>고객 확정 → AI 자동 예약</h4>
+            <p>고객 "오케이, 예약해줘" → AI가 즉시 자동 예약 실행. 예약 확인서 번역 후 발송.</p>
+            <span class="step-tag tag-auto">AI 자동</span>
+            <span class="step-tag tag-new">V2 NEW</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num purple">7</div>
+          <div class="step-body">
+            <h4>결제 자동 연동 — 계좌 입금 AI 감지</h4>
+            <p>은행 AI 연동으로 계좌 입금 자동 확인. 카드 결제도 지원. 입금 확인 즉시 → 자동 발송.</p>
+            <span class="step-tag tag-auto">AI 자동</span>
+            <span class="step-tag tag-future">Phase 2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 에이전트 확장 구조 -->
+  <div class="section">
+    <div class="section-title">에이전트 확장 아키텍처</div>
+    <div class="agent-arch">
+      <div class="agent-layers">
+        <div class="agent-layer layer-current">
+          <div class="layer-icon">⛳</div>
+          <div class="layer-body">
+            <h4>골프 부킹 에이전트</h4>
+            <p>자연어 상담 → 락쿠텐 고라 검색 → 예약 자동화. JP OS의 첫 번째 기둥.</p>
+          </div>
+          <div class="layer-status status-building">현재 구축</div>
+        </div>
+        <div class="agent-layer layer-next">
+          <div class="layer-icon">🏨</div>
+          <div class="layer-body">
+            <h4>호텔 에이전트</h4>
+            <p>골프장 인근 호텔 자동 검색·예약. 골프 일정과 연동해 최적 숙소 제안.</p>
+          </div>
+          <div class="layer-status status-next">Next</div>
+        </div>
+        <div class="agent-layer layer-next">
+          <div class="layer-icon">🚗</div>
+          <div class="layer-body">
+            <h4>픽업(차량) 에이전트</h4>
+            <p>공항 픽업·골프장 이동 차량 자동 배차. 일정 자동 연동.</p>
+          </div>
+          <div class="layer-status status-next">Next</div>
+        </div>
+        <div class="agent-layer layer-next">
+          <div class="layer-icon">✈️</div>
+          <div class="layer-body">
+            <h4>항공권 에이전트</h4>
+            <p>골프 일정에 맞는 항공편 검색·예약 자동화.</p>
+          </div>
+          <div class="layer-status status-next">Next</div>
+        </div>
+        <div class="agent-layer layer-infra">
+          <div class="layer-icon">💳</div>
+          <div class="layer-body">
+            <h4>결제 레이어 (공통 인프라)</h4>
+            <p>은행 AI 계좌 연동·카드 게이트웨이. 입금 확인 → 자동 발송 트리거. 모든 에이전트 공통.</p>
+          </div>
+          <div class="layer-status status-infra">공통 인프라</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 글로벌화 로드맵 + 자본 전략 -->
+  <div class="two-col">
+    <div class="section">
+      <div class="section-title">글로벌화 로드맵</div>
+      <div class="roadmap">
+        <div class="roadmap-levels">
+          <div class="roadmap-level active">
+            <div class="level-badge current">L1</div>
+            <div class="level-body">
+              <h4>한국 → 일본</h4>
+              <p>현재 구축 중. 한국 고객 대상 일본 골프 예약.</p>
+            </div>
+            <div class="level-arrow">현재</div>
+          </div>
+          <div class="roadmap-level">
+            <div class="level-badge near">L2</div>
+            <div class="level-body">
+              <h4>일본 → 한국</h4>
+              <p>역방향. 일본 고객 대상 한국 골프 예약.</p>
+            </div>
+            <div class="level-arrow">Next</div>
+          </div>
+          <div class="roadmap-level">
+            <div class="level-badge mid">L3</div>
+            <div class="level-body">
+              <h4>한·일·중 교차 전체</h4>
+              <p>3국 모든 방향 교차 서비스. 중국 고객 추가.</p>
+            </div>
+            <div class="level-arrow">Mid</div>
+          </div>
+          <div class="roadmap-level">
+            <div class="level-badge far">L4</div>
+            <div class="level-body">
+              <h4>글로벌 타국 확장</h4>
+              <p>동남아·유럽 등 추가 시장 진출.</p>
+            </div>
+            <div class="level-arrow">Far</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">자본 전략 & 사업 확장</div>
+      <div class="capital-box">
+        <h3>투자 없이 자체 성장 구조</h3>
+        <div class="capital-items">
+          <div class="capital-item">외부 투자 유치 안 함 (지분 복잡성 회피)</div>
+          <div class="capital-item">한국→일본 수요만으로 자본금 확보</div>
+          <div class="capital-item">자체 금융사(여신금융) 설립</div>
+          <div class="capital-item">자본 자체 회전 → 외부 의존 없는 구조</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <h3 style="font-size:0.88rem;font-weight:700;color:var(--dark);margin-bottom:10px;">JP 사업 확장 스택</h3>
+        <ul class="check-list">
+          <li><strong>1단계:</strong> JP Golf — 골프 부킹 OS 완성</li>
+          <li><strong>2단계:</strong> 여행사 확장 (호텔·픽업·항공 패키징)</li>
+          <li><strong>3단계:</strong> 엔터테인먼트 사업</li>
+          <li><strong>4단계:</strong> 여신금융 설립</li>
+          <li><strong>5단계:</strong> AI / 데이터센터 사업</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 핵심 포지션 (1차) -->
+  <hr class="v1-divider">
+  <div class="v1-label">— 1차 기획 원본 (참고용) —</div>
+
+  <div class="section">
+    <div class="section-title">핵심 포지셔닝 (1차)</div>
     <div class="highlight">
       <h3>오직 하나만 — 일본 골프장 티타임 예약</h3>
       <p>차량·호텔·비행기 예약 없음. 골프장 부킹만 제공함으로써 <strong>여행업 사업자 등록 불필요</strong>. 통신판매 신고만으로 개인사업자 즉시 운영 가능. 락쿠텐 고라(楽天GORA) 2,000개+ 일본 골프장 DB 활용.</p>
@@ -297,177 +860,30 @@
         <h3>서비스 범위</h3>
         <p>일본 골프장 티타임 예약 단일 서비스. 호텔·항공·차량 제외.</p>
       </div>
-      <div class="card">
+      <div class="card v2-new">
         <div class="card-icon">🤖</div>
-        <h3>AI 상담봇</h3>
-        <p>GPT 기반 자연어 상담. 여행 일정·라운딩 수·선호 코스 자동 수집.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📋</div>
-        <h3>자동 요약</h3>
-        <p>상담 완료 시 고객 요구사항을 채팅창에 구조화하여 상담사 전달.</p>
+        <h3>AI 상담봇 <span class="card-badge">V2</span></h3>
+        <p>완전 자연어 상담. 사람과 대화하는 것처럼. 정보 자동 캐치 → 검색 → 예약 자동화.</p>
       </div>
       <div class="card">
         <div class="card-icon">📲</div>
-        <h3>간편 확정</h3>
-        <p>상담사가 락쿠텐 고라에서 가용 확인 후 예약 확인서 번역·전달.</p>
+        <h3>법적 요건 유지</h3>
+        <p>부킹만 제공 → 여행업 허가 불필요. 통신판매업 신고만으로 운영 가능.</p>
       </div>
     </div>
   </div>
 
-  <!-- 서비스 플로우 -->
+  <!-- 음성 트랜스크립트 -->
   <div class="section">
-    <div class="section-title">서비스 플로우</div>
-    <div class="flow">
-      <div class="flow-steps">
-        <div class="flow-step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <h4>고객 사이트 진입</h4>
-            <p>구글처럼 검색창 하나만 있는 깔끔한 화면. "어느 지역 골프 여행을 계획하시나요?"</p>
-            <span class="step-tag tag-ai">AI</span>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <h4>AI 상담 — 기본 정보 수집</h4>
-            <p>여행 지역 / 날짜(몇 박) / 라운딩 횟수 / 희망 티오프 시간 / 선호 골프장 / 비행기 발권 여부 수집</p>
-            <span class="step-tag tag-ai">AI 자동</span>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <h4>요구사항 정리 & 요약 전달</h4>
-            <p>AI가 상담 내용 전체를 채팅창에 구조화하여 남김. "상담사가 확인 후 가능 여부와 비용을 안내드리겠습니다."</p>
-            <span class="step-tag tag-auto">AI → 상담사</span>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num gold">4</div>
-          <div class="step-body">
-            <h4>상담사 — 락쿠텐 고라 가용 확인</h4>
-            <p>락쿠텐 고라에서 희망 골프장·날짜·티타임 가용 여부·가격 확인. (향후 AI 자동화 목표)</p>
-            <span class="step-tag tag-human">상담사 수동</span>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num gold">5</div>
-          <div class="step-body">
-            <h4>고객 확정 → 예약 진행</h4>
-            <p>비용·시간 안내 후 고객 OK → 상담사가 직접 예약. 예약 확인서 번역 후 전달.</p>
-            <span class="step-tag tag-human">상담사</span>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num gray">6</div>
-          <div class="step-body">
-            <h4>[미래] 풀 자동화</h4>
-            <p>AI가 락쿠텐 고라 직접 조회 → 가용 티타임·가격 자동 제시 → 예약만 사람이 확정.</p>
-            <span class="step-tag tag-ai">AI 자동화 목표</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 비교 / 기술 -->
-  <div class="two-col">
-    <div class="section">
-      <div class="section-title">Before vs After</div>
-      <div class="card" style="padding:0; overflow:hidden;">
-        <table class="compare-table">
-          <thead>
-            <tr><th>항목</th><th>기존 (수동)</th><th>AI 도입 후</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>상담</td>
-              <td class="before">사장님이 직접 문자 대응</td>
-              <td class="after">AI 자동 상담</td>
-            </tr>
-            <tr>
-              <td>정보 수집</td>
-              <td class="before">일일이 질문</td>
-              <td class="after">AI 자동 추출·정리</td>
-            </tr>
-            <tr>
-              <td>가용 확인</td>
-              <td class="before">락쿠텐 고라 수동 검색</td>
-              <td class="after">(미래) AI 자동 조회</td>
-            </tr>
-            <tr>
-              <td>예약</td>
-              <td class="before">수동</td>
-              <td class="after">상담사 확정 후 예약</td>
-            </tr>
-            <tr>
-              <td>확인서</td>
-              <td class="before">일본어 원문 그대로</td>
-              <td class="after">AI 번역·번역본 발송</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">기술 스택 / 법적 요건</div>
-      <div class="card">
-        <h3 style="font-size:0.88rem;font-weight:700;color:var(--dark);margin-bottom:12px;">기술 구성</h3>
-        <ul class="check-list">
-          <li>GPT / Claude API — AI 상담봇</li>
-          <li>락쿠텐 고라(楽天GORA) — 일본 골프장 2,000+ DB</li>
-          <li>웹훅 + 채팅 UI — 요약 전달 채널</li>
-          <li>번역 API — 예약 확인서 한국어 변환</li>
-          <li>(미래) 락쿠텐 고라 API/스크래핑 — 가용 자동 조회</li>
-        </ul>
-      </div>
-      <div class="card" style="margin-top:12px;">
-        <h3 style="font-size:0.88rem;font-weight:700;color:var(--dark);margin-bottom:12px;">법적 요건</h3>
-        <ul class="check-list">
-          <li>여행업 허가 불필요 (부킹만 제공)</li>
-          <li>통신판매업 신고만으로 개인사업자 운영 가능</li>
-          <li>호텔·항공·차량 패키지 판매 시 여행업 필요 — 제외</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- 운영 포인트 -->
-  <div class="section">
-    <div class="section-title">운영 핵심 포인트</div>
-    <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
-      <div class="card">
-        <div class="card-icon">✈️</div>
-        <h3>비행기 시간 파악</h3>
-        <p>첫날 라운딩 가능 여부는 비행기 도착 시간 기준. AI가 자동 확인 및 추천 시간대 제시.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">⏱️</div>
-        <h3>틈새 운영</h3>
-        <p>상담사는 하루 종일 대기 불필요. 중간 빈 시간에 PC에서 채팅창 확인 후 예약만 처리.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📬</div>
-        <h3>예약 확인 자동화</h3>
-        <p>락쿠텐 고라 예약 확인서 → AI 번역 → 고객 발송. 수동 번역 작업 완전 제거.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- 트랜스크립트 원문 -->
-  <div class="section">
-    <div class="section-title">음성 트랜스크립트 원문 (Whisper 추출)</div>
-    <div class="transcript-box">5분걸프 할건데 자 다시 한번 설명할게요 그럼요 5분걸프에 서비스를 가져올건데 다른건 아무것도 안하고 5분걸프에 홀프장 부킹 서비스만 해줄거야 손님들한테 아무것도 필요없어 그 이유가 뭐냐면 차량을 해주거나 호텔을 예약해주거나 이런게 들어가면 여행업이 되서 여행업 사업자도 무칑이 있어야 돼 근데 부킹을 하잖아? 부킹만 하잖아? 그러면 개인사업자도 바로 할 수 있어 통신 판매에 신고만 하면 돼 [...] 락쿠텐고라 라는 사이트가 있는데 거기에 들어가면 일본 전국 2000개 골프장에 치이와 이런 시간들이 다 나와 [...] 마지막에 손님한테 뭐를 받냐면 상담 다 했어 그래? 그러면 이런 내용이 나왔잖아 얘가 그걸 정리를 하는거야 손님한테 여행 날짜 언제부터 며칠까지 라운딩 몇번 사람은 몇명인지 어디 골프장을 가고 싶은지 이 내용을 정리해서 상담창에 딱 남겨놓기만 하면 돼 [...] 상담사가 확인되는대로 이 가능 여부와 비용을 확인해서 안내 드리겠습니다</div>
-    <p style="font-size:0.72rem;color:#8a8a9a;margin-top:8px;">파일: Jp-golf.m4a | Whisper small 모델 | 추출일: 2026-06-23</p>
+    <div class="section-title">2차 업데이트 음성 트랜스크립트 (Whisper 추출)</div>
+    <div class="transcript-box">상담은 무조건 전부 자연어야. 사람이랑 대화하는 것처럼 돼야 돼. 자연스러운 상담을 내가 지금 사람이랑 대화하고 있나 이렇게 착각할 정도로... 그 안에 있는 중요한 내용들 — 이 사람이 며칠 날 공을 칠 건지, 시간은 몇 시를 원하는지 — 이런 게 캐치가 되면 그 시점에서 AI가 그 폼에 맞게 내용을 정리해서 손님한테 딱 주는 거야. "네가 얘기한 게 이게 맞니?" → 손님이 맞아 → AI가 검색해서 일본 사이트에서 찾아보고 날짜와 시간까지 확인해서 가격이랑 그걸 정리해서 손님한테 던져주는 거지. 손님이 괜찮으면 바로 예약. 결제하면 계좌를 — 요즘 은행도 AI랑 다 연동하지 않아 — 돈이 들어왔네 확인이 되면 바로 손님한테 자동으로 발송돼... 이건 첫 스타트는 골프겠지. JP의 골프를 통해서 하나의 시스템 OS 운영체제가 만들어진다고 하거든요. 골프가 마스트하는 거야. 마스트했다면 다음에 얘가 할 일은 글로벌화야. 일본 사람이 우리나라에 올 때, 중국 사람이 일본을 갈 때도 할 수 있고. 모든 나라 사람들의 교차가 되는 거지.</div>
+    <p style="font-size:0.72rem;color:#8a8a9a;margin-top:8px;">파일: jp-golf-2차업데이트.m4a | Whisper small 모델 | 2차 업데이트 브리핑 · 2026-06-23</p>
   </div>
 
 </div>
 
 <div class="footer">
-  JP Golf Dashboard — Generated by Bucky AI System · 2026-06-23
+  JP Golf Dashboard v2.0 — Generated by Bucky AI System · 2차 업데이트 반영 · 2026-06-23
 </div>
 
 </body>
