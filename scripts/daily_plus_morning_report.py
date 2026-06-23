@@ -36,7 +36,7 @@ PUBLIC_URL = "https://jaeha81.github.io/obsidian-agent-brain-system/daily-plus.h
 _GBRAIN_URL = "http://localhost:8787/mcp"
 _GBRAIN_TOKEN = os.environ.get(
     "GBRAIN_TOKEN",
-    "Bearer gbrain_df591891043aaadcfe912558300f9aad84873cfca7545511487a7cc6dea8f440",
+    "Bearer gbrain_4aedf7d4ad9b273fe2b0f04564f4bb5b779ae4179a6a053ff10039128af8ed48",
 )
 
 
