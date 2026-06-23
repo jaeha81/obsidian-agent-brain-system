@@ -3,18 +3,19 @@ name: obsidian-master-skill
 description: "Comprehensive Obsidian vault management. USE WHEN obsidian, vault, note, daily note, PARA, inbox, knowledge capture, dataview, DQL, search vault, .base, bases, wikilink, frontmatter, second brain, markdown syntax, obsidian.nvim, OR obsidian API."
 triggers:
   - obsidian
-  - vault
-  - note
+  - obsidian vault
+  - obsidian note
+  - create note
   - daily note
   - PARA
-  - inbox
+  - obsidian inbox
   - knowledge capture
   - dataview
   - DQL
   - wikilink
   - frontmatter
   - second brain
-  - bases
+  - obsidian bases
   - obsidian API
 ---
 
