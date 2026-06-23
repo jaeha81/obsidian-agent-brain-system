@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "gbrain": {
+      "type": "http",
+      "url": "http://localhost:8787/mcp",
+      "headers": {
+        "Authorization": "Bearer gbrain_4aedf7d4ad9b273fe2b0f04564f4bb5b779ae4179a6a053ff10039128af8ed48"
+      }
+    },
     "higgsfield": {
       "type": "sse",
       "url": "https://mcp.higgsfield.ai/mcp",
