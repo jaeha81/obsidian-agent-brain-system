@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JH Estimation System — Analysis Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161a22;
+    --panel-2: #1c212b;
+    --line: #262c38;
+    --ink: #e6e8ec;
+    --ink-mute: #9aa3b2;
+    --ink-dim: #6b7280;
+    --accent: #d4a574;
+    --accent-2: #5b8db8;
+    --ok: #6ba368;
+    --warn: #d4a574;
+    --bad: #c97064;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; letter-spacing: -0.01em; }
+
+  /* Layout */
+  .shell {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+  .sidebar {
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+    padding: 28px 22px;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .brand {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+  .brand strong { color: var(--accent); }
+  .brand-title {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 28px;
+    letter-spacing: -0.01em;
+  }
+  .nav-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 18px 0 10px;
+  }
+  .nav-item {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--ink-mute);
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 2px;
+    transition: all 0.15s ease;
+  }
+  .nav-item:hover {
+    background: var(--panel-2);
+    color: var(--ink);
+  }
+  .nav-item.active {
+    background: rgba(212, 165, 116, 0.08);
+    color: var(--accent);
+    border-left: 2px solid var(--accent);
+    padding-left: 10px;
+  }
+  .nav-item .meta {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+  }
+  .nav-empty {
+    padding: 10px 12px;
+    color: var(--ink-dim);
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  /* Main */
+  .main { padding: 36px 44px 80px; max-width: 1320px; }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 22px;
+    margin-bottom: 28px;
+  }
+  .page-title {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  .page-subtitle {
+    color: var(--ink-mute);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .generated {
+    color: var(--ink-dim);
+    font-size: 12px;
+  }
+  .generated .mono { color: var(--ink-mute); }
+
+  /* Metrics */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .metric {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+  .metric .label {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+  .metric .value {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .metric .value .unit {
+    font-size: 14px;
+    color: var(--ink-mute);
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  .metric .delta {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-top: 6px;
+  }
+  .metric .delta.ok { color: var(--ok); }
+  .metric .delta.warn { color: var(--warn); }
+  .metric .delta.bad { color: var(--bad); }
+
+  /* Sections */
+  .section-title {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 32px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 1100px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .panel h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 16px;
+    letter-spacing: -0.005em;
+  }
+  .panel h3 .hint {
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-weight: 400;
+    margin-left: 8px;
+  }
+
+  /* Tables */
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .tbl th {
+    text-align: left;
+    color: var(--ink-dim);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tbl td {
+    padding: 8px 6px;
+    border-bottom: 1px solid rgba(38, 44, 56, 0.5);
+    color: var(--ink);
+  }
+  .tbl td.num {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+    color: var(--ink-mute);
+  }
+  .tbl td.code {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+  }
+  .tbl tr:last-child td { border-bottom: none; }
+
+  /* Category chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(212, 165, 116, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(212, 165, 116, 0.2);
+  }
+  .chip.alt {
+    background: rgba(91, 141, 184, 0.1);
+    color: var(--accent-2);
+    border-color: rgba(91, 141, 184, 0.2);
+  }
+
+  /* Reliability badge */
+  .rel { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 3px 9px; border-radius: 6px; font-weight: 500; }
+  .rel.high { background: rgba(107, 163, 104, 0.12); color: var(--ok); }
+  .rel.med { background: rgba(212, 165, 116, 0.12); color: var(--warn); }
+  .rel.low { background: rgba(201, 112, 100, 0.12); color: var(--bad); }
+  .rel::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Chart wrappers */
+  .chart-wrap { position: relative; height: 240px; }
+  .chart-wrap.tall { height: 320px; }
+
+  /* Pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .stage {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 14px;
+    position: relative;
+  }
+  .stage .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+  .stage .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 4px 0 6px;
+  }
+  .stage .desc {
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    line-height: 1.45;
+  }
+  .stage.done { border-color: rgba(107, 163, 104, 0.4); }
+  .stage.done .num { color: var(--ok); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink-mute);
+  }
+  .empty h2 { font-size: 18px; color: var(--ink); margin-bottom: 8px; }
+
+  /* Footer */
+  .foot {
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .foot a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">JH · <strong>견적 시스템</strong></div>
+    <div class="brand-title">Estimation Analysis</div>
+
+    <div class="nav-label">Projects</div>
+    <div id="nav-list">
+      <div class="nav-empty">불러오는 중...</div>
+    </div>
+
+    <div class="nav-label">Pipeline</div>
+    <div class="nav-item" onclick="document.getElementById('pipeline-section').scrollIntoView({behavior:'smooth'})">분석 단계</div>
+    <div class="nav-item" onclick="document.getElementById('drawings-section').scrollIntoView({behavior:'smooth'})">도면 인식</div>
+    <div class="nav-item" onclick="document.getElementById('boq-section').scrollIntoView({behavior:'smooth'})">BOQ 분석</div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="empty"><h2>로딩 중...</h2></div>
+  </main>
+</div>
+
+<script>
+const NUMBER_FMT = new Intl.NumberFormat('ko-KR');
+const fmt = (n) => (n == null ? '—' : NUMBER_FMT.format(Math.round(n)));
+
+const CATEGORY_COLOR = {
+  PLAN: '#5b8db8',
+  ELECTRICAL: '#d4a574',
+  KITCHEN: '#9b7eb7',
+  DETAIL: '#6ba368',
+  FURNITURE: '#c97064',
+  SIGNAGE: '#e0b34a',
+  MECHANICAL: '#7a8597',
+};
+
+async function loadIndex() {
+  try {
+    const res = await fetch('data/estimation/index.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('index 404');
+    return await res.json();
+  } catch (e) {
+    return { bundles: [] };
+  }
+}
+
+async function loadBundle(file) {
+  const res = await fetch('data/estimation/' + file, { cache: 'no-store' });
+  if (!res.ok) throw new Error('bundle 404');
+  return await res.json();
+}
+
+function renderNav(bundles, activeSlug) {
+  const nav = document.getElementById('nav-list');
+  if (!bundles.length) {
+    nav.innerHTML = '<div class="nav-empty">등록된 프로젝트가 없습니다</div>';
+    return;
+  }
+  nav.innerHTML = bundles.map(b => {
+    const m = b.summary || {};
+    const name = (m.project_meta && m.project_meta.project_name) || b.slug;
+    const date = (b.generated_at || '').split(' ')[0];
+    return `<div class="nav-item ${b.slug===activeSlug?'active':''}" onclick="selectProject('${b.file}')">
+      <div>${name}</div>
+      <div class="meta">${date} · ${m.total_items || 0} items</div>
+    </div>`;
+  }).join('');
+}
+
+function reliabilityForBundle(b) {
+  const s = b.summary || {};
+  const total = s.drawing_page_count || 0;
+  const imgOnly = s.image_only_pages || 0;
+  if (!total) return { level: 'low', label: 'LOW · 도면 없음' };
+  const textRatio = (total - imgOnly) / total;
+  if (textRatio >= 0.8) return { level: 'high', label: 'HIGH · 텍스트 추출 ' + Math.round(textRatio*100) + '%' };
+  if (textRatio >= 0.4) return { level: 'med', label: 'MED · 텍스트 추출 ' + Math.round(textRatio*100) + '%' };
+  return { level: 'low', label: 'LOW · OCR 폴백 필요' };
+}
+
+function renderProject(bundle) {
+  const s = bundle.summary || {};
+  const meta = s.project_meta || {};
+  const rel = reliabilityForBundle(bundle);
+  const amount = s.amount_total || 0;
+  const main = document.getElementById('main');
+
+  main.innerHTML = `
+    <div class="topbar">
+      <div>
+        <div class="page-title">${meta.project_name || bundle.slug}</div>
+        <div class="page-subtitle">${meta.client ? meta.client + ' · ' : ''}slug: <span class="mono">${bundle.slug}</span></div>
+      </div>
+      <div class="generated">
+        <div>generated</div>
+        <div class="mono">${bundle.generated_at || '—'}</div>
+        <div style="margin-top:8px"><span class="rel ${rel.level}">${rel.label}</span></div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">도면 페이지</div>
+        <div class="value">${fmt(s.drawing_page_count)}<span class="unit">pages</span></div>
+        <div class="delta">자재 페이지 ${s.material_pages || 0}p · 고유 도면번호 ${s.unique_drawing_codes || 0}개</div>
+      </div>
+      <div class="metric">
+        <div class="label">BOQ 항목</div>
+        <div class="value">${fmt(s.total_items)}<span class="unit">items</span></div>
+        <div class="delta">${s.sheet_count || 0}개 시트 · 단가 입력 ${s.priced_items || 0}건</div>
+      </div>
+      <div class="metric">
+        <div class="label">분류된 공종</div>
+        <div class="value">${Object.keys(s.work_group_distribution || {}).length}<span class="unit">groups</span></div>
+        <div class="delta">단위 ${Object.keys(s.unit_distribution || {}).length}종</div>
+      </div>
+      <div class="metric">
+        <div class="label">금액 합계 (단가 입력분)</div>
+        <div class="value">${fmt(amount)}<span class="unit">원</span></div>
+        <div class="delta warn">단가 누락 ${(s.total_items||0)-(s.priced_items||0)}건 · 검증 필요</div>
+      </div>
+    </div>
+
+    <div class="section-title" id="pipeline-section">분석 파이프라인</div>
+    <div class="pipeline">
+      <div class="stage done"><div class="num">STAGE 1</div><div class="name">PDF 인식</div><div class="desc">PyMuPDF 텍스트 + 도면번호 추출</div></div>
+      <div class="stage done"><div class="num">STAGE 2</div><div class="name">카테고리 분류</div><div class="desc">PLAN / DETAIL / KITCHEN / FURNITURE / SIGNAGE 자동</div></div>
+      <div class="stage done"><div class="num">STAGE 3</div><div class="name">MATERIAL LIST</div><div class="desc">키워드 휴리스틱으로 자재 페이지 탐지</div></div>
+      <div class="stage done"><div class="num">STAGE 4</div><div class="name">BOQ 파싱</div><div class="desc">SPC 12열 표준 양식 자동 인식</div></div>
+      <div class="stage"><div class="num">STAGE 5</div><div class="name">검증 게이트</div><div class="desc">단가/요율 입력 → 사용자 승인 대기</div></div>
+    </div>
+
+    <div class="section-title" id="drawings-section">도면 인식</div>
+    <div class="grid-3">
+      <div class="panel">
+        <h3>카테고리 분포 <span class="hint">페이지 매칭 횟수</span></h3>
+        <div class="chart-wrap"><canvas id="ch-cat"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>역할 분포 <span class="hint">role 추정</span></h3>
+        <div class="chart-wrap"><canvas id="ch-role"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>자재 페이지 <span class="hint">PDF index</span></h3>
+        <div class="chips" id="material-chips"></div>
+        <h3 style="margin-top:18px">상위 도면번호</h3>
+        <table class="tbl" id="tbl-codes"></table>
+      </div>
+    </div>
+
+    <div class="section-title" id="boq-section">BOQ 분석</div>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>공종별 항목 수 <span class="hint">work_group</span></h3>
+        <div class="chart-wrap tall"><canvas id="ch-wg"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>단위 분포 <span class="hint">unit</span></h3>
+        <div class="chart-wrap tall"><canvas id="ch-unit"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title">시트별 항목 샘플</div>
+    <div class="panel" id="sheets-panel"></div>
+
+    <div class="foot">
+      <div>JH Estimation System · <span class="mono">scripts/estimation/boq_builder.py</span></div>
+      <div><a href="../">← brain-system</a></div>
+    </div>
+  `;
+
+  drawCharts(bundle);
+  drawTables(bundle);
+}
+
+function drawCharts(bundle) {
+  const s = bundle.summary || {};
+  const catCount = bundle.drawing_category_count || s.drawing_category_count || {};
+  const roleCount = bundle.drawing_role_count || {};
+  const wg = s.work_group_distribution || {};
+  const units = s.unit_distribution || {};
+
+  const baseOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#9aa3b2', font: { size: 11 } } } },
+    scales: {
+      x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#262c38' } },
+      y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#262c38' } },
+    },
+  };
+
+  // Category doughnut
+  new Chart(document.getElementById('ch-cat'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catCount),
+      datasets: [{
+        data: Object.values(catCount),
+        backgroundColor: Object.keys(catCount).map(k => CATEGORY_COLOR[k] || '#7a8597'),
+        borderColor: '#161a22',
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: '#9aa3b2', font: { size: 11 }, padding: 10, boxWidth: 12 } } },
+      cutout: '60%',
+    },
+  });
+
+  // Role bar
+  const roleLabels = Object.keys(roleCount);
+  new Chart(document.getElementById('ch-role'), {
+    type: 'bar',
+    data: {
+      labels: roleLabels,
+      datasets: [{
+        data: Object.values(roleCount),
+        backgroundColor: '#5b8db8',
+        borderRadius: 4,
+      }],
+    },
+    options: { ...baseOpts, indexAxis: 'y', plugins: { legend: { display: false } } },
+  });
+
+  // Work group bar
+  new Chart(document.getElementById('ch-wg'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(wg),
+      datasets: [{
+        data: Object.values(wg),
+        backgroundColor: '#d4a574',
+        borderRadius: 4,
+      }],
+    },
+    options: { ...baseOpts, indexAxis: 'y', plugins: { legend: { display: false } } },
+  });
+
+  // Unit polar
+  new Chart(document.getElementById('ch-unit'), {
+    type: 'polarArea',
+    data: {
+      labels: Object.keys(units),
+      datasets: [{
+        data: Object.values(units),
+        backgroundColor: ['#5b8db8','#d4a574','#9b7eb7','#6ba368','#c97064','#e0b34a','#7a8597','#a18e6b','#4f6f8f','#8a6f95','#557e54'].map(c => c + 'cc'),
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#9aa3b2', font: { size: 10 } } } },
+      scales: { r: { ticks: { color: '#6b7280', backdropColor: 'transparent', font: { size: 9 } }, grid: { color: '#262c38' }, angleLines: { color: '#262c38' } } },
+    },
+  });
+}
+
+function drawTables(bundle) {
+  // Material chips
+  const matChips = document.getElementById('material-chips');
+  const mats = bundle.material_pages || [];
+  matChips.innerHTML = mats.length
+    ? mats.map(p => `<span class="chip alt">page ${p}</span>`).join('')
+    : '<span style="color:var(--ink-dim);font-size:12px">감지된 자재 페이지 없음</span>';
+
+  // Drawing codes table
+  const codes = bundle.drawing_code_top || [];
+  document.getElementById('tbl-codes').innerHTML = `
+    <thead><tr><th>code</th><th style="text-align:right">count</th></tr></thead>
+    <tbody>${codes.slice(0, 12).map(([c, n]) => `
+      <tr><td class="code">${c}</td><td class="num">${n}</td></tr>
+    `).join('')}</tbody>
+  `;
+
+  // Sheets
+  const sheetsPanel = document.getElementById('sheets-panel');
+  const sheets = bundle.boq_sheets || [];
+  if (!sheets.length) {
+    sheetsPanel.innerHTML = '<div style="color:var(--ink-mute);text-align:center;padding:30px">BOQ 시트 없음</div>';
+    return;
+  }
+  sheetsPanel.innerHTML = sheets.map(sh => `
+    <div style="margin-bottom:24px;${sh === sheets[sheets.length-1]?'margin-bottom:0':''}">
+      <h3>${sh.sheet} <span class="hint">${sh.item_count} items · ${(sh.work_groups||[]).length} 공종</span></h3>
+      <div class="chips" style="margin-bottom:10px">${(sh.work_groups || []).slice(0, 10).map(g => `<span class="chip">${g}</span>`).join('')}</div>
+      <table class="tbl">
+        <thead><tr><th>공종</th><th>명칭</th><th>제조사</th><th>규격</th><th style="text-align:right">단위</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th></tr></thead>
+        <tbody>${(sh.sample_items || []).slice(0, 8).map(it => `
+          <tr>
+            <td><span class="chip alt" style="font-size:11px;padding:2px 7px">${it.work_group || '—'}</span></td>
+            <td>${it.name || '—'}</td>
+            <td style="color:var(--ink-mute)">${it.manufacturer || '—'}</td>
+            <td class="mono" style="color:var(--ink-mute)">${it.spec || '—'}</td>
+            <td class="num">${it.unit || '—'}</td>
+            <td class="num">${it.qty != null ? fmt(it.qty) : '—'}</td>
+            <td class="num" style="color:${it.unit_price?'var(--ok)':'var(--ink-dim)'}">${it.unit_price ? fmt(it.unit_price) : '—'}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+async function selectProject(file) {
+  try {
+    const bundle = await loadBundle(file);
+    const idx = await loadIndex();
+    renderNav(idx.bundles, bundle.slug);
+    renderProject(bundle);
+  } catch (e) {
+    document.getElementById('main').innerHTML = `<div class="empty"><h2>로딩 실패</h2><div>${e.message}</div></div>`;
+  }
+}
+
+async function init() {
+  const idx = await loadIndex();
+  if (!idx.bundles.length) {
+    renderNav([]);
+    document.getElementById('main').innerHTML = `
+      <div class="topbar">
+        <div>
+          <div class="page-title">JH Estimation Dashboard</div>
+          <div class="page-subtitle">PDF 도면 + XLS 견적서 자동 분석 시스템</div>
+        </div>
+      </div>
+      <div class="empty">
+        <h2>등록된 프로젝트가 없습니다</h2>
+        <div style="margin-top:12px;font-size:13px">분석 실행:</div>
+        <div class="mono" style="margin-top:10px;color:var(--accent)">python -X utf8 scripts/estimation/boq_builder.py --pdf &lt;pdf&gt; --xls &lt;xls&gt; --slug &lt;name&gt;</div>
+      </div>`;
+    return;
+  }
+  renderNav(idx.bundles, idx.bundles[0].slug);
+  const bundle = await loadBundle(idx.bundles[0].file);
+  renderProject(bundle);
+}
+
+init();
+</script>
+</body>
+</html>

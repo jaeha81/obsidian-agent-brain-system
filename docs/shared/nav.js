@@ -17,6 +17,7 @@
     { href: '/workflow/',          label: '워크플로우' },
     { href: '/ai-usage.html',      label: 'AI사용량' },
     { href: '/wiki-gate.html',     label: 'Wiki Gate' },
+    { href: '/estimation-dashboard.html', label: '견적분석' },
     { href: '/bucky-os.html',      label: 'BuckyOS' },
     { href: '/api/logout',         label: '로그아웃', cls: 'auth-end' },
   ];

@@ -208,3 +208,7 @@ _Private/
 **/_Private/
 .private/
 **/.private/
+
+# 견적 시스템 — 고객 PII 보호
+data/estimation_samples/
+docs/data/estimation/
