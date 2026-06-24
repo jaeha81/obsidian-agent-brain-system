@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>GGK · GeoAI Transformation</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&display=swap" />
+<style>
+:root{
+  --c-ink:#0e1a14;
+  --c-ink-soft:#1a2a22;
+  --c-paper:#f6f3ec;
+  --c-paper-warm:#ede7d8;
+  --c-fog:#dcd6c4;
+  --c-forest:#0a3d2e;
+  --c-forest-deep:#062920;
+  --c-moss:#1f5a47;
+  --c-gold:#c9a86a;
+  --c-gold-soft:#e3cc97;
+  --c-copper:#a86b3a;
+  --c-flame:#d97842;
+  --c-line:rgba(14,26,20,0.10);
+  --c-line-strong:rgba(14,26,20,0.22);
+  --font-sans:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,sans-serif;
+  --font-display:"Fraunces","Pretendard Variable",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  background:var(--c-paper);
+  color:var(--c-ink);
+  line-height:1.55;
+  font-feature-settings:"ss01","ss02","cv11";
+  letter-spacing:-0.005em;
+  overflow-x:hidden;
+}
+::selection{background:var(--c-forest);color:var(--c-gold-soft)}
+
+/* ============ GATE ============ */
+.gate{
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at 30% 20%, #103527 0%, #062920 45%, #02160f 100%);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .6s ease, visibility .6s ease;
+}
+.gate.hidden{opacity:0;visibility:hidden}
+.gate-orb{
+  position:absolute;border-radius:50%;filter:blur(80px);opacity:0.5;
+  background:radial-gradient(circle, var(--c-gold) 0%, transparent 70%);
+  width:520px;height:520px;top:-120px;right:-100px;
+  animation:drift 14s ease-in-out infinite alternate;
+}
+.gate-orb:nth-child(2){
+  background:radial-gradient(circle, var(--c-moss) 0%, transparent 70%);
+  width:600px;height:600px;bottom:-180px;left:-150px;top:auto;right:auto;
+  animation-duration:18s;animation-delay:-4s;
+}
+@keyframes drift{
+  from{transform:translate(0,0) scale(1)}
+  to{transform:translate(40px,-30px) scale(1.1)}
+}
+.gate-card{
+  position:relative;z-index:2;
+  width:min(420px, 90vw);
+  padding:48px 40px;
+  background:rgba(246,243,236,0.04);
+  border:1px solid rgba(201,168,106,0.25);
+  border-radius:4px;
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  text-align:left;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.gate-eyebrow{
+  font-family:var(--font-display);
+  font-style:italic;
+  font-weight:300;
+  font-size:13px;
+  letter-spacing:0.12em;
+  color:var(--c-gold);
+  margin-bottom:18px;
+  text-transform:uppercase;
+}
+.gate-title{
+  font-family:var(--font-display);
+  font-weight:400;
+  font-size:32px;
+  line-height:1.15;
+  color:var(--c-paper);
+  letter-spacing:-0.02em;
+  margin-bottom:8px;
+}
+.gate-sub{
+  font-size:13px;
+  color:rgba(246,243,236,0.55);
+  margin-bottom:36px;
+  letter-spacing:0.02em;
+}
+.gate-input{
+  width:100%;
+  padding:14px 16px;
+  background:rgba(0,0,0,0.3);
+  border:1px solid rgba(201,168,106,0.3);
+  border-radius:2px;
+  color:var(--c-paper);
+  font-family:var(--font-sans);
+  font-size:15px;
+  letter-spacing:0.4em;
+  text-align:center;
+  transition:border-color .3s, background .3s;
+  outline:none;
+}
+.gate-input:focus{
+  border-color:var(--c-gold);
+  background:rgba(0,0,0,0.45);
+}
+.gate-btn{
+  width:100%;
+  margin-top:14px;
+  padding:14px;
+  background:var(--c-gold);
+  color:var(--c-forest-deep);
+  border:none;
+  border-radius:2px;
+  font-family:var(--font-sans);
+  font-weight:600;
+  font-size:14px;
+  letter-spacing:0.06em;
+  cursor:pointer;
+  transition:background .25s, transform .15s;
+}
+.gate-btn:hover{background:var(--c-gold-soft)}
+.gate-btn:active{transform:scale(0.98)}
+.gate-error{
+  margin-top:14px;
+  font-size:12px;
+  color:#e8a07a;
+  min-height:16px;
+  text-align:center;
+  letter-spacing:0.02em;
+}
+.gate-footer{
+  position:absolute;bottom:32px;left:0;right:0;text-align:center;
+  font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+  color:rgba(246,243,236,0.32);
+}
+
+/* ============ APP ============ */
+.app{opacity:0;transition:opacity .8s ease .2s}
+.app.ready{opacity:1}
+
+/* ============ NAV ============ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:18px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(to bottom, rgba(246,243,236,0.95), rgba(246,243,236,0.0));
+  backdrop-filter:blur(8px);
+  transition:padding .3s, background .3s;
+}
+.nav.scrolled{
+  padding:12px 40px;
+  background:rgba(246,243,236,0.92);
+  border-bottom:1px solid var(--c-line);
+}
+.nav-brand{
+  display:flex;align-items:center;gap:12px;
+  font-family:var(--font-display);
+  font-weight:500;font-size:18px;
+  letter-spacing:-0.01em;
+}
+.nav-brand-mark{
+  width:28px;height:28px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, var(--c-gold) 0%, var(--c-copper) 60%, var(--c-forest) 100%);
+  position:relative;
+}
+.nav-brand-mark::after{
+  content:"";position:absolute;inset:5px;border-radius:50%;
+  border:1px solid rgba(246,243,236,0.4);
+}
+.nav-menu{display:flex;gap:28px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--c-ink-soft)}
+.nav-menu a{color:inherit;text-decoration:none;transition:color .2s;position:relative;padding:6px 0}
+.nav-menu a:hover{color:var(--c-forest)}
+.nav-menu a::after{
+  content:"";position:absolute;bottom:0;left:0;width:0;height:1px;
+  background:var(--c-gold);transition:width .3s;
+}
+.nav-menu a:hover::after{width:100%}
+@media (max-width:900px){.nav-menu{display:none}.nav,.nav.scrolled{padding:14px 20px}}
+
+/* ============ LAYOUT ============ */
+section{padding:120px 40px;position:relative}
+section:nth-child(odd){background:var(--c-paper-warm)}
+.container{max-width:1240px;margin:0 auto}
+.eyebrow{
+  font-family:var(--font-display);font-style:italic;font-weight:300;
+  font-size:13px;letter-spacing:0.16em;color:var(--c-copper);
+  text-transform:uppercase;margin-bottom:18px;
+  display:inline-flex;align-items:center;gap:10px;
+}
+.eyebrow::before{
+  content:"";width:32px;height:1px;background:var(--c-copper);
+}
+h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--c-ink)}
+.h-display{font-family:var(--font-display);font-weight:300;font-size:clamp(48px, 7vw, 96px);line-height:0.98;letter-spacing:-0.035em}
+.h-section{font-family:var(--font-display);font-weight:400;font-size:clamp(36px, 4.5vw, 60px);letter-spacing:-0.03em;margin-bottom:24px}
+.h-card{font-family:var(--font-sans);font-weight:600;font-size:18px;letter-spacing:-0.015em;line-height:1.3}
+.lead{font-size:18px;line-height:1.6;color:var(--c-ink-soft);max-width:720px;letter-spacing:-0.005em}
+.fineprint{font-size:12px;letter-spacing:0.04em;color:rgba(14,26,20,0.5)}
+
+/* ============ HERO ============ */
+.hero{
+  min-height:100vh;padding:140px 40px 80px;
+  background:
+    radial-gradient(ellipse 80% 50% at 70% 30%, rgba(201,168,106,0.18), transparent 60%),
+    linear-gradient(180deg, var(--c-paper) 0%, var(--c-paper-warm) 100%);
+  display:flex;align-items:center;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:"";position:absolute;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--c-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-line) 1px, transparent 1px);
+  background-size:80px 80px;
+  mask-image:radial-gradient(ellipse at center, black 30%, transparent 70%);
+  -webkit-mask-image:radial-gradient(ellipse at center, black 30%, transparent 70%);
+  opacity:0.5;
+}
+.hero-grid{
+  position:relative;z-index:1;display:grid;grid-template-columns:1.4fr 1fr;gap:80px;align-items:end;
+}
+@media (max-width:980px){.hero-grid{grid-template-columns:1fr;gap:40px}}
+.hero-title{margin-bottom:36px}
+.hero-title em{
+  font-style:italic;font-family:var(--font-display);font-weight:300;
+  background:linear-gradient(135deg, var(--c-forest) 0%, var(--c-copper) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-bullet{display:flex;gap:18px;margin-top:14px;align-items:flex-start;font-size:15px;color:var(--c-ink-soft);letter-spacing:-0.005em}
+.hero-bullet-mark{
+  flex-shrink:0;width:18px;height:18px;border-radius:50%;
+  border:1px solid var(--c-copper);position:relative;margin-top:3px;
+}
+.hero-bullet-mark::after{
+  content:"";position:absolute;inset:4px;border-radius:50%;background:var(--c-copper);
+}
+.hero-aside{
+  border-left:1px solid var(--c-line-strong);padding-left:40px;
+}
+.hero-stamp{
+  font-family:var(--font-display);font-style:italic;font-weight:300;
+  font-size:14px;color:var(--c-copper);margin-bottom:16px;letter-spacing:0.04em;
+}
+.hero-stamp-label{font-family:var(--font-sans);text-transform:uppercase;font-size:10px;letter-spacing:0.18em;color:rgba(14,26,20,0.5);display:block;margin-bottom:6px;font-style:normal}
+.hero-quote{
+  font-family:var(--font-display);font-weight:300;font-style:italic;
+  font-size:22px;line-height:1.4;color:var(--c-ink);
+  padding:24px 0 24px 24px;border-left:2px solid var(--c-gold);
+  margin-bottom:24px;
+}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:14px;
+  padding:16px 28px;background:var(--c-forest);color:var(--c-paper);
+  text-decoration:none;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;font-weight:500;
+  border-radius:2px;transition:background .25s, transform .2s;
+}
+.hero-cta:hover{background:var(--c-forest-deep);transform:translateY(-2px)}
+.hero-cta-arrow{transition:transform .25s}
+.hero-cta:hover .hero-cta-arrow{transform:translateX(4px)}
+
+/* ============ METRICS ============ */
+.metrics-strip{
+  background:var(--c-forest-deep);color:var(--c-paper);
+  padding:80px 40px;
+}
+.metrics-strip .container{display:grid;grid-template-columns:repeat(6,1fr);gap:0}
+@media (max-width:980px){.metrics-strip .container{grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(246,243,236,0.1)}}
+.metric{padding:24px 28px;border-right:1px solid rgba(246,243,236,0.1);position:relative}
+.metric:last-child{border-right:none}
+.metric-label{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(246,243,236,0.5);margin-bottom:12px}
+.metric-value{font-family:var(--font-display);font-weight:300;font-size:42px;line-height:1;letter-spacing:-0.02em;color:var(--c-paper);margin-bottom:6px}
+.metric-value sup{font-size:18px;color:var(--c-gold);font-style:italic;font-weight:400}
+.metric-note{font-size:11px;color:rgba(246,243,236,0.45);letter-spacing:0.02em}
+
+/* ============ DIAGNOSIS ============ */
+.diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px}
+@media (max-width:880px){.diag-grid{grid-template-columns:1fr;gap:36px}}
+.diag-col{padding:36px 0 0;border-top:1px solid var(--c-line-strong)}
+.diag-col-strong{border-top-color:var(--c-forest)}
+.diag-tag{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--c-forest);font-weight:600;margin-bottom:14px}
+.diag-tag-warn{color:var(--c-copper)}
+.diag-col h3{font-family:var(--font-display);font-weight:400;font-size:28px;letter-spacing:-0.02em;margin-bottom:24px}
+.diag-list li{
+  list-style:none;display:flex;gap:14px;font-size:15px;line-height:1.5;color:var(--c-ink-soft);
+  padding:12px 0;border-bottom:1px solid var(--c-line);
+}
+.diag-list li:last-child{border-bottom:none}
+.diag-mark{flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--c-forest);margin-top:9px}
+.diag-mark-warn{background:var(--c-copper)}
+
+/* ============ AUDIT BARS ============ */
+.audit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:36px 64px}
+@media (max-width:780px){.audit-grid{grid-template-columns:1fr}}
+.audit-row{padding-bottom:14px;border-bottom:1px solid var(--c-line)}
+.audit-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.audit-name{font-size:14px;font-weight:500;letter-spacing:-0.005em}
+.audit-score{font-family:var(--font-display);font-weight:300;font-size:22px}
+.audit-bar{height:3px;background:var(--c-line-strong);position:relative;overflow:hidden;border-radius:2px}
+.audit-bar-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg, var(--c-forest), var(--c-gold));border-radius:2px;width:0;transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
+.audit-bar-fill.low{background:linear-gradient(90deg, var(--c-copper), var(--c-flame))}
+.audit-note{margin-top:8px;font-size:12px;color:rgba(14,26,20,0.55)}
+
+/* ============ GEOAI OS ============ */
+.os-section{background:var(--c-forest-deep);color:var(--c-paper)}
+.os-section .eyebrow{color:var(--c-gold)}
+.os-section .eyebrow::before{background:var(--c-gold)}
+.os-section h2{color:var(--c-paper)}
+.os-section .lead{color:rgba(246,243,236,0.7)}
+.os-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
+@media (max-width:880px){.os-grid{grid-template-columns:1fr}}
+.os-card{
+  padding:36px 32px;
+  background:rgba(246,243,236,0.04);
+  border:1px solid rgba(201,168,106,0.2);
+  border-radius:3px;position:relative;
+  transition:border-color .3s, transform .3s;
+}
+.os-card:hover{border-color:var(--c-gold);transform:translateY(-4px)}
+.os-num{
+  font-family:var(--font-display);font-style:italic;font-weight:300;
+  font-size:42px;color:var(--c-gold);margin-bottom:18px;line-height:1;
+}
+.os-card h3{color:var(--c-paper);font-size:20px;margin-bottom:14px;font-weight:500;letter-spacing:-0.01em}
+.os-flow{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:15px;color:var(--c-gold-soft);margin-bottom:16px;letter-spacing:0.005em}
+.os-card p{font-size:14px;color:rgba(246,243,236,0.7);line-height:1.55}
+.os-ids{
+  margin-top:60px;padding:36px;
+  border:1px solid rgba(201,168,106,0.18);
+  border-radius:3px;
+  display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;
+}
+@media (max-width:780px){.os-ids{grid-template-columns:1fr}}
+.os-ids-label{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--c-gold)}
+.os-ids-pills{display:flex;flex-wrap:wrap;gap:8px}
+.os-pill{padding:8px 16px;border:1px solid rgba(201,168,106,0.3);border-radius:200px;font-size:12px;color:var(--c-paper);letter-spacing:0.02em}
+
+/* ============ USECASE ============ */
+.uc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--c-line-strong);border-right:none;border-bottom:none}
+@media (max-width:1100px){.uc-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.uc-grid{grid-template-columns:1fr}}
+.uc-col{padding:36px 28px;border-right:1px solid var(--c-line-strong);border-bottom:1px solid var(--c-line-strong);background:var(--c-paper);transition:background .3s}
+.uc-col:hover{background:var(--c-paper-warm)}
+.uc-tag{
+  font-family:var(--font-display);font-style:italic;font-weight:300;
+  font-size:13px;color:var(--c-copper);letter-spacing:0.06em;
+  margin-bottom:8px;text-transform:uppercase;
+}
+.uc-stage{
+  font-family:var(--font-display);font-weight:400;font-size:24px;letter-spacing:-0.02em;
+  margin-bottom:16px;
+}
+.uc-items{margin-top:18px}
+.uc-item{padding:8px 0;border-bottom:1px dashed var(--c-line);font-size:14px;display:flex;align-items:center;gap:10px}
+.uc-item:last-child{border-bottom:none}
+.uc-item-dot{width:5px;height:5px;border-radius:50%;background:var(--c-copper);flex-shrink:0}
+.uc-when{margin-top:18px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(14,26,20,0.5);font-weight:500}
+
+/* ============ PILOT ============ */
+.pilot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
+@media (max-width:980px){.pilot-grid{grid-template-columns:1fr}}
+.pilot-card{
+  padding:40px 32px;background:var(--c-paper);
+  border:1px solid var(--c-line-strong);border-radius:3px;
+  position:relative;overflow:hidden;
+  transition:border-color .3s, transform .3s;
+}
+.pilot-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, var(--c-forest) 0%, var(--c-gold) 100%);
+}
+.pilot-card:hover{border-color:var(--c-forest);transform:translateY(-4px)}
+.pilot-num{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:14px;color:var(--c-copper);margin-bottom:14px}
+.pilot-name{font-family:var(--font-display);font-size:24px;font-weight:400;letter-spacing:-0.02em;margin-bottom:14px;line-height:1.2}
+.pilot-desc{font-size:14px;color:var(--c-ink-soft);line-height:1.55;margin-bottom:24px}
+.pilot-kpis{padding-top:20px;border-top:1px solid var(--c-line)}
+.pilot-kpi{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;font-size:13px}
+.pilot-kpi-name{color:rgba(14,26,20,0.7)}
+.pilot-kpi-value{font-family:var(--font-display);font-weight:500;color:var(--c-forest)}
+
+/* ============ ROADMAP ============ */
+.roadmap-section{background:var(--c-paper-warm)}
+.roadmap{position:relative;margin-top:60px;padding-left:32px;border-left:1px solid var(--c-line-strong)}
+.roadmap-phase{position:relative;padding:24px 0 48px 32px;border-bottom:1px dashed var(--c-line)}
+.roadmap-phase:last-child{border-bottom:none}
+.roadmap-phase::before{
+  content:"";position:absolute;left:-39px;top:30px;
+  width:14px;height:14px;border-radius:50%;background:var(--c-paper-warm);
+  border:2px solid var(--c-copper);
+}
+.roadmap-phase.cur::before{background:var(--c-gold);border-color:var(--c-forest)}
+.roadmap-grid{display:grid;grid-template-columns:140px 1fr 1fr 1fr;gap:32px;align-items:start}
+@media (max-width:880px){.roadmap-grid{grid-template-columns:1fr;gap:14px}}
+.roadmap-when{
+  font-family:var(--font-display);font-style:italic;font-weight:300;
+  font-size:15px;color:var(--c-copper);
+}
+.roadmap-name{font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:-0.02em;line-height:1.2}
+.roadmap-detail{font-size:13px;color:var(--c-ink-soft);line-height:1.55}
+.roadmap-gate{
+  font-size:12px;color:var(--c-forest);
+  padding:6px 12px;border:1px solid var(--c-forest);border-radius:200px;
+  display:inline-block;letter-spacing:0.02em;
+}
+
+/* ============ REVENUE ============ */
+.rev-strip{background:var(--c-ink);color:var(--c-paper)}
+.rev-strip .eyebrow{color:var(--c-gold)}
+.rev-strip .eyebrow::before{background:var(--c-gold)}
+.rev-strip h2{color:var(--c-paper)}
+.rev-strip .lead{color:rgba(246,243,236,0.7)}
+.rev-flow{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-top:60px;border:1px solid rgba(246,243,236,0.12)}
+@media (max-width:1100px){.rev-flow{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.rev-flow{grid-template-columns:1fr}}
+.rev-col{padding:32px 24px;border-right:1px solid rgba(246,243,236,0.12);position:relative}
+.rev-col:nth-child(6),.rev-col:nth-child(2):last-child{border-right:none}
+.rev-num{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:13px;color:var(--c-gold);margin-bottom:14px;letter-spacing:0.04em}
+.rev-name{font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:-0.02em;color:var(--c-paper);margin-bottom:12px;line-height:1.2}
+.rev-desc{font-size:13px;color:rgba(246,243,236,0.65);line-height:1.5;margin-bottom:16px}
+.rev-price{font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--c-gold-soft)}
+.rev-kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:60px;border:1px solid rgba(246,243,236,0.12)}
+@media (max-width:780px){.rev-kpi-strip{grid-template-columns:1fr}}
+.rev-kpi-col{padding:32px 28px;border-right:1px solid rgba(246,243,236,0.12);text-align:center}
+.rev-kpi-col:last-child{border-right:none}
+.rev-kpi-value{font-family:var(--font-display);font-weight:300;font-size:54px;letter-spacing:-0.03em;color:var(--c-gold);line-height:1}
+.rev-kpi-label{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(246,243,236,0.6);margin-top:14px}
+
+/* ============ INVEST ============ */
+.invest-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:60px}
+@media (max-width:980px){.invest-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.invest-grid{grid-template-columns:1fr}}
+.invest-card{
+  padding:32px 28px;background:var(--c-paper);
+  border:1px solid var(--c-line-strong);border-radius:3px;position:relative;
+}
+.invest-stage{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:14px;color:var(--c-copper);letter-spacing:0.04em;margin-bottom:10px}
+.invest-name{font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:-0.02em;margin-bottom:18px}
+.invest-when{font-size:13px;color:rgba(14,26,20,0.6);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--c-line)}
+.invest-budget{font-family:var(--font-display);font-weight:400;font-size:24px;color:var(--c-forest);letter-spacing:-0.02em}
+.invest-scope{margin-top:16px;font-size:13px;color:var(--c-ink-soft);line-height:1.55}
+.invest-cta{
+  margin-top:60px;padding:48px;
+  background:var(--c-forest);color:var(--c-paper);
+  border-radius:3px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;
+}
+@media (max-width:880px){.invest-cta{grid-template-columns:1fr;padding:36px}}
+.invest-cta h3{font-family:var(--font-display);font-weight:400;font-size:32px;letter-spacing:-0.02em;color:var(--c-paper);margin-bottom:14px;line-height:1.2}
+.invest-cta p{font-size:14px;color:rgba(246,243,236,0.75);line-height:1.55}
+.invest-cta-stats{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.invest-cta-stat-num{font-family:var(--font-display);font-weight:300;font-size:42px;color:var(--c-gold);letter-spacing:-0.02em;line-height:1}
+.invest-cta-stat-label{font-size:12px;letter-spacing:0.06em;color:rgba(246,243,236,0.6);margin-top:8px;text-transform:uppercase}
+
+/* ============ STACK ============ */
+.stack-section{background:var(--c-paper-warm)}
+.stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
+@media (max-width:880px){.stack-grid{grid-template-columns:1fr}}
+.stack-card{
+  padding:32px 28px;background:var(--c-paper);
+  border:1px solid var(--c-line-strong);border-radius:3px;
+}
+.stack-icon{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--c-forest);color:var(--c-gold);
+  font-family:var(--font-display);font-weight:400;font-size:16px;
+  margin-bottom:18px;
+}
+.stack-cat{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--c-copper);font-weight:600;margin-bottom:8px}
+.stack-name{font-family:var(--font-display);font-weight:500;font-size:18px;margin-bottom:12px;letter-spacing:-0.01em}
+.stack-tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.stack-tool{padding:4px 10px;background:var(--c-paper-warm);border:1px solid var(--c-line);border-radius:200px;font-size:11px;color:var(--c-ink-soft);letter-spacing:0.02em}
+.stack-desc{font-size:13px;color:var(--c-ink-soft);line-height:1.55;margin-bottom:6px}
+
+/* ============ DECISION ============ */
+.dec-section{background:var(--c-forest);color:var(--c-paper)}
+.dec-section .eyebrow{color:var(--c-gold)}
+.dec-section .eyebrow::before{background:var(--c-gold)}
+.dec-section h2{color:var(--c-paper)}
+.dec-section .lead{color:rgba(246,243,236,0.75)}
+.dec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin-top:60px;background:rgba(201,168,106,0.18)}
+@media (max-width:780px){.dec-grid{grid-template-columns:1fr}}
+.dec-card{
+  background:var(--c-forest);padding:32px 28px;
+  display:flex;gap:24px;align-items:flex-start;
+}
+.dec-card-num{
+  flex-shrink:0;width:48px;height:48px;border-radius:50%;
+  border:1px solid var(--c-gold);color:var(--c-gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:300;font-size:20px;font-style:italic;
+}
+.dec-card h4{font-family:var(--font-sans);color:var(--c-paper);font-size:16px;font-weight:500;margin-bottom:10px;letter-spacing:-0.005em}
+.dec-card p{font-size:13px;color:rgba(246,243,236,0.7);line-height:1.55}
+.dec-close{
+  margin-top:80px;padding:48px 40px;text-align:center;
+  border-top:1px solid rgba(201,168,106,0.18);
+}
+.dec-close-quote{
+  font-family:var(--font-display);font-weight:300;font-style:italic;
+  font-size:clamp(22px,3vw,32px);line-height:1.4;letter-spacing:-0.015em;
+  color:var(--c-paper);max-width:880px;margin:0 auto;
+}
+.dec-close-quote em{color:var(--c-gold);font-style:italic}
+
+/* ============ FOOTER ============ */
+footer{
+  background:var(--c-forest-deep);color:rgba(246,243,236,0.55);
+  padding:60px 40px 40px;font-size:12px;letter-spacing:0.04em;
+}
+.foot-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center}
+@media (max-width:680px){.foot-grid{grid-template-columns:1fr;text-align:center}}
+.foot-brand{font-family:var(--font-display);font-weight:400;font-size:18px;color:var(--c-paper);margin-bottom:10px;letter-spacing:-0.01em}
+.foot-meta{font-size:11px;color:rgba(246,243,236,0.4)}
+.foot-cred{font-family:var(--font-display);font-style:italic;color:var(--c-gold-soft);font-size:13px}
+
+/* ============ ANIMATIONS ============ */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.on{opacity:1;transform:translateY(0)}
+.reveal-stagger > *{opacity:0;transform:translateY(20px);transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1)}
+.reveal-stagger.on > *{opacity:1;transform:translateY(0)}
+.reveal-stagger.on > *:nth-child(1){transition-delay:.05s}
+.reveal-stagger.on > *:nth-child(2){transition-delay:.12s}
+.reveal-stagger.on > *:nth-child(3){transition-delay:.19s}
+.reveal-stagger.on > *:nth-child(4){transition-delay:.26s}
+.reveal-stagger.on > *:nth-child(5){transition-delay:.33s}
+.reveal-stagger.on > *:nth-child(6){transition-delay:.40s}
+</style>
+</head>
+<body>
+
+<!-- ============================== GATE ============================== -->
+<div class="gate" id="gate">
+  <div class="gate-orb"></div>
+  <div class="gate-orb"></div>
+  <div class="gate-card">
+    <div class="gate-eyebrow">For GGK Chairman · Confidential</div>
+    <div class="gate-title">GeoAI Transformation<br/>Briefing</div>
+    <div class="gate-sub">접속을 위해 사전 공유된 코드를 입력해 주십시오.</div>
+    <input type="password" id="gateInput" class="gate-input" maxlength="8" placeholder="• • • •" autocomplete="off" />
+    <button class="gate-btn" id="gateBtn">접속하기</button>
+    <div class="gate-error" id="gateError"></div>
+  </div>
+  <div class="gate-footer">㈜지지케이 · GeoAI OS Proposal · 2026.06.24</div>
+</div>
+
+<!-- ============================== APP ============================== -->
+<div class="app" id="app">
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-brand">
+    <div class="nav-brand-mark"></div>
+    <span>GGK · GeoAI</span>
+  </div>
+  <div class="nav-menu">
+    <a href="#diagnosis">진단</a>
+    <a href="#os">GeoAI OS</a>
+    <a href="#usecase">유스케이스</a>
+    <a href="#roadmap">로드맵</a>
+    <a href="#revenue">수익모델</a>
+    <a href="#decision">의사결정</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow reveal">Prepared for GGK · 2026.06.24</div>
+      <h1 class="h-display hero-title reveal" style="transition-delay:.1s">
+        기술 시공기업에서<br/>
+        <em>지열 라이프사이클</em><br/>
+        플랫폼 기업으로
+      </h1>
+      <p class="lead reveal" style="transition-delay:.2s">
+        GGK는 이미 강한 기술회사다. 다음 단계는 30년 노하우 · 93건 특허 · 시공·점검 데이터를 표준화해
+        수주율·원가·현장품질·유지관리 반복매출을 동시에 끌어올리는 것이다.
+      </p>
+      <div style="margin-top:32px">
+        <div class="hero-bullet reveal" style="transition-delay:.28s"><div class="hero-bullet-mark"></div><div><strong>90일</strong> 내 입찰·지식·CRM·웹 안정화로 즉시 생산성을 만든다</div></div>
+        <div class="hero-bullet reveal" style="transition-delay:.34s"><div class="hero-bullet-mark"></div><div><strong>8개월</strong> 내 설계·견적·현장 문서를 표준화한다</div></div>
+        <div class="hero-bullet reveal" style="transition-delay:.40s"><div class="hero-bullet-mark"></div><div><strong>18개월</strong> 내 IoT 기반 성능관제와 유료 O&amp;M을 출시한다</div></div>
+      </div>
+      <a href="#decision" class="hero-cta reveal" style="transition-delay:.5s; margin-top:40px">
+        경영진 의사결정 6가지
+        <span class="hero-cta-arrow">→</span>
+      </a>
+    </div>
+    <aside class="hero-aside reveal" style="transition-delay:.3s">
+      <div class="hero-stamp">
+        <span class="hero-stamp-label">Core Proposition</span>
+        GeoAI OS
+      </div>
+      <blockquote class="hero-quote">
+        수주·설계·현장·유지관리 데이터를 하나의 운영체계로 연결해
+        <strong>반복매출과 성능 신뢰</strong>를 동시에 확보한다.
+      </blockquote>
+      <div class="fineprint">분석 기준일 2026-06-24 · 공개자료 기반 전략초안 · 내부 데이터로 재검증 예정</div>
+    </aside>
+  </div>
+</section>
+
+<!-- METRICS STRIP -->
+<section class="metrics-strip" style="padding:80px 40px">
+  <div class="container reveal-stagger">
+    <div class="metric">
+      <div class="metric-label">Founded</div>
+      <div class="metric-value">1994</div>
+      <div class="metric-note">30년 이상 업력</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Invention Patents</div>
+      <div class="metric-value">93<sup>건</sup></div>
+      <div class="metric-note">2021 공개자료 기준</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">New Tech No.</div>
+      <div class="metric-value">772<sup>호</sup></div>
+      <div class="metric-note">건설신기술 · 2028.07까지</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Performance Cert.</div>
+      <div class="metric-value" style="font-size:28px">25-AAI0233</div>
+      <div class="metric-note">투웰 개방형 시스템</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">2024 Geo-Yield</div>
+      <div class="metric-value">+12.7<sup>%</sup></div>
+      <div class="metric-note">315,688 toe · KNREC</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Public Track</div>
+      <div class="metric-value">124<sup>건</sup></div>
+      <div class="metric-note">2019~ 공공건축 적용·계약</div>
+    </div>
+  </div>
+</section>
+
+<!-- DIAGNOSIS -->
+<section id="diagnosis">
+  <div class="container">
+    <div class="eyebrow reveal">01 · Core Diagnosis</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">시장선도의 병목은<br/>기술이 아니라 <em style="font-family:var(--font-display);font-style:italic;color:var(--c-copper)">데이터</em>다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">핵심 기술력은 이미 확보되어 있다. 다음 단계는 디지털 운영체계와 반복매출 구조를 구축하는 일이다.</p>
+
+    <div class="diag-grid" style="margin-top:80px">
+      <div class="diag-col diag-col-strong reveal">
+        <div class="diag-tag">이미 강한 것</div>
+        <h3>기술·현장·인증·신뢰</h3>
+        <ul class="diag-list">
+          <li><span class="diag-mark"></span><div>지열·지하수의 장기 현장경험과 특허 포트폴리오</div></li>
+          <li><span class="diag-mark"></span><div>지중열교환기·상부보호공·투웰 등 차별화 기술</div></li>
+          <li><span class="diag-mark"></span><div>건설신기술·성능인증·조달/기술마켓 기반</div></li>
+          <li><span class="diag-mark"></span><div>연구소·무료점검·다양한 시공실적 콘텐츠</div></li>
+        </ul>
+      </div>
+      <div class="diag-col reveal" style="border-top-color:var(--c-copper); transition-delay:.1s">
+        <div class="diag-tag diag-tag-warn">시장선도를 막는 것</div>
+        <h3>데이터 단절과 디지털 접점</h3>
+        <ul class="diag-list">
+          <li><span class="diag-mark diag-mark-warn"></span><div>웹사이트 접속 안정성 · 검색 노출 · 전환 흐름 부족</div></li>
+          <li><span class="diag-mark diag-mark-warn"></span><div>영업–설계–현장–유지관리 데이터 단절</div></li>
+          <li><span class="diag-mark diag-mark-warn"></span><div>견적·보고·제안서의 개인 의존과 반복 수작업</div></li>
+          <li><span class="diag-mark diag-mark-warn"></span><div>운영 성능 데이터가 제품·영업 자산으로 환류되지 않음</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:120px">
+      <div class="eyebrow reveal">02 · Website Audit (Public)</div>
+      <h3 class="h-section reveal" style="font-size:clamp(28px,3vw,40px); transition-delay:.1s">홈페이지 8개 항목 진단</h3>
+      <p class="lead reveal" style="transition-delay:.15s">기술 자료실은 강하지만, 영업 시스템은 약하다.</p>
+
+      <div class="audit-grid reveal" style="margin-top:48px; transition-delay:.2s">
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">기술 신뢰</span><span class="audit-score">4.5</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill" data-w="90"></div></div>
+          <div class="audit-note">특허·인증·기술·제품·연구 콘텐츠 풍부 → 사례별 성능 데이터와 연결</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">콘텐츠 범위</span><span class="audit-score">3.8</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill" data-w="76"></div></div>
+          <div class="audit-note">중복 정리 · 대상별 랜딩페이지로 재편</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">최신성</span><span class="audit-score">3.4</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill" data-w="68"></div></div>
+          <div class="audit-note">2026 신제품 뉴스 존재 · 제품·실적 업데이트 SLA 도입</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">접속 안정성</span><span class="audit-score">1.5</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill low" data-w="30"></div></div>
+          <div class="audit-note">분석 중 502/timeout 반복 → 클라우드 · CDN · 모니터링 즉시 필요</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">SEO · 검색</span><span class="audit-score">2.0</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill low" data-w="40"></div></div>
+          <div class="audit-note">홈 타이틀·메타가 일반적 → 기술·지역·용도별 SEO</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">전환 · CRM</span><span class="audit-score">1.6</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill low" data-w="32"></div></div>
+          <div class="audit-note">무료점검은 강점 · 흐름은 분절 → 진단→상담→견적 자동배정</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">고객 셀프서비스</span><span class="audit-score">1.3</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill low" data-w="26"></div></div>
+          <div class="audit-note">포털·상태조회 확인 불가 → A/S·성능·문서 포털 구축</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-head"><span class="audit-name">데이터 분석</span><span class="audit-score">1.1</span></div>
+          <div class="audit-bar"><div class="audit-bar-fill low" data-w="22"></div></div>
+          <div class="audit-note">행동·전환·캠페인 측정 부재 → 통합 분석·리드스코어</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GEOAI OS -->
+<section id="os" class="os-section">
+  <div class="container">
+    <div class="eyebrow reveal">03 · North Star Operating Model</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">GeoAI OS,<br/>세 개의 <em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">학습 루프</em>로 운영된다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">프로젝트마다 생성되는 데이터를 다음 수주·설계·시공·정비에 재사용한다. 데이터 해자는 모델이 아니라 도메인 규칙과 성과 검증 체계에서 만들어진다.</p>
+
+    <div class="os-grid reveal-stagger">
+      <div class="os-card">
+        <div class="os-num">01</div>
+        <h3>수주 학습</h3>
+        <div class="os-flow">공고 → 제안 → 승패 → 원인</div>
+        <p>승률 · 우선순위 · 제안 속도 향상. 공공·민간 입찰의 패턴을 학습해 다음 RFP의 적합도와 승산을 추천한다.</p>
+      </div>
+      <div class="os-card">
+        <div class="os-num">02</div>
+        <h3>프로젝트 학습</h3>
+        <div class="os-flow">견적 → 실행원가 → 품질 → 준공</div>
+        <p>원가 정확도 · 공기 · 재작업 개선. 견적-실행 편차를 학습해 다음 견적의 단가·생산성 기준을 보정한다.</p>
+      </div>
+      <div class="os-card">
+        <div class="os-num">03</div>
+        <h3>성능 학습</h3>
+        <div class="os-flow">센서 → 이상 → 조치 → 절감효과</div>
+        <p>A/S 예방 · 구독 · 신제품 개선. 자산별 정상 패턴을 학습해 고장 전 개입과 운전 최적화를 자동화한다.</p>
+      </div>
+    </div>
+
+    <div class="os-ids reveal">
+      <div class="os-ids-label">공통 ID로 모든 데이터를 묶는다</div>
+      <div class="os-ids-pills">
+        <span class="os-pill">Customer</span>
+        <span class="os-pill">Opportunity</span>
+        <span class="os-pill">Project</span>
+        <span class="os-pill">Asset</span>
+        <span class="os-pill">Document</span>
+        <span class="os-pill">Issue</span>
+        <span class="os-pill">Performance (TimeSeries)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USECASE -->
+<section id="usecase">
+  <div class="container">
+    <div class="eyebrow reveal">04 · Use-Case Portfolio</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">10대 AI 자동화 유스케이스</h2>
+    <p class="lead reveal" style="transition-delay:.15s">Quick Win은 쉽고 반복적인 업무에서 신뢰를 만들고, 전략 투자는 설계·현장·O&amp;M의 핵심 데이터에 집중한다. 우선순위는 사업 임팩트(40%) + 데이터 준비도(20%) + 구현난이도(15%) + 위험(15%) + 확장성(10%)으로 산정.</p>
+
+    <div class="uc-grid reveal" style="margin-top:60px">
+      <div class="uc-col">
+        <div class="uc-tag">Tier A</div>
+        <div class="uc-stage">즉시 (Quick Win)</div>
+        <div class="uc-when">0~3개월 · 탐색·응답·제안 타임</div>
+        <div class="uc-items">
+          <div class="uc-item"><span class="uc-item-dot"></span>입찰 레이더</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>제안서 초안 코파일럿</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>지식허브 (30년 노하우)</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>CRM · 웹 안정화</div>
+        </div>
+      </div>
+      <div class="uc-col">
+        <div class="uc-tag">Tier B</div>
+        <div class="uc-stage">핵심 (Core Ops)</div>
+        <div class="uc-when">3~8개월 · 견적시간·원가편차</div>
+        <div class="uc-items">
+          <div class="uc-item"><span class="uc-item-dot"></span>설계·견적 코파일럿</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>현장 모바일 일지</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>경영 대시보드</div>
+        </div>
+      </div>
+      <div class="uc-col">
+        <div class="uc-tag">Tier C</div>
+        <div class="uc-stage">전략 (Smart O&amp;M)</div>
+        <div class="uc-when">8~18개월 · 장애·COP·갱신률</div>
+        <div class="uc-items">
+          <div class="uc-item"><span class="uc-item-dot"></span>IoT 예지보전</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>고객 포털</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>디지털 자산여권</div>
+        </div>
+      </div>
+      <div class="uc-col">
+        <div class="uc-tag">Tier D</div>
+        <div class="uc-stage">확장 (Platform)</div>
+        <div class="uc-when">18~36개월 · 반복매출·파트너</div>
+        <div class="uc-items">
+          <div class="uc-item"><span class="uc-item-dot"></span>디지털트윈</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>성과보증 (SLA)</div>
+          <div class="uc-item"><span class="uc-item-dot"></span>파트너 API · SaaS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 PILOTS -->
+    <div style="margin-top:120px">
+      <div class="eyebrow reveal">05 · 90-Day First Pilots</div>
+      <h3 class="h-section reveal" style="font-size:clamp(28px,3vw,40px); transition-delay:.1s">3대 우선 파일럿</h3>
+      <p class="lead reveal" style="transition-delay:.15s">대규모 ERP 교체 없이 4개 흐름을 연결해 다음 투자 근거를 만든다.</p>
+      <div class="pilot-grid reveal-stagger">
+        <div class="pilot-card">
+          <div class="pilot-num">Pilot 01</div>
+          <div class="pilot-name">Bid Radar +<br/>Proposal Copilot</div>
+          <div class="pilot-desc">공공·민간 공고 자동수집, 적합도·마감·증빙 체크, 유사실적·승인문구 기반 제안서 초안.</div>
+          <div class="pilot-kpis">
+            <div class="pilot-kpi"><span class="pilot-kpi-name">공고 탐색시간</span><span class="pilot-kpi-value">−70~90%</span></div>
+            <div class="pilot-kpi"><span class="pilot-kpi-name">제안 초안시간</span><span class="pilot-kpi-value">−40~60%</span></div>
+            <div class="pilot-kpi"><span class="pilot-kpi-name">핵심공고 포착률</span><span class="pilot-kpi-value">95%+</span></div>
+          </div>
+        </div>
+        <div class="pilot-card">
+          <div class="pilot-num">Pilot 02</div>
+          <div class="pilot-name">Site AI +<br/>Digital QA</div>
+          <div class="pilot-desc">모바일 천공·공정·품질·안전 일지, GPS·시간·사진 증빙, 일일보고 자동생성.</div>
+          <div class="pilot-kpis">
+            <div class="pilot-kpi"><span class="pilot-kpi-name">일지 작성시간</span><span class="pilot-kpi-value">−60~80%</span></div>
+            <div class="pilot-kpi"><span class="pilot-kpi-name">사진-공정 연결</span><span class="pilot-kpi-value">100%</span></div>
+            <div class="pilot-kpi"><span class="pilot-kpi-name">누락 · 재작업</span><span class="pilot-kpi-value">−20~40%</span></div>
+          </div>
+        </div>
+        <div class="pilot-card">
+          <div class="pilot-num">Pilot 03</div>
+          <div class="pilot-name">GeoCare<br/>Smart O&amp;M</div>
+          <div class="pilot-desc">온도·유량·압력·전력 수집, 이상탐지, 원격진단, 고객 성과 리포트. 6개월 계절·운전 데이터 확보 후 예측 평가.</div>
+          <div class="pilot-kpis">
+            <div class="pilot-kpi"><span class="pilot-kpi-name">MTTR</span><span class="pilot-kpi-value">−30%</span></div>
+            <div class="pilot-kpi"><span class="pilot-kpi-name">예방탐지</span><span class="pilot-kpi-value">30%+</span></div>
+            <div class="pilot-kpi"><span class="pilot-kpi-name">O&amp;M 갱신률 (목표)</span><span class="pilot-kpi-value">85%+</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap" class="roadmap-section">
+  <div class="container">
+    <div class="eyebrow reveal">06 · 36-Month Roadmap</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">단계별 게이트로<br/>안전하게 확장한다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">Quick Win으로 신뢰를 만들고, 핵심 운영·IoT·플랫폼으로 확장한다. 각 Phase는 다음 단계 예산을 자동 확정하지 않으며, Gate KPI를 통과한 유스케이스만 확대한다.</p>
+
+    <div class="roadmap reveal" style="transition-delay:.2s">
+      <div class="roadmap-phase cur">
+        <div class="roadmap-grid">
+          <div class="roadmap-when">Phase 0<br/>0~4주</div>
+          <div><div class="roadmap-name">Discovery</div></div>
+          <div class="roadmap-detail">프로세스·데이터 지도, KPI 기준선, 보안 점검, 파일럿 선정. 핵심 문서·CRM·공고·사이트 데이터 접근 권한 정리.</div>
+          <div><span class="roadmap-gate">데이터 접근 · 오너 · ROI 가설 승인</span></div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="roadmap-grid">
+          <div class="roadmap-when">Phase 1<br/>1~3개월</div>
+          <div><div class="roadmap-name">Quick Win</div></div>
+          <div class="roadmap-detail">CRM · 입찰 레이더 · 지식허브 · 웹 안정화. 1개 공고 소스 + 20개 키워드 + 인증·실적 라이브러리로 시작.</div>
+          <div><span class="roadmap-gate">주간 사용자 70%+ · 시간절감 입증</span></div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="roadmap-grid">
+          <div class="roadmap-when">Phase 2<br/>4~8개월</div>
+          <div><div class="roadmap-name">Core Operations</div></div>
+          <div class="roadmap-detail">견적 코파일럿 · 현장 모바일 · 문서·대시보드. 입력검증 → 단가버전 → 산식 API → 승인 워크플로.</div>
+          <div><span class="roadmap-gate">견적·보고 리드타임 30%+ 개선</span></div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="roadmap-grid">
+          <div class="roadmap-when">Phase 3<br/>9~18개월</div>
+          <div><div class="roadmap-name">Smart O&amp;M</div></div>
+          <div class="roadmap-detail">3~5개소 IoT 도입 · 이상탐지 · 고객 포털 · O&amp;M 상품 출시. Monitor → Optimize → Guarantee 업셀 경로 검증.</div>
+          <div><span class="roadmap-gate">센서 품질 90%+ · 유료고객 전환</span></div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="roadmap-grid">
+          <div class="roadmap-when">Phase 4<br/>18~36개월</div>
+          <div><div class="roadmap-name">Platform · Scale</div></div>
+          <div class="roadmap-detail">디지털트윈 · 성과보증 · 파트너 API/SaaS. 지역 시공·설계 파트너에 데이터 표준 라이선스 확장.</div>
+          <div><span class="roadmap-gate">반복매출 · 마진 · 확장성 기준</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE -->
+<section id="revenue" class="rev-strip">
+  <div class="container">
+    <div class="eyebrow reveal">07 · New Revenue Models</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">일회성 공사에서<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">장기 성능관계</em>로.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">기술·관제·보고·보증을 계층화해 고객 선택권과 반복매출을 만든다. 무료점검은 유료 Health Check와 O&amp;M 전환의 진입상품으로 재설계한다.</p>
+
+    <div class="rev-flow reveal" style="transition-delay:.2s">
+      <div class="rev-col">
+        <div class="rev-num">01 · Entry</div>
+        <div class="rev-name">Digital<br/>Health Check</div>
+        <div class="rev-desc">현장점검 + 데이터 진단 + 개선안 보고서</div>
+        <div class="rev-price">건별 정액 · 기존 노후설비</div>
+      </div>
+      <div class="rev-col">
+        <div class="rev-num">02 · Monitor</div>
+        <div class="rev-name">Monitor</div>
+        <div class="rev-desc">원격관제 · 월간 성능 리포트 · 알람</div>
+        <div class="rev-price">자산/월 구독 · 공공·학교</div>
+      </div>
+      <div class="rev-col">
+        <div class="rev-num">03 · Optimize</div>
+        <div class="rev-name">Optimize</div>
+        <div class="rev-desc">분석 + 운전 최적화 + 분기 점검</div>
+        <div class="rev-price">용량/월 구독 · 병원·공장</div>
+      </div>
+      <div class="rev-col">
+        <div class="rev-num">04 · Guarantee</div>
+        <div class="rev-name">Guarantee</div>
+        <div class="rev-desc">SLA + 성능 범위 + 예방정비</div>
+        <div class="rev-price">연간 계약 · 성과연동</div>
+      </div>
+      <div class="rev-col">
+        <div class="rev-num">05 · Passport</div>
+        <div class="rev-name">Digital Asset<br/>Passport</div>
+        <div class="rev-desc">준공 데이터 · 문서 · 보증 · 정비 이력</div>
+        <div class="rev-price">프로젝트 패키지 · 신규공사</div>
+      </div>
+      <div class="rev-col">
+        <div class="rev-num">06 · Partner</div>
+        <div class="rev-name">Partner<br/>License</div>
+        <div class="rev-desc">설계/점검/보고 도구 · 데이터 표준</div>
+        <div class="rev-price">좌석/매출쉐어 · 지역 파트너</div>
+      </div>
+    </div>
+
+    <div class="rev-kpi-strip reveal" style="transition-delay:.3s">
+      <div class="rev-kpi-col">
+        <div class="rev-kpi-value">10~20<span style="font-size:24px">%</span></div>
+        <div class="rev-kpi-label">2년 반복매출 비중 목표</div>
+      </div>
+      <div class="rev-kpi-col">
+        <div class="rev-kpi-value">25~35<span style="font-size:24px">%</span></div>
+        <div class="rev-kpi-label">3년 반복매출 공격 목표</div>
+      </div>
+      <div class="rev-kpi-col">
+        <div class="rev-kpi-value">85<span style="font-size:24px">%+</span></div>
+        <div class="rev-kpi-label">O&amp;M 갱신률 목표</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INVESTMENT -->
+<section>
+  <div class="container">
+    <div class="eyebrow reveal">08 · Investment &amp; ROI</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">범위형 예산,<br/>Gate 통과 시에만 확대한다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">내부 인원·업무량 미확인 상태이므로 범위형 예산과 기준 시나리오로 제시. 12주 내 효과가 없는 자동화는 중단 또는 재설계한다.</p>
+
+    <div class="invest-grid reveal-stagger">
+      <div class="invest-card">
+        <div class="invest-stage">Phase A</div>
+        <div class="invest-name">Discovery<br/>+ Quick Win</div>
+        <div class="invest-when">0~3개월</div>
+        <div class="invest-budget">0.3~0.6<span style="font-size:14px"> 억원</span></div>
+        <div class="invest-scope">진단 · 웹 안정화 · CRM · 입찰 · 지식허브</div>
+      </div>
+      <div class="invest-card">
+        <div class="invest-stage">Phase B</div>
+        <div class="invest-name">Core<br/>Operations</div>
+        <div class="invest-when">4~9개월 · 누적</div>
+        <div class="invest-budget">1.0~2.0<span style="font-size:14px"> 억원</span></div>
+        <div class="invest-scope">견적·문서 · 현장 모바일 · 데이터·대시보드</div>
+      </div>
+      <div class="invest-card">
+        <div class="invest-stage">Phase C</div>
+        <div class="invest-name">Smart O&amp;M<br/>Platform</div>
+        <div class="invest-when">9~18개월 · 누적</div>
+        <div class="invest-budget">2.5~6.0<span style="font-size:14px"> 억원+</span></div>
+        <div class="invest-scope">IoT 3~5개소 · 예측 · 포털 · O&amp;M 상품</div>
+      </div>
+      <div class="invest-card">
+        <div class="invest-stage">Phase D</div>
+        <div class="invest-name">Scale</div>
+        <div class="invest-when">18~36개월</div>
+        <div class="invest-budget" style="font-size:18px">사업계획별 산정</div>
+        <div class="invest-scope">디지털트윈 · 다수현장 · 파트너 · SaaS</div>
+      </div>
+    </div>
+
+    <div class="invest-cta reveal">
+      <div>
+        <h3>연간 직접가치</h3>
+        <p>자동화 절감 시간 × 완전원가 기준 보수적 시나리오. 수주 증가와 구독 매출은 별도 Upside로 제외해 산정.</p>
+      </div>
+      <div class="invest-cta-stats">
+        <div>
+          <div class="invest-cta-stat-num">0.98~2.25<span style="font-size:18px"> 억</span></div>
+          <div class="invest-cta-stat-label">12개월 직접가치</div>
+        </div>
+        <div>
+          <div class="invest-cta-stat-num">10~24<span style="font-size:18px"> 개월</span></div>
+          <div class="invest-cta-stat-label">Core 회수기간 가설</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section class="stack-section">
+  <div class="container">
+    <div class="eyebrow reveal">09 · Tooling Stack</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">기존 시스템 위에<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-copper)">얇게</em> 연결한다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">초기에는 Low-code로 빠르게 검증하고, 핵심 데이터·로직은 API·DB로 독립시킨다. 도구를 하나로 통일하지 않고, 데이터 민감도·처리량에 따라 혼합한다.</p>
+
+    <div class="stack-grid reveal-stagger">
+      <div class="stack-card">
+        <div class="stack-icon">⌘</div>
+        <div class="stack-cat">Orchestration · AI</div>
+        <div class="stack-name">자동화 · 코파일럿 · 지식허브</div>
+        <div class="stack-desc">외부 SaaS·웹훅·문서 알림은 Make.com, 사내망·민감자료·대량처리는 n8n. AI는 검색·분류·초안·규칙엔진부터 시작해 예측·디지털트윈으로 확장.</div>
+        <div class="stack-tools">
+          <span class="stack-tool">Make.com</span>
+          <span class="stack-tool">n8n (self-host)</span>
+          <span class="stack-tool">RAG · Vector Search</span>
+          <span class="stack-tool">Rules Engine</span>
+          <span class="stack-tool">Human-in-the-loop</span>
+        </div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-icon">▤</div>
+        <div class="stack-cat">Data · IoT</div>
+        <div class="stack-name">자산여권 · 시계열 · 현장통신</div>
+        <div class="stack-desc">PostgreSQL·문서저장소·벡터검색으로 시작해 시계열 DB·Lakehouse·자산 그래프로 확장. 현장은 OPC UA·MQTT·BACnet·Modbus 게이트웨이로 연결.</div>
+        <div class="stack-tools">
+          <span class="stack-tool">PostgreSQL</span>
+          <span class="stack-tool">Time-series DB</span>
+          <span class="stack-tool">OPC UA</span>
+          <span class="stack-tool">MQTT</span>
+          <span class="stack-tool">BACnet · Modbus</span>
+        </div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-icon">⚿</div>
+        <div class="stack-cat">Security · Governance</div>
+        <div class="stack-name">AI 거버넌스 · 보안 · 감사</div>
+        <div class="stack-desc">NIST AI RMF의 Govern–Map–Measure–Manage 구조를 실무 승인체계에 맞게 적용. 외부 AI에 특허·원가·계약·개인정보 업로드 금지, 모든 자동화에 사람의 최종 승인.</div>
+        <div class="stack-tools">
+          <span class="stack-tool">NIST AI RMF</span>
+          <span class="stack-tool">SSO · RBAC</span>
+          <span class="stack-tool">암호화 · 감사로그</span>
+          <span class="stack-tool">DLP · 보존정책</span>
+          <span class="stack-tool">평가세트 · 모델 버전관리</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DECISION -->
+<section id="decision" class="dec-section">
+  <div class="container">
+    <div class="eyebrow reveal">10 · Decision Request</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">지금 필요한 것은 플랫폼<br/>전체 승인이 아니라,<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">90일 검증</em>에 대한 오너십이다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">Sponsor 1명 · Lead 1명 · 4 PO · 파일럿 사용자 5~8명 · 예산 0.3~0.6억. 12주 후 Core Operations 투자 결정을 게이트로 둔다.</p>
+
+    <div class="dec-grid reveal" style="transition-delay:.25s">
+      <div class="dec-card">
+        <div class="dec-card-num">1</div>
+        <div>
+          <h4>전략 — North Star 채택</h4>
+          <p>GeoAI OS를 3개년 전환의 North Star로 채택한다. 모든 자동화는 데이터 흐름 5개에 정렬한다.</p>
+        </div>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-num">2</div>
+        <div>
+          <h4>파일럿 — 4개 흐름 가동</h4>
+          <p>입찰/CRM · 지식허브 · 웹/상담 · 제안 초안. 자동 제출·자동 가격결정·전사 ERP 교체는 범위 제외.</p>
+        </div>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-num">3</div>
+        <div>
+          <h4>조직 — 오너십 지정</h4>
+          <p>Executive Sponsor · Transformation Lead · 4개 PO (영업/설계/현장/O&amp;M) · 파일럿 사용자 5~8명 지정.</p>
+        </div>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-num">4</div>
+        <div>
+          <h4>데이터 — 접근 승인</h4>
+          <p>핵심 문서·CRM·공고·사이트 데이터 접근 권한 정리. 첫 10영업일 내 시스템·데이터 인벤토리 완성.</p>
+        </div>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-num">5</div>
+        <div>
+          <h4>보안 — 4대 원칙</h4>
+          <p>데이터 등급 · 외부 AI 업로드 금지 · Human Approval · 감사로그. NIST AI RMF Playbook 기준 운영.</p>
+        </div>
+      </div>
+      <div class="dec-card">
+        <div class="dec-card-num">6</div>
+        <div>
+          <h4>Gate — 12주 검증</h4>
+          <p>12주 성과평가 후 Core Operations 투자 결정. 사용률 70%+ · 시간절감 입증 · 치명오류 0건이 Go 기준.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dec-close reveal">
+      <p class="dec-close-quote">
+        GGK의 시장선도 가능성은 새 AI 모델을 얼마나 빨리 사느냐보다,<br/>
+        <em>특허·설계·현장·운영 데이터를 얼마나 일관되게 연결하고<br/>
+        고객에게 성능으로 증명하느냐</em>에 달려 있습니다.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-brand">GGK · GeoAI Transformation Proposal</div>
+      <div class="foot-meta">분석 기준일 2026-06-24 · 공개자료 기반 전략초안 · 내부 데이터로 재검증 예정 · CONFIDENTIAL</div>
+    </div>
+    <div class="foot-cred">Prepared with care.</div>
+  </div>
+</footer>
+
+</div><!-- /.app -->
+
+<script>
+(function(){
+  const GATE_KEY='ggk-dashboard-2026-06-24';
+  const CODE='1224';
+
+  const gate=document.getElementById('gate');
+  const app=document.getElementById('app');
+  const input=document.getElementById('gateInput');
+  const btn=document.getElementById('gateBtn');
+  const err=document.getElementById('gateError');
+
+  function enter(){
+    sessionStorage.setItem(GATE_KEY,'1');
+    gate.classList.add('hidden');
+    setTimeout(()=>{
+      gate.style.display='none';
+      app.classList.add('ready');
+      startObserver();
+    },600);
+  }
+  function fail(){
+    err.textContent='코드가 일치하지 않습니다.';
+    input.value='';
+    input.focus();
+    setTimeout(()=>err.textContent='',2500);
+  }
+  function check(){
+    if(input.value.trim()===CODE) enter(); else fail();
+  }
+  btn.addEventListener('click',check);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter') check();});
+
+  if(sessionStorage.getItem(GATE_KEY)==='1'){
+    gate.classList.add('hidden');
+    setTimeout(()=>{gate.style.display='none';app.classList.add('ready');startObserver();},10);
+  }else{
+    setTimeout(()=>input.focus(),400);
+  }
+
+  function startObserver(){
+    const io=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('on');
+          if(e.target.classList.contains('audit-grid')){
+            e.target.querySelectorAll('.audit-bar-fill').forEach(f=>{
+              const w=f.getAttribute('data-w');
+              setTimeout(()=>{f.style.width=w+'%';},120);
+            });
+          }
+          io.unobserve(e.target);
+        }
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -10% 0px'});
+    document.querySelectorAll('.reveal, .reveal-stagger, .audit-grid').forEach(el=>io.observe(el));
+  }
+
+  const nav=document.getElementById('nav');
+  let last=0;
+  window.addEventListener('scroll',()=>{
+    const y=window.scrollY;
+    if(y>40) nav.classList.add('scrolled'); else nav.classList.remove('scrolled');
+    last=y;
+  },{passive:true});
+})();
+</script>
+
+</body>
+</html>
