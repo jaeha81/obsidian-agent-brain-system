@@ -1,608 +1,71 @@
 {
   "slug": "chipotle-shinsegae",
-  "generated_at": "2026-06-24 14:26:29",
-  "site_briefing": {
-    "available": true,
-    "captured_at": "2026-06-24",
-    "confidence": "🟢 HIGH",
-    "missing_items_identified": 10,
-    "note": "현설 회의록 분석 완료 — 상세 데이터는 비공개 (로컬 PII 보호)"
+  "generated_at": "A방식 (BOQ 110항목 × 매핑 단가) + B근거 (BOQ 실측 면적)",
+  "actual_area_m2": 266.49,
+  "actual_area_pyeong": 80.63,
+  "raw_total_krw": 389196937,
+  "per_pyeong_avg": 4826807,
+  "confidence": "🟡 MED",
+  "note": "협력사 확정 단가 아님. 신세계 야간공사 할증 15% (max). 현설 누락 10개 항목 미반영.",
+  "total_min": {
+    "직접공사비": 330817396,
+    "간접비": 49622609,
+    "안전관리비": 7076184,
+    "산재보험": 14456720,
+    "소계": 401972910,
+    "VAT": 40197291,
+    "합계_VAT포함": 442170201
   },
-  "summary": {
-    "drawing_page_count": 68,
-    "drawing_category_count": {
-      "DETAIL": 17,
-      "ELECTRICAL": 5,
-      "KITCHEN": 12,
-      "PLAN": 8,
-      "FURNITURE": 21,
-      "SIGNAGE": 11,
-      "MECHANICAL": 1
-    },
-    "material_pages": 4,
-    "unique_drawing_codes": 50,
-    "drawing_confidence": "🟡 MED",
-    "amount_total": 36717012,
-    "priced_items": 8,
-    "unpriced_items": 212,
-    "coverage_rate": 0.036,
-    "boq_confidence": "🔴 LOW",
-    "gongje_totals": {
-      "타일/메지": 22035646,
-      "타일": 10449614,
-      "": 3507840,
-      "경량": 723912
-    },
-    "estimated_area_m2": 400,
-    "cost_estimate_avg": 500703734,
-    "cost_estimate_min": 425598174,
-    "cost_estimate_max": 575809295,
-    "cost_confidence": "🟡 MED",
-    "actual_area_m2": 266.49,
-    "per_pyeong_avg": 4645904,
-    "estimation_method": "A방식 (BOQ 110항목 × 매핑단가) + B근거 (실측면적)"
+  "total_avg": {
+    "직접공사비": 389196937,
+    "간접비": 58379540,
+    "안전관리비": 8324922,
+    "산재보험": 17007906,
+    "소계": 472909306,
+    "VAT": 47290930,
+    "합계_VAT포함": 520200236
   },
-  "drawing_category_count": {
-    "DETAIL": 17,
-    "ELECTRICAL": 5,
-    "KITCHEN": 12,
-    "PLAN": 8,
-    "FURNITURE": 21,
-    "SIGNAGE": 11,
-    "MECHANICAL": 1
+  "total_max": {
+    "직접공사비": 447576477,
+    "간접비": 67136471,
+    "안전관리비": 9573660,
+    "산재보험": 19559092,
+    "소계": 543845702,
+    "VAT": 54384570,
+    "합계_VAT포함": 598230272
   },
-  "material_pages": [
-    1,
-    3,
-    20,
-    21
+  "gongje_breakdown": {
+    "경량": 111846503,
+    "타일": 90114060,
+    "타일/메지": 51827462,
+    "직영": 47034400,
+    "습식": 15017740,
+    "(미분류)": 15000000,
+    "철거": 13752269,
+    "타일/부자재": 10638288,
+    "금속": 7100000,
+    "구매": 6260000,
+    "습식-1": 4976040,
+    "도장": 4796820,
+    "폐기물": 3894600,
+    "목공": 3390345,
+    "청소": 2998410,
+    "소방": 550000
+  },
+  "missing_from_briefing": [
+    "재료분리대 코너 전체 회수",
+    "방수 4회 (액방2 + 비노출2)",
+    "오이코스 천정 터치업",
+    "PDR 룸 LED 도시 1.7~1.8개",
+    "후문 자동문 900→1000mm 확장",
+    "FSL 베이스 + 하부 습식 매트",
+    "아크 구조물 자중 + 코브 조명",
+    "메뉴보드 코너 앵글 레이저커팅",
+    "멕시칸 그릴 부속 부품",
+    "우드 루버 설치 인건비"
   ],
-  "drawing_role_count": {
-    "PLAN_FLOOR": 4,
-    "SIGNAGE": 30,
-    "PLAN_WALL_FINISH": 2,
-    "ELEVATION": 11,
-    "PLAN_FURNITURE": 1,
-    "PLAN_ELEC": 1,
-    "DETAIL": 9,
-    "SECTION": 9
-  },
-  "drawing_code_top": [
-    [
-      "D-404",
-      18
-    ],
-    [
-      "D-402",
-      16
-    ],
-    [
-      "S-603",
-      16
-    ],
-    [
-      "S-605",
-      14
-    ],
-    [
-      "D-507",
-      9
-    ],
-    [
-      "D-401",
-      8
-    ],
-    [
-      "D-508",
-      6
-    ],
-    [
-      "S-602",
-      5
-    ],
-    [
-      "D-512",
-      5
-    ],
-    [
-      "S-601",
-      4
-    ],
-    [
-      "F-508",
-      4
-    ],
-    [
-      "F-510",
-      4
-    ],
-    [
-      "S-604",
-      4
-    ],
-    [
-      "D-403",
-      3
-    ],
-    [
-      "F-502",
-      3
-    ],
-    [
-      "F-504",
-      3
-    ],
-    [
-      "F-506",
-      3
-    ],
-    [
-      "F-512",
-      3
-    ],
-    [
-      "F-520",
-      3
-    ],
-    [
-      "D-505",
-      3
-    ],
-    [
-      "D-518",
-      3
-    ],
-    [
-      "F-500",
-      3
-    ],
-    [
-      "P-103",
-      2
-    ],
-    [
-      "P-102",
-      2
-    ],
-    [
-      "P-104",
-      2
-    ]
-  ],
-  "boq_sheets": [
-    {
-      "sheet": "정산갑지-사인",
-      "item_count": 0,
-      "work_groups": [],
-      "sample_items": []
-    },
-    {
-      "sheet": "전체표지",
-      "item_count": 0,
-      "work_groups": [],
-      "sample_items": []
-    },
-    {
-      "sheet": "전체내역서",
-      "item_count": 110,
-      "work_groups": [
-        "경량",
-        "구매",
-        "금속",
-        "도장",
-        "목공",
-        "소방",
-        "습식",
-        "습식-1",
-        "직영",
-        "철거",
-        "청소",
-        "타일",
-        "타일/메지",
-        "타일/부자재",
-        "폐기물"
-      ],
-      "sample_items": [
-        {
-          "work_group": "",
-          "no": "2",
-          "name": "철거 공사",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "LOT",
-          "qty": 1.0,
-          "repeat": null,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "",
-          "no": "3",
-          "name": "바닥공사",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "LOT",
-          "qty": 1.0,
-          "repeat": null,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "목공",
-          "no": "",
-          "name": "먹메김",
-          "manufacturer": "",
-          "model": "",
-          "spec": "BOH+홀",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "현장정리정돈",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "일",
-          "qty": 60.0,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "내부 수평 비계",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "현장보양",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "동선바닥보양",
-          "manufacturer": "",
-          "model": "",
-          "spec": "반복보양작업/텐텐지+폴리베니아",
-          "unit": "M",
-          "qty": 10.0,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "동선바닥 중량물양중 보양",
-          "manufacturer": "",
-          "model": "",
-          "spec": "텐텐지+합판9T이상",
-          "unit": "M",
-          "qty": 70.0,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "자재대운반",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "자재소운반",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        }
-      ]
-    },
-    {
-      "sheet": "직사입자재",
-      "item_count": 110,
-      "work_groups": [
-        "경량",
-        "구매",
-        "금속",
-        "도장",
-        "목공",
-        "소방",
-        "습식",
-        "습식-1",
-        "직영",
-        "철거",
-        "청소",
-        "타일",
-        "타일/메지",
-        "타일/부자재",
-        "폐기물"
-      ],
-      "sample_items": [
-        {
-          "work_group": "",
-          "no": "2",
-          "name": "철거 공사",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "LOT",
-          "qty": 1.0,
-          "repeat": null,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "",
-          "no": "3",
-          "name": "바닥공사",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "LOT",
-          "qty": 1.0,
-          "repeat": null,
-          "unit_price": null,
-          "amount": 3507840.0
-        },
-        {
-          "work_group": "목공",
-          "no": "",
-          "name": "먹메김",
-          "manufacturer": "",
-          "model": "",
-          "spec": "BOH+홀",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "현장정리정돈",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "일",
-          "qty": 60.0,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "내부 수평 비계",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "현장보양",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "동선바닥보양",
-          "manufacturer": "",
-          "model": "",
-          "spec": "반복보양작업/텐텐지+폴리베니아",
-          "unit": "M",
-          "qty": 10.0,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "동선바닥 중량물양중 보양",
-          "manufacturer": "",
-          "model": "",
-          "spec": "텐텐지+합판9T이상",
-          "unit": "M",
-          "qty": 70.0,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "자재대운반",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        },
-        {
-          "work_group": "직영",
-          "no": "",
-          "name": "자재소운반",
-          "manufacturer": "",
-          "model": "",
-          "spec": "",
-          "unit": "M2",
-          "qty": 266.49,
-          "repeat": 1.0,
-          "unit_price": null,
-          "amount": 0.0
-        }
-      ]
-    },
-    {
-      "sheet": "중갑지",
-      "item_count": 0,
-      "work_groups": [],
-      "sample_items": []
-    }
-  ],
-  "cost_estimate": {
-    "method": "A방식 (BOQ 110항목 × 매핑 단가) + B근거 (BOQ 실측 면적)",
-    "confidence": "🟡 MED",
-    "note": "협력사 확정 단가 아님. 신세계 야간공사 할증 15% (max). 현설 누락 10개 항목 미반영.",
-    "actual_area_m2": 266.49,
-    "actual_area_pyeong": 80.63,
-    "raw_total_krw": 374610287,
-    "per_m2_avg": 1405719,
-    "per_pyeong_avg": 4645904,
-    "gongje_breakdown": {
-      "경량": 92746503,
-      "타일": 90114060,
-      "타일/메지": 57680782,
-      "직영": 46889400,
-      "(미분류)": 15000000,
-      "습식": 13987740,
-      "철거": 13587299,
-      "타일/부자재": 10638288,
-      "금속": 7100000,
-      "구매": 6260000,
-      "습식-1": 4976040,
-      "도장": 4796820,
-      "폐기물": 3894600,
-      "목공": 3390345,
-      "청소": 2998410,
-      "소방": 550000
-    },
-    "total_min": {
-      "직접공사비": 318418743,
-      "간접비": 47762811,
-      "안전관리비": 6810976,
-      "산재보험": 13914899,
-      "소계": 386907431,
-      "VAT": 38690743,
-      "합계_VAT포함": 425598174
-    },
-    "total_avg": {
-      "직접공사비": 374610287,
-      "간접비": 56191543,
-      "안전관리비": 8012914,
-      "산재보험": 16370469,
-      "소계": 455185213,
-      "VAT": 45518521,
-      "합계_VAT포함": 500703734
-    },
-    "total_max": {
-      "직접공사비": 430801830,
-      "간접비": 64620274,
-      "안전관리비": 9214851,
-      "산재보험": 18826039,
-      "소계": 523462995,
-      "VAT": 52346299,
-      "합계_VAT포함": 575809295
-    },
-    "missing_from_briefing": [
-      "재료분리대 코너 전체 회수",
-      "방수 4회 (액방2 + 비노출2)",
-      "오이코스 천정 터치업",
-      "PDR 룸 LED 도시 1.7~1.8개",
-      "후문 자동문 900→1000mm 확장",
-      "FSL 베이스 + 하부 습식 매트",
-      "아크 구조물 자중 + 코브 조명",
-      "메뉴보드 코너 앵글 레이저커팅",
-      "멕시칸 그릴 부속 부품",
-      "우드 루버 설치 인건비"
-    ]
-  },
-  "boq_totals": {
-    "total_amount": 36717012,
-    "priced_items": 8,
-    "unpriced_items": 212,
-    "coverage_rate": 0.036,
-    "unit_distribution": {
-      "M2": 116,
-      "M": 42,
-      "식": 14,
-      "EA": 10,
-      "개소": 8,
-      "일": 6,
-      "SET": 6,
-      "LOT": 4,
-      "대": 4,
-      "PCS": 4,
-      "인": 2
-    },
-    "work_group_distribution": {
-      "경량": 68,
-      "타일/메지": 54,
-      "직영": 20,
-      "습식": 14,
-      "타일": 12,
-      "철거": 8,
-      "폐기물": 6,
-      "타일/부자재": 6,
-      "습식-1": 6,
-      "금속": 6,
-      "목공": 4,
-      "구매": 4,
-      "청소": 4,
-      "도장": 2,
-      "소방": 2
-    },
-    "gongje_totals": {
-      "타일/메지": 22035646,
-      "타일": 10449614,
-      "": 3507840,
-      "경량": 723912
-    },
-    "confidence": "🔴 LOW"
+  "confidence_counter": {
+    "🟡 MED": 108,
+    "🔴 LOW": 0
   }
 }
