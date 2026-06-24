@@ -346,10 +346,254 @@
     justify-content: space-between;
   }
   .foot a:hover { color: var(--accent); }
+
+  /* Auth gate */
+  .auth-gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    width: 360px;
+    text-align: center;
+  }
+  .auth-brand {
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .auth-title {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .auth-sub {
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-bottom: 28px;
+  }
+  .auth-input {
+    width: 100%;
+    padding: 13px 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.3em;
+    text-align: center;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .auth-input:focus { border-color: var(--accent); }
+  .auth-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .auth-btn:hover { opacity: 0.88; }
+  .auth-err {
+    color: var(--bad);
+    font-size: 12px;
+    margin-top: 14px;
+    min-height: 16px;
+  }
+
+  /* Estimate cards */
+  .estimate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .est-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    position: relative;
+  }
+  .est-card.avg { border-color: rgba(212, 165, 116, 0.4); }
+  .est-card .est-label {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  .est-card .est-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .est-card .est-value .unit { font-size: 13px; color: var(--ink-mute); margin-left: 3px; font-weight: 500; }
+  .est-card .est-meta { font-size: 11px; color: var(--ink-mute); }
+  .est-card.avg .est-value { color: var(--accent); }
+
+  /* Cost breakdown table */
+  .breakdown-row {
+    display: grid;
+    grid-template-columns: 1fr repeat(3, 1fr);
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(38, 44, 56, 0.5);
+    font-size: 13px;
+  }
+  .breakdown-row.head {
+    color: var(--ink-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .breakdown-row .num {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-mute);
+    font-size: 12.5px;
+  }
+  .breakdown-row.total { font-weight: 700; color: var(--accent); border-bottom: none; padding-top: 14px; }
+  .breakdown-row.total .num { color: var(--accent); font-weight: 700; }
+
+  /* Download button */
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(91, 141, 184, 0.1);
+    color: var(--accent-2);
+    border: 1px solid rgba(91, 141, 184, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .download-btn:hover {
+    background: rgba(91, 141, 184, 0.18);
+    border-color: var(--accent-2);
+  }
+
+  /* BOQ table wrapper */
+  .boq-wrap {
+    max-height: 560px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .boq-wrap::-webkit-scrollbar { width: 8px; }
+  .boq-wrap::-webkit-scrollbar-track { background: var(--panel); }
+  .boq-wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .boq-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .boq-tbl thead { position: sticky; top: 0; background: var(--panel-2); z-index: 1; }
+  .boq-tbl th {
+    text-align: left;
+    color: var(--ink-dim);
+    font-weight: 500;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .boq-tbl td {
+    padding: 7px 8px;
+    border-bottom: 1px solid rgba(38, 44, 56, 0.4);
+    color: var(--ink);
+    vertical-align: top;
+  }
+  .boq-tbl td.num {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+    color: var(--ink-mute);
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  .boq-tbl td.price { color: var(--ok); font-weight: 500; }
+  .boq-tbl td.amount { color: var(--ink); font-weight: 600; }
+  .boq-tbl tbody tr:hover { background: rgba(212, 165, 116, 0.04); }
+  .gongje-chip {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(212, 165, 116, 0.1);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .boq-search {
+    width: 240px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    outline: none;
+  }
+  .boq-search:focus { border-color: var(--accent); }
+
+  /* Missing items chips */
+  .missing-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    padding: 5px 11px;
+    border-radius: 6px;
+    background: rgba(201, 112, 100, 0.08);
+    color: var(--bad);
+    border: 1px solid rgba(201, 112, 100, 0.2);
+    margin: 3px 5px 3px 0;
+  }
+  .missing-chip::before {
+    content: '!';
+    font-weight: 700;
+    font-size: 10px;
+  }
 </style>
 </head>
 <body>
-<div class="shell">
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-brand">JH · 견적 시스템</div>
+    <div class="auth-title">접근 인증</div>
+    <div class="auth-sub">비밀번호를 입력해 주세요</div>
+    <input id="auth-input" class="auth-input" type="password" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="••••" />
+    <button class="auth-btn" onclick="tryAuth()">접속</button>
+    <div id="auth-err" class="auth-err"></div>
+  </div>
+</div>
+
+<div class="shell" id="shell" style="display:none">
   <aside class="sidebar">
     <div class="brand">JH · <strong>견적 시스템</strong></div>
     <div class="brand-title">Estimation Analysis</div>
@@ -360,8 +604,10 @@
     </div>
 
     <div class="nav-label">Pipeline</div>
+    <div class="nav-item" onclick="document.getElementById('cost-section').scrollIntoView({behavior:'smooth'})">견적 금액</div>
     <div class="nav-item" onclick="document.getElementById('pipeline-section').scrollIntoView({behavior:'smooth'})">분석 단계</div>
     <div class="nav-item" onclick="document.getElementById('drawings-section').scrollIntoView({behavior:'smooth'})">도면 인식</div>
+    <div class="nav-item" onclick="document.getElementById('boq-priced-section').scrollIntoView({behavior:'smooth'})">단가 대입 BOQ</div>
     <div class="nav-item" onclick="document.getElementById('boq-section').scrollIntoView({behavior:'smooth'})">BOQ 분석</div>
   </aside>
 
@@ -450,25 +696,84 @@ function renderProject(bundle) {
 
     <div class="metrics">
       <div class="metric">
-        <div class="label">도면 페이지</div>
-        <div class="value">${fmt(s.drawing_page_count)}<span class="unit">pages</span></div>
-        <div class="delta">자재 페이지 ${s.material_pages || 0}p · 고유 도면번호 ${s.unique_drawing_codes || 0}개</div>
+        <div class="label">견적 합계 (VAT 포함, 평균)</div>
+        <div class="value">${fmt(Math.round((s.cost_estimate_avg||0)/10000))}<span class="unit">만원</span></div>
+        <div class="delta">최소 ${fmt(Math.round((s.cost_estimate_min||0)/10000))}만 · 최대 ${fmt(Math.round((s.cost_estimate_max||0)/10000))}만</div>
       </div>
       <div class="metric">
-        <div class="label">BOQ 항목</div>
-        <div class="value">${fmt(s.total_items)}<span class="unit">items</span></div>
-        <div class="delta">${s.sheet_count || 0}개 시트 · 단가 입력 ${s.priced_items || 0}건</div>
+        <div class="label">실측 면적 / 평당 단가</div>
+        <div class="value">${(s.actual_area_pyeong||0).toFixed(1)}<span class="unit">평</span></div>
+        <div class="delta">${(s.actual_area_m2||0).toFixed(1)} m² · 평당 ${fmt(Math.round((s.per_pyeong_avg||0)/10000))}만원</div>
       </div>
       <div class="metric">
-        <div class="label">분류된 공종</div>
-        <div class="value">${Object.keys(s.work_group_distribution || {}).length}<span class="unit">groups</span></div>
-        <div class="delta">단위 ${Object.keys(s.unit_distribution || {}).length}종</div>
+        <div class="label">BOQ 항목 / 단가 매핑</div>
+        <div class="value">${fmt(s.priced_items)}<span class="unit">/ ${fmt(s.total_items)}</span></div>
+        <div class="delta">${s.sheet_count || 0}개 시트 · 도면 ${fmt(s.drawing_page_count)}p</div>
       </div>
       <div class="metric">
-        <div class="label">금액 합계 (단가 입력분)</div>
-        <div class="value">${fmt(amount)}<span class="unit">원</span></div>
-        <div class="delta warn">단가 누락 ${(s.total_items||0)-(s.priced_items||0)}건 · 검증 필요</div>
+        <div class="label">신뢰도</div>
+        <div class="value">${s.cost_confidence || '—'}</div>
+        <div class="delta warn">현설 누락 ${(bundle.cost_estimate?.missing_from_briefing||[]).length}건 미반영</div>
       </div>
+    </div>
+
+    <div class="section-title" id="cost-section">견적 금액 분석</div>
+    <div class="grid-3">
+      <div class="panel">
+        <h3>견적 합계 <span class="hint">VAT 포함 · 야간할증 변동</span></h3>
+        <table class="tbl">
+          <thead><tr><th>구분</th><th style="text-align:right">금액 (원)</th></tr></thead>
+          <tbody id="tbl-cost-range"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>금액 구성 <span class="hint">평균 기준</span></h3>
+        <table class="tbl">
+          <thead><tr><th>항목</th><th style="text-align:right">금액 (원)</th><th style="text-align:right">%</th></tr></thead>
+          <tbody id="tbl-cost-breakdown"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>단가 신뢰도 <span class="hint">매핑 결과</span></h3>
+        <div class="chart-wrap"><canvas id="ch-confidence"></canvas></div>
+        <div style="margin-top:14px;font-size:12px;color:var(--ink-mute);line-height:1.6" id="cost-note"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>공종별 직접공사비 <span class="hint">매핑 단가 × 수량</span></h3>
+        <div class="chart-wrap tall"><canvas id="ch-gongje-cost"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>현설 누락 항목 <span class="hint">단가 입수 시 추가 반영</span></h3>
+        <ul id="missing-list" style="list-style:none;padding:0;margin:0;font-size:12.5px;line-height:1.9;color:var(--ink)"></ul>
+      </div>
+    </div>
+
+    <div class="section-title" id="boq-priced-section">단가 대입 BOQ <span class="hint" style="font-weight:400;font-size:12px;color:var(--ink-dim);margin-left:8px">${(bundle.boq_priced_items||[]).length}개 항목 · 매핑 단가 × 수량</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px;flex-wrap:wrap">
+      <a class="download-btn" href="data/estimation/${bundle.excel_download || ''}" download>
+        <span style="font-size:14px">⤓</span> 단가대입 엑셀 다운로드 (.xlsx)
+      </a>
+      <input id="boq-search" class="boq-search" placeholder="공종·품명·규격 검색..." oninput="filterBoq(this.value)" />
+    </div>
+    <div class="boq-wrap">
+      <table class="boq-tbl">
+        <thead>
+          <tr>
+            <th style="width:80px">공종</th>
+            <th>품명</th>
+            <th style="width:140px">규격</th>
+            <th style="width:50px;text-align:right">단위</th>
+            <th style="width:70px;text-align:right">수량</th>
+            <th style="width:90px;text-align:right">단가</th>
+            <th style="width:110px;text-align:right">금액</th>
+            <th style="width:55px;text-align:center">신뢰</th>
+          </tr>
+        </thead>
+        <tbody id="boq-priced-tbody"></tbody>
+      </table>
     </div>
 
     <div class="section-title" id="pipeline-section">분석 파이프라인</div>
@@ -519,8 +824,168 @@ function renderProject(bundle) {
     </div>
   `;
 
+  drawCostSection(bundle);
   drawCharts(bundle);
   drawTables(bundle);
+  drawBoqPricedTable(bundle);
+}
+
+let _boqAllRows = [];
+function drawBoqPricedTable(bundle) {
+  const items = bundle.boq_priced_items || [];
+  const tbody = document.getElementById('boq-priced-tbody');
+  if (!tbody) return;
+  _boqAllRows = items.map(it => {
+    const conf = it['신뢰도'] || '';
+    const relLevel = conf.includes('HIGH') ? 'high' : conf.includes('LOW') ? 'low' : 'med';
+    return {
+      g: it['공종'] || '—',
+      name: it['품명'] || '—',
+      spec: it['규격'] || '',
+      unit: it['단위'] || '',
+      qty: it['수량'],
+      price: it['단가'],
+      amount: it['금액'],
+      relLevel,
+      relLabel: conf,
+      search: ((it['공종']||'') + ' ' + (it['품명']||'') + ' ' + (it['규격']||'')).toLowerCase(),
+    };
+  });
+  renderBoqRows(_boqAllRows);
+}
+
+function renderBoqRows(rows) {
+  const tbody = document.getElementById('boq-priced-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--ink-dim)">매칭 결과 없음</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><span class="gongje-chip">${r.g}</span></td>
+      <td>${r.name}</td>
+      <td class="mono" style="color:var(--ink-mute);font-size:11px">${r.spec || '—'}</td>
+      <td class="num">${r.unit || '—'}</td>
+      <td class="num">${r.qty != null ? fmt(r.qty) : '—'}</td>
+      <td class="num price">${r.price != null ? fmt(r.price) : '—'}</td>
+      <td class="num amount">${r.amount != null ? fmt(r.amount) : '—'}</td>
+      <td style="text-align:center"><span class="rel ${r.relLevel}" style="font-size:10px;padding:2px 6px">${r.relLevel.toUpperCase()}</span></td>
+    </tr>
+  `).join('');
+}
+
+function filterBoq(q) {
+  const k = (q || '').trim().toLowerCase();
+  if (!k) return renderBoqRows(_boqAllRows);
+  renderBoqRows(_boqAllRows.filter(r => r.search.includes(k)));
+}
+
+function drawCostSection(bundle) {
+  const ce = bundle.cost_estimate || {};
+  const avg = ce.total_avg || {};
+  const min = ce.total_min || {};
+  const max = ce.total_max || {};
+
+  // Cost range table
+  const rangeRows = [
+    ['최소 (raw × 0.85)', min['합계_VAT포함']],
+    ['평균 (단가 매핑)', avg['합계_VAT포함']],
+    ['최대 (야간할증 15%)', max['합계_VAT포함']],
+  ];
+  document.getElementById('tbl-cost-range').innerHTML = rangeRows.map(([k, v], i) => `
+    <tr>
+      <td>${k}</td>
+      <td class="num" style="color:${i===1?'var(--accent)':'var(--ink)'};font-weight:${i===1?'700':'500'}">${fmt(v)}</td>
+    </tr>
+  `).join('');
+
+  // Cost breakdown table
+  const breakdownKeys = ['직접공사비', '간접비', '안전관리비', '산재보험', '소계', 'VAT', '합계_VAT포함'];
+  const totalVat = avg['합계_VAT포함'] || 1;
+  document.getElementById('tbl-cost-breakdown').innerHTML = breakdownKeys.map(k => {
+    const v = avg[k] || 0;
+    const pct = ((v / totalVat) * 100).toFixed(1);
+    const isTotal = k === '합계_VAT포함';
+    return `
+      <tr style="${isTotal?'border-top:1px solid var(--line)':''}">
+        <td style="font-weight:${isTotal?'700':'500'}">${k.replace('_', ' ')}</td>
+        <td class="num" style="color:${isTotal?'var(--accent)':'var(--ink-mute)'};font-weight:${isTotal?'700':'500'}">${fmt(v)}</td>
+        <td class="num">${pct}%</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Cost note
+  const noteEl = document.getElementById('cost-note');
+  if (noteEl) {
+    noteEl.innerHTML = `
+      <div><strong style="color:var(--ink)">방식</strong>: ${ce.method || '—'}</div>
+      <div style="margin-top:6px"><strong style="color:var(--ink)">비고</strong>: ${ce.note || '—'}</div>
+      <div style="margin-top:6px">평균 단가 m²당 <span class="mono" style="color:var(--accent)">${fmt(ce.per_m2_avg)}원</span> · 평당 <span class="mono" style="color:var(--accent)">${fmt(ce.per_pyeong_avg)}원</span></div>
+    `;
+  }
+
+  // Confidence doughnut
+  const cc = ce.confidence_counter || {};
+  const ccLabels = Object.keys(cc);
+  if (ccLabels.length) {
+    new Chart(document.getElementById('ch-confidence'), {
+      type: 'doughnut',
+      data: {
+        labels: ccLabels,
+        datasets: [{
+          data: ccLabels.map(k => cc[k]),
+          backgroundColor: ccLabels.map(k => k.includes('LOW') ? '#c97064' : k.includes('MED') ? '#d4a574' : k.includes('HIGH') ? '#6ba368' : '#7a8597'),
+          borderColor: '#161a22',
+          borderWidth: 2,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#9aa3b2', font: { size: 11 }, padding: 10, boxWidth: 12 } } },
+        cutout: '60%',
+      },
+    });
+  }
+
+  // Gongje (work group) actual cost bar
+  const gongje = ce.gongje_breakdown || {};
+  const gEntries = Object.entries(gongje).sort((a, b) => b[1] - a[1]);
+  new Chart(document.getElementById('ch-gongje-cost'), {
+    type: 'bar',
+    data: {
+      labels: gEntries.map(([k]) => k),
+      datasets: [{
+        data: gEntries.map(([, v]) => v),
+        backgroundColor: '#5b8db8',
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => fmt(ctx.parsed.x) + ' 원' } },
+      },
+      scales: {
+        x: { ticks: { color: '#6b7280', font: { size: 10 }, callback: (v) => fmt(v/10000) + '만' }, grid: { color: '#262c38' } },
+        y: { ticks: { color: '#9aa3b2', font: { size: 11 } }, grid: { display: false } },
+      },
+    },
+  });
+
+  // Missing items list
+  const missing = ce.missing_from_briefing || [];
+  const ml = document.getElementById('missing-list');
+  if (ml) {
+    ml.innerHTML = missing.length
+      ? missing.map((m, i) => `<li style="padding:6px 0;border-bottom:1px solid rgba(38,44,56,0.4)"><span class="mono" style="color:var(--accent);margin-right:8px">${String(i+1).padStart(2,'0')}</span>${m}</li>`).join('')
+      : '<li style="color:var(--ink-dim);font-style:italic">감지된 누락 항목 없음</li>';
+  }
 }
 
 function drawCharts(bundle) {
@@ -688,7 +1153,42 @@ async function init() {
   renderProject(bundle);
 }
 
-init();
+// === Auth gate ===
+const AUTH_PASSWORD = '1224';
+const AUTH_KEY = 'jh_est_auth_v1';
+
+function tryAuth() {
+  const v = (document.getElementById('auth-input').value || '').trim();
+  if (v === AUTH_PASSWORD) {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    showApp();
+  } else {
+    const err = document.getElementById('auth-err');
+    err.textContent = '비밀번호가 일치하지 않습니다.';
+    const inp = document.getElementById('auth-input');
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+function showApp() {
+  document.getElementById('auth-gate').style.display = 'none';
+  const shell = document.getElementById('shell');
+  if (shell) shell.style.display = '';
+  init();
+}
+
+(function bootstrap() {
+  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+    showApp();
+    return;
+  }
+  const inp = document.getElementById('auth-input');
+  if (inp) {
+    inp.focus();
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryAuth(); });
+  }
+})();
 </script>
 </body>
 </html>
