@@ -96,7 +96,7 @@ body{
 }
 .gate-sub{
   font-size:13px;
-  color:rgba(246,243,236,0.55);
+  color:rgba(246,243,236,0.78);
   margin-bottom:36px;
   letter-spacing:0.02em;
 }
@@ -146,7 +146,7 @@ body{
 .gate-footer{
   position:absolute;bottom:32px;left:0;right:0;text-align:center;
   font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
-  color:rgba(246,243,236,0.32);
+  color:rgba(246,243,236,0.65);
 }
 
 /* ============ APP ============ */
@@ -210,7 +210,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .h-section{font-family:var(--font-display);font-weight:400;font-size:clamp(36px, 4.5vw, 60px);letter-spacing:-0.03em;margin-bottom:24px}
 .h-card{font-family:var(--font-sans);font-weight:600;font-size:18px;letter-spacing:-0.015em;line-height:1.3}
 .lead{font-size:18px;line-height:1.6;color:var(--c-ink-soft);max-width:720px;letter-spacing:-0.005em}
-.fineprint{font-size:12px;letter-spacing:0.04em;color:rgba(14,26,20,0.5)}
+.fineprint{font-size:12px;letter-spacing:0.04em;color:rgba(14,26,20,0.72)}
 
 /* ============ HERO ============ */
 .hero{
@@ -273,19 +273,25 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .hero-cta-arrow{transition:transform .25s}
 .hero-cta:hover .hero-cta-arrow{transform:translateX(4px)}
 
-/* ============ METRICS ============ */
+/* ============ METRICS (Light IR mode) ============ */
 .metrics-strip{
-  background:var(--c-forest-deep);color:var(--c-paper);
+  background:var(--c-paper-warm) !important;
+  color:var(--c-forest-deep) !important;
   padding:80px 40px;
+  border-top:1px solid var(--c-line-strong);
+  border-bottom:1px solid var(--c-line-strong);
 }
 .metrics-strip .container{display:grid;grid-template-columns:repeat(6,1fr);gap:0}
-@media (max-width:980px){.metrics-strip .container{grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(246,243,236,0.1)}}
-.metric{padding:24px 28px;border-right:1px solid rgba(246,243,236,0.1);position:relative}
+@media (max-width:980px){
+  .metrics-strip .container{grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(14,26,20,0.08)}
+  .metric{background:var(--c-paper-warm)}
+}
+.metric{padding:28px 28px;border-right:1px solid rgba(14,26,20,0.10);position:relative;background:var(--c-paper-warm)}
 .metric:last-child{border-right:none}
-.metric-label{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(246,243,236,0.5);margin-bottom:12px}
-.metric-value{font-family:var(--font-display);font-weight:300;font-size:42px;line-height:1;letter-spacing:-0.02em;color:var(--c-paper);margin-bottom:6px}
-.metric-value sup{font-size:18px;color:var(--c-gold);font-style:italic;font-weight:400}
-.metric-note{font-size:11px;color:rgba(246,243,236,0.45);letter-spacing:0.02em}
+.metric-label{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--c-forest);font-weight:600;margin-bottom:14px;opacity:0.85}
+.metric-value{font-family:var(--font-display);font-weight:400;font-size:44px;line-height:1;letter-spacing:-0.02em;color:var(--c-forest-deep) !important;margin-bottom:8px}
+.metric-value sup{font-size:18px;color:var(--c-copper);font-style:italic;font-weight:500}
+.metric-note{font-size:11.5px;color:var(--c-ink-soft);letter-spacing:0.02em;opacity:0.78;line-height:1.5}
 
 /* ============ DIAGNOSIS ============ */
 .diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px}
@@ -320,7 +326,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .os-section .eyebrow{color:var(--c-gold)}
 .os-section .eyebrow::before{background:var(--c-gold)}
 .os-section h2{color:var(--c-paper)}
-.os-section .lead{color:rgba(246,243,236,0.7)}
+.os-section .lead{color:rgba(246,243,236,0.85)}
 .os-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
 @media (max-width:880px){.os-grid{grid-template-columns:1fr}}
 .os-card{
@@ -337,7 +343,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 }
 .os-card h3{color:var(--c-paper);font-size:20px;margin-bottom:14px;font-weight:500;letter-spacing:-0.01em}
 .os-flow{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:15px;color:var(--c-gold-soft);margin-bottom:16px;letter-spacing:0.005em}
-.os-card p{font-size:14px;color:rgba(246,243,236,0.7);line-height:1.55}
+.os-card p{font-size:14px;color:rgba(246,243,236,0.85);line-height:1.6}
 .os-ids{
   margin-top:60px;padding:36px;
   border:1px solid rgba(201,168,106,0.18);
@@ -422,7 +428,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .rev-strip .eyebrow{color:var(--c-gold)}
 .rev-strip .eyebrow::before{background:var(--c-gold)}
 .rev-strip h2{color:var(--c-paper)}
-.rev-strip .lead{color:rgba(246,243,236,0.7)}
+.rev-strip .lead{color:rgba(246,243,236,0.85)}
 .rev-flow{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-top:60px;border:1px solid rgba(246,243,236,0.12)}
 @media (max-width:1100px){.rev-flow{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:640px){.rev-flow{grid-template-columns:1fr}}
@@ -516,15 +522,79 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 }
 .dec-close-quote em{color:var(--c-gold);font-style:italic}
 
+/* ============ RISK MATRIX ============ */
+.risk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--c-line-strong);border:1px solid var(--c-line-strong);margin-top:60px}
+@media (max-width:1080px){.risk-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.risk-grid{grid-template-columns:1fr}}
+.risk-card{background:var(--c-paper);padding:30px 28px 32px;display:flex;flex-direction:column;gap:14px;min-height:260px}
+.risk-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.risk-card-level{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;color:var(--c-copper)}
+.risk-card-level.med{color:var(--c-gold)}
+.risk-card-level.low{color:var(--c-forest)}
+.risk-card-prob{font-family:var(--font-display);font-style:italic;font-weight:400;font-size:13px;color:var(--c-ink-soft);opacity:0.8}
+.risk-card h4{font-family:var(--font-display);font-weight:500;font-size:18px;letter-spacing:-0.01em;line-height:1.3;color:var(--c-ink)}
+.risk-card-bar{height:3px;background:rgba(14,26,20,0.08);border-radius:2px;position:relative;overflow:hidden}
+.risk-card-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--c-copper);border-radius:2px}
+.risk-card-bar-fill.med{background:var(--c-gold)}
+.risk-card-bar-fill.low{background:var(--c-forest)}
+.risk-card-action{font-size:13.5px;line-height:1.6;color:var(--c-ink-soft);border-top:1px solid var(--c-line);padding-top:16px;margin-top:auto}
+.risk-card-action b{color:var(--c-forest);font-weight:700}
+
+/* ============ POC TIMELINE ============ */
+.poc-track{position:relative;padding:20px 0;margin-top:60px;max-width:920px}
+.poc-track::before{content:"";position:absolute;left:23px;top:36px;bottom:36px;width:1px;background:var(--c-line-strong)}
+.poc-week{display:grid;grid-template-columns:48px 1fr;gap:28px;padding:18px 0;align-items:start}
+.poc-week-num{font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--c-gold);background:var(--c-paper-warm);border:1px solid var(--c-line-strong);width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;position:relative;z-index:2;font-weight:500}
+.poc-week-body{padding-top:6px}
+.poc-week-title{font-family:var(--font-display);font-weight:500;font-size:22px;letter-spacing:-0.01em;margin-bottom:6px;color:var(--c-ink)}
+.poc-week-sub{font-size:11px;color:var(--c-forest);font-weight:700;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:14px}
+.poc-week ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.poc-week ul li{font-size:14.5px;line-height:1.6;color:var(--c-ink-soft);padding-left:20px;position:relative}
+.poc-week ul li::before{content:"→";position:absolute;left:0;top:0;color:var(--c-gold);font-size:13px;font-weight:600}
+.poc-week ul li b{color:var(--c-ink);font-weight:600}
+
+/* ============ ROI SIMULATION ============ */
+.roi-section{background:var(--c-ink);color:var(--c-paper)}
+.roi-section .eyebrow{color:var(--c-gold)}
+.roi-section .eyebrow::before{background:var(--c-gold)}
+.roi-section h2{color:var(--c-paper)}
+.roi-section .lead{color:rgba(246,243,236,0.85)}
+.roi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
+@media (max-width:880px){.roi-grid{grid-template-columns:1fr}}
+.roi-card{background:rgba(246,243,236,0.04);border:1px solid rgba(201,168,106,0.22);padding:36px 32px;border-radius:2px;position:relative;overflow:hidden}
+.roi-card-year{font-family:var(--font-display);font-style:italic;font-weight:400;color:var(--c-gold);font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:18px}
+.roi-card-val{font-family:var(--font-display);font-weight:300;font-size:48px;line-height:1;letter-spacing:-0.02em;color:var(--c-paper);margin-bottom:10px}
+.roi-card-val sub{font-size:16px;font-weight:400;color:var(--c-gold-soft);font-style:italic;letter-spacing:0;vertical-align:baseline}
+.roi-card-delta{font-size:13px;color:var(--c-gold);letter-spacing:0.04em;margin-bottom:22px;font-weight:500}
+.roi-card-bd{font-size:13.5px;color:rgba(246,243,236,0.88);line-height:1.65;border-top:1px solid rgba(246,243,236,0.14);padding-top:16px}
+.roi-card-bd b{color:var(--c-paper);font-weight:600}
+.roi-summary{margin-top:60px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(201,168,106,0.18);border:1px solid rgba(201,168,106,0.18)}
+@media (max-width:880px){.roi-summary{grid-template-columns:repeat(2,1fr)}}
+.roi-sum-cell{padding:24px 22px;background:var(--c-ink)}
+.roi-sum-label{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(246,243,236,0.65);margin-bottom:10px;font-weight:500}
+.roi-sum-val{font-family:var(--font-display);font-weight:400;font-size:26px;letter-spacing:-0.015em;color:var(--c-paper);line-height:1.1}
+.roi-sum-val sup{font-size:13px;color:var(--c-gold);font-style:italic;font-weight:400}
+
+/* ============ LEVERAGE ============ */
+.lev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
+@media (max-width:880px){.lev-grid{grid-template-columns:1fr}}
+.lev-card{background:var(--c-paper-warm);border:1px solid var(--c-line-strong);padding:36px 32px;border-radius:2px;position:relative;display:flex;flex-direction:column}
+.lev-card-icon{font-family:var(--font-display);font-style:italic;font-weight:400;color:var(--c-copper);font-size:12px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:14px;font-weight:600}
+.lev-card h4{font-family:var(--font-display);font-weight:500;font-size:22px;letter-spacing:-0.01em;line-height:1.3;margin-bottom:18px;color:var(--c-forest-deep)}
+.lev-card p{font-size:14.5px;color:var(--c-ink-soft);line-height:1.65;margin-bottom:20px}
+.lev-card-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.lev-card-tag{font-size:11px;padding:5px 12px;background:var(--c-paper);border:1px solid var(--c-line-strong);border-radius:12px;color:var(--c-forest);letter-spacing:0.04em;font-weight:500}
+.lev-card-foot{margin-top:20px;padding-top:16px;border-top:1px solid var(--c-line);font-size:13px;color:var(--c-forest-deep);font-weight:600;letter-spacing:0.01em}
+
 /* ============ FOOTER ============ */
 footer{
-  background:var(--c-forest-deep);color:rgba(246,243,236,0.55);
+  background:var(--c-forest-deep);color:rgba(246,243,236,0.82);
   padding:60px 40px 40px;font-size:12px;letter-spacing:0.04em;
 }
 .foot-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center}
 @media (max-width:680px){.foot-grid{grid-template-columns:1fr;text-align:center}}
 .foot-brand{font-family:var(--font-display);font-weight:400;font-size:18px;color:var(--c-paper);margin-bottom:10px;letter-spacing:-0.01em}
-.foot-meta{font-size:11px;color:rgba(246,243,236,0.4)}
+.foot-meta{font-size:11.5px;color:rgba(246,243,236,0.65)}
 .foot-cred{font-family:var(--font-display);font-style:italic;color:var(--c-gold-soft);font-size:13px}
 
 /* ============ ANIMATIONS ============ */
@@ -569,9 +639,10 @@ footer{
   <div class="nav-menu">
     <a href="#diagnosis">진단</a>
     <a href="#os">GeoAI OS</a>
-    <a href="#usecase">유스케이스</a>
     <a href="#roadmap">로드맵</a>
-    <a href="#revenue">수익모델</a>
+    <a href="#risk">리스크</a>
+    <a href="#poc">30일</a>
+    <a href="#roi">ROI</a>
     <a href="#decision">의사결정</a>
   </div>
 </nav>
@@ -1089,10 +1160,226 @@ footer{
   </div>
 </section>
 
+<!-- RISK MATRIX -->
+<section id="risk">
+  <div class="container">
+    <div class="eyebrow reveal">10 · Risk Matrix</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">실패 시나리오를 먼저 본다.<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-copper)">대응이 준비된 위험</em>은 더 이상 위험이 아니다.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">AI 도입의 4가지 핵심 리스크와 각 리스크별 GGK가 통제 가능한 완화 장치. 90일 게이트로 조기 발견·조기 중단 구조.</p>
+
+    <div class="risk-grid reveal" style="transition-delay:.25s">
+      <div class="risk-card">
+        <div class="risk-card-head">
+          <span class="risk-card-level">HIGH</span>
+          <span class="risk-card-prob">발생가능 60%</span>
+        </div>
+        <h4>데이터 단편화로 AI 정확도 미달</h4>
+        <div class="risk-card-bar"><div class="risk-card-bar-fill" style="width:78%"></div></div>
+        <div class="risk-card-action">
+          1단계는 모델이 아닌 <b>데이터 정렬</b>에 집중. 라벨링 PO 2명 확보 후에야 모델 도입. 90일 정확도 70% 미달 시 즉시 학습세트 확장.
+        </div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-card-head">
+          <span class="risk-card-level med">MED</span>
+          <span class="risk-card-prob">발생가능 40%</span>
+        </div>
+        <h4>현장팀 도입 저항</h4>
+        <div class="risk-card-bar"><div class="risk-card-bar-fill med" style="width:52%"></div></div>
+        <div class="risk-card-action">
+          현장 마이스터 1명을 <b>Lead 직책</b>으로 합류. UX는 모바일 우선·카카오톡 알림. 도입률 30% 미달 시 인센티브 구조 즉시 재설계.
+        </div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-card-head">
+          <span class="risk-card-level med">MED</span>
+          <span class="risk-card-prob">발생가능 35%</span>
+        </div>
+        <h4>AI 오류로 신뢰 손상</h4>
+        <div class="risk-card-bar"><div class="risk-card-bar-fill med" style="width:48%"></div></div>
+        <div class="risk-card-action">
+          90일 전체 <b>Human-in-the-Loop 강제</b>. AI 결과는 PO 승인 후에만 외부 노출. 평가세트·모델 버전관리로 회귀 자동 감지.
+        </div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-card-head">
+          <span class="risk-card-level low">LOW</span>
+          <span class="risk-card-prob">발생가능 20%</span>
+        </div>
+        <h4>투자 회수 지연</h4>
+        <div class="risk-card-bar"><div class="risk-card-bar-fill low" style="width:28%"></div></div>
+        <div class="risk-card-action">
+          12주 Gate에서 <b>KPI 미달 시 즉시 중단</b>. 단 데이터 자산은 보존되어 재시도 비용 70% 절감. 매몰비용 ≤ 0.3억으로 캡.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POC TIMELINE -->
+<section id="poc">
+  <div class="container">
+    <div class="eyebrow reveal">11 · 30-Day Action Plan</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">오늘 결정 → 30일 후<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-forest)">회장님께 라이브 시연</em>까지의 주차별 액션.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">큰 의사결정 없이 시작 가능한 4주 PoC. 4주차 시연 결과를 보고 본 12주 투자(0.3~0.6억)를 결정.</p>
+
+    <div class="poc-track reveal" style="transition-delay:.25s">
+      <div class="poc-week">
+        <div class="poc-week-num">01</div>
+        <div class="poc-week-body">
+          <div class="poc-week-title">Data Hardening</div>
+          <div class="poc-week-sub">Week 1 — 데이터 정렬</div>
+          <ul>
+            <li>최근 5년 <b>입찰·수주·견적 데이터</b>를 백오피스 1곳에 통합</li>
+            <li>도면·VOC·시공일지 데이터 <b>표준 스키마 v0.1</b> 확정</li>
+            <li>현장·고객·장비·도면 등 <b>7개 공통 ID 발급룰</b> 합의</li>
+          </ul>
+        </div>
+      </div>
+      <div class="poc-week">
+        <div class="poc-week-num">02</div>
+        <div class="poc-week-body">
+          <div class="poc-week-title">Bid Radar Zero</div>
+          <div class="poc-week-sub">Week 2 — 첫 AI 작동</div>
+          <ul>
+            <li>나라장터·LH·교육부 등 <b>공공 발주 게시판 3곳</b> 크롤링 자동화</li>
+            <li>발주 → GGK 적합도 <b>스코어링 모델 v0.1</b> 가동</li>
+            <li>Slack·카카오톡 알림 채널 연결 → 영업팀 즉시 활용</li>
+          </ul>
+        </div>
+      </div>
+      <div class="poc-week">
+        <div class="poc-week-num">03</div>
+        <div class="poc-week-body">
+          <div class="poc-week-title">Field AI Pilot</div>
+          <div class="poc-week-sub">Week 3 — 현장 적용</div>
+          <ul>
+            <li>시공 현장 1곳에서 <b>일일 진척 사진 자동 분석</b> 시작</li>
+            <li>안전·품질 이상 자동 알림 PoC (Computer Vision)</li>
+            <li>현장 → 본사 <b>주간 보고서 자동 생성</b> (Site AI v0.1)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="poc-week">
+        <div class="poc-week-num">04</div>
+        <div class="poc-week-body">
+          <div class="poc-week-title">Demo to 회장님</div>
+          <div class="poc-week-sub">Week 4 — 결정 게이트</div>
+          <ul>
+            <li>4주 PoC 결과 + KPI 진척 + 외부 자금 매칭 가능성 라이브 시연</li>
+            <li>다음 12주 Gate (목표 정확도·도입률·매출연결) <b>합의</b></li>
+            <li>본격 투자 <b>0.3~0.6억 결정</b> 또는 중단 결정</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROI FORECAST -->
+<section id="roi" class="roi-section">
+  <div class="container">
+    <div class="eyebrow reveal">12 · 3-Year ROI Forecast</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">누적 투자 <em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">1.8억</em><br/>→ 3년 누적 매출·절감 <em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">13억+</em></h2>
+    <p class="lead reveal" style="transition-delay:.15s">보수적 시나리오 기준. 1년차는 내부 절감, 2년차는 수주 확장, 3년차는 플랫폼 수익. 모든 수치는 12주 PoC 결과로 재교정.</p>
+
+    <div class="roi-grid reveal" style="transition-delay:.25s">
+      <div class="roi-card">
+        <div class="roi-card-year">Year 1 · 운영효율 회복</div>
+        <div class="roi-card-val">1.8<sub>억 절감</sub></div>
+        <div class="roi-card-delta">투자 0.6억 · 회수 8개월</div>
+        <div class="roi-card-bd">
+          <b>견적 작성시간 70%↓</b> · 입찰 적중률 +35% · 현장 보고서 자동화 · AS 응답시간 60%↓. 내부 비용 절감 위주, 매출 신규는 보수적으로 0.
+        </div>
+      </div>
+      <div class="roi-card">
+        <div class="roi-card-year">Year 2 · 매출 확장</div>
+        <div class="roi-card-val">5.3<sub>억 매출</sub></div>
+        <div class="roi-card-delta">누적 투자 1.2억 · ROI 3.4×</div>
+        <div class="roi-card-bd">
+          GeoCare <b>구독 50건</b> · Energy Passport 30건 · 공공기관 신규 수주 +40%. 매출 3.5억 + 유지보수 1.8억.
+        </div>
+      </div>
+      <div class="roi-card">
+        <div class="roi-card-year">Year 3 · 플랫폼화</div>
+        <div class="roi-card-val">8.0<sub>억+ 매출</sub></div>
+        <div class="roi-card-delta">누적 ROI 4.4× · 데이터 자산 50억+</div>
+        <div class="roi-card-bd">
+          동종업계 <b>라이선싱</b> 가능 · 데이터 자산 자체 평가 50억+ · 외부 투자 유치 가능 단계 진입.
+        </div>
+      </div>
+    </div>
+
+    <div class="roi-summary reveal" style="transition-delay:.35s">
+      <div class="roi-sum-cell">
+        <div class="roi-sum-label">누적 투자</div>
+        <div class="roi-sum-val">1.8<sup>억</sup></div>
+      </div>
+      <div class="roi-sum-cell">
+        <div class="roi-sum-label">누적 매출+절감</div>
+        <div class="roi-sum-val">13.0<sup>억</sup></div>
+      </div>
+      <div class="roi-sum-cell">
+        <div class="roi-sum-label">회수기간</div>
+        <div class="roi-sum-val">14<sup>개월</sup></div>
+      </div>
+      <div class="roi-sum-cell">
+        <div class="roi-sum-label">3년 누적 ROI</div>
+        <div class="roi-sum-val">4.4<sup>×</sup></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXTERNAL LEVERAGE -->
+<section id="leverage">
+  <div class="container">
+    <div class="eyebrow reveal">13 · External Leverage</div>
+    <h2 class="h-section reveal" style="transition-delay:.1s">자기자본만으로 가지 않는다.<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-copper)">정부·공공·표준</em>이라는 외부 가속기.</h2>
+    <p class="lead reveal" style="transition-delay:.15s">GGK가 이미 확보한 30년 업력·772호 신기술·25-AAI0233 인증·124건 공공실적은 단순 마케팅 자산이 아니다. <b>외부 자금·시범사업·표준화</b>를 끌어오는 레버리지다.</p>
+
+    <div class="lev-grid reveal" style="transition-delay:.25s">
+      <div class="lev-card">
+        <div class="lev-card-icon">A · Public R&amp;D</div>
+        <h4>정부 R&amp;D 매칭</h4>
+        <p>산업부 그린뉴딜·KETEP 신재생·국토부 스마트건설 R&amp;D 과제. GGK 자기부담 30% + 정부 매칭 70% 구조로 약 <b>0.4억 외부 자금</b> 확보 가능.</p>
+        <div class="lev-card-meta">
+          <span class="lev-card-tag">KETEP</span>
+          <span class="lev-card-tag">산업부</span>
+          <span class="lev-card-tag">국토부</span>
+        </div>
+        <div class="lev-card-foot">→ AI 도입 자금의 22% 외부화</div>
+      </div>
+      <div class="lev-card">
+        <div class="lev-card-icon">B · Public Pilot</div>
+        <h4>공공기관 시범사업</h4>
+        <p>LH·교육부·ZEB 의무화 기관에 <b>GeoCare 무료 1년 시범운영</b> 제안. 데이터 축적 → 정식 채택 → KS 표준 발의의 3단계 진입로.</p>
+        <div class="lev-card-meta">
+          <span class="lev-card-tag">LH</span>
+          <span class="lev-card-tag">교육시설</span>
+          <span class="lev-card-tag">ZEB 의무화</span>
+        </div>
+        <div class="lev-card-foot">→ 영업 비용 0원으로 레퍼런스 5건+</div>
+      </div>
+      <div class="lev-card">
+        <div class="lev-card-icon">C · Standards</div>
+        <h4>인증·표준 레버리지</h4>
+        <p>25-AAI0233 → <b>KS 표준 후보</b> 발의. 건설신기술 772호 → 기술마켓 공식 등재 → 조달 가점 확보. 경쟁 진입장벽을 GGK가 만든다.</p>
+        <div class="lev-card-meta">
+          <span class="lev-card-tag">KS 표준</span>
+          <span class="lev-card-tag">조달 가점</span>
+          <span class="lev-card-tag">기술마켓</span>
+        </div>
+        <div class="lev-card-foot">→ 경쟁사 진입 18~24개월 지연</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- DECISION -->
 <section id="decision" class="dec-section">
   <div class="container">
-    <div class="eyebrow reveal">10 · Decision Request</div>
+    <div class="eyebrow reveal">14 · Decision Request</div>
     <h2 class="h-section reveal" style="transition-delay:.1s">지금 필요한 것은 플랫폼<br/>전체 승인이 아니라,<br/><em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">90일 검증</em>에 대한 오너십이다.</h2>
     <p class="lead reveal" style="transition-delay:.15s">Sponsor 1명 · Lead 1명 · 4 PO · 파일럿 사용자 5~8명 · 예산 0.3~0.6억. 12주 후 Core Operations 투자 결정을 게이트로 둔다.</p>
 
