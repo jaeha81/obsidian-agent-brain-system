@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JP Golf — 한 마디면 일본 골프 예약 끝</title>
-<meta name="description" content="자연어 대화 한 번으로 일본 골프장 예약 완료. 2,000개+ 골프장 데이터와 AI 자동화로 30초 안에 완벽한 티타임을 찾아드립니다.">
+<meta name="description" content="AI가 사람처럼 먼저 말을 걸어 편하게 상담합니다. 딱딱한 AI 말투 없이, 실제 상담사처럼 일본 골프장 예약을 30초 안에 도와드립니다.">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -890,14 +890,14 @@
 <!-- Hero with chat -->
 <section class="hero" id="chat">
   <div>
-    <div class="hero-eyebrow">AI 자연어 상담 · 24시간 운영</div>
+    <div class="hero-eyebrow">사람처럼 대화하는 AI · 24시간 상담</div>
     <h1>
-      한 마디면 끝나는<br>
-      <em>일본 골프 예약</em>
+      딱딱한 AI 말투 없이,<br>
+      <em>편하게 상담받으세요</em>
     </h1>
     <p class="hero-sub">
-      "다음 달 셋째 주 도쿄 근교, 4명이서" — 이 정도면 충분합니다.
-      AI가 자연스럽게 대화하면서 날짜·인원·선호를 캐치하고,
+      AI가 먼저 자연스럽게 물어봐요. 어렵게 입력하실 필요 없이,
+      편하게 대답만 하시면 됩니다.
       2,000개+ 일본 골프장에서 최적의 티타임을 30초 안에 찾아드립니다.
     </p>
     <div class="hero-stats">
@@ -987,16 +987,16 @@
 <!-- How it works -->
 <section class="block" id="how">
   <div class="section-eyebrow">How it works</div>
-  <h2 class="section-title">대화 한 번이면 예약이 끝나는, 진짜 단순한 흐름</h2>
+  <h2 class="section-title">AI가 먼저 말을 건네는, 진짜 편한 예약</h2>
   <p class="section-lead">
     딱딱한 폼도, 끝없는 옵션 선택도 없습니다.
-    가족이나 친구에게 말하듯 자연스럽게 대화하면, AI가 알아서 정리하고 검색하고 예약합니다.
+    AI가 실제 상담사처럼 자연스럽게 먼저 물어봐요. 손님은 편하게 대답만 하시면 됩니다.
   </p>
   <div class="steps">
     <div class="step">
       <div class="step-num">STEP 01</div>
-      <h3>자연어로 말하세요</h3>
-      <p>"7월 둘째 주 도쿄 근교, 3명이서 라운딩하고 싶어요." 이 한 마디면 AI가 필요한 정보를 자동으로 파악합니다. 추가 질문이 있으면 자연스럽게 물어봅니다.</p>
+      <h3>AI가 먼저 물어봐요</h3>
+      <p>AI가 딱딱한 로봇 말투 대신, 친근한 상담사처럼 먼저 말을 걸어요. "언제 가세요? 몇 분이세요?" — 편하게 대답만 하시면 됩니다.</p>
     </div>
     <div class="step">
       <div class="step-num">STEP 02</div>
@@ -1172,8 +1172,8 @@
 <!-- Final CTA -->
 <section class="final-cta">
   <div class="final-cta-inner">
-    <h2>이번 일본 골프 여행,<br><em>한 마디로 시작하세요</em></h2>
-    <p>회원가입 없이, 채팅창에 가고 싶은 곳을 자연스럽게 입력하면 됩니다.<br>AI가 나머지를 알아서 합니다.</p>
+    <h2>이번 일본 골프 여행,<br><em>AI랑 편하게 얘기해보세요</em></h2>
+    <p>회원가입 없이, 채팅창 열면 AI가 먼저 말을 걸어요.<br>대답만 하시면 예약까지 다 됩니다.</p>
     <a href="#chat" class="final-cta-btn">
       지금 상담 시작
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -1189,7 +1189,7 @@
         <span class="logo-mark">JP</span>
         <span>Golf</span>
       </a>
-      <p>한국 골퍼를 위한 일본 골프장 AI 예약 서비스. 자연어 한 마디로 일본 2,000여 개 골프장의 티타임을 30초 안에 확정합니다.</p>
+      <p>한국 골퍼를 위한 일본 골프장 AI 예약 서비스. AI가 사람처럼 먼저 대화를 이끌어 일본 2,000여 개 골프장의 티타임을 30초 안에 확정합니다.</p>
     </div>
     <div>
       <h6>서비스</h6>
@@ -1363,7 +1363,7 @@
         }
 
         await aiSay(
-          `${collected.region}이요! 좋죠~ 혹시 언제쯤 가실 계획이고, 몇 분이서 라운딩하실 건가요?`,
+          `${collected.region}이요! 좋은 선택이네요~ 언제 가실 것 같아요? 그리고 몇 분이서 가세요?`,
           ['다음 주말 3명', '7월 둘째 주 4명', '이번 달 안에 2명', '아직 정하지 못했어요']
         );
         state = 'ask_date_party';
@@ -1381,7 +1381,7 @@
         else collected.date = '협의';
 
         await aiSay(
-          '알겠어요! 그럼 몇 시쯤 출발하고 싶으세요? 새벽 일찍 나가는 스타일이에요, 아니면 좀 여유롭게 나가는 편이에요?',
+          '오케이~ 그럼 몇 시쯤 라운딩 하고 싶으세요? 일찍 나가는 편이에요, 아니면 느긋하게 나가는 편이에요?',
           ['아침 7~8시', '오전 9~10시', '오후 라운딩도 OK', '아무 때나 좋아요']
         );
         state = 'ask_time';
@@ -1392,8 +1392,8 @@
         else if (/오후/.test(text)) collected.time = '오후 라운딩 가능';
         else collected.time = '시간 무관';
 
-        await aiSay('거의 다 됐어요! 혹시 예산이나 따로 원하시는 게 있으세요? 한국어 되는 곳, 가성비, 프리미엄 코스 이런 거요.',
-          ['한국어 가능한 곳', '가성비 좋은 곳', '프리미엄 코스', '특별한 요청 없음']
+        await aiSay('거의 다 됐어요! 마지막으로, 특별히 원하시는 게 있으세요? 한국어 되는 곳이면 좋다든가, 가성비 있는 곳이면 좋다든가요.',
+          ['한국어 가능한 곳', '가성비 좋은 곳', '프리미엄 코스', '상관없어요']
         );
         state = 'ask_pref';
 
@@ -1406,7 +1406,7 @@
         addTyping();
         await delay(800);
         removeTyping();
-        addMsg('ai', '제가 이해한 내용 한번 정리해드릴게요. 아래 내용 맞으면 "맞아요" 해주세요.');
+        addMsg('ai', '잠깐, 제가 이해한 내용 한번 정리해드릴게요. 맞는지 확인해 주세요!');
         await delay(300);
         addInfoCard({
           '지역': collected.region,
@@ -1424,9 +1424,9 @@
           addTyping();
           await delay(900);
           removeTyping();
-          addMsg('ai', '알겠어요! 지금 일본 골프장 예약 사이트 바로 뒤지고 있을게요…');
+          addMsg('ai', '잠깐만요, 지금 일본 골프장 바로 뒤지고 있을게요~');
           await delay(1200);
-          addMsg('ai', `${collected.region} 기준으로 ${collected.people} 동반 티타임 3군데 찾았어요. 마음에 드는 곳 골라주세요!`);
+          addMsg('ai', `${collected.region} 기준으로 딱 맞는 곳 3군데 찾았어요! 마음에 드는 곳 골라주세요.`);
           await delay(400);
           courses.forEach((c, i) => addCourseResult(c, i));
           state = 'pick_course';
@@ -1462,13 +1462,13 @@
           addTyping();
           await delay(1100);
           removeTyping();
-          addMsg('ai', '예약 지금 넣고 있어요. 잠깐만요…');
+          addMsg('ai', '잠깐만요, 예약 지금 넣고 있어요~');
           await delay(1500);
-          addMsg('ai', '예약 완료됐어요!');
+          addMsg('ai', '완료됐어요! 예약 확정됐습니다 🎉');
           await delay(400);
           addBookingSuccess();
           await delay(800);
-          await aiSay('다른 거 필요하시면 언제든 말씀해주세요. 호텔·픽업·항공권도 곧 열릴 예정이에요.',
+          await aiSay('다른 거 필요하신 거 있으세요? 호텔이나 픽업도 곧 도와드릴 수 있게 준비하고 있어요.',
             ['처음부터 다시', '예약 내역 확인', '문의하기']
           );
           state = 'done';
@@ -1479,7 +1479,7 @@
             courses.forEach((c, i) => addCourseResult(c, i));
           }, 1200);
         } else {
-          await aiSay('알겠어요. 언제든 다시 찾아주세요! 처음부터 다시 하시려면 아래 버튼 눌러주세요.',
+          await aiSay('넵, 알겠어요! 언제든 다시 오세요. 처음부터 다시 시작하고 싶으시면 아래 버튼 눌러주세요.',
             ['처음부터 다시']);
           state = 'done';
         }
@@ -1516,9 +1516,9 @@
   // Initial greeting
   (async function init() {
     await delay(400);
-    addMsg('ai', '안녕하세요! 일본 골프 여행 도와드리는 JP Golf 상담 도우미예요.');
+    addMsg('ai', '안녕하세요~ JP Golf 상담 AI예요 😊');
     await delay(500);
-    await aiSay('일본 어디로 골프 여행 가실 생각이에요? 편하게 말씀해주시면 제가 다 찾아드릴게요.',
+    await aiSay('일본 골프 여행 계획 중이세요? 어디로 가고 싶으세요? 대충 말씀해 주셔도 제가 다 알아서 찾아드릴게요!',
       ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']
     );
   })();
