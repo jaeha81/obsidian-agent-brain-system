@@ -209,6 +209,5 @@ _Private/
 .private/
 **/.private/
 
-# 견적 시스템 — 고객 PII 보호
+# 견적 시스템 — 샘플 원본만 제외, 대시보드 데이터는 공개
 data/estimation_samples/
-docs/data/estimation/

@@ -1,0 +1,40 @@
+{
+  "bundles": [
+    {
+      "slug": "chipotle-shinsegae",
+      "generated_at": "2026-06-24 14:26:29",
+      "summary": {
+        "drawing_page_count": 68,
+        "drawing_category_count": {
+          "DETAIL": 17,
+          "ELECTRICAL": 5,
+          "KITCHEN": 12,
+          "PLAN": 8,
+          "FURNITURE": 21,
+          "SIGNAGE": 11,
+          "MECHANICAL": 1
+        },
+        "material_pages": 4,
+        "unique_drawing_codes": 50,
+        "drawing_confidence": "🟡 MED",
+        "amount_total": 36717012,
+        "priced_items": 8,
+        "unpriced_items": 212,
+        "coverage_rate": 0.036,
+        "boq_confidence": "🔴 LOW",
+        "gongje_totals": {
+          "타일/메지": 22035646,
+          "타일": 10449614,
+          "": 3507840,
+          "경량": 723912
+        },
+        "estimated_area_m2": 400,
+        "cost_estimate_avg": 33966006,
+        "cost_estimate_min": 23776204,
+        "cost_estimate_max": 50949010,
+        "cost_confidence": "🟡 MED"
+      },
+      "file": "chipotle-shinsegae.json"
+    }
+  ]
+}
