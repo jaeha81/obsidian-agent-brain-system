@@ -29,10 +29,13 @@
           "경량": 723912
         },
         "estimated_area_m2": 400,
-        "cost_estimate_avg": 33966006,
-        "cost_estimate_min": 23776204,
-        "cost_estimate_max": 50949010,
-        "cost_confidence": "🟡 MED"
+        "cost_estimate_avg": 500703734,
+        "cost_estimate_min": 425598174,
+        "cost_estimate_max": 575809295,
+        "cost_confidence": "🟡 MED",
+        "actual_area_m2": 266.49,
+        "per_pyeong_avg": 4645904,
+        "estimation_method": "A방식 (BOQ 110항목 × 매핑단가) + B근거 (실측면적)"
       },
       "file": "chipotle-shinsegae.json"
     }
