@@ -1,6 +1,13 @@
 {
   "slug": "chipotle-shinsegae",
   "generated_at": "2026-06-24 14:26:29",
+  "site_briefing": {
+    "available": true,
+    "captured_at": "2026-06-24",
+    "confidence": "🟢 HIGH",
+    "missing_items_identified": 10,
+    "note": "현설 회의록 분석 완료 — 상세 데이터는 비공개 (로컬 PII 보호)"
+  },
   "summary": {
     "drawing_page_count": 68,
     "drawing_category_count": {
