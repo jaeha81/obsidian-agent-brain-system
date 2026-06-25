@@ -180,9 +180,9 @@
   </nav>
   <section id="summary" class="hero-grid">
     <div class="panel">
-      <h2>2026-06-24 처리 요약</h2>
+      <h2>2026-06-25 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-06-24T08:00:24+09:00</span>
+        <span class="pill">수집: 2026-06-25T08:00:24+09:00</span>
         <span class="pill">리포트: staged</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
@@ -197,12 +197,13 @@
     <aside class="panel">
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="stat blue"><strong>83</strong><span>평균 효율성</span></div>
-        <div class="stat green"><strong>88</strong><span>평균 호환성</span></div>
+        <div class="stat blue"><strong>74</strong><span>평균 효율성</span></div>
+        <div class="stat green"><strong>81</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>검증 자동화</strong><span>4</span></div>
-<div class="mini"><strong>지식 후보</strong><span>1</span></div>
+        <div class="mini"><strong>지식 후보</strong><span>3</span></div>
+<div class="mini"><strong>명령 페이로드</strong><span>1</span></div>
+<div class="mini"><strong>검증 자동화</strong><span>1</span></div>
       </div>
     </aside>
   </section>
@@ -245,9 +246,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-06-24</strong><p>5 후보 · 효율 83 · 호환 88</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 +2 · 호환 +13</p></div>
-        <div class="compare-card"><span>누적</span><strong>194</strong><p>26일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-06-25</strong><p>5 후보 · 효율 74 · 호환 81</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 -7 · 호환 +6</p></div>
+        <div class="compare-card"><span>누적</span><strong>199</strong><p>27일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -511,6 +512,16 @@
           </div>
           <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-25</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:42%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -527,10 +538,7 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 2</strong><span>운영자용 한 줄 검증팩</span><em>스테이징</em></li>
-<li><strong>P1 Card 3</strong><span>배포 전 검증 체크리스트</span><em>스테이징</em></li>
-<li><strong>P1 Card 4</strong><span>검증된 벤더 기준 스냅샷</span><em>스테이징</em></li>
-<li><strong>P1 Card 5</strong><span>오케스트레이터 임계값 조정안</span><em>스테이징</em></li>
+        <li><strong>P1 Card 2</strong><span>버키용 아키텍처와 SLA 묶음</span><em>스테이징</em></li>
       </ul>
     </div>
   </section>
@@ -626,7 +634,7 @@
   <section id="daily-plus-candidates">
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P3&#x27;: 1, &#x27;P1&#x27;: 4} · 상태 {&#x27;staged&#x27;: 5}</span>
+      <span class="muted">우선순위 {&#x27;P3&#x27;: 4, &#x27;P1&#x27;: 1} · 상태 {&#x27;staged&#x27;: 5}</span>
     </div>
     <div class="grid">
 
@@ -660,103 +668,103 @@
         </details>
       </article>
 
-      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="command-payload">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
           <span class="badge status staged">스테이징</span>
-          <span class="badge risk risk-low">low</span>
+          <span class="badge risk risk-medium">medium</span>
         </div>
-        <h3>Card 2. 운영자용 한 줄 검증팩</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <h3>Card 2. 버키용 아키텍처와 SLA 묶음</h3>
+        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
+        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>86</strong></div>
+            <div class="bar"><span class="good" style="width:86%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>70</strong></div>
+            <div class="bar"><span class="mid" style="width:70%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">명령 구조, idempotency, 재시도 규칙을 먼저 문서화한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>운영자용 한 줄 검증팩 운영자용 한 줄 검증팩 이건 “웹훅 영수증 검증·재전송(Replay)·감사증적 남기기”를 운영자가 바로 붙여넣어 쓸 수 있는 원라인러 팩이에요. 처음 보는 분도 쓸 수 있게 간단 배경→즉시 사용 예시 순서로 정리했습니다. 왜 필요한가 검증(HMAC): 수신한 웹훅이 진짜인지 위·변조 여부 확인 재전송(Replay): 장애/유실 시 동일 페이로드를 멱등(Idempo...</p>
+          <p>버키용 아키텍처와 SLA 묶음 버키용 아키텍처와 SLA 묶음 여러 AI 에이전트를 “안전하고 안정적으로” 굴리는 표준 아키텍처를 한 장으로 요약해 드릴게요. 제안: Thin‑Agent / Fat‑Control‑Plane 오케스트레이션 (요약) 전체 흐름 Control Plane(API+정책) → Scheduler/Queue(내구성 큐·중복방지) → Worker Agents(얇고 무상태)...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="3" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 3. 배포 전 검증 체크리스트</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <h3>Card 3. 작업별 비용 계산기와 예시</h3>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
+        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>배포 전 검증 체크리스트 배포 전 검증 체크리스트 에이전트 작업을 “출발 전에” 자동 점검해 주는 사전 검증기(Pre‑Dispatch Validator) 제안이에요—버키(Bucky)가 모든 잡을 워커에 보내기 전에 딱 한 번 호출해서, 메타데이터/비용/안전/승인/중복을 가볍게 막아주는 단일 API입니다. 개요 엔드포인트: POST /validate 역할: 실행 전 검증 → 통과(pass...</p>
+          <p>작업별 비용 계산기와 예시 작업별 비용 계산기와 예시 아래 내용은 최근 AI API 토큰 기반 가격 구조와 비용 계산 방식을 빠르게 이해하고 싶을 것 같아서 정리해둔 짧은 요약입니다. 일반적인 토큰 비용 구조부터, 대표 모델의 비용 차이, 그리고 대체 제공자(AWS Bedrock 등)에서 어떻게 비용이 달라지는지를 직관적으로 보여줍니다. 4 핵심: 토큰마다 비용이 있고, 입력(input...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="4" data-status="staged" data-priority="P3" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 4. 검증된 벤더 기준 스냅샷</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <h3>Card 4. NOTICE·URGENT·AUTO 전환 액션 규칙표</h3>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
+        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>검증된 벤더 기준 스냅샷 검증된 벤더 기준 스냅샷 간단히 말하면, 2026년 현재 주요 AI 벤더들이 정확한 가격 정책과 토큰·스루풋 제한을 공개 문서로 제공하며, 이 정보를 아키텍처나 비용 최적화에 바로 사용할 수 있습니다 — 여기에 그 핵심을 모아뒀습니다. 6 🌐 OpenAI API — 가격 및 레이트 리밋 • OpenAI 공식 문서에 GPT‑5.5, GPT‑5.4 계열 등 모델별...</p>
+          <p>NOTICE·URGENT·AUTO 전환 액션 규칙표 NOTICE·URGENT·AUTO 전환 액션 규칙표 당신이 비용·스파이크 예측과 자동 대응 로직을 현실적·운영적 관점에서 정리하고 싶다는 걸 공유하고 싶습니다. 클라우드/AI API 사용량이 예상보다 빠르게 치솟을 때, 어떻게 *사전 경고 → 긴급 대응 → 자동 차단(백프레셔)*으로 이어지는지를 수치적 기준과 운영 절차로 구성하는 사례...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="5" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="5" data-status="staged" data-priority="P3" data-category="verification">
         <div class="candidate-top">
-          <span class="badge priority">P1</span>
+          <span class="badge priority">P3</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 5. 오케스트레이터 임계값 조정안</h3>
+        <h3>Card 5. 벤더 변경 감시 규칙 한 장</h3>
         <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
         <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
@@ -776,7 +784,7 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>오케스트레이터 임계값 조정안 오케스트레이터 임계값 조정안 여기에 당신에게 이 내용을 공유하는 이유는, 클라우드/AI 인프라 비용‑리소스 제어를 실시간으로 자동화/예측 가능하게 만드는 최전선 전략과 업계 표준 가격 정보가 결합된 현재의 실사용 비용 구조를 기반으로, 운영자가 적절한 게이트(임계값), 폴백, 속도 제한 정책을 설계하려는 경우 정확한 숫자와 기준이 무엇인지 알아야 하기 때문입...</p>
+          <p>벤더 변경 감시 규칙 한 장 벤더 변경 감시 규칙 한 장 최근 주요 AI 인프라 제공업체들이 AI API 사용량·할당량·비용·성능을 체계적으로 모니터링하고 자동 경고/대응하는 운영 전략을 실무에서 강조하고 있어 공유합니다 — 이는 대규모 구독 기반 AI 워크로드를 안정적으로 운영하고 비용 폭주를 예방하는 데 핵심이 되기 때문입니다. HKU SPACE AI Hub +1 5 클라우드 공급자...</p>
         </details>
       </article>
     </div>
@@ -791,9 +799,9 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-24.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-24.md</code></div>
-      <div>생성 시각: <code>2026-06-24 09:00:03 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-25.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-25.md</code></div>
+      <div>생성 시각: <code>2026-06-25 09:00:02 KST</code></div>
     </div>
   </section>
 </main>

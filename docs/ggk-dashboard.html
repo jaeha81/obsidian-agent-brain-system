@@ -322,39 +322,39 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .audit-note{margin-top:8px;font-size:12px;color:rgba(14,26,20,0.55)}
 
 /* ============ GEOAI OS ============ */
-.os-section{background:var(--c-forest-deep);color:var(--c-paper)}
-.os-section .eyebrow{color:var(--c-gold)}
-.os-section .eyebrow::before{background:var(--c-gold)}
-.os-section h2{color:var(--c-paper)}
-.os-section .lead{color:rgba(246,243,236,0.85)}
+.os-section{background:var(--c-paper-warm);color:var(--c-ink)}
+.os-section .eyebrow{color:var(--c-copper)}
+.os-section .eyebrow::before{background:var(--c-copper)}
+.os-section h2{color:var(--c-ink)}
+.os-section .lead{color:var(--c-ink-soft)}
 .os-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:60px}
 @media (max-width:880px){.os-grid{grid-template-columns:1fr}}
 .os-card{
   padding:36px 32px;
-  background:rgba(246,243,236,0.10);
-  border:1px solid rgba(201,168,106,0.35);
-  border-top:2px solid rgba(201,168,106,0.7);
+  background:var(--c-paper);
+  border:1px solid var(--c-line-strong);
+  border-top:2px solid var(--c-forest);
   border-radius:3px;position:relative;
   transition:border-color .3s, transform .3s;
 }
-.os-card:hover{border-color:var(--c-gold);border-top-color:var(--c-gold);transform:translateY(-4px)}
+.os-card:hover{border-color:var(--c-forest);border-top-color:var(--c-forest);transform:translateY(-4px)}
 .os-num{
   font-family:var(--font-display);font-style:italic;font-weight:300;
-  font-size:42px;color:var(--c-gold);margin-bottom:18px;line-height:1;
+  font-size:42px;color:var(--c-forest);margin-bottom:18px;line-height:1;
 }
-.os-card h3{color:#ffffff;font-size:20px;margin-bottom:14px;font-weight:600;letter-spacing:-0.01em}
-.os-flow{font-family:var(--font-display);font-style:italic;font-weight:400;font-size:15px;color:var(--c-gold-soft);margin-bottom:16px;letter-spacing:0.005em}
-.os-card p{font-size:14px;color:rgba(246,243,236,0.95);line-height:1.65}
+.os-card h3{color:var(--c-ink);font-size:20px;margin-bottom:14px;font-weight:600;letter-spacing:-0.01em}
+.os-flow{font-family:var(--font-display);font-style:italic;font-weight:400;font-size:15px;color:var(--c-copper);margin-bottom:16px;letter-spacing:0.005em}
+.os-card p{font-size:14px;color:var(--c-ink-soft);line-height:1.65}
 .os-ids{
   margin-top:60px;padding:36px;
-  border:1px solid rgba(201,168,106,0.18);
+  border:1px solid var(--c-line-strong);
   border-radius:3px;
   display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;
 }
 @media (max-width:780px){.os-ids{grid-template-columns:1fr}}
-.os-ids-label{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--c-gold)}
+.os-ids-label{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--c-forest)}
 .os-ids-pills{display:flex;flex-wrap:wrap;gap:8px}
-.os-pill{padding:8px 16px;border:1px solid rgba(201,168,106,0.3);border-radius:200px;font-size:12px;color:var(--c-paper);letter-spacing:0.02em}
+.os-pill{padding:8px 16px;border:1px solid var(--c-line-strong);border-radius:200px;font-size:12px;color:var(--c-forest);letter-spacing:0.02em}
 
 /* ============ USECASE ============ */
 .uc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--c-line-strong);border-right:none;border-bottom:none}
@@ -425,7 +425,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 }
 
 /* ============ REVENUE ============ */
-.rev-strip{background:var(--c-ink);color:var(--c-paper)}
+.rev-strip{background:var(--c-ink) !important;color:var(--c-paper)}
 .rev-strip .eyebrow{color:var(--c-gold)}
 .rev-strip .eyebrow::before{background:var(--c-gold)}
 .rev-strip h2{color:var(--c-paper)}
@@ -496,7 +496,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .stack-desc{font-size:13px;color:var(--c-ink-soft);line-height:1.55;margin-bottom:6px}
 
 /* ============ DECISION ============ */
-.dec-section{background:var(--c-forest);color:var(--c-paper)}
+.dec-section{background:var(--c-forest) !important;color:var(--c-paper)}
 .dec-section .eyebrow{color:var(--c-gold)}
 .dec-section .eyebrow::before{background:var(--c-gold)}
 .dec-section h2{color:var(--c-paper)}
@@ -558,7 +558,7 @@ h1,h2,h3,h4{font-weight:400;letter-spacing:-0.025em;line-height:1.1;color:var(--
 .poc-week ul li b{color:var(--c-ink);font-weight:600}
 
 /* ============ ROI SIMULATION ============ */
-.roi-section{background:var(--c-ink);color:var(--c-paper)}
+.roi-section{background:var(--c-ink) !important;color:var(--c-paper)}
 .roi-section .eyebrow{color:var(--c-gold)}
 .roi-section .eyebrow::before{background:var(--c-gold)}
 .roi-section h2{color:var(--c-paper)}
@@ -810,7 +810,7 @@ footer{
 <section id="os" class="os-section">
   <div class="container">
     <div class="eyebrow reveal">03 · North Star Operating Model</div>
-    <h2 class="h-section reveal" style="transition-delay:.1s">GeoAI OS,<br/>세 개의 <em style="font-family:var(--font-display);font-style:italic;color:var(--c-gold)">학습 루프</em>로 운영된다.</h2>
+    <h2 class="h-section reveal" style="transition-delay:.1s">GeoAI OS,<br/>세 개의 <em style="font-family:var(--font-display);font-style:italic;color:var(--c-forest)">학습 루프</em>로 운영된다.</h2>
     <p class="lead reveal" style="transition-delay:.15s">프로젝트마다 생성되는 데이터를 다음 수주·설계·시공·정비에 재사용한다. 데이터 해자는 모델이 아니라 도메인 규칙과 성과 검증 체계에서 만들어진다.</p>
 
     <div class="os-grid reveal-stagger">

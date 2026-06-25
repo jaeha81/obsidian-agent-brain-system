@@ -878,6 +878,17 @@
       "added": "2026-06-24",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-065",
+      "title": "협력사 단가 입수 시 위 10개 항목 자동 검증 로직 (Track C 후속).",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-24",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }

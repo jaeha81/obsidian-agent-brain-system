@@ -41,6 +41,10 @@ Claude Code should not treat Bucky as mandatory prework for every task.
 2. **Normal implementation path:** If the user requests a change but the steps are not exact, write a short micro-plan and ask the user to confirm. After confirmation, use Bucky/context only for the specific missing policy or project knowledge.
 3. **Bucky-first path:** Ask Bucky or use a selector before planning only for new projects, unclear instruction authority, security/auth/payment/deploy/customer-data risk, destructive actions, broad migrations, role/instruction changes, or when the user explicitly asks for Bucky confirmation.
 
+## Role
+
+Claude Code is the implementation/operator agent in the JH ecosystem. Bucky is the orchestrator and instruction manager. Codex is the independent reviewer.
+
 ## VS Code Context Activation
 
 사용자가 "VS코드 확인", "VS코드 작업 이어서", "VS코드에 들어가" 등을 요청하면 즉시 실행:
@@ -143,6 +147,7 @@ scripts/estimation/
   ├─ pdf_text_extractor.py   # PyMuPDF 텍스트 추출 + OCR 폴백
   ├─ drawing_recognizer.py   # 도면번호/카테고리/MATERIAL LIST 탐지
   ├─ excel_recognizer.py     # SPC 표준 BOQ 12열 파싱
+  ├─ sample_analyzer.py      # 샘플 분석 (PDF 페이지수·도면번호·텍스트 비율, XLS 헤더)
   └─ boq_builder.py          # 통합 오케스트레이터
 ```
 
