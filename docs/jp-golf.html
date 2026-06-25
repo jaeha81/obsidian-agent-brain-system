@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JP Golf — 한 마디면 일본 골프 예약 끝</title>
-<meta name="description" content="AI가 사람처럼 먼저 말을 걸어 편하게 상담합니다. 딱딱한 AI 말투 없이, 실제 상담사처럼 일본 골프장 예약을 30초 안에 도와드립니다.">
+<meta name="description" content="일본 골프 티타임을 한국어로 실시간 검색하고 공식 예약 페이지로 연결합니다. 지역·날짜·인원을 말씀해 주세요.">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -38,6 +38,21 @@
   }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; cursor: pointer; border: none; background: none; }
+
+  /* Beta banner */
+  .beta-banner {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: #7c3aed;
+    color: #fff;
+    text-align: center;
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .beta-banner a { color: #e9d5ff; text-decoration: underline; }
 
   /* Nav */
   .nav {
@@ -416,33 +431,44 @@
     vertical-align: middle;
   }
 
-  .booking-success {
-    background: linear-gradient(135deg, var(--green-deep), var(--green));
-    color: var(--cream);
+  .redirect-card {
+    background: var(--green-pale);
+    border: 1.5px solid var(--green-soft);
     border-radius: 14px;
     padding: 18px;
     align-self: flex-start;
     max-width: 92%;
     animation: msgIn 0.4s ease-out;
   }
-  .booking-success h5 {
+  .redirect-card h5 {
     font-size: 0.78rem;
     font-weight: 700;
-    color: var(--gold-soft);
+    color: var(--green-deep);
     letter-spacing: 0.5px;
     margin-bottom: 8px;
     text-transform: uppercase;
   }
-  .booking-success .num {
-    font-size: 1.2rem;
-    font-weight: 800;
-    margin-bottom: 10px;
-    letter-spacing: -0.5px;
-  }
-  .booking-success p {
+  .redirect-card p {
     font-size: 0.82rem;
-    color: rgba(248, 244, 237, 0.85);
+    color: var(--ink);
     line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .redirect-card a.redirect-btn {
+    display: inline-block;
+    background: var(--green-deep);
+    color: var(--cream);
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .redirect-card .price-note {
+    font-size: 0.74rem;
+    color: var(--gray);
+    margin-top: 8px;
+    line-height: 1.5;
   }
 
   /* Chat input */
@@ -871,6 +897,11 @@
 </head>
 <body>
 
+<!-- Beta Banner -->
+<div class="beta-banner">
+  🔵 베타 데모 · 실제 예약은 제휴사 공식 페이지에서 완료됩니다 · 표시된 데이터는 예시입니다
+</div>
+
 <!-- Nav -->
 <nav class="nav">
   <div class="nav-inner">
@@ -890,32 +921,30 @@
 <!-- Hero with chat -->
 <section class="hero" id="chat">
   <div>
-    <div class="hero-eyebrow">사람처럼 대화하는 AI · 24시간 상담</div>
+    <div class="hero-eyebrow">베타 서비스 · 일본 골프 플랜 검색</div>
     <h1>
-      딱딱한 AI 말투 없이,<br>
-      <em>편하게 상담받으세요</em>
+      일본 골프 티타임,<br>
+      <em>한국어로 실시간 검색</em>
     </h1>
     <p class="hero-sub">
-      AI가 먼저 자연스럽게 물어봐요. 어렵게 입력하실 필요 없이,
-      편하게 대답만 하시면 됩니다.
-      2,000개+ 일본 골프장에서 최적의 티타임을 30초 안에 찾아드립니다.
+      지역·날짜·인원을 말씀해 주세요. 실제 검색 가능한 플랜을 비교하고 공식 예약 페이지로 연결합니다.
     </p>
     <div class="hero-stats">
       <div>
-        <div class="stat-num">2,000+</div>
-        <div class="stat-label">제휴 골프장</div>
+        <div class="stat-num">일본</div>
+        <div class="stat-label">골프장 검색</div>
       </div>
       <div>
-        <div class="stat-num">~30초</div>
-        <div class="stat-label">평균 검색</div>
+        <div class="stat-num">실시간</div>
+        <div class="stat-label">플랜 비교</div>
       </div>
       <div>
-        <div class="stat-num">100%</div>
-        <div class="stat-label">자동 예약</div>
+        <div class="stat-num">공식</div>
+        <div class="stat-label">예약 페이지 연결</div>
       </div>
       <div>
-        <div class="stat-num">24/7</div>
-        <div class="stat-label">상담 운영</div>
+        <div class="stat-num">한국어</div>
+        <div class="stat-label">상담 AI</div>
       </div>
     </div>
   </div>
@@ -926,7 +955,7 @@
       <div class="chat-avatar">JP</div>
       <div class="chat-id">
         <strong>JP Golf 상담 AI</strong>
-        <span class="chat-id-status">실시간 응답 중</span>
+        <span class="chat-id-status">베타 데모 · 예시 결과 표시</span>
       </div>
     </div>
     <div class="chat-body" id="chatBody"></div>
@@ -947,11 +976,11 @@
   <div class="trust-inner">
     <div class="trust-item">
       <div class="trust-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v6c0 5 4 9 9 10 5-1 9-5 9-10V7l-9-5z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       </div>
       <div class="trust-text">
-        <strong>통신판매업 정식 신고</strong>
-        <span>여행업 허가 외 안전 거래</span>
+        <strong>베타 서비스</strong>
+        <span>현재 데모 데이터로 운영 중</span>
       </div>
     </div>
     <div class="trust-item">
@@ -959,26 +988,26 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
       <div class="trust-text">
-        <strong>실시간 가용 조회</strong>
-        <span>락쿠텐 고라 직접 연동</span>
+        <strong>일본 골프장 검색</strong>
+        <span>실제 플랜 비교 예정</span>
       </div>
     </div>
     <div class="trust-item">
       <div class="trust-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </div>
       <div class="trust-text">
-        <strong>예약 후 즉시 확정</strong>
-        <span>예약증 자동 한국어 번역</span>
+        <strong>공식 예약 페이지 연결</strong>
+        <span>최종 예약은 제휴사에서 완료</span>
       </div>
     </div>
     <div class="trust-item">
       <div class="trust-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
       <div class="trust-text">
-        <strong>안전 결제</strong>
-        <span>계좌 입금 AI 자동 확인</span>
+        <strong>한국어 상담 AI</strong>
+        <span>편하게 대화하듯 검색</span>
       </div>
     </div>
   </div>
@@ -1005,8 +1034,8 @@
     </div>
     <div class="step">
       <div class="step-num">STEP 03</div>
-      <h3>"예약해줘" 한 마디로 확정</h3>
-      <p>고객 확인 후 AI가 자동으로 예약을 잡고, 예약증을 한국어로 번역해 발송합니다. 결제는 계좌 입금 AI 연동으로 자동 확인됩니다.</p>
+      <h3>조건 확인 후 공식 예약 페이지로 이동</h3>
+      <p>원하는 플랜을 선택하면 제휴사 공식 예약 페이지로 연결됩니다. 최종 가격·취소 정책·포함 조건은 예약 페이지에서 확인하세요.</p>
     </div>
   </div>
 </section>
@@ -1203,25 +1232,25 @@
     <div>
       <h6>고객지원</h6>
       <ul>
-        <li><a href="#">예약 조회</a></li>
-        <li><a href="#">취소·변경</a></li>
-        <li><a href="#">결제 안내</a></li>
-        <li><a href="#">제휴 문의</a></li>
+        <li><a href="mailto:dltkddlf231@gmail.com">이메일 문의</a></li>
+        <li><a href="#faq">자주 묻는 질문</a></li>
       </ul>
+      <p style="font-size:0.74rem;margin-top:10px;color:rgba(248,244,237,0.45);line-height:1.6;">예약·결제·취소는 제휴사<br>공식 예약 페이지에서 진행됩니다.</p>
     </div>
     <div>
-      <h6>회사</h6>
+      <h6>안내</h6>
       <ul>
-        <li><a href="#">소개</a></li>
-        <li><a href="#">이용약관</a></li>
-        <li><a href="#">개인정보처리방침</a></li>
-        <li><a href="#">사업자 정보</a></li>
+        <li><span style="color:rgba(248,244,237,0.5);">이용약관 (준비 중)</span></li>
+        <li><span style="color:rgba(248,244,237,0.5);">개인정보처리방침 (준비 중)</span></li>
+        <li><span style="color:rgba(248,244,237,0.5);">사업자 정보 (준비 중)</span></li>
       </ul>
     </div>
   </div>
   <div class="footer-legal">
-    상호 JP Golf · 통신판매업 신고 예정 · 대표 재하 · 사업자등록 진행 중<br>
-    본 서비스는 골프장 티타임 예약 중개만 제공하며 여행업 허가 대상이 아닙니다. © 2026 JP Golf. All rights reserved.
+    상호 JP Golf · 대표 재하 · 사업자등록 진행 중 · 통신판매업 신고 예정<br>
+    본 서비스는 베타 데모로 운영 중입니다. 현재 표시되는 골프장·가격·날짜는 예시 데이터이며 실제 예약·결제 기능은 제공되지 않습니다.<br>
+    최종 예약과 결제는 제휴사 공식 예약 페이지에서 완료됩니다. 표시된 가격과 재고는 실시간으로 변동될 수 있습니다.<br>
+    문의: dltkddlf231@gmail.com · © 2026 JP Golf. All rights reserved.
   </div>
 </footer>
 
@@ -1272,7 +1301,8 @@
       btn.textContent = t;
       btn.addEventListener('click', () => {
         wrap.remove();
-        handleUserInput(t);
+        const isBookingBtn = t.startsWith('공식 페이지에서 최종 가격 확인');
+        handleUserInput(t, { _explicitBooking: isBookingBtn });
       });
       wrap.appendChild(btn);
     });
@@ -1294,7 +1324,7 @@
     const el = document.createElement('div');
     el.className = 'course-result';
     el.innerHTML = `
-      <div class="course-name">${course.tag ? `<span class="course-tag">${course.tag}</span>` : ''}${course.name}</div>
+      <div class="course-name">${course.tag ? `<span class="course-tag">${course.tag}</span>` : ''}<span style="font-size:0.7rem;color:#b8893d;font-weight:600;margin-right:6px;">[예시]</span>${course.name}</div>
       <div class="course-meta">${course.jp} · ${course.region}</div>
       <div class="course-foot">
         <div class="course-time">${course.time}</div>
@@ -1310,16 +1340,14 @@
     scrollBottom();
   }
 
-  function addBookingSuccess() {
+  function addRedirectCard(course) {
     const el = document.createElement('div');
-    el.className = 'booking-success';
-    const bookingNum = 'JPG-' + new Date().getFullYear() + '-' +
-      Math.random().toString(36).substring(2, 8).toUpperCase();
+    el.className = 'redirect-card';
     el.innerHTML = `
-      <h5>예약 확정</h5>
-      <div class="num">예약번호 ${bookingNum}</div>
-      <p>예약증이 한국어로 번역되어 카카오톡과 이메일로 발송됩니다.<br>
-      입금 계좌가 곧 안내되며, 입금 확인 즉시 예약이 최종 확정됩니다.</p>
+      <h5>공식 예약 페이지 연결</h5>
+      <p>${course ? course.name + ' — 예시 데이터입니다. 최종 가격·재고는 공식 페이지에서 확인하세요.' : '최종 가격과 재고는 제휴사 공식 예약 페이지에서 확인됩니다.'}</p>
+      <a class="redirect-btn" href="https://booking.rakuten.co.jp/golf/" target="_blank" rel="noopener sponsored">공식 페이지에서 최종 가격 확인 및 예약 →</a>
+      <div class="price-note">표시된 가격과 재고는 실시간으로 변동될 수 있으며 최종 조건은 제휴사 예약 페이지에서 확인됩니다.</div>
     `;
     body.appendChild(el);
     scrollBottom();
@@ -1364,7 +1392,7 @@
 
         await aiSay(
           `${collected.region}이요! 좋은 선택이네요~ 언제 가실 것 같아요? 그리고 몇 분이서 가세요?`,
-          ['다음 주말 3명', '7월 둘째 주 4명', '이번 달 안에 2명', '아직 정하지 못했어요']
+          ['다음 주말 3명', '다음 달 둘째 주 4명', '이번 달 안에 2명', '아직 정하지 못했어요']
         );
         state = 'ask_date_party';
 
@@ -1373,12 +1401,44 @@
         const peopleMatch = text.match(/(\d+)\s*명|(\d+)\s*인/);
         collected.people = peopleMatch ? `${peopleMatch[1] || peopleMatch[2]}명` : '4명';
 
-        // Extract date hint
-        if (/다음 주말|이번 주말|주말/.test(text)) collected.date = '다가오는 주말 (6/29 ~ 6/30)';
-        else if (/7월|다음 달/.test(text)) collected.date = '7월 둘째 주 (7/13 ~ 7/14)';
-        else if (/이번 달/.test(text)) collected.date = '이번 달 안 (6/25 ~ 6/30)';
+        // Asia/Seoul 기준 동적 날짜 계산
+        function seoulDate(offsetDays = 0) {
+          const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+          d.setDate(d.getDate() + offsetDays);
+          return d;
+        }
+        function nextWeekend() {
+          const d = seoulDate();
+          const dow = d.getDay(); // 0=Sun, 6=Sat
+          const daysToSat = dow === 0 ? 6 : (6 - dow);
+          const sat = seoulDate(daysToSat === 0 ? 7 : daysToSat);
+          const sun = seoulDate(daysToSat === 0 ? 8 : daysToSat + 1);
+          const fmt = (x) => `${x.getMonth()+1}/${x.getDate()}(${['일','월','화','수','목','금','토'][x.getDay()]})`;
+          return `${fmt(sat)} ~ ${fmt(sun)}`;
+        }
+        function nextMonthSecondWeek() {
+          const d = seoulDate();
+          const nm = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+          const dow = nm.getDay();
+          const firstMon = new Date(nm); firstMon.setDate(1 + (dow === 0 ? 1 : (8 - dow) % 7));
+          const sat = new Date(firstMon); sat.setDate(firstMon.getDate() + 12);
+          const sun = new Date(sat); sun.setDate(sat.getDate() + 1);
+          const m = nm.getMonth() + 1;
+          const fmt = (x) => `${x.getDate()}일`;
+          return `${m}월 둘째 주 (${fmt(sat)} ~ ${fmt(sun)})`;
+        }
+        function thisMonthEnd() {
+          const d = seoulDate();
+          const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+          const m = d.getMonth() + 1;
+          return `이번 달 안 (${m}/${d.getDate()} ~ ${m}/${last.getDate()})`;
+        }
+
+        if (/다음 주말|이번 주말|주말/.test(text)) collected.date = `다가오는 주말 (${nextWeekend()})`;
+        else if (/다음 달|내달/.test(text)) collected.date = nextMonthSecondWeek();
+        else if (/이번 달/.test(text)) collected.date = thisMonthEnd();
         else if (/정하지|아직/.test(text)) collected.date = '미정 — 추천 안내';
-        else collected.date = '협의';
+        else collected.date = text.trim() || '협의';
 
         await aiSay(
           '오케이~ 그럼 몇 시쯤 라운딩 하고 싶으세요? 일찍 나가는 편이에요, 아니면 느긋하게 나가는 편이에요?',
@@ -1452,25 +1512,16 @@
           `· ${collected.selected.name} (${collected.selected.jp})\n` +
           `· 티타임: ${collected.selected.time.split(' / ')[0]}\n` +
           `· 1인 ¥${collected.selected.price.toLocaleString()} × ${collected.people}\n\n` +
-          `이대로 예약 진행할게요?`,
-          ['네, 예약해주세요', '다른 시간으로 변경', '취소할게요']
+          `조건을 확인하고 공식 예약 페이지로 이동하시겠어요?`,
+          ['공식 페이지에서 최종 가격 확인 및 예약', '다른 시간으로 변경', '취소할게요']
         );
         state = 'final_confirm';
 
       } else if (state === 'final_confirm') {
-        if (/네|예약|진행|좋/.test(text)) {
-          addTyping();
-          await delay(1100);
-          removeTyping();
-          addMsg('ai', '잠깐만요, 예약 지금 넣고 있어요~');
-          await delay(1500);
-          addMsg('ai', '완료됐어요! 예약 확정됐습니다 🎉');
-          await delay(400);
-          addBookingSuccess();
-          await delay(800);
-          await aiSay('다른 거 필요하신 거 있으세요? 호텔이나 픽업도 곧 도와드릴 수 있게 준비하고 있어요.',
-            ['처음부터 다시', '예약 내역 확인', '문의하기']
-          );
+        // 부정 표현을 먼저 검사 (P0-04)
+        if (/취소|아니|안 해|안해|하지 마|하지마|예약 말|예약하지/.test(text)) {
+          await aiSay('넵, 알겠어요! 언제든 다시 오세요.',
+            ['처음부터 다시']);
           state = 'done';
         } else if (/시간|변경/.test(text)) {
           await aiSay('알겠어요. 다른 티타임 바로 다시 찾아볼게요…');
@@ -1478,10 +1529,23 @@
           setTimeout(() => {
             courses.forEach((c, i) => addCourseResult(c, i));
           }, 1200);
-        } else {
-          await aiSay('넵, 알겠어요! 언제든 다시 오세요. 처음부터 다시 시작하고 싶으시면 아래 버튼 눌러주세요.',
-            ['처음부터 다시']);
+        } else if (options._explicitBooking) {
+          // 명시적 버튼 클릭으로만 공식 페이지 연결
+          addTyping();
+          await delay(800);
+          removeTyping();
+          addMsg('ai', '제휴사 공식 예약 페이지로 이동합니다.');
+          await delay(400);
+          addRedirectCard(collected.selected);
+          await delay(800);
+          await aiSay('공식 예약 페이지에서 최종 가격과 조건을 확인하신 후 예약해 주세요.',
+            ['처음부터 다시']
+          );
           state = 'done';
+        } else {
+          await aiSay('아래 버튼을 클릭하시면 공식 예약 페이지로 이동합니다.',
+            ['공식 페이지에서 최종 가격 확인 및 예약', '다른 골프장 보기', '처음부터 다시']
+          );
         }
 
       } else if (state === 'done') {
