@@ -9,5 +9,8 @@
   "scripts": {
     "test:js": "node --test tests/test_safe_redirect.js",
     "test:revenue": "python -m unittest tests.test_jh_google_revenue_workflow"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.55.0"
   }
 }

@@ -1260,8 +1260,9 @@
   const form = document.getElementById('chatForm');
   const input = document.getElementById('chatInput');
 
-  let state = 'greet';
-  let collected = {};
+  let chatMessages = [];
+  let selectedCourse = null;
+  const GOLF_API_URL = '/api/golf-chat';
 
   function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -1334,7 +1335,8 @@
     el.addEventListener('click', () => {
       document.querySelectorAll('.course-result').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
-      handleUserInput('이걸로 예약해주세요: ' + course.name, { skipEcho: false, override: 'select:' + idx });
+      selectedCourse = course;
+      handleUserInput('이걸로 예약해주세요: ' + course.name);
     });
     body.appendChild(el);
     scrollBottom();
@@ -1373,193 +1375,82 @@
   function handleUserInput(text, options = {}) {
     if (!options.skipEcho) addMsg('user', text);
 
-    setTimeout(async () => {
-      const lower = text.toLowerCase();
-
-      // State machine
-      if (state === 'greet') {
-        if (/도쿄|tokyo|치바|나리타/.test(lower) || /도쿄/.test(text)) {
-          collected.region = '도쿄 근교';
-        } else if (/오사카|교토|간사이/.test(text)) {
-          collected.region = '오사카·교토';
-        } else if (/후쿠오카|규슈/.test(text)) {
-          collected.region = '후쿠오카';
-        } else if (/하코네|후지/.test(text)) {
-          collected.region = '하코네';
-        } else {
-          collected.region = '도쿄 근교';
-        }
-
-        await aiSay(
-          `${collected.region}이요! 좋은 선택이네요~ 언제 가실 것 같아요? 그리고 몇 분이서 가세요?`,
-          ['다음 주말 3명', '다음 달 둘째 주 4명', '이번 달 안에 2명', '아직 정하지 못했어요']
+    // 처음부터 다시 요청
+    if (/처음부터 다시/.test(text)) {
+      (async () => {
+        chatMessages = [];
+        selectedCourse = null;
+        await aiSay('다시 시작할게요! 일본 어디로 가실 거예요? 😊',
+          ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']
         );
-        state = 'ask_date_party';
+        chatMessages = [{ role: 'assistant', content: '다시 시작할게요! 일본 어디로 가실 거예요? 😊' }];
+      })();
+      return;
+    }
 
-      } else if (state === 'ask_date_party') {
-        // Extract people
-        const peopleMatch = text.match(/(\d+)\s*명|(\d+)\s*인/);
-        collected.people = peopleMatch ? `${peopleMatch[1] || peopleMatch[2]}명` : '4명';
-
-        // Asia/Seoul 기준 동적 날짜 계산
-        function seoulDate(offsetDays = 0) {
-          const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-          d.setDate(d.getDate() + offsetDays);
-          return d;
-        }
-        function nextWeekend() {
-          const d = seoulDate();
-          const dow = d.getDay(); // 0=Sun, 6=Sat
-          const daysToSat = dow === 0 ? 6 : (6 - dow);
-          const sat = seoulDate(daysToSat === 0 ? 7 : daysToSat);
-          const sun = seoulDate(daysToSat === 0 ? 8 : daysToSat + 1);
-          const fmt = (x) => `${x.getMonth()+1}/${x.getDate()}(${['일','월','화','수','목','금','토'][x.getDay()]})`;
-          return `${fmt(sat)} ~ ${fmt(sun)}`;
-        }
-        function nextMonthSecondWeek() {
-          const d = seoulDate();
-          const nm = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-          const dow = nm.getDay();
-          const firstMon = new Date(nm); firstMon.setDate(1 + (dow === 0 ? 1 : (8 - dow) % 7));
-          const sat = new Date(firstMon); sat.setDate(firstMon.getDate() + 12);
-          const sun = new Date(sat); sun.setDate(sat.getDate() + 1);
-          const m = nm.getMonth() + 1;
-          const fmt = (x) => `${x.getDate()}일`;
-          return `${m}월 둘째 주 (${fmt(sat)} ~ ${fmt(sun)})`;
-        }
-        function thisMonthEnd() {
-          const d = seoulDate();
-          const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-          const m = d.getMonth() + 1;
-          return `이번 달 안 (${m}/${d.getDate()} ~ ${m}/${last.getDate()})`;
-        }
-
-        if (/다음 주말|이번 주말|주말/.test(text)) collected.date = `다가오는 주말 (${nextWeekend()})`;
-        else if (/다음 달|내달/.test(text)) collected.date = nextMonthSecondWeek();
-        else if (/이번 달/.test(text)) collected.date = thisMonthEnd();
-        else if (/정하지|아직/.test(text)) collected.date = '미정 — 추천 안내';
-        else collected.date = text.trim() || '협의';
-
-        await aiSay(
-          '오케이~ 그럼 몇 시쯤 라운딩 하고 싶으세요? 일찍 나가는 편이에요, 아니면 느긋하게 나가는 편이에요?',
-          ['아침 7~8시', '오전 9~10시', '오후 라운딩도 OK', '아무 때나 좋아요']
-        );
-        state = 'ask_time';
-
-      } else if (state === 'ask_time') {
-        if (/7|새벽|일찍/.test(text)) collected.time = '아침 7~8시 선호';
-        else if (/9|10/.test(text)) collected.time = '오전 9~10시 선호';
-        else if (/오후/.test(text)) collected.time = '오후 라운딩 가능';
-        else collected.time = '시간 무관';
-
-        await aiSay('거의 다 됐어요! 마지막으로, 특별히 원하시는 게 있으세요? 한국어 되는 곳이면 좋다든가, 가성비 있는 곳이면 좋다든가요.',
-          ['한국어 가능한 곳', '가성비 좋은 곳', '프리미엄 코스', '상관없어요']
-        );
-        state = 'ask_pref';
-
-      } else if (state === 'ask_pref') {
-        if (/한국어/.test(text)) collected.pref = '한국어 응대 가능';
-        else if (/가성비|저렴|싸|예산/.test(text)) collected.pref = '가성비 우선';
-        else if (/프리미엄|고급/.test(text)) collected.pref = '프리미엄 코스 선호';
-        else collected.pref = '특별한 요청 없음';
-
+    // 명시적 예약 버튼 클릭 → AI 경유 없이 바로 redirect 카드
+    if (options._explicitBooking) {
+      (async () => {
         addTyping();
-        await delay(800);
+        await delay(600);
         removeTyping();
-        addMsg('ai', '잠깐, 제가 이해한 내용 한번 정리해드릴게요. 맞는지 확인해 주세요!');
+        addMsg('ai', '제휴사 공식 예약 페이지로 이동합니다.');
         await delay(300);
-        addInfoCard({
-          '지역': collected.region,
-          '날짜': collected.date,
-          '인원': collected.people,
-          '티오프': collected.time,
-          '요청사항': collected.pref
-        });
-        await delay(400);
-        addSuggestions(['맞아요, 검색해주세요', '날짜 수정할게요', '인원 수정할게요']);
-        state = 'confirm';
+        addRedirectCard(selectedCourse);
+        await delay(800);
+        addMsg('ai', '공식 예약 페이지에서 최종 가격과 조건을 확인하신 후 예약해 주세요.');
+        addSuggestions(['처음부터 다시']);
+        chatMessages.push({ role: 'assistant', content: '공식 예약 페이지로 연결했습니다. 처음부터 다시 상담하시려면 알려주세요.' });
+      })();
+      return;
+    }
 
-      } else if (state === 'confirm') {
-        if (/맞|네|좋|검색|진행|예/.test(text)) {
-          addTyping();
-          await delay(900);
-          removeTyping();
-          addMsg('ai', '잠깐만요, 지금 일본 골프장 바로 뒤지고 있을게요~');
-          await delay(1200);
-          addMsg('ai', `${collected.region} 기준으로 딱 맞는 곳 3군데 찾았어요! 마음에 드는 곳 골라주세요.`);
+    chatMessages.push({ role: 'user', content: text });
+
+    (async () => {
+      addTyping();
+      try {
+        const res = await fetch(GOLF_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: chatMessages })
+        });
+        const data = await res.json();
+        removeTyping();
+
+        if (!res.ok) throw new Error(data.error || 'API error');
+
+        const rawContent = data.content || '죄송해요, 잠시 오류가 발생했어요. 다시 말씀해 주세요!';
+
+        const showCourses = rawContent.includes('[[SHOW_COURSES]]');
+        const bookingMatch = rawContent.match(/\[\[SHOW_BOOKING:(\d)\]\]/);
+
+        const displayText = rawContent
+          .replace(/\[\[SHOW_COURSES\]\]/g, '')
+          .replace(/\[\[SHOW_BOOKING:\d\]\]/g, '')
+          .trim();
+
+        if (displayText) addMsg('ai', displayText);
+        chatMessages.push({ role: 'assistant', content: rawContent });
+
+        if (showCourses) {
           await delay(400);
           courses.forEach((c, i) => addCourseResult(c, i));
-          state = 'pick_course';
-        } else {
-          await aiSay('그렇군요, 어떤 부분 수정해드릴까요?',
-            ['지역 다시 정하기', '날짜 다시 정하기', '인원 변경하기']
-          );
         }
 
-      } else if (state === 'pick_course') {
-        let pickedIdx = 0;
-        if (options.override && options.override.startsWith('select:')) {
-          pickedIdx = parseInt(options.override.split(':')[1], 10);
-        } else {
-          if (/치바|그린|첫|1/.test(text)) pickedIdx = 0;
-          else if (/하코네|긴란|2/.test(text)) pickedIdx = 1;
-          else if (/나리타|노스|3/.test(text)) pickedIdx = 2;
-        }
-        collected.selected = courses[pickedIdx];
-
-        await aiSay(
-          `${collected.selected.name}으로 가시는 거죠! 예약 전에 한 번만 더 확인할게요.\n\n` +
-          `· ${collected.selected.name} (${collected.selected.jp})\n` +
-          `· 티타임: ${collected.selected.time.split(' / ')[0]}\n` +
-          `· 1인 ¥${collected.selected.price.toLocaleString()} × ${collected.people}\n\n` +
-          `조건을 확인하고 공식 예약 페이지로 이동하시겠어요?`,
-          ['공식 페이지에서 최종 가격 확인 및 예약', '다른 시간으로 변경', '취소할게요']
-        );
-        state = 'final_confirm';
-
-      } else if (state === 'final_confirm') {
-        // 부정 표현을 먼저 검사 (P0-04)
-        if (/취소|아니|안 해|안해|하지 마|하지마|예약 말|예약하지/.test(text)) {
-          await aiSay('넵, 알겠어요! 언제든 다시 오세요.',
-            ['처음부터 다시']);
-          state = 'done';
-        } else if (/시간|변경/.test(text)) {
-          await aiSay('알겠어요. 다른 티타임 바로 다시 찾아볼게요…');
-          state = 'pick_course';
-          setTimeout(() => {
-            courses.forEach((c, i) => addCourseResult(c, i));
-          }, 1200);
-        } else if (options._explicitBooking) {
-          // 명시적 버튼 클릭으로만 공식 페이지 연결
-          addTyping();
-          await delay(800);
-          removeTyping();
-          addMsg('ai', '제휴사 공식 예약 페이지로 이동합니다.');
+        if (bookingMatch) {
+          const idx = parseInt(bookingMatch[1], 10);
+          selectedCourse = courses[idx] ?? courses[0];
           await delay(400);
-          addRedirectCard(collected.selected);
-          await delay(800);
-          await aiSay('공식 예약 페이지에서 최종 가격과 조건을 확인하신 후 예약해 주세요.',
-            ['처음부터 다시']
-          );
-          state = 'done';
-        } else {
-          await aiSay('아래 버튼을 클릭하시면 공식 예약 페이지로 이동합니다.',
-            ['공식 페이지에서 최종 가격 확인 및 예약', '다른 골프장 보기', '처음부터 다시']
-          );
+          addSuggestions(['공식 페이지에서 최종 가격 확인 및 예약', '다른 골프장 보기', '처음부터 다시']);
         }
 
-      } else if (state === 'done') {
-        if (/처음|다시/.test(text)) {
-          collected = {};
-          state = 'greet';
-          await aiSay('다시 시작할게요! 일본 어디로 가실 거예요?',
-            ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']
-          );
-        } else {
-          await aiSay('네! 또 궁금한 거 있으면 편하게 물어보세요.');
-        }
+      } catch (err) {
+        removeTyping();
+        console.error('Golf AI error:', err);
+        addMsg('ai', '잠깐 연결에 문제가 생겼어요. 다시 말씀해 주세요!');
       }
-    }, 250);
+    })();
   }
 
   form.addEventListener('submit', (e) => {
@@ -1579,12 +1470,14 @@
 
   // Initial greeting
   (async function init() {
+    chatMessages = [];
+    selectedCourse = null;
     await delay(400);
     addMsg('ai', '안녕하세요~ JP Golf 상담 AI예요 😊');
     await delay(500);
-    await aiSay('일본 골프 여행 계획 중이세요? 어디로 가고 싶으세요? 대충 말씀해 주셔도 제가 다 알아서 찾아드릴게요!',
-      ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']
-    );
+    const greeting = '일본 골프 여행 계획 중이세요? 어디로 가고 싶으세요? 대충 말씀해 주셔도 제가 다 알아서 찾아드릴게요!';
+    await aiSay(greeting, ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']);
+    chatMessages = [{ role: 'assistant', content: '안녕하세요~ JP Golf 상담 AI예요 😊 ' + greeting }];
   })();
 })();
 </script>
