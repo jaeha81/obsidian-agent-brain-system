@@ -68,6 +68,7 @@ if ($reportOk -and -not $SkipGitPush) {
         if ($gitStatus) {
             & git add `
                 "docs/daily-plus.html" `
+                "docs/daily-plus/" `
                 "docs/ai-usage.html" `
                 "ObsidianVault/04_Wiki/daily-plus/" `
                 "ObsidianVault/00_UPGRADE/pulse-evolution/" `
