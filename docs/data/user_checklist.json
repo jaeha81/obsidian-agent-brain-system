@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-25",
+    "last_updated": "2026-06-26",
     "last_completed": "CL-053"
   },
   "tasks": [
@@ -898,6 +898,17 @@
       "category": "자동감지",
       "status": "pending",
       "added": "2026-06-25",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-067",
+      "title": "음성 파일 분석** — Google Drive 링크(`1FNFbp0AHS02K60Y45Govx0tpZbbeMhNz`) jp-golf 보완사항 음성 분석 및 적용. 이전 세션에서 요청됐으나 완료 기록 없음",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-26",
       "source": "discord-auto",
       "refs": []
     }

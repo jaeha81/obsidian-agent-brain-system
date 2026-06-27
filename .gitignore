@@ -188,6 +188,7 @@ logs/
 runtime/
 .rag/
 scripts/.codex_collector_state.json
+.codex/
 
 # Subtitle/caption files
 *.vtt
