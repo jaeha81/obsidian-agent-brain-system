@@ -16,7 +16,7 @@ tags:
 status: knowledge
 has_transcript: false
 graph_cluster: youtube-learning
-deep_analyzed: false
+deep_analyzed: true
 ---
 # Anthropic이 직접 써보고 공개한 ‘AI와 팀으로 일하는 법’ 4가지 원칙
 
@@ -32,7 +32,10 @@ deep_analyzed: false
 
 ## 우리 시스템 적용 포인트
 
-- [ ] 
+- [x] **원칙 1 — 정보 공개 공유**: 모든 맥락은 명시적으로 문서화해야 한다 → CLAUDE.md, Context Pack, Vault 노트 축적 필수. JH 시스템에서 이미 실행 중이지만 갱신 주기 단축 차원에서 보강 가능
+- [x] **원칙 2 — 역할과 도구 명시**: 에이전트에게 역할+도구를 명확히 지정해야 한다 → Bucky(오케스트레이터) / Claude Code(구현) / Codex(검수) 역할 분리 원칙이 이 4원칙 두 번째와 직접 일치. 현행 CLAUDE.md `## Role` 섹션으로 높은 신뢰도 유지
+- [x] **원칙 3 — 북극성(사람이 직접 설정)**: AI가 타협할 수 없는 큼 목표는 사람이 잘라야 한다 → Bucky가 미션/우선순위를 설정하고 Claude Code는 구현 실행만. Approval Gate 원칙(리스크 작업 전 승인 필수)에서 이미 구현 중
+- [x] **원칙 4 — 적혀 있지 않으면 존재 안 함**: AI 에이전트는 문서화된 것만 동작 → 주기적 BUCKY_STATUS.md, HANDOFF_LOG.md, memory/ 업데이트가 이 원칙의 실스. 세션 종료 시 핸드오프 문서 작성 습관 재확인
 
 ## 원본 링크
 

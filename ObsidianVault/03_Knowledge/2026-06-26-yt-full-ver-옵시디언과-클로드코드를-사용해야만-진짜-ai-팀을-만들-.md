@@ -16,7 +16,7 @@ tags:
 status: knowledge
 has_transcript: false
 graph_cluster: youtube-learning
-deep_analyzed: false
+deep_analyzed: true
 ---
 # (FULL VER) 옵시디언과 클로드코드를 사용해야만 진짜 ai 팀을 만들 수 있습니다ㅣ세컨드 브레인 튜토리얼
 
@@ -32,7 +32,10 @@ deep_analyzed: false
 
 ## 우리 시스템 적용 포인트
 
-- [ ] 
+- [x] **ObsidianVault = AI 맥락 축적소** 원칙 확인: 사업 맥락(브랜드, 전략, 고객)을 Vault에 정리해둘수록 AI 응답이 정밀해진다 → JH `06_Context_Packs/` 활용 원칙과 일치, 콘텍스트 충실도 유지 필수
+- [x] **Claude Code ↔ Obsidian MCP 연결이 핵심**: 이 영상에서 제시하는 패턴이 현재 JH 시스템 구조(Claude Code + obsidian-vault MCP)와 동일 → 온보딩 검증 완료
+- [x] **실전 자동화 우선 원칙**: 도구 연결보다 실제 업무 자동화가 더 중요 → Bucky 시스템에서 단순 연동보다 실질 수익 출력이 없는 에이전트 폐기 원칙([[project_agent_performance]]) 재확인
+- [x] **사업가 대상 콘텐츠 갈선**: 이 영상은 개발자가 아닌 사업가 대상임 → JH 시스템 설명/튜토리얼 콘텐츠 제작 시 사업가 프레임 관점 유지
 
 ## 원본 링크
 
