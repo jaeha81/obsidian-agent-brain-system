@@ -24,6 +24,10 @@ watchdog>=4.0             # RAW inbox 실시간 감시 (knowledge_distiller --wa
 # ── 스케줄링 ─────────────────────────────────────────────
 schedule>=1.2             # collection_scheduler 내부 루프
 
+# ── 견적서 분석 엔진 (Track C) ───────────────────────────
+openpyxl>=3.0             # xlsx 파싱 (estimate_analyzer)
+xlrd>=2.0                 # xls 파싱 폴백 (estimate_analyzer)
+
 # ── 유틸리티 ─────────────────────────────────────────────
 # feedparser: pip install feedparser  (선택, 뉴스 수집)
 # openai-whisper: pip install openai-whisper  (선택, 음성 전사)
