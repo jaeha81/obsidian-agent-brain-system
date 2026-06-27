@@ -2662,8 +2662,18 @@ async def ask_bucky(
         history = conversation_history[channel_id]
         _use_mem = False
 
-    # ── Pass 1: Haiku 의도 분류 (NLP hint와 병행) ────────────────────────────
-    intent_result = await asyncio.to_thread(_classify_intent_sync, user_message, list(history))
+    # ── Pass 1 + RAG 병렬 실행 (반응속도 최적화) ────────────────────────────
+    # Pass 1(Haiku 분류)과 RAG 조회를 동시에 시작 — 이전 직렬 실행 대비 3-15초 절약
+    _should_rag = not _should_skip_rag(user_message)
+    _p1_task = asyncio.to_thread(_classify_intent_sync, user_message, list(history))
+    _rag_task = asyncio.to_thread(_get_rag_context, user_message) if _should_rag else None
+
+    if _rag_task is not None:
+        intent_result, _rag_context_raw = await asyncio.gather(_p1_task, _rag_task)
+    else:
+        intent_result = await _p1_task
+        _rag_context_raw = ""
+
     intent = intent_result.get("intent", "AMBIGUOUS")
     context_need = intent_result.get("context_need", "HIGH")
     tone = intent_result.get("tone", "CASUAL")
@@ -2710,8 +2720,16 @@ async def ask_bucky(
             conversation_history[channel_id] = history[-MAX_HISTORY:]
             history = conversation_history[channel_id]
 
-    # ── SMALL_TALK + LOW + quick_answer → Pass 2 생략 (히스토리 없을 때만) ─────
-    if intent == "SMALL_TALK" and context_need == "LOW" and quick_answer and len(history) <= 1:
+    # ── quick_answer 즉시 반환 (Pass 2 생략) ─────────────────────────────────
+    # SMALL_TALK/LOW/simple + quick_answer가 있으면 Pass 2 없이 즉시 반환
+    _can_quick = (
+        quick_answer
+        and context_need == "LOW"
+        and difficulty == "simple"
+        and intent in ("SMALL_TALK", "QUESTION", "EMOTIONAL")
+        and len(history) <= 2
+    )
+    if _can_quick:
         reply = quick_answer
         if _use_mem:
             await asyncio.to_thread(_mem.save_message, channel_id, "assistant", reply)
@@ -2723,12 +2741,11 @@ async def ask_bucky(
         f"{item['role'].title()}: {item['content']}" for item in history
     )
 
-    # RAG: LOW context 또는 단순 메시지는 생략
-    if context_need == "LOW" or _should_skip_rag(user_message):
+    # RAG 결과 적용: context_need=LOW면 병렬로 가져왔어도 버림
+    if context_need == "LOW" or not _should_rag:
         rag_block = ""
     else:
-        rag_context = await asyncio.to_thread(_get_rag_context, user_message)
-        rag_block = f"\n\n{rag_context}" if rag_context else ""
+        rag_block = f"\n\n{_rag_context_raw}" if _rag_context_raw else ""
 
     # ── Pass 2 컨텍스트 선택 (context_need 기반) ────────────────────────────
     full_context = _load_agent_context(channel_id, user_message)
