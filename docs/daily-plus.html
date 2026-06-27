@@ -180,9 +180,9 @@
   </nav>
   <section id="summary" class="hero-grid">
     <div class="panel">
-      <h2>2026-06-27 처리 요약</h2>
+      <h2>2026-06-28 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-06-27T08:00:25+09:00</span>
+        <span class="pill">수집: 2026-06-28T08:00:22+09:00</span>
         <span class="pill">리포트: staged</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
@@ -197,13 +197,13 @@
     <aside class="panel">
       <h2>효율성/호환성</h2>
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="stat blue"><strong>81</strong><span>평균 효율성</span></div>
+        <div class="stat blue"><strong>78</strong><span>평균 효율성</span></div>
         <div class="stat green"><strong>83</strong><span>평균 호환성</span></div>
       </div>
       <div class="mini-grid">
-        <div class="mini"><strong>검증 자동화</strong><span>3</span></div>
-<div class="mini"><strong>지식 후보</strong><span>1</span></div>
-<div class="mini"><strong>에이전트 프롬프트</strong><span>1</span></div>
+        <div class="mini"><strong>지식 후보</strong><span>2</span></div>
+<div class="mini"><strong>검증 자동화</strong><span>2</span></div>
+<div class="mini"><strong>명령 페이로드</strong><span>1</span></div>
       </div>
     </aside>
   </section>
@@ -246,9 +246,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-06-27</strong><p>5 후보 · 효율 81 · 호환 83</p></div>
-        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 +0 · 호환 +8</p></div>
-        <div class="compare-card"><span>누적</span><strong>209</strong><p>29일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-06-28</strong><p>5 후보 · 효율 78 · 호환 83</p></div>
+        <div class="compare-card"><span>진화 폭</span><strong>-3</strong><p>후보 수 변화 · 효율 -3 · 호환 +8</p></div>
+        <div class="compare-card"><span>누적</span><strong>214</strong><p>30일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -542,6 +542,16 @@
           </div>
           <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-06-28</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:42%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -558,7 +568,10 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 2</strong><span>증거 공백과 승인 문구</span><em>스테이징</em></li>
+        <li><strong>P1 Card 2</strong><span>작은 재조정 스크립트와 감사 스키마</span><em>스테이징</em></li>
+<li><strong>P1 Card 3</strong><span>안전 쓰기용 캐나리 점검 계획</span><em>스테이징</em></li>
+<li><strong>P1 Card 4</strong><span>리플레이 드라이런과 승인 라인</span><em>스테이징</em></li>
+<li><strong>P1 Card 5</strong><span>4일 예측과 백프레셔 정책</span><em>스테이징</em></li>
       </ul>
     </div>
   </section>
@@ -654,7 +667,7 @@
   <section id="daily-plus-candidates">
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P3&#x27;: 3, &#x27;P1&#x27;: 1, &#x27;P2&#x27;: 1} · 상태 {&#x27;staged&#x27;: 5}</span>
+      <span class="muted">우선순위 {&#x27;P3&#x27;: 1, &#x27;P1&#x27;: 4} · 상태 {&#x27;staged&#x27;: 5}</span>
     </div>
     <div class="grid">
 
@@ -694,7 +707,7 @@
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 2. 증거 공백과 승인 문구</h3>
+        <h3>Card 2. 작은 재조정 스크립트와 감사 스키마</h3>
         <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
         <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
@@ -714,17 +727,17 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>증거 공백과 승인 문구 증거 공백과 승인 문구 지금까지 집계한 웹훅 수신·감사(audit) 흐름 점검 결과와 즉시 조치안을 한눈에 정리해 드립니다. 왜 중요하죠? 웹훅 영수증(서버가 “이 이벤트를 받았다”는 서명·해시 포함 기록)과 감사 로그가 빠지면, 재처리(replay)나 포렌식 때 중복 처리·데이터 유실·위변조 의심을 구분하기 어렵습니다. 아래는 날짜별 리스크와 권장 액션입니다....</p>
+          <p>작은 재조정 스크립트와 감사 스키마 작은 재조정 스크립트와 감사 스키마 데이터 스냅샷/로그를 S3에 쌓는다면, “매일(또는 청크 단위) 업로드가 제대로 쓰였는지”를 자동으로 검증·증거화하는 초간단 리컨실(무결성 대조) 스크립트를 바로 쓸 수 있게 정리했어요. 무엇을 해결하나요? 업로드된 파일들을 사전식(lexical) 순서로 연결(concat) → sha256 계산 기존에 기록해둔 감사...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P3" data-category="verification">
+      <article class="candidate" data-card="3" data-status="staged" data-priority="P1" data-category="verification">
         <div class="candidate-top">
-          <span class="badge priority">P3</span>
+          <span class="badge priority">P1</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 3. 48시간 지출 스냅샷</h3>
+        <h3>Card 3. 안전 쓰기용 캐나리 점검 계획</h3>
         <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
         <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
         <div class="bars">
@@ -744,67 +757,67 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>48시간 지출 스냅샷 48시간 지출 스냅샷 지금 운영 중인 AI/API 사용량을 기준으로 비용 초과 위험 알림을 정리했어요. 비용 사용 현황 &amp; 48시간 예측 최근 7일 지출: $1,120 최근 24시간 지출: $180 이번 버킷 사용액: $2,950 / $4,000 (73.8%) 48시간 결정론 예측: $7,430 → 버킷의 약 185.8% (초과 위험 큼) 단계별 게이트(즉시 적용...</p>
+          <p>안전 쓰기용 캐나리 점검 계획 안전 쓰기용 캐나리 점검 계획 안전한 자동쓰기(ingest) 경로를 5분 안에 검증하는 “카나리아(canary) 체크리스트”를 준비했어요—프론트매터→보관소→웹훅 영수증→감사 S3까지 전 구간이 제대로 서명·무결성·지연 한도를 만족하는지 확인합니다. 왜 필요한가 대량 재수집 전에 “지금 이 경로로 기계를 돌려도 안전한가?”를 작게 확인합니다. 실패 유형(HM...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P2" data-category="agent-prompting">
+      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="command-payload">
         <div class="candidate-top">
-          <span class="badge priority">P2</span>
+          <span class="badge priority">P1</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-medium">medium</span>
         </div>
-        <h3>Card 4. 버키 다운그레이드·스로틀 규칙</h3>
-        <p class="meta">에이전트 프롬프트 · owner: bucky · target: 03_Projects/agents / Bucky planner-executor prompts</p>
-        <p class="action">Stage prompt changes as role-specific snippets and keep approval notes.</p>
+        <h3>Card 4. 리플레이 드라이런과 승인 라인</h3>
+        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
+        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>78</strong></div>
-            <div class="bar"><span class="mid" style="width:78%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>86</strong></div>
+            <div class="bar"><span class="good" style="width:86%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>62</strong></div>
-            <div class="bar"><span class="low" style="width:62%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>70</strong></div>
+            <div class="bar"><span class="mid" style="width:70%"></span></div>
           </div>
         </div>
-        <p class="next">Bucky/Claude/Codex 역할 경계를 건드리므로 review request로 먼저 검토한다.</p>
+        <p class="next">명령 구조, idempotency, 재시도 규칙을 먼저 문서화한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>버키 다운그레이드·스로틀 규칙 버키 다운그레이드·스로틀 규칙 버키(Bucky) 에이전트가 모델 비용·사용량 급증에 자동 대응하도록, 바로 붙여넣어 쓸 수 있는 간단한 규칙 세트를 정리했어요. 아래 4~5줄 블록을 그대로 버키의 정책 저장소(에이전트 policy store)에 붙여넣으면 됩니다. 1) RULE: NOTICE (trigger): condition: forecast_48h &gt;...</p>
+          <p>리플레이 드라이런과 승인 라인 리플레이 드라이런과 승인 라인 다음은 “스냅샷에서 재현(replay) 웹훅을 안전하게 수행”하기 위한 전체 흐름과, 바로 붙여넣어 쓸 수 있는 명령 모음이에요. (목적: 스냅샷으로 재현 페이로드를 만들고, 네트워크 전송 없이 서명/타임스탬프/멱등키를 검증한 뒤, 사람이 한 줄 승인으로 실전 POST를 허가하는 방식) 개요 (왜 이렇게 하나요?) 멱등성(Id...</p>
         </details>
       </article>
 
-      <article class="candidate" data-card="5" data-status="staged" data-priority="P3" data-category="verification">
+      <article class="candidate" data-card="5" data-status="staged" data-priority="P1" data-category="knowledge-candidate">
         <div class="candidate-top">
-          <span class="badge priority">P3</span>
+          <span class="badge priority">P1</span>
           <span class="badge status staged">스테이징</span>
           <span class="badge risk risk-low">low</span>
         </div>
-        <h3>Card 5. 숏폼 템플릿 3종 편집 흐름</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <h3>Card 5. 4일 예측과 백프레셔 정책</h3>
+        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
+        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
         <div class="bars">
           <div>
-            <div class="bar-label"><span>효율성</span><strong>88</strong></div>
-            <div class="bar"><span class="good" style="width:88%"></span></div>
+            <div class="bar-label"><span>효율성</span><strong>65</strong></div>
+            <div class="bar"><span class="mid" style="width:65%"></span></div>
           </div>
           <div>
-            <div class="bar-label"><span>호환성</span><strong>90</strong></div>
-            <div class="bar"><span class="good" style="width:90%"></span></div>
+            <div class="bar-label"><span>호환성</span><strong>82</strong></div>
+            <div class="bar"><span class="good" style="width:82%"></span></div>
           </div>
         </div>
-        <p class="next">반복 검수 체크리스트나 리뷰 프로토콜로 정리하면 바로 효율이 난다.</p>
+        <p class="next">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="command-actions" role="group" aria-label="Bucky 지시">
           <button type="button" class="command-btn implement" data-action="execute">승인/구현</button>
           <button type="button" class="command-btn queue" data-action="queue">후보</button>
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>숏폼 템플릿 3종 편집 흐름 숏폼 템플릿 3종 편집 흐름 YouTube 쇼츠 제작과 자동화에 대한 2026년 기준 핵심 흐름과 기술 적용법을 한눈에 이해하기 쉽게 정리했어 — 성공적인 짧은 동영상 제작(클릭을 멈추게 하는 후크부터 대량 렌더링 자동화까지)의 기반이 되는 최근 가이드라인과 도구 활용법을 중심으로. miraflow.ai +1 7 쇼츠 포맷 &amp; 성과 최적화 • 2026년에도...</p>
+          <p>4일 예측과 백프레셔 정책 4일 예측과 백프레셔 정책 지금부터 4일 동안 쓸 수 있는 예산·사용량 스파이크 감지 &amp; 자동 게이팅 템플릿을 간단히 쓸 수 있게 정리했어요. (한 번 붙여두면 매시간 돌아가도 안전하고, 중복 트리거를 막는 구조입니다.) 무엇을 하려는 건가요? 지난 7일 사용 패턴으로 “평균 시간당 사용량”을 잡고, 지난 24시간에 스파이크가 있었는지 계산한 뒤, 그 추세로...</p>
         </details>
       </article>
     </div>
@@ -819,9 +832,9 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-27.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-27.md</code></div>
-      <div>생성 시각: <code>2026-06-27 09:00:03 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-28.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-28.md</code></div>
+      <div>생성 시각: <code>2026-06-28 08:00:38 KST</code></div>
     </div>
   </section>
 </main>
