@@ -1977,15 +1977,31 @@ async def _auto_capture_url_bg(url: str, notify_channel=None) -> None:
 async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
     """Discord 음성 첨부파일(ogg/mp3/wav/m4a/webm) → Whisper STT → AI 후처리 → 텍스트 반환."""
     data = await attachment.read()
-    suffix = Path(attachment.filename).suffix or ".ogg"
+    suffix = Path(attachment.filename or "voice-message.ogg").suffix or ".ogg"
     tmp_path = None
+    wav_path = None
     try:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(data)
             tmp_path = tmp.name
+        # OGG/Opus(Discord 네이티브 음성) → WAV 변환: Whisper가 직접 디코딩 못하는 케이스 방어
+        import shutil as _shutil
+        _ffmpeg = _shutil.which("ffmpeg")
+        transcribe_path = tmp_path
+        if _ffmpeg and suffix.lower() in {".ogg", ".webm", ".m4a", ".aac"}:
+            wav_path = tmp_path + ".wav"
+            try:
+                import subprocess as _sp
+                _sp.run(
+                    [_ffmpeg, "-y", "-i", tmp_path, "-ar", "16000", "-ac", "1", "-f", "wav", wav_path],
+                    check=True, capture_output=True, timeout=30,
+                )
+                transcribe_path = wav_path
+            except Exception as _conv_err:
+                print(f"[STT] WAV 변환 실패 (원본으로 진행): {_conv_err}", flush=True)
         model = await asyncio.to_thread(_get_whisper_model)
         result = await asyncio.to_thread(
-            lambda: model.transcribe(tmp_path, language="ko", fp16=False, verbose=False)
+            lambda: model.transcribe(transcribe_path, language="ko", fp16=False, verbose=False)
         )
         raw = result.get("text", "").strip()
         # Claude API 가용 시 고급 후처리, 아니면 regex 폴백
@@ -1993,6 +2009,8 @@ async def transcribe_discord_audio(attachment: discord.Attachment) -> str:
     finally:
         if tmp_path:
             Path(tmp_path).unlink(missing_ok=True)
+        if wav_path:
+            Path(wav_path).unlink(missing_ok=True)
 
 
 # ── 음성 채널 TTS / 수신 헬퍼 ──────────────────────────────────────────────────
@@ -4360,11 +4378,13 @@ async def _handle_work_channel(message: Message) -> None:
 
     # ── 음성 첨부파일 처리 (#jh-chat과 동일한 STT 파이프라인) ──────────────────────
     _AUDIO_EXTS = {".ogg", ".mp3", ".wav", ".m4a", ".webm", ".aac", ".flac"}
+    _is_native_voice_msg = bool(getattr(getattr(message, "flags", None), "voice_message", False))
     if VOICE_ENABLED and message.attachments:
         for att in message.attachments:
             _is_audio = (
-                (att.content_type and att.content_type.startswith("audio/"))
-                or Path(att.filename).suffix.lower() in _AUDIO_EXTS
+                _is_native_voice_msg  # Discord 네이티브 음성 메시지는 무조건 오디오
+                or (att.content_type and att.content_type.startswith("audio/"))
+                or Path(att.filename or "").suffix.lower() in _AUDIO_EXTS
             )
             if _is_audio:
                 async with message.channel.typing():
@@ -5579,8 +5599,9 @@ class BuckyDiscordBot(discord.Client):
         if VOICE_ENABLED and message.attachments:
             for att in message.attachments:
                 _is_audio = (
-                    (att.content_type and att.content_type.startswith("audio/"))
-                    or Path(att.filename).suffix.lower() in _AUDIO_EXTS
+                    _is_native_voice  # Discord 네이티브 음성 메시지는 무조건 오디오
+                    or (att.content_type and att.content_type.startswith("audio/"))
+                    or Path(att.filename or "").suffix.lower() in _AUDIO_EXTS
                 )
                 if _is_audio:
                     _voice_label = "🎙️ 음성 메시지" if _is_native_voice else "🎙️ 음성 파일"
