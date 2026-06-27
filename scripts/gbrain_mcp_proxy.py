@@ -11,7 +11,7 @@ import urllib.request
 import urllib.error
 
 GBRAIN_URL = "http://localhost:8787/mcp"
-GBRAIN_TOKEN = "Bearer gbrain_4aedf7d4ad9b273fe2b0f04564f4bb5b779ae4179a6a053ff10039128af8ed48"
+GBRAIN_TOKEN = "Bearer gbrain_b23f8acb6163232e66cdb10394aea8b79e205794334a5bbe0cde14873bd16d25"
 
 
 def send_to_gbrain(msg: dict) -> list[dict]:

@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-26",
+    "last_updated": "2026-06-28",
     "last_completed": "CL-053"
   },
   "tasks": [
@@ -909,6 +909,50 @@
       "category": "자동감지",
       "status": "pending",
       "added": "2026-06-26",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-068",
+      "title": "전체 보류 중** — 사용자 명시 승인 대기 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-069",
+      "title": "보류 중** — 구독 비용 결정 대기 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-070",
+      "title": "미수신 | \"오늘의 플러스\" 신규 입력 없음 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-071",
+      "title": "gbrain 대기**: MCP 서버 연결 완료 후 조회 가능 (강제 폴링 안 함)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
       "source": "discord-auto",
       "refs": []
     }
