@@ -19,6 +19,7 @@
     { href: '/wiki-gate.html',     label: 'Wiki Gate' },
     { href: '/estimation-dashboard.html', label: '견적분석' },
     { href: '/bucky-os.html',      label: 'BuckyOS' },
+    { href: '/system-enhance.html', label: '시스템강화', cls: 'sys-enhance' },
     { href: '/api/logout',         label: '로그아웃', cls: 'auth-end' },
   ];
 
