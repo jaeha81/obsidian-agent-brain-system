@@ -183,16 +183,16 @@
       <h2>2026-06-28 처리 요약</h2>
       <div class="status-line">
         <span class="pill">수집: 2026-06-28T08:00:22+09:00</span>
-        <span class="pill">리포트: staged</span>
+        <span class="pill">리포트: completed</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
       <div class="summary">
         <div class="stat blue"><strong>5</strong><span>오늘의 플러스 후보</span></div>
-        <div class="stat green"><strong>0</strong><span>직접 구현 반영</span></div>
-        <div class="stat amber"><strong>5</strong><span>큐 또는 스테이징</span></div>
+        <div class="stat green"><strong>4</strong><span>직접 구현 반영</span></div>
+        <div class="stat amber"><strong>1</strong><span>큐 또는 스테이징</span></div>
         <div class="stat red"><strong>0</strong><span>사용자 승인 필요</span></div>
       </div>
-      <p class="muted">오늘의 플러스는 원문을 보존하고, 바로 구현하지 않는 항목은 큐/승인대기로 분리합니다. 현재 대시보드 기준 직접 적용된 후보는 0개이며, 운영 파이프라인 자체는 수집, 진화 리포트, Bucky 처리까지 연결되어 있습니다.</p>
+      <p class="muted">오늘의 플러스는 원문을 보존하고, 바로 구현하지 않는 항목은 큐/승인대기로 분리합니다. 현재 대시보드 기준 직접 적용된 후보는 4개이며, 운영 파이프라인 자체는 수집, 진화 리포트, Bucky 처리까지 연결되어 있습니다.</p>
     </div>
     <aside class="panel">
       <h2>효율성/호환성</h2>
@@ -548,9 +548,9 @@
           <div class="trend-bars">
             <span class="trend candidate" style="width:42%"></span>
             <span class="trend approval" style="width:0%"></span>
-            <span class="trend applied" style="width:0%"></span>
+            <span class="trend applied" style="width:33%"></span>
           </div>
-          <div class="trend-num">5 후보 · 0 승인 · 0 구현</div>
+          <div class="trend-num">5 후보 · 0 승인 · 4 구현</div>
         </div>
       </div>
       <div class="legend">
@@ -568,10 +568,10 @@
     </div>
     <div class="panel">
       <ul class="next-list">
-        <li><strong>P1 Card 2</strong><span>작은 재조정 스크립트와 감사 스키마</span><em>스테이징</em></li>
-<li><strong>P1 Card 3</strong><span>안전 쓰기용 캐나리 점검 계획</span><em>스테이징</em></li>
-<li><strong>P1 Card 4</strong><span>리플레이 드라이런과 승인 라인</span><em>스테이징</em></li>
-<li><strong>P1 Card 5</strong><span>4일 예측과 백프레셔 정책</span><em>스테이징</em></li>
+        <li><strong>P1 Card 2</strong><span>작은 재조정 스크립트와 감사 스키마</span><em>구현됨</em></li>
+<li><strong>P1 Card 3</strong><span>안전 쓰기용 캐나리 점검 계획</span><em>구현됨</em></li>
+<li><strong>P1 Card 4</strong><span>리플레이 드라이런과 승인 라인</span><em>구현됨</em></li>
+<li><strong>P1 Card 5</strong><span>4일 예측과 백프레셔 정책</span><em>구현됨</em></li>
       </ul>
     </div>
   </section>
@@ -667,7 +667,7 @@
   <section id="daily-plus-candidates">
     <div class="section-title">
       <h2>후보별 운영 판단</h2>
-      <span class="muted">우선순위 {&#x27;P3&#x27;: 1, &#x27;P1&#x27;: 4} · 상태 {&#x27;staged&#x27;: 5}</span>
+      <span class="muted">우선순위 {&#x27;P3&#x27;: 1, &#x27;P1&#x27;: 4} · 상태 {&#x27;staged&#x27;: 1, &#x27;applied&#x27;: 4}</span>
     </div>
     <div class="grid">
 
@@ -678,8 +678,8 @@
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 1. Card 1</h3>
-        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
-        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: not specified</p>
+        <p class="action">지식 노트로 보존하고 추후 우선순위가 생기면 큐로 승격한다.</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>65</strong></div>
@@ -697,19 +697,19 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>[Detail extraction failed]</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="2" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="2" data-status="applied" data-priority="P1" data-category="verification">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status applied">구현됨</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 2. 작은 재조정 스크립트와 감사 스키마</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">검증 자동화 · owner: codex · target: `03_Knowledge/`</p>
+        <p class="action">신규 지식 노트 생성</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>88</strong></div>
@@ -727,19 +727,19 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>작은 재조정 스크립트와 감사 스키마 작은 재조정 스크립트와 감사 스키마 데이터 스냅샷/로그를 S3에 쌓는다면, “매일(또는 청크 단위) 업로드가 제대로 쓰였는지”를 자동으로 검증·증거화하는 초간단 리컨실(무결성 대조) 스크립트를 바로 쓸 수 있게 정리했어요. 무엇을 해결하나요? 업로드된 파일들을 사전식(lexical) 순서로 연결(concat) → sha256 계산 기존에 기록해둔 감사...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="3" data-status="staged" data-priority="P1" data-category="verification">
+      <article class="candidate" data-card="3" data-status="applied" data-priority="P1" data-category="verification">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status applied">구현됨</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 3. 안전 쓰기용 캐나리 점검 계획</h3>
-        <p class="meta">검증 자동화 · owner: codex · target: 00_UPGRADE/review-automation-protocol.md</p>
-        <p class="action">Turn checks into a repeatable verification checklist before implementation.</p>
+        <p class="meta">검증 자동화 · owner: codex · target: `03_Knowledge/`</p>
+        <p class="action">신규 지식 노트 생성</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>88</strong></div>
@@ -757,19 +757,19 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>안전 쓰기용 캐나리 점검 계획 안전 쓰기용 캐나리 점검 계획 안전한 자동쓰기(ingest) 경로를 5분 안에 검증하는 “카나리아(canary) 체크리스트”를 준비했어요—프론트매터→보관소→웹훅 영수증→감사 S3까지 전 구간이 제대로 서명·무결성·지연 한도를 만족하는지 확인합니다. 왜 필요한가 대량 재수집 전에 “지금 이 경로로 기계를 돌려도 안전한가?”를 작게 확인합니다. 실패 유형(HM...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="4" data-status="staged" data-priority="P1" data-category="command-payload">
+      <article class="candidate" data-card="4" data-status="applied" data-priority="P1" data-category="command-payload">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status applied">구현됨</span>
           <span class="badge risk risk-medium">medium</span>
         </div>
         <h3>Card 4. 리플레이 드라이런과 승인 라인</h3>
-        <p class="meta">명령 페이로드 · owner: distiller · target: 05_Frameworks/guides / Bucky command rules</p>
-        <p class="action">Extract reusable command payload rules and queue conflicts for review.</p>
+        <p class="meta">명령 페이로드 · owner: distiller · target: `03_Knowledge/`</p>
+        <p class="action">신규 지식 노트 생성 + Bucky 통합 대기</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>86</strong></div>
@@ -787,19 +787,19 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>리플레이 드라이런과 승인 라인 리플레이 드라이런과 승인 라인 다음은 “스냅샷에서 재현(replay) 웹훅을 안전하게 수행”하기 위한 전체 흐름과, 바로 붙여넣어 쓸 수 있는 명령 모음이에요. (목적: 스냅샷으로 재현 페이로드를 만들고, 네트워크 전송 없이 서명/타임스탬프/멱등키를 검증한 뒤, 사람이 한 줄 승인으로 실전 POST를 허가하는 방식) 개요 (왜 이렇게 하나요?) 멱등성(Id...</p>
+          <p></p>
         </details>
       </article>
 
-      <article class="candidate" data-card="5" data-status="staged" data-priority="P1" data-category="knowledge-candidate">
+      <article class="candidate" data-card="5" data-status="applied" data-priority="P1" data-category="knowledge-candidate">
         <div class="candidate-top">
           <span class="badge priority">P1</span>
-          <span class="badge status staged">스테이징</span>
+          <span class="badge status applied">구현됨</span>
           <span class="badge risk risk-low">low</span>
         </div>
         <h3>Card 5. 4일 예측과 백프레셔 정책</h3>
-        <p class="meta">지식 후보 · owner: distiller · target: 03_Knowledge / 00_UPGRADE</p>
-        <p class="action">Distill the idea into a knowledge note or leave as a parked candidate.</p>
+        <p class="meta">지식 후보 · owner: distiller · target: `03_Knowledge/2026-06-25-dp-api-cost-spike-alert-rules.md`</p>
+        <p class="action">기존 노트에 보충 섹션 append (중복 방지)</p>
         <div class="bars">
           <div>
             <div class="bar-label"><span>효율성</span><strong>65</strong></div>
@@ -817,7 +817,7 @@
         </div>
         <details>
           <summary>근거 보기</summary>
-          <p>4일 예측과 백프레셔 정책 4일 예측과 백프레셔 정책 지금부터 4일 동안 쓸 수 있는 예산·사용량 스파이크 감지 &amp; 자동 게이팅 템플릿을 간단히 쓸 수 있게 정리했어요. (한 번 붙여두면 매시간 돌아가도 안전하고, 중복 트리거를 막는 구조입니다.) 무엇을 하려는 건가요? 지난 7일 사용 패턴으로 “평균 시간당 사용량”을 잡고, 지난 24시간에 스파이크가 있었는지 계산한 뒤, 그 추세로...</p>
+          <p></p>
         </details>
       </article>
     </div>
@@ -834,7 +834,7 @@
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
       <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-06-28.md</code></div>
       <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-06-28.md</code></div>
-      <div>생성 시각: <code>2026-06-28 08:00:38 KST</code></div>
+      <div>생성 시각: <code>2026-06-28 09:00:03 KST</code></div>
     </div>
   </section>
 </main>

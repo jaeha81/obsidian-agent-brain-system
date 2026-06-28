@@ -955,6 +955,17 @@
       "added": "2026-06-28",
       "source": "discord-auto",
       "refs": []
+    },
+    {
+      "id": "CL-072",
+      "title": "중간 정지** — `.mcp.json` 편집 승인 대기 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
     }
   ]
 }
