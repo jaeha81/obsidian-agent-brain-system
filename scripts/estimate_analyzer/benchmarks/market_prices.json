@@ -1,6 +1,0 @@
-{
-  "schema_version": "1.0",
-  "note": "공종별 시장 단가 DB 시드 파일. 단가는 협력사로부터 입수 후 익명화하여 추가.",
-  "last_updated": null,
-  "entries": []
-}

@@ -1,7 +1,0 @@
-{
-  "legalize-kr": {
-    "command": "python",
-    "args": ["scripts/legalize_mcp_server.py"],
-    "cwd": "G:/내 드라이브/obsidian-agent-brain-system"
-  }
-}

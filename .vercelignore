@@ -1,9 +1,0 @@
-# 루트 전체 제외
-/*
-
-# 필요한 것만 허용
-!/api
-!/docs
-!/vercel.json
-!/package.json
-!/.vercelignore
