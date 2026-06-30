@@ -1,8 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function parseCookies(cookieHeader) {
   const cookies = {};
@@ -33,7 +30,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const filePath = path.join(__dirname, '..', 'protected', page + '.html');
+  const filePath = path.join(process.cwd(), 'protected', page + '.html');
   try {
     const html = fs.readFileSync(filePath, 'utf8');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
