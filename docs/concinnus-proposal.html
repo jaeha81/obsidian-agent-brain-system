@@ -1,0 +1,1650 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3D1219">
+<meta name="description" content="콩킨누스 AI 도입 제안서 — 손님 문의 빠르게 답하고, 단체·기념일 예약을 놓치지 않고, 한 번 오신 손님이 다시 찾아오게 만드는 3개월 계획.">
+<meta property="og:title" content="콩킨누스 · AI 도입 제안서">
+<meta property="og:description" content="좋은 음식과 공간을, 손님이 다시 찾는 가게로. 3개월 안에 시작할 수 있는 콩킨누스 맞춤 AI 도입 계획입니다.">
+<meta property="og:type" content="article">
+<title>콩킨누스 · AI 도입 제안서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wine:#6B1F2A;
+  --wine-deep:#3D1219;
+  --wine-soft:#8B3E47;
+  --cream:#F6EFE3;
+  --paper:#FAF6EE;
+  --paper-2:#F0E7D4;
+  --ink:#1A1310;
+  --ink-soft:#3D332C;
+  --muted:#7A6C5D;
+  --gold:#B8945F;
+  --gold-deep:#8C6C3F;
+  --sage:#6B7A5A;
+  --line:#E6DDC9;
+  --line-dark:#3A2A22;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter','Pretendard','Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"ss01","cv01";
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:0;background:transparent}
+img,svg{display:block;max-width:100%}
+.serif{font-family:'Cormorant Garamond',Georgia,'Nanum Myeongjo',serif;font-weight:500;letter-spacing:-.005em}
+.shell{width:min(1140px,100%);margin:0 auto;padding:0 24px}
+
+/* ===== Topbar ===== */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  padding:14px 0;
+  background:rgba(250,246,238,.86);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(184,148,95,.18);
+}
+.topbar .shell{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  display:grid;place-items:center;
+  width:36px;height:36px;
+  border:1.5px solid var(--wine-deep);
+  border-radius:50%;
+  background:var(--wine-deep);color:var(--cream);
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;font-size:20px;
+  line-height:1;letter-spacing:-.02em;
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
+.brand-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:18px;letter-spacing:.08em;color:var(--wine-deep)}
+.brand-tag{font-size:10.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.nav{display:none;gap:28px;font-size:13px;color:var(--ink-soft);font-weight:500}
+.nav a{position:relative;padding:4px 0;letter-spacing:.02em}
+.nav a:hover{color:var(--wine-deep)}
+.nav a:hover:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--gold)}
+.cta-top{
+  display:none;align-items:center;gap:8px;
+  padding:10px 18px;border-radius:99px;
+  background:var(--wine-deep);color:var(--cream);
+  font-size:13px;font-weight:600;letter-spacing:.01em;
+  transition:background .2s ease;
+}
+.cta-top:hover{background:var(--wine)}
+@media(min-width:920px){
+  .nav{display:flex}
+  .cta-top{display:inline-flex}
+}
+
+/* ===== Hero ===== */
+.hero{
+  position:relative;
+  background:linear-gradient(180deg,var(--wine-deep) 0%,#2A0D11 100%);
+  color:var(--cream);
+  padding:128px 0 88px;
+  overflow:hidden;
+  isolation:isolate;
+}
+.hero:before{
+  content:"";position:absolute;inset:0;z-index:-1;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 70% 30%,rgba(184,148,95,.13),transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 80%,rgba(139,62,71,.32),transparent 70%);
+}
+.hero:after{
+  content:"C";position:absolute;
+  right:-50px;top:-30px;
+  font-family:'Cormorant Garamond',serif;
+  font-weight:500;font-style:italic;
+  font-size:520px;line-height:.85;
+  color:rgba(184,148,95,.06);
+  z-index:-1;
+  pointer-events:none;
+}
+.hero-grid{display:grid;gap:50px;align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:12px;
+  font-size:11.5px;font-weight:600;
+  color:var(--gold);letter-spacing:.22em;text-transform:uppercase;
+  margin-bottom:24px;
+}
+.eyebrow:before{
+  content:"";width:32px;height:1px;background:var(--gold);
+}
+.hero h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(40px,7vw,76px);
+  line-height:1.05;letter-spacing:-.02em;
+  font-weight:500;
+  margin-bottom:24px;
+  color:var(--cream);
+  word-break:keep-all;
+}
+.hero h1 em{
+  font-style:italic;color:var(--gold);font-weight:500;
+}
+.hero-sub{
+  font-size:clamp(15px,1.8vw,18px);
+  line-height:1.75;
+  color:rgba(246,239,227,.78);
+  max-width:580px;
+  margin-bottom:36px;
+  word-break:keep-all;
+}
+.hero-meta{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:24px;
+  padding-top:32px;border-top:1px solid rgba(184,148,95,.22);
+  max-width:580px;
+}
+.hero-meta dt{
+  font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;margin-bottom:6px;
+}
+.hero-meta dd{font-size:14px;color:var(--cream);font-weight:500;line-height:1.4}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:16px 28px;border-radius:99px;
+  font-size:14px;font-weight:600;letter-spacing:.01em;
+  transition:transform .18s ease,background .2s ease,color .2s ease;
+}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--gold);color:var(--wine-deep)}
+.btn-primary:hover{background:#C9A574}
+.btn-ghost{background:transparent;color:var(--cream);border:1px solid rgba(246,239,227,.36)}
+.btn-ghost:hover{background:rgba(246,239,227,.08)}
+.btn svg{width:16px;height:16px}
+
+.hero-stage{
+  position:relative;display:none;
+  min-height:480px;
+  align-items:center;justify-content:center;
+}
+.stage-card{
+  position:relative;
+  width:100%;max-width:440px;aspect-ratio:3/4;
+  border-radius:6px;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 50%),
+    linear-gradient(180deg,#1F0B0F 0%,#2A0D11 100%);
+  border:1px solid rgba(184,148,95,.18);
+  box-shadow:0 40px 80px rgba(0,0,0,.45),0 0 0 1px rgba(184,148,95,.04) inset;
+  padding:48px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow:hidden;
+}
+.stage-card:before{
+  content:"";position:absolute;inset:18px;
+  border:1px solid rgba(184,148,95,.18);
+  pointer-events:none;
+  border-radius:2px;
+}
+.stage-mono{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:140px;line-height:.9;color:var(--gold);
+  letter-spacing:-.04em;font-weight:500;
+  align-self:center;text-align:center;
+}
+.stage-label{
+  font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;
+  color:rgba(246,239,227,.6);text-align:center;
+  margin-top:14px;
+}
+.stage-foot{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:16px;
+  color:rgba(246,239,227,.7);
+}
+.stage-foot small{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+.stage-foot strong{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;letter-spacing:.04em;display:block;margin-top:4px}
+@media(min-width:980px){
+  .hero{padding:144px 0 104px}
+  .hero-grid{grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:80px}
+  .hero-stage{display:flex}
+}
+
+/* ===== Sections ===== */
+.section{padding:96px 0;border-bottom:1px solid var(--line)}
+.section.alt{background:var(--cream)}
+.section.dark{background:var(--wine-deep);color:var(--cream);border-bottom-color:transparent}
+.section.dark .section-kicker{color:var(--gold)}
+.section.dark .section-title{color:var(--cream)}
+.section.dark .section-lead{color:rgba(246,239,227,.72)}
+.section-head{
+  display:grid;gap:32px;
+  margin-bottom:56px;
+  grid-template-columns:1fr;
+  align-items:end;
+}
+@media(min-width:880px){
+  .section-head{grid-template-columns:1fr 1.4fr;gap:64px}
+}
+.section-kicker{
+  font-size:11px;font-weight:600;
+  color:var(--gold-deep);letter-spacing:.22em;text-transform:uppercase;
+  margin-bottom:18px;
+  display:flex;align-items:center;gap:14px;
+}
+.section-kicker .num{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:36px;font-weight:500;letter-spacing:0;
+  text-transform:none;line-height:1;
+  color:var(--wine-deep);
+}
+.section.dark .section-kicker .num{color:var(--gold)}
+.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(30px,4.5vw,46px);
+  line-height:1.1;letter-spacing:-.015em;
+  font-weight:500;
+  color:var(--wine-deep);
+  word-break:keep-all;
+}
+.section-title em{font-style:italic;color:var(--gold-deep)}
+.section-lead{
+  font-size:16px;line-height:1.75;
+  color:var(--ink-soft);
+  word-break:keep-all;
+}
+
+/* ===== Pillars (3 cards) ===== */
+.pillars{display:grid;gap:20px;grid-template-columns:1fr}
+@media(min-width:760px){.pillars{grid-template-columns:repeat(3,1fr)}}
+.pillar{
+  padding:36px 32px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:4px;
+  position:relative;
+  transition:transform .2s ease,border-color .2s ease;
+}
+.section.alt .pillar{background:#FFFDF7}
+.pillar:hover{transform:translateY(-3px);border-color:var(--gold)}
+.pillar-num{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:14px;color:var(--gold-deep);letter-spacing:.06em;
+  margin-bottom:18px;
+}
+.pillar h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:600;
+  color:var(--wine-deep);
+  margin-bottom:14px;letter-spacing:-.01em;
+}
+.pillar p{font-size:14.5px;color:var(--ink-soft);line-height:1.7;word-break:keep-all}
+
+/* ===== Roadmap ===== */
+.roadmap{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:760px){.roadmap{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.roadmap{grid-template-columns:repeat(4,1fr)}}
+.road-card{
+  padding:32px 28px;
+  background:var(--paper-2);
+  border-radius:4px;
+  border-left:3px solid var(--wine);
+  position:relative;
+}
+.road-period{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:20px;font-weight:600;
+  color:var(--wine-deep);margin-bottom:6px;
+}
+.road-step{
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;margin-bottom:14px;
+}
+.road-card h4{
+  font-size:16px;font-weight:600;color:var(--ink);
+  margin-bottom:10px;letter-spacing:-.01em;
+}
+.road-card p{font-size:13.5px;color:var(--ink-soft);line-height:1.65;word-break:keep-all}
+
+/* ===== KPI Grid ===== */
+.kpi-grid{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:32px;border-radius:4px;overflow:hidden}
+@media(min-width:760px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+.kpi{padding:28px 24px;background:var(--paper)}
+.section.alt .kpi{background:#FFFDF7}
+.kpi-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--wine-deep);letter-spacing:-.01em;line-height:1.2;margin-bottom:6px}
+.kpi-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+
+/* ===== Snapshot ===== */
+.snapshot{display:grid;gap:48px;grid-template-columns:1fr}
+@media(min-width:880px){.snapshot{grid-template-columns:.85fr 1.15fr;gap:64px}}
+.snap-asset{
+  background:var(--wine-deep);color:var(--cream);
+  padding:40px 36px;border-radius:4px;
+  position:relative;overflow:hidden;
+}
+.snap-asset:after{
+  content:"";position:absolute;right:-40px;bottom:-40px;
+  width:160px;height:160px;border-radius:50%;
+  border:36px solid rgba(184,148,95,.08);
+}
+.snap-asset h3{
+  font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;
+  letter-spacing:-.01em;margin-bottom:24px;color:var(--gold);
+}
+.snap-list{display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
+.snap-item{
+  padding-bottom:16px;border-bottom:1px solid rgba(246,239,227,.12);
+}
+.snap-item:last-child{border-bottom:0}
+.snap-key{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:6px}
+.snap-val{font-size:14.5px;color:rgba(246,239,227,.92);line-height:1.55;word-break:keep-all}
+.snap-channels h3{
+  font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;
+  color:var(--wine-deep);margin-bottom:20px;letter-spacing:-.01em;
+}
+.ch-table{width:100%;border-collapse:collapse;font-size:14px}
+.ch-table thead th{
+  text-align:left;padding:12px 12px;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;
+  border-bottom:1.5px solid var(--wine-deep);
+}
+.ch-table tbody td{
+  padding:16px 12px;
+  border-bottom:1px solid var(--line);
+  color:var(--ink-soft);line-height:1.55;
+  vertical-align:top;
+}
+.ch-table tbody tr:last-child td{border-bottom:0}
+.ch-table td:first-child{font-weight:600;color:var(--ink);width:90px}
+.badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:10.5px;font-weight:600;letter-spacing:.04em}
+.badge.hi{background:#F3D9DD;color:var(--wine-deep)}
+.badge.md{background:#EBE1CC;color:var(--gold-deep)}
+.badge.lo{background:#E1E5DC;color:var(--sage)}
+.badge.crit{background:var(--wine-deep);color:var(--gold)}
+
+/* ===== Customer / Package ===== */
+.cust-grid{display:grid;gap:18px;grid-template-columns:1fr;margin-bottom:48px}
+@media(min-width:680px){.cust-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.cust-grid{grid-template-columns:repeat(4,1fr)}}
+.cust-card{
+  padding:28px 24px;background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;
+}
+.section.alt .cust-card{background:#FFFDF7}
+.cust-icon{
+  display:grid;place-items:center;
+  width:42px;height:42px;border-radius:50%;
+  background:var(--cream);color:var(--wine-deep);
+  margin-bottom:18px;
+}
+.section.alt .cust-icon{background:var(--paper-2)}
+.cust-icon svg{width:20px;height:20px}
+.cust-card h4{
+  font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;
+  color:var(--wine-deep);margin-bottom:8px;letter-spacing:-.01em;
+}
+.cust-card p{font-size:13.5px;color:var(--ink-soft);line-height:1.65;word-break:keep-all}
+
+.pkg-table-wrap{overflow-x:auto;border-radius:4px;border:1px solid var(--line)}
+.pkg-table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+.pkg-table thead th{
+  background:var(--wine-deep);color:var(--gold);
+  text-align:left;padding:16px 18px;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+}
+.pkg-table tbody td{padding:18px;border-bottom:1px solid var(--line);color:var(--ink-soft);line-height:1.55;vertical-align:top}
+.pkg-table tbody tr:last-child td{border-bottom:0}
+.pkg-table tbody tr:nth-child(even){background:var(--cream)}
+.pkg-tag{
+  display:inline-block;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-weight:600;font-size:18px;
+  color:var(--wine);letter-spacing:.02em;
+  margin-right:8px;
+}
+.pkg-name{font-weight:600;color:var(--ink);font-size:15px;display:block;margin-top:2px}
+
+/* ===== SWOT ===== */
+.swot-grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:680px){.swot-grid{grid-template-columns:repeat(2,1fr)}}
+.swot-card{
+  padding:32px 28px;border-radius:4px;
+  border:1px solid var(--line);background:var(--paper);
+}
+.section.alt .swot-card{background:#FFFDF7}
+.swot-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.swot-head .letter{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:42px;font-weight:600;line-height:1;letter-spacing:-.02em;
+}
+.swot-head h4{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+.swot-card.s .letter{color:var(--sage)}
+.swot-card.w .letter{color:var(--wine)}
+.swot-card.o .letter{color:var(--gold-deep)}
+.swot-card.t .letter{color:var(--wine-deep)}
+.swot-card p{font-size:14.5px;color:var(--ink-soft);line-height:1.7;word-break:keep-all}
+
+.priority-bar{
+  margin-top:36px;padding:28px 32px;
+  background:var(--wine-deep);color:var(--cream);
+  border-radius:4px;
+  display:grid;gap:18px;
+  grid-template-columns:1fr;
+}
+@media(min-width:760px){.priority-bar{grid-template-columns:auto 1fr;gap:32px;align-items:center}}
+.priority-bar .pr-label{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:24px;font-weight:600;color:var(--gold);letter-spacing:-.005em;
+}
+.priority-bar .pr-text{font-size:14.5px;line-height:1.7;color:rgba(246,239,227,.86);word-break:keep-all}
+
+/* ===== Engines (4 cards + hub) ===== */
+.engine-row{display:grid;gap:16px;grid-template-columns:1fr;margin-bottom:24px}
+@media(min-width:680px){.engine-row{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.engine-row{grid-template-columns:repeat(4,1fr)}}
+.engine{
+  padding:32px 26px;border-radius:4px;
+  background:var(--paper);border:1px solid var(--line);
+  position:relative;overflow:hidden;
+  transition:transform .2s,border-color .2s;
+}
+.section.dark .engine{background:#1F0B0F;border-color:rgba(184,148,95,.16)}
+.engine:hover{transform:translateY(-3px);border-color:var(--gold)}
+.engine-letter{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:48px;font-weight:600;line-height:1;
+  color:var(--wine);letter-spacing:-.02em;margin-bottom:12px;
+}
+.section.dark .engine-letter{color:var(--gold)}
+.engine h4{
+  font-size:18px;font-weight:600;letter-spacing:-.01em;
+  color:var(--wine-deep);margin-bottom:8px;
+}
+.section.dark .engine h4{color:var(--cream)}
+.engine p{font-size:13.5px;line-height:1.65;color:var(--ink-soft);word-break:keep-all}
+.section.dark .engine p{color:rgba(246,239,227,.72)}
+
+.hub{
+  margin-top:8px;padding:36px;
+  background:linear-gradient(135deg,rgba(184,148,95,.12),rgba(184,148,95,.03));
+  border:1px solid var(--gold);border-radius:4px;
+}
+.section.dark .hub{
+  background:linear-gradient(135deg,rgba(184,148,95,.16),rgba(184,148,95,.05));
+  border-color:rgba(184,148,95,.5);
+}
+.hub-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.hub-tag{
+  font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold-deep);font-weight:600;
+}
+.section.dark .hub-tag{color:var(--gold)}
+.hub h4{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:600;letter-spacing:-.01em;
+  color:var(--wine-deep);
+}
+.section.dark .hub h4{color:var(--cream)}
+.hub p{font-size:14.5px;line-height:1.75;color:var(--ink-soft);word-break:keep-all;margin-bottom:20px}
+.section.dark .hub p{color:rgba(246,239,227,.78)}
+.hub-fields{
+  display:grid;gap:12px;
+  grid-template-columns:1fr;
+  font-size:13.5px;
+}
+@media(min-width:760px){.hub-fields{grid-template-columns:repeat(3,1fr)}}
+.hub-field{
+  padding:14px 16px;background:rgba(255,255,255,.4);
+  border-radius:4px;border:1px solid rgba(184,148,95,.18);
+}
+.section.dark .hub-field{background:rgba(0,0,0,.25);border-color:rgba(184,148,95,.2)}
+.hub-field strong{
+  display:block;color:var(--wine-deep);font-weight:600;
+  margin-bottom:4px;font-size:13px;
+}
+.section.dark .hub-field strong{color:var(--gold)}
+.hub-field span{color:var(--ink-soft);line-height:1.55}
+.section.dark .hub-field span{color:rgba(246,239,227,.7)}
+
+/* ===== Solutions (5 detailed cards) ===== */
+.sol-list{display:flex;flex-direction:column;gap:20px}
+.sol-card{
+  display:grid;gap:24px;
+  grid-template-columns:1fr;
+  padding:40px 36px;
+  background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;
+  position:relative;
+}
+.section.alt .sol-card{background:#FFFDF7}
+@media(min-width:880px){.sol-card{grid-template-columns:.42fr .58fr;gap:48px}}
+.sol-num{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:14px;color:var(--gold-deep);letter-spacing:.06em;
+  margin-bottom:10px;
+}
+.sol-card h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:600;letter-spacing:-.01em;
+  color:var(--wine-deep);margin-bottom:14px;
+  word-break:keep-all;
+}
+.sol-card>div:first-child>p{
+  font-size:14.5px;color:var(--ink-soft);line-height:1.75;
+  word-break:keep-all;
+}
+.sol-detail{display:flex;flex-direction:column;gap:18px}
+.sol-block h5{
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold-deep);font-weight:600;margin-bottom:10px;
+}
+.sol-block ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.sol-block li{
+  padding-left:18px;position:relative;
+  font-size:13.5px;color:var(--ink-soft);line-height:1.65;
+  word-break:keep-all;
+}
+.sol-block li:before{
+  content:"";position:absolute;left:0;top:.7em;
+  width:8px;height:1px;background:var(--gold);
+}
+.sol-block .ck{
+  padding:14px 16px;background:var(--cream);
+  border-left:2px solid var(--wine);border-radius:2px;
+  font-size:13px;color:var(--ink-soft);line-height:1.6;
+}
+
+/* ===== Tools & Scenarios ===== */
+.tool-grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:680px){.tool-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.tool-grid{grid-template-columns:repeat(4,1fr)}}
+.tool{
+  padding:24px 22px;background:#FFFDF7;
+  border:1px solid var(--line);border-radius:4px;
+}
+.tool-name{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
+  color:var(--wine-deep);margin-bottom:8px;letter-spacing:-.005em;
+}
+.tool p{font-size:13px;color:var(--ink-soft);line-height:1.6;word-break:keep-all}
+
+.scen-table-wrap{overflow-x:auto;margin-top:32px;border:1px solid var(--line);border-radius:4px}
+.scen-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
+.scen-table thead th{
+  background:var(--wine-deep);color:var(--gold);
+  padding:14px 16px;text-align:left;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+}
+.scen-table tbody td{padding:16px;border-bottom:1px solid var(--line);color:var(--ink-soft);line-height:1.55;vertical-align:top}
+.scen-table tbody tr:last-child td{border-bottom:0}
+.scen-table tbody tr:nth-child(even){background:var(--cream)}
+.scen-table td:first-child{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-weight:600;color:var(--wine);font-size:16px;width:60px;
+}
+
+/* ===== Budget options ===== */
+.budget-grid{display:grid;gap:18px;grid-template-columns:1fr;margin-top:24px}
+@media(min-width:760px){.budget-grid{grid-template-columns:repeat(3,1fr)}}
+.budget{
+  padding:36px 30px;background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;
+  position:relative;display:flex;flex-direction:column;
+  transition:transform .2s ease;
+}
+.section.alt .budget{background:#FFFDF7}
+.budget:hover{transform:translateY(-3px)}
+.budget.featured{
+  background:var(--wine-deep);color:var(--cream);border-color:var(--wine-deep);
+  transform:scale(1.02);
+}
+.budget.featured:hover{transform:scale(1.02) translateY(-3px)}
+.budget.featured .b-label,.budget.featured .b-price,.budget.featured .b-feature{color:var(--cream)}
+.b-tag{
+  display:inline-block;padding:5px 12px;
+  background:var(--gold);color:var(--wine-deep);
+  font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;
+  border-radius:99px;margin-bottom:18px;align-self:flex-start;
+}
+.budget:not(.featured) .b-tag{background:var(--cream);color:var(--wine-deep)}
+.b-label{
+  font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;
+  color:var(--wine-deep);letter-spacing:-.005em;margin-bottom:6px;
+}
+.b-period{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
+.budget.featured .b-period{color:rgba(246,239,227,.6)}
+.b-price{
+  font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;
+  color:var(--wine-deep);letter-spacing:-.01em;margin-bottom:6px;
+}
+.b-monthly{font-size:13px;color:var(--muted);margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.budget.featured .b-monthly{color:rgba(246,239,227,.6);border-bottom-color:rgba(246,239,227,.16)}
+.b-feature{display:flex;flex-direction:column;gap:10px;font-size:13.5px;color:var(--ink-soft);line-height:1.6}
+.budget.featured .b-feature{color:rgba(246,239,227,.84)}
+.b-feature span{padding-left:18px;position:relative;word-break:keep-all}
+.b-feature span:before{
+  content:"";position:absolute;left:0;top:.5em;
+  width:10px;height:1px;background:var(--gold);
+}
+.b-note{
+  margin-top:32px;padding:20px 24px;
+  background:var(--cream);border-radius:4px;
+  font-size:13px;color:var(--ink-soft);line-height:1.65;word-break:keep-all;
+}
+
+/* ===== ROI ===== */
+.roi-formula{
+  margin-top:32px;padding:32px 36px;
+  background:var(--wine-deep);color:var(--cream);
+  border-radius:4px;text-align:center;
+}
+.roi-formula-tag{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:14px}
+.roi-formula-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(16px,2.4vw,22px);font-weight:500;font-style:italic;
+  line-height:1.5;color:var(--cream);letter-spacing:-.005em;word-break:keep-all;
+}
+.roi-targets{display:grid;gap:14px;grid-template-columns:1fr;margin-top:32px}
+@media(min-width:680px){.roi-targets{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.roi-targets{grid-template-columns:repeat(3,1fr)}}
+.roi-target{
+  padding:24px 26px;background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+}
+.section.alt .roi-target{background:#FFFDF7}
+.rt-label{font-size:13.5px;color:var(--ink-soft);line-height:1.55;flex:1;word-break:keep-all}
+.rt-val{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:22px;font-weight:600;color:var(--wine);letter-spacing:-.01em;
+  white-space:nowrap;flex:0 0 auto;
+}
+
+/* ===== Governance ===== */
+.gov-grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:760px){.gov-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1100px){.gov-grid{grid-template-columns:repeat(3,1fr)}}
+.gov-card{
+  padding:26px 24px;background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;
+}
+.gov-card h4{font-size:14px;font-weight:600;color:var(--wine-deep);margin-bottom:8px;letter-spacing:-.005em}
+.gov-card p{font-size:13px;color:var(--ink-soft);line-height:1.6;word-break:keep-all}
+.gov-card p strong{color:var(--ink);font-weight:600}
+
+/* ===== Checklist ===== */
+.check-grid{display:grid;gap:14px;grid-template-columns:1fr;margin-top:8px}
+@media(min-width:680px){.check-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.check-grid{grid-template-columns:repeat(3,1fr)}}
+.check{
+  padding:22px 24px;background:#FFFDF7;
+  border:1px solid var(--line);border-radius:4px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.check-mark{
+  flex:0 0 auto;width:24px;height:24px;border-radius:50%;
+  border:1.5px solid var(--gold);display:grid;place-items:center;
+  color:var(--gold-deep);font-size:13px;font-weight:600;
+}
+.check-body strong{display:block;font-size:14px;color:var(--ink);font-weight:600;margin-bottom:4px;letter-spacing:-.005em}
+.check-body p{font-size:13px;color:var(--ink-soft);line-height:1.55;word-break:keep-all}
+
+.questions{
+  margin-top:48px;padding:36px 40px;
+  background:var(--cream);border:1px solid var(--line);
+  border-radius:4px;
+}
+.questions h4{
+  font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;
+  color:var(--wine-deep);margin-bottom:20px;letter-spacing:-.005em;
+}
+.q-list{display:grid;gap:12px;grid-template-columns:1fr;counter-reset:q}
+@media(min-width:880px){.q-list{grid-template-columns:repeat(2,1fr)}}
+.q-item{
+  position:relative;padding:14px 16px 14px 50px;
+  background:#FFFDF7;border-radius:4px;
+  font-size:13.5px;color:var(--ink-soft);line-height:1.6;
+  border-left:2px solid var(--gold);
+  counter-increment:q;word-break:keep-all;
+}
+.q-item:before{
+  content:counter(q,decimal-leading-zero);
+  position:absolute;left:18px;top:14px;
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:18px;font-weight:600;color:var(--wine);
+}
+
+/* ===== CTA Footer ===== */
+.cta-section{
+  padding:104px 0 96px;
+  background:linear-gradient(180deg,var(--wine-deep) 0%,#28080C 100%);
+  color:var(--cream);
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-section:before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 50% 50% at 50% 0%,rgba(184,148,95,.18),transparent 60%);
+}
+.cta-section .shell{position:relative;z-index:1}
+.cta-section .eyebrow{color:var(--gold);justify-content:center}
+.cta-section h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(32px,5vw,52px);
+  font-weight:500;letter-spacing:-.015em;line-height:1.15;
+  color:var(--cream);margin-bottom:20px;word-break:keep-all;
+}
+.cta-section h2 em{font-style:italic;color:var(--gold)}
+.cta-section .lead{
+  font-size:16px;line-height:1.75;color:rgba(246,239,227,.78);
+  max-width:580px;margin:0 auto 36px;word-break:keep-all;
+}
+.cta-section .hero-actions{justify-content:center;margin-top:0}
+.contact-card{
+  margin-top:64px;padding:40px;
+  background:rgba(246,239,227,.04);
+  border:1px solid rgba(184,148,95,.2);border-radius:4px;
+  display:grid;gap:24px;grid-template-columns:1fr;
+  max-width:680px;margin-left:auto;margin-right:auto;
+  text-align:left;
+}
+@media(min-width:680px){.contact-card{grid-template-columns:auto 1fr;align-items:center;gap:40px}}
+.contact-mark{
+  width:80px;height:80px;border-radius:50%;
+  border:1.5px solid var(--gold);
+  display:grid;place-items:center;
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-weight:600;font-size:36px;color:var(--gold);
+  margin:0 auto;
+}
+@media(min-width:680px){.contact-mark{margin:0}}
+.contact-info .role{
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;margin-bottom:8px;
+}
+.contact-info .name{
+  font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;
+  color:var(--cream);letter-spacing:-.01em;margin-bottom:14px;
+}
+.contact-info .detail{font-size:13px;color:rgba(246,239,227,.7);line-height:1.7}
+
+/* ===== Footer ===== */
+footer{
+  padding:48px 0 32px;
+  background:#15080B;color:rgba(246,239,227,.5);
+  border-top:1px solid rgba(184,148,95,.12);
+  font-size:12.5px;
+}
+.foot-grid{display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center}
+@media(min-width:760px){.foot-grid{flex-direction:row;justify-content:space-between;text-align:left}}
+.foot-brand{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold);letter-spacing:.08em}
+.foot-meta{line-height:1.7}
+.foot-meta a:hover{color:var(--gold)}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;left:50%;bottom:32px;
+  transform:translate(-50%,16px);
+  padding:12px 20px;border-radius:99px;
+  background:var(--wine-deep);color:var(--cream);
+  font-size:13px;font-weight:500;letter-spacing:.01em;
+  opacity:0;pointer-events:none;
+  transition:.25s cubic-bezier(.2,.8,.2,1);
+  z-index:90;white-space:nowrap;
+  box-shadow:0 14px 30px rgba(0,0,0,.3);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .btn,.pillar,.engine,.budget,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="shell">
+    <a href="#top" class="brand">
+      <span class="brand-mark serif">C</span>
+      <span class="brand-text">
+        <span class="brand-name">CONCINNUS</span>
+        <span class="brand-tag">AI 도입 제안서</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="#summary">한눈에 보기</a>
+      <a href="#strategy">도와드릴 일</a>
+      <a href="#solutions">자세히</a>
+      <a href="#roadmap">일정</a>
+      <a href="#budget">비용</a>
+    </nav>
+    <a href="#contact" class="cta-top">
+      상담 문의
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="shell hero-grid">
+    <div>
+      <div class="eyebrow">콩킨누스 · AI 도입 제안</div>
+      <h1>좋은 음식과 공간을,<br><em>다시 찾는 가게</em>로 만듭니다.</h1>
+      <p class="hero-sub">손님 문의에 더 빠르게 답하고, 단체·기념일 예약을 놓치지 않고, 한 번 오신 손님이 다시 오시도록 돕는 일입니다. 3개월 안에 작게 시작해서 효과를 확인하고 늘려가는 방식입니다.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#summary">
+          제안 요약 보기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="#contact">상담 문의</a>
+      </div>
+      <dl class="hero-meta">
+        <div><dt>대상 매장</dt><dd>콩킨누스 · 성남 청계산로 752</dd></div>
+        <div><dt>제안자</dt><dd>이재하</dd></div>
+        <div><dt>작성일</dt><dd>2026년 6월</dd></div>
+      </dl>
+    </div>
+    <div class="hero-stage" aria-hidden="true">
+      <div class="stage-card">
+        <div>
+          <div class="stage-label">콩킨누스 제안서</div>
+        </div>
+        <div class="stage-mono serif">C</div>
+        <div class="stage-foot">
+          <div>
+            <small>한 마디로</small>
+            <strong class="serif">조화롭게, 정성껏</strong>
+          </div>
+          <div style="text-align:right">
+            <small>버전</small>
+            <strong class="serif">2026.06</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 한눈에 보기 -->
+<section class="section" id="summary">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">01</span><span>한눈에 보기</span></div>
+        <h2 class="section-title">잘 하시는 일은 그대로,<br><em>번거로운 일</em>은 AI가 거듭니다.</h2>
+      </div>
+      <p class="section-lead">콩킨누스는 분위기 있는 브런치와 와인, 스테이크와 파스타, 아이와 함께 오기 좋은 자리, 프라이빗룸과 큰 화면·음향, 단체·대관 가능한 공간까지 갖춘 좋은 매장입니다. 다만 손님 문의와 예약, 리뷰, 매장 정보가 여러 곳에 흩어져 있어 한눈에 보기 어렵습니다. AI가 그 흩어진 부분을 모아 드리는 일을 합니다.</p>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-num serif">하나</div>
+        <h3>예약을 더 많이</h3>
+        <p>단체·회식·기념일·대관 문의가 오면 빠르게 답하고, 필요한 정보를 받아 예약까지 자연스럽게 이어지도록 돕습니다.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num serif">둘</div>
+        <h3>일손을 덜고</h3>
+        <p>같은 질문에 답하기, 리뷰 모아 정리하기, 인스타·블로그 글 초안 쓰기 같은 반복 업무를 AI가 대신 준비해 둡니다.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num serif">셋</div>
+        <h3>다시 오게 만들기</h3>
+        <p>한 번 오신 손님 정보를 동의받아 모아두고, 기념일·회식 시즌에 자연스럽게 다시 안내드릴 수 있게 합니다.</p>
+      </div>
+    </div>
+
+    <h3 class="serif" style="margin-top:72px;margin-bottom:24px;font-size:24px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">3개월 동안 이런 순서로 진행합니다</h3>
+    <div class="roadmap">
+      <div class="road-card">
+        <div class="road-period serif">1주차</div>
+        <div class="road-step">매장 정보 정리</div>
+        <h4>흩어진 정보 한 곳에</h4>
+        <p>영업시간·휴무·주차·룸·메뉴·예약규정을 한 장으로 깔끔히 정리합니다.</p>
+      </div>
+      <div class="road-card">
+        <div class="road-period serif">2 – 4주차</div>
+        <div class="road-step">바로 효과 보는 일</div>
+        <h4>네 가지 자동화 시작</h4>
+        <p>자주 묻는 질문 답하기, 리뷰 주간 정리, 인스타 글 초안, 단체문의 신청서를 만듭니다.</p>
+      </div>
+      <div class="road-card">
+        <div class="road-period serif">5 – 8주차</div>
+        <div class="road-step">예약·재방문</div>
+        <h4>예약·손님 관리 연결</h4>
+        <p>여러 채널의 예약을 한 곳에 모으고, 단체 견적 초안을 빠르게 만들고, 손님 재방문 안내를 준비합니다.</p>
+      </div>
+      <div class="road-card">
+        <div class="road-period serif">9 – 12주차</div>
+        <div class="road-step">매장 데이터 활용</div>
+        <h4>잘 팔리는 시간·메뉴 보기</h4>
+        <p>POS 매출 자료가 모이면, 요일·시간대별 잘 나가는 메뉴를 보고 준비 양을 조절합니다.</p>
+      </div>
+    </div>
+
+    <h3 class="serif" style="margin-top:72px;margin-bottom:20px;font-size:24px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">3개월 뒤 달라지는 모습</h3>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">손님 응대</div>
+        <div class="kpi-value">바로 답변</div>
+        <div class="kpi-desc">자주 묻는 질문은 즉시, 사장님 확인이 필요한 질문도 30분 안에.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">단체 예약</div>
+        <div class="kpi-value">놓치지 않기</div>
+        <div class="kpi-desc">회식·대관 문의를 빠뜨리지 않고 답하고, 견적을 빨리 보내드립니다.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">다시 오는 손님</div>
+        <div class="kpi-value">늘리기</div>
+        <div class="kpi-desc">한 번 오신 분께 자연스럽게 다시 안내드릴 수 있는 통로가 생깁니다.</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">일하는 시간</div>
+        <div class="kpi-value">절반으로</div>
+        <div class="kpi-desc">리뷰 정리, SNS 글쓰기, 매출 보고에 들이는 시간을 크게 줄입니다.</div>
+      </div>
+    </div>
+
+    <div class="priority-bar" style="margin-top:48px">
+      <div class="pr-label serif">처음에는 이렇게 시작합니다</div>
+      <p class="pr-text">처음부터 비싼 챗봇이나 주방 카메라 같은 큰 장비를 들이지 않습니다. <strong style="color:var(--gold)">매장 정보 정리 → 단체·문의 대응 → 리뷰·손님 관리 → 매출 데이터 활용</strong>의 순서로, 작게 시작해 효과를 보면 늘립니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 02 콩킨누스의 강점 -->
+<section class="section alt">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">02</span><span>콩킨누스의 강점</span></div>
+        <h2 class="section-title">공간도, 메뉴도, 분위기도<br><em>이미 잘 갖춰져</em> 있습니다.</h2>
+      </div>
+      <p class="section-lead">아래 내용은 공개된 매장 정보를 정리한 1차 자료입니다. 실제로 작업을 시작하면 매장 매출과 예약 자료를 함께 보고 더 정확하게 맞춰드립니다.</p>
+    </div>
+
+    <div class="snapshot">
+      <div class="snap-asset">
+        <h3 class="serif">매장 소개</h3>
+        <div class="snap-list">
+          <div class="snap-item">
+            <div class="snap-key">이름의 뜻</div>
+            <div class="snap-val">"콩킨누스"는 라틴어로 "조화롭게 잘 어우러진"이라는 뜻입니다. 음식·공간·서비스가 정갈하게 어울리는 다이닝을 지향합니다.</div>
+          </div>
+          <div class="snap-item">
+            <div class="snap-key">위치</div>
+            <div class="snap-val">경기 성남시 수정구 청계산로 752, 골든게이트판교 1층</div>
+          </div>
+          <div class="snap-item">
+            <div class="snap-key">대표 메뉴</div>
+            <div class="snap-val">파스타·리조또, 안심·채끝 스테이크, 라자냐, 사워도우, 와인 페어링</div>
+          </div>
+          <div class="snap-item">
+            <div class="snap-key">공간</div>
+            <div class="snap-val">큰 화면·음향이 있는 메인 홀, 11인까지 들어가는 룸, 3~4인 미팅룸, 4~6인 스크린룸, 대관 가능</div>
+          </div>
+          <div class="snap-item">
+            <div class="snap-key">손님 편의</div>
+            <div class="snap-val">주차, 예약, 포장, 유아용 의자와 식기, 단체 손님 이용</div>
+          </div>
+          <div class="snap-item">
+            <div class="snap-key">손님 평가</div>
+            <div class="snap-val">캐치테이블 평점 4.8점. 파스타·라자냐·사워도우의 맛, 친절한 응대, 모임하기 좋은 분위기에 호평이 많습니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="snap-channels">
+        <h3 class="serif">지금 정리하면 좋은 것</h3>
+        <table class="ch-table">
+          <thead><tr><th>항목</th><th>지금 상황</th><th>중요도</th></tr></thead>
+          <tbody>
+            <tr><td>영업시간</td><td>네이버·캐치테이블·전화로 안내가 조금씩 다릅니다. 한 곳에 맞춰 통일이 필요합니다.</td><td><span class="badge hi">높음</span></td></tr>
+            <tr><td>예약 창구</td><td>네이버, 캐치테이블, 전화가 따로 운영 중입니다. 어느 통로에서 얼마나 예약이 들어오는지 한눈에 보기 어렵습니다.</td><td><span class="badge hi">높음</span></td></tr>
+            <tr><td>룸·대관</td><td>강점이지만, 단체 손님께 보여드릴 표준 안내와 견적이 없습니다.</td><td><span class="badge crit">매우 높음</span></td></tr>
+            <tr><td>리뷰</td><td>여러 곳에 흩어져 있어 한 주에 어떤 칭찬·불만이 있었는지 모으기 어렵습니다.</td><td><span class="badge md">중간</span></td></tr>
+            <tr><td>인스타·블로그</td><td>인스타는 운영 중이나, 채널별 글쓰기에 시간이 많이 듭니다.</td><td><span class="badge md">중간</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:24px;padding:20px 24px;background:var(--paper-2);border-radius:4px;font-size:13.5px;line-height:1.7;color:var(--ink-soft);word-break:keep-all;border-left:2px solid var(--wine)">
+          <strong style="color:var(--wine-deep);font-weight:600;display:block;margin-bottom:4px">정리하면</strong>
+          콩킨누스에서 AI가 가장 도움 될 곳은 "메뉴 추천 챗봇"이 아니라, <strong>룸·회식·기념일·대관 같은 단체 장사를 빠르게 안내하고 한 번 오신 손님이 다시 오시도록</strong> 흐름을 만드는 일입니다.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 어떤 손님이 오시나요 -->
+<section class="section">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">03</span><span>어떤 손님이 오시나요</span></div>
+        <h2 class="section-title">손님 종류에 따라<br><em>다른 자리</em>를 안내합니다.</h2>
+      </div>
+      <p class="section-lead">콩킨누스는 가까운 판교 회사와 고등동 가족 손님을 모두 받을 수 있는 위치에 있습니다. 손님 목적이 다르면 자리·메뉴·시간대도 달라야 합니다. 네 가지 손님 유형으로 묶어 각각 다른 안내를 드리는 게 자연스럽습니다.</p>
+    </div>
+
+    <div class="cust-grid">
+      <div class="cust-card">
+        <div class="cust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></div>
+        <h4>회사 손님</h4>
+        <p>평일 점심 미팅, 팀 회식, 프로젝트 마무리 식사. 법인카드·세금계산서·미리 주문 등을 챙겨드립니다.</p>
+      </div>
+      <div class="cust-card">
+        <div class="cust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21c-4-3-7-6-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 4-3 7-7 10z"/></svg></div>
+        <h4>가족 손님</h4>
+        <p>유아 의자·식기, 주차 편한 점, 주말 브런치, 작은 가족 모임 같은 일상의 좋은 기억을 만들어드립니다.</p>
+      </div>
+      <div class="cust-card">
+        <div class="cust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3v9a6 6 0 0012 0V3M9 21h6M12 18v3M8 3h8"/></svg></div>
+        <h4>커플·기념일</h4>
+        <p>스테이크와 와인, 분위기 있는 자리, 레터링 디저트, 룸이 있는 다이닝으로 특별한 날을 보내드립니다.</p>
+      </div>
+      <div class="cust-card">
+        <div class="cust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg></div>
+        <h4>단체·대관</h4>
+        <p>큰 화면·음향과 룸을 활용한 행사, 촬영, 세미나, 네트워킹 모임을 받습니다.</p>
+      </div>
+    </div>
+
+    <h3 class="serif" style="margin-top:24px;margin-bottom:20px;font-size:22px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">손님께 보여드릴 다섯 가지 자리 안내</h3>
+    <div class="pkg-table-wrap">
+      <table class="pkg-table">
+        <thead>
+          <tr><th>안내</th><th>이런 자리입니다</th><th>이런 분께 좋습니다</th><th>좋은 시간대</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pkg-tag">1</span><span class="pkg-name">회사 미팅 자리</span></td>
+            <td>4~11명까지 들어가는 룸, 화면 사용, 메뉴 미리 정해놓기, 빠른 결제</td>
+            <td>판교 회사에서 오시는 분</td>
+            <td>평일 점심·이른 저녁</td>
+          </tr>
+          <tr>
+            <td><span class="pkg-tag">2</span><span class="pkg-name">팀 회식과 와인</span></td>
+            <td>스테이크·파스타 나눠 드시기, 어울리는 와인, 룸에서 편안하게</td>
+            <td>판교 팀·임원 회식</td>
+            <td>평일 저녁</td>
+          </tr>
+          <tr>
+            <td><span class="pkg-tag">3</span><span class="pkg-name">가족 브런치</span></td>
+            <td>유아 식기와 의자, 주차, 나눠 드시기 좋은 메뉴, 디저트</td>
+            <td>고등동·판교 가족</td>
+            <td>주말 브런치 시간</td>
+          </tr>
+          <tr>
+            <td><span class="pkg-tag">4</span><span class="pkg-name">기념일 다이닝</span></td>
+            <td>2~6명, 레터링 케이크, 와인 추천, 사진 찍기 좋은 자리</td>
+            <td>커플·가족 기념일</td>
+            <td>저녁·주말</td>
+          </tr>
+          <tr>
+            <td><span class="pkg-tag">5</span><span class="pkg-name">단체 행사·대관</span></td>
+            <td>큰 화면·음향, 대관, 음식 준비 선택</td>
+            <td>회사 행사·촬영·동호회</td>
+            <td>한가한 시간대·휴무 협의</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 04 지금 가장 아쉬운 점 -->
+<section class="section alt">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">04</span><span>지금 가장 아쉬운 점</span></div>
+        <h2 class="section-title">잘 갖춰진 매장인데<br><em>알아보기 어렵다</em>는 점.</h2>
+      </div>
+      <p class="section-lead">강점과 약점을 정리해 봤습니다. 매장이 가진 좋은 점은 그대로, 흩어져 있어 손님이 알기 어려운 부분만 손을 봅니다.</p>
+    </div>
+
+    <div class="swot-grid">
+      <div class="swot-card s">
+        <div class="swot-head"><span class="letter serif">+</span><h4>강점 · 잘 갖춰진 것</h4></div>
+        <p>분위기 있는 인테리어, 룸, 큰 화면과 음향, 와인과 스테이크, 가족 손님을 받기 좋은 환경, 넉넉한 주차</p>
+      </div>
+      <div class="swot-card w">
+        <div class="swot-head"><span class="letter serif">−</span><h4>아쉬운 점</h4></div>
+        <p>채널마다 매장 안내가 다릅니다. 예약·문의가 흩어져 있어 한눈에 못 봅니다. 손님 정보가 모이지 않습니다. 단체 견적은 수기로 하기에 시간이 많이 듭니다.</p>
+      </div>
+      <div class="swot-card o">
+        <div class="swot-head"><span class="letter serif">★</span><h4>기회 · 키워볼 만한 것</h4></div>
+        <p>판교 회사 회식 수요, 기념일·팀 디너, 공간 대관·촬영, 한 번 오신 손님께 다시 연락드리기, 동네 검색에서 잘 보이게 하기</p>
+      </div>
+      <div class="swot-card t">
+        <div class="swot-head"><span class="letter serif">!</span><h4>주의할 점</h4></div>
+        <p>외식 경기 변동, 한 플랫폼에 의존하기, 리뷰 대응이 늦어지는 일, AI 답변 실수, 광고성 문자나 개인정보 관련 규정</p>
+      </div>
+    </div>
+
+    <div class="priority-bar">
+      <div class="pr-label serif">먼저 할 일과 미룰 일</div>
+      <p class="pr-text"><strong style="color:var(--gold)">먼저</strong> 매장 정보 정리·문의 응대·단체 영업 &nbsp;·&nbsp; <strong style="color:var(--gold)">다음</strong> 리뷰·인스타·손님 관리 &nbsp;·&nbsp; <strong style="color:var(--gold)">그 다음</strong> 매출 데이터 활용 &nbsp;·&nbsp; <strong style="color:rgba(246,239,227,.5)">미룸</strong> 주방 카메라 AI·로봇 같은 비싼 장비</p>
+    </div>
+  </div>
+</section>
+
+<!-- 05 AI가 도와드릴 일 -->
+<section class="section dark" id="strategy">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">05</span><span>AI가 도와드릴 일</span></div>
+        <h2 class="section-title">크게 네 가지 일을 돕고,<br><em>한 곳에 정보를 모읍니다.</em></h2>
+      </div>
+      <p class="section-lead">시작은 간단합니다. 무료 도구(구글 시트·구글 폼)와 직원 짧은 입력으로 자료를 모으고, 가능해지는 부분부터 점점 자동으로 넘깁니다. 한꺼번에 다 바꾸지 않습니다.</p>
+    </div>
+
+    <div class="engine-row">
+      <div class="engine">
+        <div class="engine-letter serif">1</div>
+        <h4>예약 응대</h4>
+        <p>손님 문의에 빠르게 답하고, 예약 잊지 않게 미리 알려드리고, 예약 펑크를 줄입니다.</p>
+      </div>
+      <div class="engine">
+        <div class="engine-letter serif">2</div>
+        <h4>단체·대관</h4>
+        <p>회식·대관 문의가 오면 필요한 정보를 받아 견적 초안을 빠르게 만들어드립니다.</p>
+      </div>
+      <div class="engine">
+        <div class="engine-letter serif">3</div>
+        <h4>다시 오게 만들기</h4>
+        <p>한 번 오신 손님께 감사 인사, 기념일·시즌 안내를 자연스럽게 보내드릴 수 있게 합니다.</p>
+      </div>
+      <div class="engine">
+        <div class="engine-letter serif">4</div>
+        <h4>인스타·리뷰</h4>
+        <p>인스타·블로그 글 초안을 만들고, 리뷰를 한 주에 한 번 정리해 답글 초안까지 준비합니다.</p>
+      </div>
+    </div>
+
+    <div class="hub">
+      <div class="hub-head">
+        <span class="hub-tag">한 곳에 모으기</span>
+        <h4 class="serif">콩킨누스 매장 노트</h4>
+      </div>
+      <p>구글 시트(엑셀처럼 쓰는 무료 도구) 한 장에 손님·예약·문의·리뷰·매출 정보를 꼭 필요한 것만 모읍니다. 광고성 할인 문구를 남발하기보다, 콩킨누스의 분위기·신선한 재료·와인과 잘 어울리는 한 끼라는 매장의 색깔을 살리는 글로 다듬습니다.</p>
+      <div class="hub-fields">
+        <div class="hub-field"><strong>손님</strong><span>이름·연락처는 꼭 필요한 만큼만, 광고 수신 동의, 방문 목적(회사/가족/기념일)</span></div>
+        <div class="hub-field"><strong>예약</strong><span>어디서 오셨는지, 날짜·인원, 어떤 자리, 예약 취소 여부</span></div>
+        <div class="hub-field"><strong>문의</strong><span>어떤 문의인지, 급한지, 견적이 필요한지, 답변 시간</span></div>
+        <div class="hub-field"><strong>리뷰</strong><span>어느 사이트, 별점, 칭찬·아쉬운 점(메뉴·서비스·공간·주차)</span></div>
+        <div class="hub-field"><strong>매출</strong><span>날짜·시간대·잘 나간 메뉴·수량·평균 객단가</span></div>
+        <div class="hub-field"><strong>인스타·블로그</strong><span>주제, 올린 곳, 올린 날짜, 손님 반응, 다시 쓸 수 있는지</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 자세히 살펴보기 -->
+<section class="section" id="solutions">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">06</span><span>자세히 살펴보기</span></div>
+        <h2 class="section-title">다섯 가지 일을<br><em>차례차례</em> 도입합니다.</h2>
+      </div>
+      <p class="section-lead">AI가 잘 굴러가려면 "누가 정보를 정리하는지, 누가 마지막에 확인해서 보내는지"가 분명해야 합니다. 모든 일에 담당자와 확인 절차를 정해두고 시작합니다.</p>
+    </div>
+
+    <div class="sol-list">
+      <!-- 1 -->
+      <article class="sol-card">
+        <div>
+          <div class="sol-num serif">하나</div>
+          <h3>손님 문의 응대 도우미</h3>
+          <p>흔한 질문은 AI가 바로 답하고, 예약·가격·불만처럼 중요한 일은 사장님이나 직원에게 연결합니다. 영업시간이나 가격 같은 정확해야 하는 정보는 AI가 마음대로 답하지 않고, 1주차에 정리한 "매장 노트"에서만 가져옵니다.</p>
+        </div>
+        <div class="sol-detail">
+          <div class="sol-block">
+            <h5>문의 종류별 처리</h5>
+            <ul>
+              <li><strong style="color:var(--ink)">AI가 바로 답하는 것</strong> · 영업시간, 휴무, 위치, 주차, 유아용 의자, 예약 방법, 룸 안내</li>
+              <li><strong style="color:var(--ink)">정보를 받아 직원에게 넘기는 것</strong> · 단체 인원·목적·예산·시간·화면·음향·케이터링 등</li>
+              <li><strong style="color:var(--ink)">반드시 사람이 확인해 답하는 것</strong> · 알레르기, 가격 협상, 불만, 환불, 대관 계약</li>
+            </ul>
+          </div>
+          <div class="sol-block">
+            <h5>문의가 들어오면 이런 흐름</h5>
+            <ul>
+              <li>들어오기 — 네이버·카카오·인스타 DM·전화·홈페이지 신청서</li>
+              <li>분류 — AI가 "일반 / 예약 / 단체 / 불만 / 알레르기"로 자동 구분</li>
+              <li>답변 — 사장님이 미리 정해둔 답변은 즉시, 복잡한 건은 필요한 정보만 다시 물어봄</li>
+              <li>기록 — 담당자에게 알림이 가고 결과까지 한 줄로 기록</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2 -->
+      <article class="sol-card">
+        <div>
+          <div class="sol-num serif">둘</div>
+          <h3>리뷰 정리와 다시 오게 만들기</h3>
+          <p>리뷰는 답글만 다는 일이 아니라, 메뉴와 서비스를 다듬는 신호로 봅니다. 손님께 보내는 안내 메시지는 "광고를 받겠다"고 동의하신 분께만 보냅니다. 민감한 정보는 저장하지 않습니다.</p>
+        </div>
+        <div class="sol-detail">
+          <div class="sol-block">
+            <h5>한 주에 한 번 리뷰 정리</h5>
+            <ul>
+              <li>모으기 — 여러 사이트 알림과 직원 메모를 모음</li>
+              <li>분류 — 칭찬·아쉬운 점을 메뉴·서비스·공간·주차·가격으로 나눔</li>
+              <li>요약 — 이번 주 칭찬 3개, 아쉬운 점 3개, 같은 문제가 반복되는지</li>
+              <li>답글 초안 — 매장 말투에 맞춰 초안을 만들고, 낮은 별점은 사장님 확인 후 보냄</li>
+            </ul>
+          </div>
+          <div class="sol-block">
+            <h5>다시 오시도록 안내드리는 시점</h5>
+            <ul>
+              <li>방문 다음날 — 감사 인사와 리뷰 한 줄 부탁</li>
+              <li>방문 한 달 뒤 — 좋아하시던 메뉴와 어울리는 새 메뉴·와인·브런치 소식</li>
+              <li>기념일 2주 전 — 레터링 케이크·룸·와인 미리 예약 안내</li>
+              <li>회사 손님은 분기 1회 — 회식·미팅 자리 안내, 세금계산서 발행 가능</li>
+              <li>단체 견적 보낸 뒤 답이 없으면 2일 뒤 — 다른 날짜나 다른 룸 안내</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3 -->
+      <article class="sol-card">
+        <div>
+          <div class="sol-num serif">셋</div>
+          <h3>인스타·블로그 글과 검색에 잘 뜨게 하기</h3>
+          <p>사진과 매장 정보를 넣으면 인스타·블로그·네이버에 올릴 글의 초안을 만들어 줍니다. AI가 쓴 글은 반드시 "지금 예약 가능한 진짜 메뉴·자리"와 연결되어야 합니다.</p>
+        </div>
+        <div class="sol-detail">
+          <div class="sol-block">
+            <h5>한 달 동안 다섯 가지 이야기로</h5>
+            <ul>
+              <li><strong style="color:var(--ink)">대표 메뉴</strong> — 채끝·안심·라자냐·파스타·사워도우의 맛과 재료</li>
+              <li><strong style="color:var(--ink)">공간 이야기</strong> — 룸·큰 화면·저녁 분위기·주차·가족 손님</li>
+              <li><strong style="color:var(--ink)">자리에 맞는 사용법</strong> — 회식·미팅·기념일·가족 모임·대관</li>
+              <li><strong style="color:var(--ink)">사람 이야기</strong> — 셰프·직원, 음식 준비 모습, 서비스 마음가짐</li>
+              <li><strong style="color:var(--ink)">손님의 말</strong> — 리뷰에서 가져온 짧은 후기와 추천 조합</li>
+            </ul>
+          </div>
+          <div class="sol-block">
+            <h5>이런 검색에서 잘 보이게</h5>
+            <ul>
+              <li>회사 — 판교 회식, 판교 단체식당, 고등동 미팅룸 식당, 판교 와인 회식</li>
+              <li>가족 — 고등동 브런치, 판교 아기랑 식당, 주차 편한 브런치</li>
+              <li>기념일 — 성남 데이트 맛집, 판교 와인바, 판교 기념일 레스토랑</li>
+              <li>공간 — 판교 소규모 대관, 성남 촬영 로케이션, 스크린 있는 레스토랑</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4 -->
+      <article class="sol-card">
+        <div>
+          <div class="sol-num serif">넷</div>
+          <h3>단체·대관 영업 도우미</h3>
+          <p>회사·단체 손님이 가장 궁금해하는 정보를 미리 정리해서, 문의가 오면 빠르게 견적과 자리를 안내합니다. "대관 가능"이라는 콩킨누스의 큰 장점을 손님이 바로 알아볼 수 있게 만듭니다.</p>
+        </div>
+        <div class="sol-detail">
+          <div class="sol-block">
+            <h5>단체 문의 받을 때 꼭 물어볼 것</h5>
+            <ul>
+              <li><strong style="color:var(--ink)">기본</strong> · 원하시는 날짜·시간·인원·목적·회사·담당자 연락처</li>
+              <li><strong style="color:var(--ink)">예산</strong> · 1인 또는 전체 예산, 술 포함 여부, 세금계산서 필요 여부</li>
+              <li><strong style="color:var(--ink)">자리</strong> · 룸 또는 홀, 화면·음향 사용, 좌석 배치, 이용 시간</li>
+              <li><strong style="color:var(--ink)">메뉴</strong> · 코스·나눠먹기·핑거푸드, 알레르기, 케이크 필요 여부</li>
+              <li><strong style="color:var(--ink)">기타</strong> · 주차, 현수막·촬영, 외부 장비, 계약금·취소 조건</li>
+            </ul>
+          </div>
+          <div class="sol-block">
+            <h5>단체 문의 응대 약속</h5>
+            <ul>
+              <li>새 문의 → "잘 받았습니다" 자동 안내 (5분 안에)</li>
+              <li>내용 확인 → 담당자에게 알림 (30분 안에)</li>
+              <li>견적 보내드림 → 자리·메뉴·조건 (당일)</li>
+              <li>다시 협의 → 대체 안 1~2개 (다음날까지)</li>
+              <li>행사 끝난 뒤 → 다음 일정 안내 (다음날)</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- 5 -->
+      <article class="sol-card">
+        <div>
+          <div class="sol-num serif">다섯</div>
+          <h3>잘 팔리는 시간·메뉴 보기</h3>
+          <p>매장 매출 자료가 모이면, 어느 요일·시간에 무엇이 잘 나가는지를 정리해 드립니다. 결정은 사장님과 주방장이 하시고, AI는 매일 1분 들여다볼 수 있는 짧은 보고서를 만들어 드립니다.</p>
+        </div>
+        <div class="sol-detail">
+          <div class="sol-block">
+            <h5>이런 내용을 보여드립니다</h5>
+            <ul>
+              <li>다음 주 손님 수와 매출 예상 범위</li>
+              <li>잘 나가는 메뉴별로 준비해두면 좋을 양</li>
+              <li>품절·폐기가 많이 난 메뉴 알림</li>
+              <li>예상 매출에 맞는 홀·주방 인원 추천</li>
+            </ul>
+          </div>
+          <div class="sol-block">
+            <h5>네 단계로 천천히 도입</h5>
+            <ul>
+              <li>1단계 — 매주 매출 자료 한 번 업로드 → 지난주 보고서</li>
+              <li>2단계 — 3~6개월 자료 모이면 → 다음 주 예상 보고</li>
+              <li>3단계 — 재고와 폐기 자료 연결 → 낭비 줄이기</li>
+              <li>4단계 — 근무표 연결 → 예약·예상에 맞춰 스케줄 보조</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 07 어떤 도구를 쓰나요 -->
+<section class="section alt">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">07</span><span>어떤 도구를 쓰나요</span></div>
+        <h2 class="section-title">무료·저렴한 도구로 시작해,<br>꼭 필요할 때만 <em>유료로 넓힙니다</em>.</h2>
+      </div>
+      <p class="section-lead">처음부터 비싼 시스템을 들이지 않습니다. 이미 쓰고 계신 네이버·캐치테이블·인스타·카카오를 그대로 두고, 사이에 필요한 자동화만 무료 도구로 붙여서 시작합니다.</p>
+    </div>
+
+    <h3 class="serif" style="margin-bottom:18px;font-size:18px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">사용하는 도구</h3>
+    <div class="tool-grid">
+      <div class="tool"><div class="tool-name">네이버 스마트플레이스·예약·톡톡</div><p>검색·예약·문의의 가장 큰 통로. 매장 안내와 예약 링크를 한 번 더 정돈합니다.</p></div>
+      <div class="tool"><div class="tool-name">캐치테이블</div><p>예약·리뷰·프로모션 통로. 어떤 알림을 받고 어떻게 자료를 가져올지 정리합니다.</p></div>
+      <div class="tool"><div class="tool-name">인스타그램</div><p>공간·메뉴 사진과 DM 문의가 들어오는 곳.</p></div>
+      <div class="tool"><div class="tool-name">카카오 채널</div><p>무료로 만들 수 있는 매장 페이지와 1:1 채팅, 단체 안내 보내기.</p></div>
+      <div class="tool"><div class="tool-name">구글 시트·폼</div><p>매장 노트, 단체 신청서, 리뷰 모음, 매출 정리를 무료로 운영합니다.</p></div>
+      <div class="tool"><div class="tool-name">자동화 도구</div><p>여기저기 흩어진 알림을 한 곳에 모아주는 도구. 처음에는 무료 범위 안에서만 씁니다.</p></div>
+      <div class="tool"><div class="tool-name">AI 글쓰기</div><p>문의 답변, 견적 초안, 리뷰 답글, 인스타 글 초안을 만들어 줍니다.</p></div>
+      <div class="tool"><div class="tool-name">매출 보고 화면</div><p>예약·매출·재방문·리뷰를 한눈에 볼 수 있는 간단한 화면을 만듭니다.</p></div>
+    </div>
+
+    <h3 class="serif" style="margin-top:64px;margin-bottom:18px;font-size:22px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">한 달 안에 만들어 드리는 자동화 여섯 가지</h3>
+    <div class="scen-table-wrap">
+      <table class="scen-table">
+        <thead><tr><th>번호</th><th>이런 일을 합니다</th><th>언제 작동하나요</th><th>자동으로 처리되는 일</th><th>어떻게 좋아지나요</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>예약 한곳에 모으기</td><td>예약 알림이 올 때</td><td>날짜·인원을 뽑아 한 시트와 달력에 기록, 시간 겹치면 알림</td><td>예약 빠뜨리지 않게</td></tr>
+          <tr><td>2</td><td>단체 문의 분류</td><td>단체 신청서가 들어올 때</td><td>인원·예산·목적을 보고 자리 추천과 견적 초안 만들기</td><td>답변이 빨라짐</td></tr>
+          <tr><td>3</td><td>주간 리뷰 정리</td><td>매주 한 번</td><td>이번 주 칭찬·아쉬운 점을 모아 요약과 답글 초안 만들기</td><td>리뷰 관리 시간 줄임</td></tr>
+          <tr><td>4</td><td>인스타·블로그 초안</td><td>사진과 메뉴 입력 시</td><td>인스타·네이버·카카오용 글과 짧은 영상 대본까지 한 번에</td><td>글쓰기 시간 절반</td></tr>
+          <tr><td>5</td><td>하루 마감 보고</td><td>매일 영업 마감 후</td><td>오늘 매출·손님 수·잘 나간 메뉴 한 줄 요약</td><td>장부 정리가 쉬워짐</td></tr>
+          <tr><td>6</td><td>다시 오시도록 안내</td><td>방문 후 정해진 날</td><td>동의받은 손님께 감사·시즌·기념일 메시지 초안 만들기</td><td>재방문이 늘어남</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:18px;font-size:13px;color:var(--muted);line-height:1.65">※ 처음에는 무료로 쓸 수 있는 범위 안에서만 운영합니다. 효과가 확인되는 부분부터 천천히 유료로 확장합니다.</p>
+  </div>
+</section>
+
+<!-- 08 3개월 일정 -->
+<section class="section" id="roadmap">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">08</span><span>3개월 일정</span></div>
+        <h2 class="section-title">작게 시작하고, 효과를 확인하고,<br>그 다음에 <em>늘려갑니다</em>.</h2>
+      </div>
+      <p class="section-lead">한 달이 지났는데 손님 응대 속도·단체 문의 수·글쓰기 시간 중 두 가지 이상이 좋아지지 않았다면, 새 기능을 더하지 않고 사용 방식을 먼저 손봅니다.</p>
+    </div>
+
+    <div class="roadmap" style="margin-bottom:48px">
+      <div class="road-card">
+        <div class="road-period serif">시작 주</div>
+        <div class="road-step">정리하기</div>
+        <h4>매장 노트 만들기</h4>
+        <p>흩어진 영업 정보를 한 곳에 모으고, 누가 책임지고 갱신할지 정합니다.</p>
+      </div>
+      <div class="road-card">
+        <div class="road-period serif">1개월 차</div>
+        <div class="road-step">바로 효과 보기</div>
+        <h4>자주 묻는 답·자동화</h4>
+        <p>30가지 흔한 질문 답을 정리하고, 단체 신청서·리뷰 정리·인스타 템플릿 10개를 만듭니다.</p>
+      </div>
+      <div class="road-card">
+        <div class="road-period serif">2개월 차</div>
+        <div class="road-step">예약·손님 관리</div>
+        <h4>한눈에 보기 화면</h4>
+        <p>예약·문의를 한 곳에 모으고, 단체 견적 초안과 재방문 안내를 만들고, 매장 보고 화면을 띄웁니다.</p>
+      </div>
+      <div class="road-card">
+        <div class="road-period serif">3개월 차</div>
+        <div class="road-step">매출 자료 활용</div>
+        <h4>잘 팔리는 시간·메뉴</h4>
+        <p>3개월간 모인 매출 자료로 다음 주 예상을 보여드리고, 준비 양·인원 추천을 시험합니다.</p>
+      </div>
+    </div>
+
+    <h3 class="serif" style="margin-bottom:18px;font-size:18px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">사장님과 정해두는 짧은 점검 시간</h3>
+    <div class="gov-grid">
+      <div class="gov-card"><h4>매일 5분</h4><p>예약 겹침, 단체 문의, 불만·알레르기, 당일 변경 사항을 확인합니다.</p></div>
+      <div class="gov-card"><h4>매주 30분</h4><p>리뷰·문의·인스타·예약 결과를 보고, 이번 주에 손볼 일 세 가지를 정합니다.</p></div>
+      <div class="gov-card"><h4>매달 1시간</h4><p>매출·재방문·단체 예약·일 줄어든 시간·도구 비용을 보고, 무엇을 더하고 뺄지 정합니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 비용 안내 -->
+<section class="section alt" id="budget">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">09</span><span>비용 안내</span></div>
+        <h2 class="section-title">한 번에 다 결제하지 않습니다.<br><em>단계별</em>로 보고 결정하세요.</h2>
+      </div>
+      <p class="section-lead">1단계(한 달 효과 확인) 후 사장님께서 만족하시면 2단계로 넘어갑니다. 1단계와 2단계는 따로 계약합니다. 매장 계정·자료·시트의 권한은 모두 콩킨누스 측에 있습니다.</p>
+    </div>
+
+    <div class="budget-grid">
+      <div class="budget">
+        <span class="b-tag">1단계</span>
+        <div class="b-label serif">한 달 시작</div>
+        <div class="b-period">4주 시범 운영</div>
+        <div class="b-price serif">100 – 180만원</div>
+        <div class="b-monthly">월 유지비 0 – 8만원</div>
+        <div class="b-feature">
+          <span>매장 정보 한 곳에 정리</span>
+          <span>자주 묻는 질문 답하기</span>
+          <span>단체 손님 신청서 만들기</span>
+          <span>주간 리뷰 정리 보고서</span>
+          <span>인스타·블로그 글 초안 10개</span>
+        </div>
+      </div>
+      <div class="budget featured">
+        <span class="b-tag">2단계 · 추천</span>
+        <div class="b-label serif">예약·손님 관리까지</div>
+        <div class="b-period">8 – 12주</div>
+        <div class="b-price serif">250 – 450만원</div>
+        <div class="b-monthly">월 유지비 5 – 20만원</div>
+        <div class="b-feature">
+          <span>1단계 전부 포함</span>
+          <span>예약·문의 한곳 모으기</span>
+          <span>단체 견적 초안 자동 만들기</span>
+          <span>다시 오시도록 안내 보내기</span>
+          <span>매장 한눈 보기 화면</span>
+        </div>
+      </div>
+      <div class="budget">
+        <span class="b-tag">3단계</span>
+        <div class="b-label serif">매출 자료 활용까지</div>
+        <div class="b-period">3 – 6개월</div>
+        <div class="b-price serif">550 – 1,000만원</div>
+        <div class="b-monthly">월 유지비 15 – 50만원</div>
+        <div class="b-feature">
+          <span>2단계 전부 포함</span>
+          <span>매출·재고·근무 자료 연결</span>
+          <span>요일·시간대 잘 팔리는 메뉴</span>
+          <span>준비 양·인원 추천 시험</span>
+          <span>맞춤 보고 화면 확장</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="b-note">
+      ※ 위 금액은 매장 상황에 따라 달라지는 안내용 범위입니다. 부가세, 카카오·문자 발송비, 외부 도구 요금은 따로 청구됩니다. "이만큼 매출이 오릅니다"라고 약속하지 않는 대신, 시작 전에 어떤 숫자를 보고 평가할지 사장님과 미리 정해 계약서에 적어둡니다.
+    </div>
+  </div>
+</section>
+
+<!-- 10 어떻게 효과를 보나요 -->
+<section class="section">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">10</span><span>어떻게 효과를 보나요</span></div>
+        <h2 class="section-title">매출이 오르고 일이 줄어드는 것을<br><em>같은 화면</em>에서 봅니다.</h2>
+      </div>
+      <p class="section-lead">3개월 뒤 사장님께서 직접 확인하실 수 있도록, 아래 여섯 가지를 화면 하나에 정리해 보여드립니다.</p>
+    </div>
+
+    <div class="roi-formula">
+      <div class="roi-formula-tag">3개월 뒤 사장님이 확인하시는 것</div>
+      <div class="roi-formula-text">단체·대관으로 늘어난 매출 &nbsp;+&nbsp; 다시 오신 손님 매출 &nbsp;+&nbsp; 예약 펑크가 줄어든 효과 &nbsp;+&nbsp; 줄어든 일하는 시간 &nbsp;−&nbsp; 매달 도구 비용</div>
+    </div>
+
+    <h3 class="serif" style="margin-top:64px;margin-bottom:20px;font-size:22px;font-weight:600;color:var(--wine-deep);letter-spacing:-.005em;">3개월 뒤 이런 모습이 되도록</h3>
+    <div class="roi-targets">
+      <div class="roi-target"><div class="rt-label">매장 정보가 모든 채널에서 같음</div><div class="rt-val serif">통일</div></div>
+      <div class="roi-target"><div class="rt-label">흔한 문의는 손님이 바로 답을 받음</div><div class="rt-val serif">즉시</div></div>
+      <div class="roi-target"><div class="rt-label">단체 견적 보내드리는 시간</div><div class="rt-val serif">30분 안</div></div>
+      <div class="roi-target"><div class="rt-label">인스타·블로그 글쓰기 시간</div><div class="rt-val serif">절반</div></div>
+      <div class="roi-target"><div class="rt-label">리뷰 모아 보기</div><div class="rt-val serif">매주</div></div>
+      <div class="roi-target"><div class="rt-label">단체·대관 예약 들어오는 양</div><div class="rt-val serif">늘어남</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 안전하게 운영하기 -->
+<section class="section alt">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">11</span><span>안전하게 운영하기</span></div>
+        <h2 class="section-title">자동화보다 먼저 <em>책임자와 확인 절차</em>를<br>정해둡니다.</h2>
+      </div>
+      <p class="section-lead">AI 자동화가 문제가 되는 건 보통 "누가 정보를 정확하게 유지하는지, 어디부터는 반드시 사람이 확인하는지"가 분명하지 않을 때입니다. 이 부분을 먼저 잡고 시작합니다.</p>
+    </div>
+
+    <div class="gov-grid">
+      <div class="gov-card"><h4>잘못된 정보</h4><p>영업시간·가격·룸 안내 실수를 막기 위해 <strong>매장 정보는 한 곳에서만</strong> 관리하고, 바꿀 때는 담당자 한 분이 확인합니다.</p></div>
+      <div class="gov-card"><h4>지나친 자동화</h4><p>불만·알레르기·환불처럼 잘못 답하면 큰일 나는 일은 <strong>반드시 사람이 확인한 뒤</strong> 답하도록 합니다.</p></div>
+      <div class="gov-card"><h4>개인정보</h4><p>손님 정보는 꼭 필요한 만큼만 받고, 광고 메시지는 <strong>동의받은 분께만</strong> 보냅니다. 보관 기간과 삭제 방법을 미리 정해둡니다.</p></div>
+      <div class="gov-card"><h4>플랫폼 규정</h4><p>네이버·인스타 같은 곳의 규정을 어기지 않도록 <strong>공식 방법(알림·신청서·직원 입력)</strong>만 사용합니다.</p></div>
+      <div class="gov-card"><h4>매장 색깔 지키기</h4><p>AI가 비슷비슷한 글을 쓰지 않도록 <strong>매장 말투와 금기어를 정해두고</strong>, 한 달에 한 번 직접 확인합니다.</p></div>
+      <div class="gov-card"><h4>비상 상황</h4><p>담당 직원이 자리를 비우거나 계정이 잠겨도 운영이 멈추지 않도록 <strong>관리자 두 분을 두고</strong> 백업해 둡니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 시작하려면 무엇이 필요한가요 -->
+<section class="section">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker"><span class="num serif">12</span><span>시작하려면 무엇이 필요한가요</span></div>
+        <h2 class="section-title">아래 자료가 모이면<br><em>1주 안</em>에 시작 계획을 확정합니다.</h2>
+      </div>
+      <p class="section-lead">사장님께서 자료를 빨리 주실수록 첫 한 달 효과가 더 잘 나옵니다. 중요한 순서대로 정리했습니다.</p>
+    </div>
+
+    <div class="check-grid">
+      <div class="check"><div class="check-mark serif">1</div><div class="check-body"><strong>매장 기본 정보</strong><p>지금 영업시간·휴무·브레이크타임·마지막 주문 시간, 주소·주차, 연락처</p></div></div>
+      <div class="check"><div class="check-mark serif">2</div><div class="check-body"><strong>메뉴와 자리 안내</strong><p>최신 메뉴·가격·사진, 품절·한정 메뉴, 룸별 인원과 최소 주문, 대관·케이터링 조건</p></div></div>
+      <div class="check"><div class="check-mark serif">3</div><div class="check-body"><strong>운영 규정</strong><p>예약금·취소·노쇼, 콜키지, 알레르기, 어린이, 반려동물, 촬영, 세금계산서</p></div></div>
+      <div class="check"><div class="check-mark serif">4</div><div class="check-body"><strong>채널 접속 권한</strong><p>네이버·캐치테이블·인스타·카카오 계정과 알림을 받을 수 있는 권한</p></div></div>
+      <div class="check"><div class="check-mark serif">5</div><div class="check-body"><strong>지난 자료</strong><p>최근 3~6개월 매출 자료, 예약 내역, 단체 문의, 리뷰, 폐기·품절, 근무표</p></div></div>
+      <div class="check"><div class="check-mark serif">6</div><div class="check-body"><strong>매장 색깔</strong><p>손님께 쓰는 말투, 강조하고 싶은 가치, 쓰지 않을 단어, 확인 절차, 대표 사진</p></div></div>
+    </div>
+
+    <div class="questions">
+      <h4>첫 회의에서 같이 정할 일곱 가지</h4>
+      <div class="q-list">
+        <div class="q-item">지금 가장 매출이 좋은 시간대와 메뉴는 무엇인가요?</div>
+        <div class="q-item">단체·대관 문의는 한 달에 몇 건이고 주로 어디로 들어오나요?</div>
+        <div class="q-item">예약 빠뜨림·노쇼·정보 불일치로 한 달에 얼마나 손해를 보고 계신가요?</div>
+        <div class="q-item">손님 정보는 어떻게 동의받아 보관하고 계신가요?</div>
+        <div class="q-item">매장 POS에서 매출 자료를 어떤 형식으로 받아볼 수 있나요?</div>
+        <div class="q-item">어떤 답변은 AI가 보내도 되고, 어떤 답변은 꼭 사장님이 확인해야 하나요?</div>
+        <div class="q-item">3개월 뒤 무엇이 좋아져야 "잘 된 것"이라고 보시겠어요? 숫자 세 가지로 정해주세요.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / CONTACT -->
+<section class="cta-section" id="contact">
+  <div class="shell">
+    <div class="eyebrow">다음 단계</div>
+    <h2>좋은 공간과 음식을,<br><em>다시 찾는 가게</em>로.</h2>
+    <p class="lead">콩킨누스는 이미 손님이 좋아하실 만한 공간과 메뉴를 갖추고 계십니다. 이제는 그 좋은 점이 더 잘 보이고, 한 번 오신 손님이 자연스럽게 다시 오시도록 돕는 일만 남았습니다.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="mailto:dltkddlf231@gmail.com?subject=콩킨누스 AI 도입 상담 문의">
+        상담 요청 보내기
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+      <button class="btn btn-ghost" type="button" onclick="copyLink()">
+        제안서 링크 복사
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+      </button>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-mark serif">이</div>
+      <div class="contact-info">
+        <div class="role">제안자</div>
+        <div class="name serif">이재하</div>
+        <div class="detail">
+          AI 자동화 · 인테리어·건축 설계 · 매장 운영 도우미<br>
+          dltkddlf231@gmail.com
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="shell foot-grid">
+    <div class="foot-brand">CONCINNUS · 2026</div>
+    <div class="foot-meta">
+      콩킨누스 AI 도입 제안서 · 작성 2026년 6월<br>
+      이 문서는 공개된 매장 정보를 바탕으로 한 1차 안내입니다. 실제 시작 전에는 매장 매출과 예약 자료를 함께 보고 다시 맞춰드립니다.
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite">링크가 복사되었습니다</div>
+
+<script>
+function copyLink(){
+  const url = window.location.href.split('#')[0];
+  const t = document.getElementById('toast');
+  const show = (msg)=>{ t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>show('링크가 복사되었습니다')).catch(()=>show('복사에 실패했습니다'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); show('링크가 복사되었습니다'); }
+    catch(_){ show('복사에 실패했습니다'); }
+    document.body.removeChild(ta);
+  }
+}
+</script>
+</body>
+</html>

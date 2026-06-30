@@ -1,0 +1,276 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kmong Monetization - Bucky</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+})();
+</script>
+<style>
+  :root { --bg:#f5f7fb; --surface:#fff; --ink:#111827; --muted:#64748b; --line:#d7dee8; --blue:#2563eb; --green:#15803d; --amber:#b45309; --red:#b91c1c; --violet:#6d28d9; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#111827; color:#fff; padding:24px clamp(16px,4vw,44px); }
+  nav { display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  nav a { color:#cbd5e1; text-decoration:none; border:1px solid #374151; border-radius:999px; padding:7px 12px; font-size:13px; }
+  nav a.active, nav a:hover { color:#fff; border-color:#93c5fd; }
+  nav .auth-end { margin-left:auto; }
+  h1 { margin:0; font-size:clamp(26px,4vw,38px); letter-spacing:0; }
+  header p { max-width:900px; color:#cbd5e1; line-height:1.6; margin:10px 0 0; }
+  main { padding:22px clamp(14px,3vw,42px) 46px; display:grid; gap:18px; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 28px rgba(15,23,42,.05); padding:18px; }
+  .panel-title { margin:0 0 12px; color:var(--muted); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+  .stat { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfdff; }
+  .stat strong { display:block; font-size:24px; margin-bottom:3px; }
+  .stat span { color:var(--muted); font-size:12px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  button, .btn { border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; text-decoration:none; }
+  button:hover, .btn:hover { border-color:var(--blue); color:var(--blue); }
+  .primary { background:var(--blue); border-color:var(--blue); color:#fff; }
+  .primary:hover { background:#1d4ed8; color:#fff; }
+  .danger { border-color:rgba(185,28,28,.35); color:var(--red); }
+  .violet { border-color:rgba(109,40,217,.35); color:var(--violet); }
+  .work-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:15px; background:#fff; display:grid; gap:10px; }
+  .card h3 { margin:0; font-size:15px; }
+  .meta { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+  .badge { display:inline-block; border-radius:999px; padding:3px 9px; font-size:11px; font-weight:800; background:#eef2ff; color:#3730a3; }
+  .badge.waiting { background:#fef3c7; color:#92400e; }
+  .badge.active { background:#dcfce7; color:#166534; }
+  .badge.blocked { background:#fee2e2; color:#991b1b; }
+  textarea, input, select { width:100%; border:1px solid var(--line); border-radius:6px; padding:9px 10px; font:inherit; font-size:13px; }
+  textarea { min-height:86px; resize:vertical; }
+  .notice { border-left:4px solid var(--amber); background:#fffbeb; color:#78350f; padding:12px 14px; border-radius:6px; font-size:13px; line-height:1.55; }
+  .result { white-space:pre-wrap; background:#0f172a; color:#d1d5db; border-radius:8px; padding:13px; min-height:72px; font-size:12px; overflow:auto; }
+  footer { padding:20px clamp(14px,3vw,42px); border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+  @media (max-width:700px) { nav .auth-end { margin-left:0; } }
+</style>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+<header>
+  <nav class="jh-nav"></nav>
+  <h1>크몽 수익화 대시보드</h1>
+  <p>Discord <strong>jh-크몽수익화</strong> 채널과 Bucky Agent를 통해 크몽 로그인, 의뢰 확인, 응답 초안, 작업 진행을 관리합니다.</p>
+</header>
+
+<main>
+  <section class="panel">
+    <p class="panel-title">Login Control</p>
+    <div class="notice">
+      Bucky 자동 로그인은 런타임 환경변수 <strong>KMONG_EMAIL / KMONG_PASSWORD</strong>만 사용합니다.
+      이 대시보드는 비밀번호, 쿠키, 세션 토큰을 입력받거나 저장하지 않습니다.
+      Captcha, OTP, 2FA가 감지되면 상태를 <strong>manual_auth_required</strong>로 바꾸고 수동 인증을 요청합니다.
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="primary" onclick="sendKmongPayload('login', ['login_kmong'])">Bucky 로그인 시작</button>
+      <button onclick="sendKmongPayload('check_login_status', ['check_login_status'])">로그인 상태 확인</button>
+      <button onclick="markManualAuth()">수동 인증 필요 표시</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">Summary</p>
+    <div class="grid">
+      <div class="stat"><strong id="stat-new">3</strong><span>신규 문의</span></div>
+      <div class="stat"><strong id="stat-active">2</strong><span>진행 중</span></div>
+      <div class="stat"><strong id="stat-waiting">1</strong><span>승인 대기</span></div>
+      <div class="stat"><strong id="login-state">unknown</strong><span>로그인 상태</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">Bucky Actions</p>
+    <div class="toolbar">
+      <button class="primary" onclick="syncEmailInquiries()">이메일 동기화 (신규 의뢰 가져오기)</button>
+      <button class="primary" onclick="sendKmongPayload('sync_requests', ['sync_kmong_requests','analyze_request'])">Bucky 의뢰 분석</button>
+      <button class="violet" onclick="sendKmongPayload('draft_customer_reply', ['analyze_request','draft_customer_reply'])">응답 초안 생성</button>
+      <button onclick="sendKmongPayload('draft_delivery_plan', ['draft_delivery_plan'])">작업 계획 생성</button>
+      <button class="danger" onclick="sendKmongPayload('send_customer_reply', ['send_customer_reply'])">고객 응답 승인 요청</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">Manual Intake</p>
+    <div class="grid">
+      <label>의뢰 제목<input id="kmong-title" value="크몽 신규 의뢰 검토"></label>
+      <label>고객 별칭<input id="kmong-customer" value="customer-1"></label>
+      <label>상태<select id="kmong-state"><option>new</option><option>waiting_reply</option><option>in_progress</option><option>delivery_ready</option><option>done</option><option>manual_auth_required</option></select></label>
+    </div>
+    <label style="display:block;margin-top:10px">요약<textarea id="kmong-summary">크몽 의뢰 내용을 붙여넣으면 Bucky가 분석하고 응답 초안을 만듭니다.</textarea></label>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">Work Board</p>
+    <div class="work-grid" id="work-grid"></div>
+  </section>
+
+  <section class="panel">
+    <p class="panel-title">Last Payload</p>
+    <div class="result" id="result">대기 중</div>
+  </section>
+</main>
+
+<footer>Bucky Agent OS - Kmong workflow uses local Bucky intake and approval gates for customer-facing actions.</footer>
+
+<script>
+let KMONG_WORK_ITEMS = [];
+
+async function loadWorkItems() {
+  try {
+    const r = await fetch('./data/kmong_work_items.json?t=' + Date.now());
+    const d = await r.json();
+    KMONG_WORK_ITEMS = d.items || [];
+    document.getElementById('stat-new').textContent = KMONG_WORK_ITEMS.filter(x => x.state === 'new').length;
+    document.getElementById('stat-active').textContent = KMONG_WORK_ITEMS.filter(x => x.state === 'in_progress').length;
+    document.getElementById('stat-waiting').textContent = KMONG_WORK_ITEMS.filter(x => x.state === 'waiting_reply').length;
+  } catch (e) {
+    console.warn('kmong_work_items.json 로드 실패:', e.message);
+  }
+  renderWorkBoard();
+}
+
+function renderWorkBoard() {
+  const grid = document.getElementById('work-grid');
+  if (KMONG_WORK_ITEMS.length === 0) {
+    grid.innerHTML = '<p style="color:var(--muted);font-size:13px">의뢰 항목이 없습니다. 이메일 동기화를 실행하거나 수동으로 추가하세요.</p>';
+    return;
+  }
+  grid.innerHTML = KMONG_WORK_ITEMS.map(item => {
+    const cls = item.state === 'in_progress' ? 'active' : item.state === 'waiting_reply' ? 'waiting' : item.state === 'manual_auth_required' ? 'blocked' : '';
+    const openBtn = item.kmong_url
+      ? `<a class="btn" href="${item.kmong_url}" target="_blank" rel="noreferrer" style="font-size:12px">크몽에서 열기 ↗</a>`
+      : `<button onclick="promptKmongUrl('${item.id}')" style="font-size:12px">URL 등록</button>`;
+    const draftBadge = item.draft_reply ? `<span class="badge" style="background:#ecfdf5;color:#065f46">초안있음</span>` : '';
+    return `<article class="card">
+      <h3>${item.title}</h3>
+      <div class="meta"><span>${item.customer}</span><span>${item.price}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span class="badge ${cls}">${item.state}</span>
+        ${draftBadge}
+      </div>
+      <div class="toolbar">
+        <button onclick="useWorkItem('${item.id}', 'draft_customer_reply')">응답 초안</button>
+        <button onclick="useWorkItem('${item.id}', 'update_work_status')">진행 업데이트</button>
+        <button class="danger" onclick="useWorkItem('${item.id}', 'submit_delivery')">납품 승인 요청</button>
+        ${openBtn}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function promptKmongUrl(id) {
+  const url = window.prompt('이 의뢰의 크몽 페이지 URL을 입력하세요:');
+  if (!url) return;
+  const item = KMONG_WORK_ITEMS.find(x => x.id === id);
+  if (item) { item.kmong_url = url; renderWorkBoard(); }
+}
+
+function getBuckyEndpoint() {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return '/intake';
+  return localStorage.getItem('kmongBuckyIntakeUrl') || '';
+}
+
+function buildKmongPayload(action, requestedActions) {
+  const title = document.getElementById('kmong-title').value.trim() || 'Kmong request';
+  const summary = document.getElementById('kmong-summary').value.trim();
+  const customer = document.getElementById('kmong-customer').value.trim();
+  const state = document.getElementById('kmong-state').value;
+  return {
+    type: 'kmong_workflow_request',
+    dashboard_type: 'kmong',
+    target_channel: 'jh-크몽수익화',
+    action,
+    source: 'kmong_dashboard',
+    source_dashboard_url: location.href,
+    request_id: `kmong-${action}-${Date.now()}`,
+    title,
+    summary,
+    customer_alias: customer,
+    work_state: state,
+    credential_source: 'environment',
+    manual_challenge_state: 'manual_auth_required',
+    requested_actions: requestedActions,
+    approval_required: requestedActions.some(a => ['login_kmong','send_customer_reply','accept_order','submit_delivery','payment_or_billing_action','download_customer_file','upload_customer_file'].includes(a)),
+    created_at: new Date().toISOString()
+  };
+}
+
+async function sendKmongPayload(action, requestedActions) {
+  const payload = buildKmongPayload(action, requestedActions);
+  document.getElementById('result').textContent = JSON.stringify(payload, null, 2);
+  const endpoint = getBuckyEndpoint();
+  if (!endpoint) {
+    await navigator.clipboard?.writeText(JSON.stringify(payload, null, 2));
+    document.getElementById('result').textContent += '\n\nNo intake endpoint configured. Payload copied.';
+    return;
+  }
+  try {
+    const res = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json().catch(() => ({}));
+    document.getElementById('result').textContent = JSON.stringify({ sent:true, response:data, payload }, null, 2);
+  } catch (err) {
+    document.getElementById('result').textContent += '\n\nSend failed: ' + err.message;
+  }
+}
+
+function useWorkItem(id, action) {
+  const item = KMONG_WORK_ITEMS.find(x => x.id === id);
+  if (!item) return;
+  document.getElementById('kmong-title').value = item.title;
+  document.getElementById('kmong-customer').value = item.customer;
+  document.getElementById('kmong-state').value = item.state;
+  const actions = action === 'submit_delivery' ? ['submit_delivery'] : [action];
+  sendKmongPayload(action, actions);
+}
+
+function markManualAuth() {
+  document.getElementById('login-state').textContent = 'manual_auth_required';
+  document.getElementById('kmong-state').value = 'manual_auth_required';
+  sendKmongPayload('manual_auth_required', ['check_login_status']);
+}
+
+async function syncEmailInquiries() {
+  const payload = {
+    type: 'kmong_workflow_request',
+    dashboard_type: 'kmong',
+    target_channel: 'jh-크몽수익화',
+    action: 'sync_email_inquiries',
+    source: 'kmong_dashboard',
+    request_id: 'kmong-email-sync-' + Date.now(),
+    requested_actions: ['sync_kmong_requests'],
+    approval_required: false,
+    created_at: new Date().toISOString()
+  };
+  document.getElementById('result').textContent = '이메일 동기화 요청 전송 중...';
+  const endpoint = getBuckyEndpoint();
+  if (!endpoint) {
+    await navigator.clipboard?.writeText(JSON.stringify(payload, null, 2));
+    document.getElementById('result').textContent = 'Intake 엔드포인트 미설정. 페이로드 클립보드 복사됨.\n\n' + JSON.stringify(payload, null, 2);
+    return;
+  }
+  try {
+    const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json().catch(() => ({}));
+    document.getElementById('result').textContent = JSON.stringify({ sent: true, response: data }, null, 2);
+    setTimeout(() => loadWorkItems(), 3000);
+  } catch (err) {
+    document.getElementById('result').textContent = '전송 실패: ' + err.message;
+  }
+}
+
+loadWorkItems();
+</script>
+</body>
+</html>

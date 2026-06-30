@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "last_updated": "2026-06-28",
+    "version": "1.0"
+  },
+  "initiatives": [
+    {
+      "id": "career-strategy-v1",
+      "title": "AI 인테리어 커리어 전략 v1",
+      "category": "커리어",
+      "status": "active",
+      "started": "2026-06-28",
+      "review_30d": "2026-07-28",
+      "review_90d": "2026-09-28",
+      "source_doc": "ObsidianVault/03_Projects/career-strategy/ai_interior_career_strategy.md",
+      "prompt_template": "ObsidianVault/08_Templates/ai-prompts/career_strategy_prompt.md",
+      "summary": "AI 자동화 역량을 갖춘 인테리어 시공/운영 리더 목표 포지션 전략",
+      "target_position": "AI 자동화 역량을 갖춘 인테리어 시공/운영 리더이자 현장 문제를 시스템으로 해결하는 풀스택 빌더형 사업가",
+      "kpis": [
+        { "label": "하자 대장 Google Sheets 구축", "done": false, "due": "2026-07-05" },
+        { "label": "Make.com 자동화 시나리오 1개", "done": false, "due": "2026-07-12" },
+        { "label": "블로그 첫 포스팅 발행", "done": false, "due": "2026-07-05" },
+        { "label": "크몽 템플릿 1개 등록", "done": false, "due": "2026-07-12" },
+        { "label": "링크드인 프로필 최적화", "done": false, "due": "2026-07-05" },
+        { "label": "30일 리뷰 문서 작성", "done": false, "due": "2026-07-28" },
+        { "label": "90일 역량 개발 완료", "done": false, "due": "2026-09-28" }
+      ],
+      "phases": [
+        { "label": "1단계 (1~30일): 기반 시스템 구축", "status": "in_progress", "start": "2026-06-28", "end": "2026-07-28" },
+        { "label": "2단계 (31~60일): 자동화 심화", "status": "pending", "start": "2026-07-28", "end": "2026-08-27" },
+        { "label": "3단계 (61~90일): 포트폴리오화", "status": "pending", "start": "2026-08-27", "end": "2026-09-28" }
+      ]
+    }
+  ],
+  "today_tasks": [
+    "Google Sheets 열고 하자 대장 컬럼 7개 설계 (20분)",
+    "Make.com 무료 계정 생성 + 대시보드 둘러보기 (10분)",
+    "네이버 블로그 또는 Tistory 계정 개설 (10분)",
+    "크몽 계정 생성 (10분)",
+    "오늘 현장에서 기억나는 반복 문제 3개 메모 (10분)"
+  ],
+  "this_week_tasks": [
+    "하자 대장 Google Sheets v1 완성 + 팀원 1명 테스트 요청",
+    "Make.com 공식 튜토리얼 1강 완료 + 테스트 시나리오 1개 작동",
+    "블로그 첫 포스팅 발행 (현장 문제 해결 경험)",
+    "링크드인 프로필에 'AI 자동화' 키워드 추가",
+    "크몽 하자 대장 템플릿 서비스 초안 등록"
+  ],
+  "top10_priority": [
+    { "rank": 1, "action": "하자 대장 Google Sheets 제작", "difficulty": "⭐⭐", "time_needed": "3~4시간", "start_now": "Google Sheets 열고 컬럼 설계" },
+    { "rank": 2, "action": "Make.com 첫 자동화 시나리오", "difficulty": "⭐⭐⭐", "time_needed": "5~6시간", "start_now": "Make.com 무료 계정 생성" },
+    { "rank": 3, "action": "블로그 개설 + 첫 포스팅", "difficulty": "⭐", "time_needed": "2시간", "start_now": "네이버 블로그 or Tistory 개설" },
+    { "rank": 4, "action": "크몽 계정 + 템플릿 1개 등록", "difficulty": "⭐⭐", "time_needed": "2~3시간", "start_now": "크몽 가입 + 서비스 설명 작성" },
+    { "rank": 5, "action": "링크드인 프로필 최적화", "difficulty": "⭐", "time_needed": "1~2시간", "start_now": "프로필에 인테리어+AI 자동화 추가" },
+    { "rank": 6, "action": "개인 포트폴리오 Notion 공개", "difficulty": "⭐⭐", "time_needed": "3~4시간", "start_now": "Notion 페이지 + 공개 URL 설정" },
+    { "rank": 7, "action": "협력사 연락 추적 시트", "difficulty": "⭐⭐", "time_needed": "2시간", "start_now": "Notion 또는 Sheets DB 설계" },
+    { "rank": 8, "action": "자재/인건비 데이터베이스", "difficulty": "⭐⭐⭐", "time_needed": "4~5시간", "start_now": "Notion DB 공종별 단가 입력 시작" },
+    { "rank": 9, "action": "주간 루틴 고정 (평일 60분)", "difficulty": "⭐", "time_needed": "30분 설계", "start_now": "캘린더에 AI 작업 60분 블록 추가" },
+    { "rank": 10, "action": "현장 감리 판단 사례 일지", "difficulty": "⭐", "time_needed": "10분/일", "start_now": "Notion 일지 페이지 + 오늘 사례 1개" }
+  ]
+}

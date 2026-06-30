@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#bc8cff">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>Codex 세션 - JH Bucky</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
+})();
+</script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --card-hover: #1c2333;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #bc8cff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --orange: #ffa657;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px; position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  header .title-block { flex: 1; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
+  .jh-nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .jh-nav a {
+    font-size: 0.78rem; color: var(--muted); text-decoration: none;
+    border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+  }
+  .jh-nav a:hover, .jh-nav a.active {
+    border-color: var(--accent); color: var(--accent); background: rgba(188,140,255,0.08);
+  }
+  .stats-bar {
+    display: flex; gap: 10px; padding: 14px 28px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 16px; flex: 1; min-width: 88px; text-align: center; transition: all 0.2s;
+  }
+  .stat-box:hover { border-color: var(--accent); }
+  .stat-box .num { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat-box .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .toolbar {
+    padding: 10px 28px; display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; border-bottom: 1px solid var(--border);
+  }
+  .btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { opacity: 0.85; color: #0d1117; }
+  .live-indicator {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    font-size: 0.76rem; color: var(--muted);
+  }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 5px var(--green); animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; padding: 18px 28px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; border-left: 3px solid var(--accent); transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #444d56; }
+  .card-header { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; }
+  .badge {
+    font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+    background: rgba(188,140,255,0.18); color: var(--accent); border: 1px solid rgba(188,140,255,0.3);
+  }
+  .card-title { flex: 1; }
+  .card-title strong { font-size: 0.93rem; font-weight: 600; }
+  .card-title small { font-size: 0.74rem; color: var(--muted); font-family: monospace; display: block; margin-top: 2px; }
+  .status-pill {
+    font-size: 0.7rem; padding: 3px 9px; border-radius: 10px; font-weight: 600;
+  }
+  .sp-reviewing  { background: rgba(188,140,255,0.15); color: var(--accent); }
+  .sp-passed     { background: rgba(63,185,80,0.15);   color: var(--green); }
+  .sp-failed     { background: rgba(248,81,73,0.15);   color: var(--red); }
+  .sp-pending    { background: rgba(139,148,158,0.15); color: var(--muted); }
+  .card-meta { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; line-height: 1.7; }
+  .card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .act-btn {
+    font-size: 0.76rem; padding: 4px 11px; border-radius: 5px; cursor: pointer;
+    border: 1px solid; transition: all 0.15s; font-weight: 500; background: transparent;
+  }
+  .a-review  { color: var(--accent); border-color: rgba(188,140,255,0.3); }
+  .a-review:hover  { background: rgba(188,140,255,0.1); }
+  .a-pass    { color: var(--green);  border-color: rgba(63,185,80,0.3); }
+  .a-pass:hover    { background: rgba(63,185,80,0.1); }
+  .a-fail    { color: var(--red);    border-color: rgba(248,81,73,0.3); }
+  .a-fail:hover    { background: rgba(248,81,73,0.1); }
+  .empty-state { padding: 60px 28px; text-align: center; color: var(--muted); }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .empty-state p { font-size: 0.88rem; }
+  .input-bar {
+    margin: 16px 28px; display: flex; gap: 8px;
+  }
+  .input-bar textarea {
+    flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; resize: none; height: 72px;
+    font-family: inherit;
+  }
+  .input-bar textarea:focus { outline: none; border-color: var(--accent); }
+  .input-bar-actions { display: flex; flex-direction: column; gap: 6px; }
+  footer { padding: 18px 28px; text-align: center; color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 20px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+<header>
+  <div class="title-block">
+    <h1>Codex 세션</h1>
+    <p>독립 검수 에이전트 — 코드 리뷰 및 품질 감사</p>
+  </div>
+  <nav class="jh-nav"></nav>
+</header>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-box"><div class="num" id="statTotal">0</div><div class="lbl">전체 리뷰</div></div>
+  <div class="stat-box"><div class="num" id="statReviewing" style="color:var(--accent)">0</div><div class="lbl">검토중</div></div>
+  <div class="stat-box"><div class="num" id="statPassed" style="color:var(--green)">0</div><div class="lbl">PASS</div></div>
+  <div class="stat-box"><div class="num" id="statFailed" style="color:var(--red)">0</div><div class="lbl">FAIL</div></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn primary" onclick="sendReviewRequest()">+ 코드 리뷰 요청</button>
+  <button class="btn" onclick="refresh()">새로고침</button>
+  <div class="live-indicator">
+    <span class="live-dot"></span>
+    <span id="lastUpdate">로딩 중...</span>
+  </div>
+</div>
+
+<div class="input-bar" id="inputBar" style="display:none">
+  <textarea id="reviewInput" placeholder="리뷰할 코드 또는 작업 내용을 입력하세요...&#10;예: scripts/discord_bot.py의 _tts_speak 함수 보안 리뷰"></textarea>
+  <div class="input-bar-actions">
+    <button class="btn primary" onclick="submitReview()">전송</button>
+    <button class="btn" onclick="cancelInput()">취소</button>
+  </div>
+</div>
+
+<div id="sessionGrid" class="grid">
+  <div class="empty-state">
+    <div class="icon">🔍</div>
+    <p>Codex 검수 세션 없음<br><small>Discord #jh-코덱스앱 또는 위 버튼으로 요청하세요</small></p>
+  </div>
+</div>
+
+<footer>Bucky Agent OS — Codex 독립 검수 에이전트 · <a href="/bucky-agent-os.html">OS 대시보드</a></footer>
+
+<script>
+const INTAKE = '/intake';
+let sessions = [];
+
+async function loadSessions() {
+  try {
+    const r = await fetch('/api/agent-sessions?agent=codex', { credentials: 'include' });
+    if (r.ok) {
+      const data = await r.json();
+      sessions = data.sessions || [];
+      renderSessions();
+      updateStats();
+    }
+  } catch(e) {
+    console.warn('세션 로드 실패 (정상 — 서버 미연결 시):', e.message);
+  }
+  document.getElementById('lastUpdate').textContent = '최종 갱신: ' + new Date().toLocaleTimeString('ko-KR');
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = sessions.length;
+  document.getElementById('statReviewing').textContent = sessions.filter(s => s.status === 'reviewing').length;
+  document.getElementById('statPassed').textContent = sessions.filter(s => s.status === 'passed').length;
+  document.getElementById('statFailed').textContent = sessions.filter(s => s.status === 'failed').length;
+}
+
+function renderSessions() {
+  const grid = document.getElementById('sessionGrid');
+  if (!sessions.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Codex 검수 세션 없음<br><small>Discord #jh-코덱스앱 또는 위 버튼으로 요청하세요</small></p></div>`;
+    return;
+  }
+  grid.innerHTML = sessions.map(s => `
+    <div class="card">
+      <div class="card-header">
+        <span class="badge">CODEX</span>
+        <div class="card-title">
+          <strong>${escHtml(s.title || '코드 리뷰')}</strong>
+          <small>${escHtml(s.id || '')}</small>
+        </div>
+        <span class="status-pill sp-${s.status || 'pending'}">${statusLabel(s.status)}</span>
+      </div>
+      <div class="card-meta">
+        <div>요청: ${escHtml(s.created || '-')}</div>
+        ${s.result ? `<div>결과: ${escHtml(s.result)}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        <button class="act-btn a-review" onclick="reqReview('${s.id}')">재검수</button>
+        ${s.status !== 'passed' ? `<button class="act-btn a-pass" onclick="markPass('${s.id}')">PASS</button>` : ''}
+        ${s.status !== 'failed' ? `<button class="act-btn a-fail" onclick="markFail('${s.id}')">FAIL</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function statusLabel(s) {
+  return {reviewing:'검토중', passed:'PASS', failed:'FAIL', pending:'대기'}[s] || s || '대기';
+}
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sendReviewRequest() {
+  const bar = document.getElementById('inputBar');
+  bar.style.display = bar.style.display === 'none' ? 'flex' : 'none';
+  if (bar.style.display === 'flex') document.getElementById('reviewInput').focus();
+}
+function cancelInput() { document.getElementById('inputBar').style.display = 'none'; }
+
+async function submitReview() {
+  const text = document.getElementById('reviewInput').value.trim();
+  if (!text) return;
+  const payload = {
+    source: 'codex-dashboard',
+    target_channel: 'jh-코덱스앱',
+    action: 'codex_review',
+    content: text,
+    source_dashboard_url: location.href,
+  };
+  try {
+    await fetch(INTAKE, {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('reviewInput').value = '';
+    cancelInput();
+    setTimeout(loadSessions, 1500);
+  } catch(e) { alert('전송 실패: ' + e.message); }
+}
+
+async function reqReview(id) {
+  await sendPayload({ action: 'codex_rereview', session_id: id });
+}
+async function markPass(id) {
+  await sendPayload({ action: 'codex_mark_pass', session_id: id });
+  await loadSessions();
+}
+async function markFail(id) {
+  await sendPayload({ action: 'codex_mark_fail', session_id: id });
+  await loadSessions();
+}
+
+async function sendPayload(extra) {
+  const payload = { source: 'codex-dashboard', source_dashboard_url: location.href, ...extra };
+  try {
+    await fetch(INTAKE, {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn('전송 실패:', e.message); }
+}
+
+function refresh() { loadSessions(); }
+
+loadSessions();
+setInterval(loadSessions, 30000);
+</script>
+</body>
+</html>

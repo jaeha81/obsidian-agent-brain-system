@@ -1,0 +1,102 @@
+{
+  "generated_at": "2026-06-19T12:15:47+00:00",
+  "global": {
+    "tasks_total": 62,
+    "tasks_pending": 18,
+    "tasks_blocked": 0,
+    "bot_pid_minutes": 59.64007292588552,
+    "bot_log_minutes": 2365.516505797704
+  },
+  "runtime": [
+    {
+      "id": "discord_bot",
+      "status": "ok",
+      "msg": "PID 59m old"
+    },
+    {
+      "id": "chat_server",
+      "status": "warn",
+      "msg": "log 9964m idle"
+    }
+  ],
+  "agents": {
+    "chat": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "task-board": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "claude-code": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "codex": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "daily-plus": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "chris": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "repo": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "wishket": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "kmong": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "chsh-mining": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "threads": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "my-dev": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    },
+    "charlie": {
+      "status": "ok",
+      "warnings": [],
+      "errors": [],
+      "active_tasks": 0
+    }
+  }
+}

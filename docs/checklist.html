@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -250,6 +250,7 @@
     .grid { grid-template-columns: 1fr; }
   }
 </style>
+<script src="/shared/auth.js"></script>
 </head>
 <body>
 
@@ -277,7 +278,7 @@
   <div class="stat-box"><div class="num num-done" id="cnt-done">—</div><div class="label">처리완료</div></div>
 </div>
 
-<p style="margin:14px 32px 0;color:var(--muted);font-size:0.76rem"><strong>공식 대화 채널:</strong> 사용자는 <code>jh-chat</code>에서 직접 대화하고, Checklist 재개/확인 요청은 <code>jh-태스크보드</code> shared channel로 보냅니다. <code>일반</code> 채널은 사용하지 않습니다.</p>
+<p style="margin:14px 32px 0;color:var(--muted);font-size:0.76rem"><strong>공식 대화 채널:</strong> 사용자는 <code>jh-chat</code>에서 직접 대화하고, Checklist 재개/확인 요청은 <code>jh-태스크보드</code> shared channel로 보냅니다. <code>일반</code> 채널은 사용하지 않습니다. | 공식: jh-태스크보드</p>
 <p style="margin:8px 32px 0;color:var(--muted);font-size:0.76rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart는 사용자 승인 후 Bucky가 실행합니다.</p>
 
 <section class="ops-panel" aria-label="Bucky 작업 운영 보드">
@@ -473,6 +474,17 @@ async function loadTasksFromJson() {
 const LS_KEY = "bucky_checklist_v1";
 const ENDPOINT_KEY = "buckyChecklistEndpoint";
 let state = {};
+
+// Migrate old hardcoded localhost URLs to same-origin
+(function() {
+  try {
+    if (window.location.protocol === "file:") return;
+    ["buckyChecklistEndpoint", "dailyPlusBuckyOsIntakeUrl"].forEach(function(key) {
+      const v = localStorage.getItem(key) || "";
+      if (/^http:\/\/(localhost|127\.0\.0\.1):\d+/.test(v)) localStorage.removeItem(key);
+    });
+  } catch (_) {}
+})();
 let showDeleted = false;
 let currentFilter = "all";
 
@@ -492,7 +504,14 @@ function getTaskState(id) {
 function getEndpoint() {
   const input = document.getElementById("bucky-endpoint");
   const typed = input ? input.value.trim() : "";
-  return typed || localStorage.getItem(ENDPOINT_KEY) || localStorage.getItem("dailyPlusBuckyOsIntakeUrl") || localStorage.getItem("bucky-webhook") || "";
+  const stored = typed || localStorage.getItem(ENDPOINT_KEY) || localStorage.getItem("dailyPlusBuckyOsIntakeUrl") || localStorage.getItem("bucky-webhook") || "";
+  if (stored) return stored;
+  // Same-origin /intake when served by Flask (localhost/Tailscale)
+  try {
+    const h = window.location.hostname;
+    if (h === "localhost" || h === "127.0.0.1" || h.endsWith(".ts.net") || h.endsWith(".tail3b2b6d.ts.net")) return "/intake";
+  } catch (_) {}
+  return "";
 }
 
 function loadEndpoint() {
@@ -568,6 +587,36 @@ function buildResumeMessage(task) {
   ].join("\n");
 }
 
+function isManualChecklistTask(task) {
+  const text = [
+    task.title || "",
+    task.desc || "",
+    task.category || "",
+    task.source || ""
+  ].join(" ").toLowerCase();
+  const manualMarkers = [
+    "requires_approval=true",
+    "requires_user_approval=true",
+    "approval_required",
+    "사용자 승인",
+    "수동",
+    "직접",
+    "로그인",
+    "비밀번호",
+    "password",
+    "credential",
+    "chrome extension",
+    "vercel",
+    "supabase",
+    "local pc control",
+    "bot restart",
+    "zero trust",
+    "api key",
+    "크레딧"
+  ];
+  return manualMarkers.some(marker => text.includes(marker.toLowerCase()));
+}
+
 async function sendResume(id) {
   const task = TASKS.find(t => t.id === id);
   if (!task) return;
@@ -602,6 +651,8 @@ async function sendResume(id) {
           status: ts.status,
           note: ts.note || "",
           source_dashboard_url: location.href,
+          requires_user_approval: isManualChecklistTask(task),
+          execution_mode: isManualChecklistTask(task) ? "approval_required" : "auto_executable",
           body
         })
       });

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>계산기</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .calc {
+    background: #16213e;
+    border-radius: 24px;
+    padding: 20px;
+    width: 340px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+
+  .display {
+    background: #0f3460;
+    border-radius: 16px;
+    padding: 20px 24px 16px;
+    margin-bottom: 20px;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+
+  .display .expr {
+    color: #8892b0;
+    font-size: 14px;
+    min-height: 20px;
+    word-break: break-all;
+    text-align: right;
+  }
+
+  .display .result {
+    color: #e2e8f0;
+    font-size: 40px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    word-break: break-all;
+    text-align: right;
+    line-height: 1.1;
+    transition: font-size 0.15s;
+  }
+
+  .display .result.small { font-size: 28px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 14px;
+    height: 68px;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.08s, filter 0.08s;
+    user-select: none;
+  }
+
+  .btn:active { transform: scale(0.93); filter: brightness(0.85); }
+
+  .btn-num   { background: #1e3a5f; color: #e2e8f0; }
+  .btn-op    { background: #e94560; color: #fff; }
+  .btn-fn    { background: #0d2137; color: #94a3b8; font-size: 16px; }
+  .btn-eq    { background: linear-gradient(135deg, #e94560, #c62a47); color: #fff; }
+  .btn-zero  { grid-column: span 2; }
+
+  @media (max-width: 360px) {
+    .calc { width: 300px; padding: 14px; }
+    .btn { height: 58px; font-size: 18px; }
+    .display .result { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="calc">
+  <div class="display">
+    <div class="expr" id="expr"></div>
+    <div class="result" id="result">0</div>
+  </div>
+  <div class="grid">
+    <button class="btn btn-fn" data-action="clear">AC</button>
+    <button class="btn btn-fn" data-action="sign">+/-</button>
+    <button class="btn btn-fn" data-action="percent">%</button>
+    <button class="btn btn-op" data-action="op" data-val="/">÷</button>
+
+    <button class="btn btn-num" data-action="num" data-val="7">7</button>
+    <button class="btn btn-num" data-action="num" data-val="8">8</button>
+    <button class="btn btn-num" data-action="num" data-val="9">9</button>
+    <button class="btn btn-op" data-action="op" data-val="*">×</button>
+
+    <button class="btn btn-num" data-action="num" data-val="4">4</button>
+    <button class="btn btn-num" data-action="num" data-val="5">5</button>
+    <button class="btn btn-num" data-action="num" data-val="6">6</button>
+    <button class="btn btn-op" data-action="op" data-val="-">−</button>
+
+    <button class="btn btn-num" data-action="num" data-val="1">1</button>
+    <button class="btn btn-num" data-action="num" data-val="2">2</button>
+    <button class="btn btn-num" data-action="num" data-val="3">3</button>
+    <button class="btn btn-op" data-action="op" data-val="+">+</button>
+
+    <button class="btn btn-num btn-zero" data-action="num" data-val="0">0</button>
+    <button class="btn btn-num" data-action="dot">.</button>
+    <button class="btn btn-eq" data-action="eq">=</button>
+  </div>
+</div>
+
+<script>
+  const display = document.getElementById('result');
+  const exprEl  = document.getElementById('expr');
+
+  let cur = '0', prev = '', op = '', justEvaled = false;
+
+  function show(val) {
+    const s = String(val);
+    display.textContent = s;
+    display.className = 'result' + (s.length > 9 ? ' small' : '');
+  }
+
+  function fmt(n) {
+    if (!isFinite(n)) return 'Error';
+    const s = parseFloat(n.toPrecision(12)).toString();
+    return s;
+  }
+
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const a = btn.dataset.action, v = btn.dataset.val;
+
+      if (a === 'num') {
+        if (justEvaled) { cur = v; justEvaled = false; }
+        else cur = cur === '0' ? v : cur + v;
+        show(cur);
+
+      } else if (a === 'dot') {
+        if (justEvaled) { cur = '0.'; justEvaled = false; }
+        else if (!cur.includes('.')) cur += '.';
+        show(cur);
+
+      } else if (a === 'op') {
+        if (op && !justEvaled) {
+          const res = compute(parseFloat(prev), parseFloat(cur), op);
+          prev = fmt(res); show(prev);
+        } else {
+          prev = cur;
+        }
+        op = v; justEvaled = false;
+        const sym = {'*':'×', '/':'÷', '+':'+', '-':'−'}[v];
+        exprEl.textContent = prev + ' ' + sym;
+        cur = '0';
+
+      } else if (a === 'eq') {
+        if (!op) return;
+        const res = compute(parseFloat(prev), parseFloat(cur), op);
+        const sym = {'*':'×', '/':'÷', '+':'+', '-':'−'}[op];
+        exprEl.textContent = prev + ' ' + sym + ' ' + cur + ' =';
+        cur = fmt(res); show(cur);
+        op = ''; prev = ''; justEvaled = true;
+
+      } else if (a === 'clear') {
+        cur = '0'; prev = ''; op = ''; justEvaled = false;
+        exprEl.textContent = ''; show('0');
+
+      } else if (a === 'sign') {
+        cur = fmt(parseFloat(cur) * -1); show(cur);
+
+      } else if (a === 'percent') {
+        cur = fmt(parseFloat(cur) / 100); show(cur);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', e => {
+    const map = {
+      '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+      '.':'.','Enter':'=','=':'=','Backspace':'bs',
+      '+':'+','-':'-','*':'*','/':'/'
+    };
+    const k = map[e.key];
+    if (!k) return;
+    e.preventDefault();
+    if ('0123456789'.includes(k)) document.querySelector(`[data-val="${k}"]`).click();
+    else if (k === '.') document.querySelector('[data-action="dot"]').click();
+    else if (k === '=') document.querySelector('[data-action="eq"]').click();
+    else if (k === 'bs') { cur = cur.length > 1 ? cur.slice(0,-1) : '0'; show(cur); }
+    else document.querySelector(`[data-action="op"][data-val="${k}"]`).click();
+  });
+
+  function compute(a, b, o) {
+    if (o === '+') return a + b;
+    if (o === '-') return a - b;
+    if (o === '*') return a * b;
+    if (o === '/') return b === 0 ? NaN : a / b;
+  }
+</script>
+</body>
+</html>

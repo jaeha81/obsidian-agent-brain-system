@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -227,7 +227,30 @@
     border-top: 1px solid var(--border); margin-top: 4px;
   }
   .section-header:first-child { border-top: none; }
+
+  /* ── Mobile (≤768px) ── */
+  @media (max-width: 768px) {
+    header { padding: 12px 14px; gap: 10px; }
+    header h1 { font-size: 1.1rem; }
+    .jh-nav {
+      flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      width: 100%; padding-bottom: 4px; scrollbar-width: none;
+    }
+    .jh-nav::-webkit-scrollbar { display: none; }
+    .jh-nav a { flex-shrink: 0; }
+    .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 14px; }
+    .stat-box { min-width: 0; padding: 8px 6px; }
+    .stat-box .num { font-size: 1.2rem; }
+    .toolbar { padding: 10px 14px; }
+    .search-box { margin-left: 0; width: 100%; }
+    .grid { grid-template-columns: 1fr; padding: 14px; }
+    .wh-panel { margin: 10px 14px; }
+    .section-header { padding: 8px 14px 4px; }
+    .act-btn { padding: 7px 12px; font-size: 0.8rem; }
+    #toast { left: 14px; right: 14px; bottom: 14px; text-align: center; }
+  }
 </style>
+<script src="/shared/auth.js"></script>
 </head>
 <body>
 
@@ -288,7 +311,7 @@
   </div>
 </div>
 
-<p style="margin:14px 28px 0;color:var(--muted);font-size:0.76rem"><strong>공식 대화 채널:</strong> 사용자는 <code>jh-chat</code>에서 직접 대화하고, Task Board 실행 요청은 <code>jh-태스크보드</code> 채널로만 전달합니다. <code>일반</code> 채널은 사용하지 않습니다.</p>
+<p style="margin:14px 28px 0;color:var(--muted);font-size:0.76rem"><strong>공식 대화 채널:</strong> 사용자는 <code>jh-chat</code>에서 직접 대화하고, Task Board 실행 요청은 <code>jh-태스크보드</code> 채널로만 전달합니다. <code>일반</code> 채널은 사용하지 않습니다. | 공식: jh-태스크보드</p>
 <p style="margin:8px 28px 0;color:var(--muted);font-size:0.76rem"><strong>승인형 로컬 제어:</strong> Chrome extension, Vercel, Supabase, local PC control, bot restart가 필요하면 사용자 승인 후 Bucky가 실행합니다.</p>
 
 <!-- Webhook Panel -->
@@ -296,7 +319,7 @@
   <h3>Bucky 전송 설정</h3>
   <p>상태 변경 및 재개 요청을 Bucky로 보냅니다. Bucky intake URL 또는 Discord webhook URL을 입력하세요.</p>
   <div class="wh-input">
-    <input type="text" id="whInput" placeholder="http://127.0.0.1:8765/intake 또는 Discord webhook URL" />
+    <input type="text" id="whInput" placeholder="/intake (기본) 또는 Discord webhook URL" />
     <button onclick="saveWebhook()">저장</button>
   </div>
 </div>
@@ -331,6 +354,13 @@
 
 <!-- Grid -->
 <div id="grid" class="grid"></div>
+
+<!-- Kmong Section -->
+<div class="section-header" style="display:flex;align-items:center;justify-content:space-between;padding-right:28px">
+  <span>크몽 의뢰 (Kmong)</span>
+  <a href="kmong.html" style="font-size:0.75rem;color:var(--accent);text-decoration:none">대시보드 →</a>
+</div>
+<div id="kmong-grid" class="grid" style="padding-top:6px"></div>
 
 <!-- Add Modal -->
 <div class="modal-overlay" id="addModal">
@@ -380,7 +410,24 @@ const STORAGE_KEY = 'bucky_taskboard_v2';
 const WH_KEY = 'bucky_wh_url';
 const INTAKE_KEY = 'buckyIntakeEndpoint';
 const LOCAL_TASKS_KEY = 'bucky_local_tasks';
-const DEFAULT_INTAKE_URL = 'http://127.0.0.1:8765/intake';
+// Same-origin /intake when served by Flask (localhost/Tailscale); empty string on GitHub Pages
+const DEFAULT_INTAKE_URL = (function() {
+  try {
+    const h = window.location.hostname;
+    const local = h === 'localhost' || h === '127.0.0.1' || h.endsWith('.ts.net') || h.endsWith('.tail3b2b6d.ts.net');
+    return local ? '/intake' : '';
+  } catch (_) { return ''; }
+})();
+
+// Migrate old hardcoded localhost URL stored in localStorage
+(function() {
+  try {
+    const stored = localStorage.getItem(INTAKE_KEY) || '';
+    if ((stored === 'http://127.0.0.1:8765/intake' || stored === 'http://localhost:8765/intake') && window.location.protocol !== 'file:') {
+      localStorage.removeItem(INTAKE_KEY);
+    }
+  } catch (_) {}
+})();
 
 let allTasks = [];
 let statusMap = {};
@@ -389,6 +436,11 @@ let currentFilter = 'all';
 
 function getIntakeUrl() {
   return localStorage.getItem(INTAKE_KEY) || DEFAULT_INTAKE_URL;
+}
+
+// Shared webhook key with index.html and daily-plus.html
+function getWebhookUrl() {
+  return localStorage.getItem(WH_KEY) || localStorage.getItem('bucky-webhook') || '';
 }
 
 function isWebhookUrl(url) {
@@ -417,6 +469,7 @@ async function loadTasks() {
 
   updateStats();
   renderGrid();
+  loadKmongItems();
 }
 
 // ── Effective Status ─────────────────────────────────────────────────────
@@ -565,7 +618,7 @@ async function resumeTask(id) {
   if (!task) return;
 
   const intakeUrl = getIntakeUrl();
-  const whUrl = localStorage.getItem(WH_KEY);
+  const whUrl = getWebhookUrl();
   const isIntake = intakeUrl && !isWebhookUrl(intakeUrl);
   let lastError = '';
 
@@ -625,7 +678,7 @@ async function sendWebhook(id, status) {
   if (!task) return;
 
   const intakeUrl = getIntakeUrl();
-  const whUrl = localStorage.getItem(WH_KEY);
+  const whUrl = getWebhookUrl();
   const icons = { done: '✅', in_progress: '🔄', rejected: '❌', pending: '⏳' };
   const labels = { done: '완료', in_progress: '진행중', rejected: '거절', pending: '미처리' };
 
@@ -666,7 +719,7 @@ function toggleWebhook() {
   p.classList.toggle('open');
   if (p.classList.contains('open')) {
     document.getElementById('whInput').value =
-      localStorage.getItem(INTAKE_KEY) || localStorage.getItem(WH_KEY) || DEFAULT_INTAKE_URL;
+      localStorage.getItem(INTAKE_KEY) || localStorage.getItem(WH_KEY) || localStorage.getItem('bucky-webhook') || DEFAULT_INTAKE_URL;
   }
 }
 
@@ -758,6 +811,42 @@ function showToast(msg) {
 document.getElementById('addModal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
+
+// ── Kmong ─────────────────────────────────────────────────────────────────
+async function loadKmongItems() {
+  const grid = document.getElementById('kmong-grid');
+  try {
+    const r = await fetch('./data/kmong_work_items.json?t=' + Date.now());
+    const d = await r.json();
+    const items = d.items || [];
+    if (items.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;padding:14px 0;color:var(--muted);font-size:0.82rem">크몽 의뢰 없음 — kmong.html에서 이메일 동기화를 실행하세요.</div>';
+      return;
+    }
+    const stateColor = { new: 'var(--yellow)', in_progress: 'var(--accent)', waiting_reply: 'var(--orange)', done: 'var(--green)', blocked: 'var(--red)' };
+    grid.innerHTML = items.map(item => {
+      const col = stateColor[item.state] || 'var(--muted)';
+      const openLink = item.kmong_url
+        ? `<a href="${item.kmong_url}" target="_blank" rel="noreferrer" style="font-size:0.75rem;color:var(--accent);text-decoration:none;margin-left:auto">크몽 열기 ↗</a>`
+        : '';
+      const draftTag = item.draft_reply ? `<span style="font-size:0.72rem;background:rgba(63,185,80,0.15);color:var(--green);border-radius:4px;padding:2px 6px">초안</span>` : '';
+      return `<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${col};border-radius:8px;padding:12px 14px;display:grid;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:0.88rem;font-weight:600;color:var(--text)">${item.title}</span>
+          ${draftTag}
+          ${openLink}
+        </div>
+        <div style="display:flex;gap:10px;font-size:0.75rem;color:var(--muted)">
+          <span>${item.customer}</span><span>${item.price}</span>
+          <span style="color:${col}">${item.state}</span>
+        </div>
+        <a href="kmong.html" style="font-size:0.75rem;color:var(--muted);text-decoration:none">크몽 대시보드에서 관리 →</a>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:14px 0;color:var(--muted);font-size:0.82rem">크몽 데이터 로드 실패: ' + e.message + '</div>';
+  }
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────
 loadTasks();

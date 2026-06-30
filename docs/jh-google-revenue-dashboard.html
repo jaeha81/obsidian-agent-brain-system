@@ -1,0 +1,416 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JH-구글자동화수익대시보드</title>
+<script>
+(function(){
+  function getCookie(name){
+    var parts=document.cookie.split(';');
+    for(var i=0;i<parts.length;i++){
+      var p=parts[i].trim();
+      if(p.indexOf(name+'=')===0) return p.slice(name.length+1);
+    }
+    return '';
+  }
+  document.documentElement.style.visibility='hidden';
+  var localPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost') &&
+    new URLSearchParams(location.search).get('preview') === '1';
+  if(!getCookie('bucky_auth') && !localPreview) location.replace('/login.html?r='+encodeURIComponent(location.pathname));
+  else document.documentElement.style.visibility='';
+})();
+</script>
+<style>
+  :root {
+    --bg:#f4f6f8;
+    --surface:#ffffff;
+    --ink:#16202a;
+    --muted:#637083;
+    --line:#d8dee7;
+    --brand:#0f766e;
+    --brand-2:#1d4ed8;
+    --green:#15803d;
+    --amber:#b45309;
+    --red:#b91c1c;
+    --slate:#334155;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI", system-ui, -apple-system, sans-serif;
+    letter-spacing:0;
+  }
+  header {
+    background:#ffffff;
+    border-bottom:1px solid var(--line);
+    padding:18px clamp(16px,3vw,36px);
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .topline { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  h1 { margin:0; font-size:clamp(20px,3vw,30px); line-height:1.2; letter-spacing:0; }
+  .subtitle { margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+  nav { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+  nav a {
+    color:var(--slate);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:7px 10px;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:700;
+    min-height:32px;
+  }
+  nav a.active, nav a:hover { border-color:var(--brand); color:var(--brand); background:#ecfdf5; }
+  main { display:grid; gap:16px; padding:18px clamp(12px,3vw,34px) 40px; }
+  .band {
+    background:var(--surface);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:16px clamp(12px,2vw,18px);
+  }
+  .grid { display:grid; gap:12px; grid-template-columns:repeat(12, minmax(0,1fr)); }
+  .span-3 { grid-column:span 3; }
+  .span-4 { grid-column:span 4; }
+  .span-5 { grid-column:span 5; }
+  .span-6 { grid-column:span 6; }
+  .span-7 { grid-column:span 7; }
+  .span-12 { grid-column:span 12; }
+  .stat, .phase, .agent, .queue-item {
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+  }
+  .stat strong { display:block; font-size:26px; line-height:1; margin-bottom:5px; color:var(--brand); }
+  .stat span, .muted { color:var(--muted); font-size:12px; line-height:1.45; }
+  .label {
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin:0 0 9px;
+  }
+  h2 { margin:0 0 12px; font-size:17px; letter-spacing:0; }
+  h3 { margin:0; font-size:15px; letter-spacing:0; }
+  .phase { display:grid; gap:9px; }
+  .phase-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .badge {
+    display:inline-flex;
+    align-items:center;
+    min-height:24px;
+    border-radius:999px;
+    padding:3px 9px;
+    font-size:11px;
+    font-weight:800;
+    background:#eef2ff;
+    color:#3730a3;
+    border:1px solid #c7d2fe;
+  }
+  .badge.active { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .badge.guard { background:#fffbeb; border-color:#fde68a; color:#92400e; }
+  .badge.block { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+  .bar { height:8px; background:#e5e7eb; border-radius:99px; overflow:hidden; }
+  .fill { height:100%; background:linear-gradient(90deg,var(--brand),var(--brand-2)); width:0; }
+  .agent { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; }
+  .agent p, .queue-item p { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
+  .queue-item { display:grid; gap:9px; }
+  .score-row { display:grid; grid-template-columns:70px 1fr 34px; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  button, .btn {
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    color:var(--ink);
+    padding:8px 11px;
+    min-height:34px;
+    font:inherit;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+    text-decoration:none;
+  }
+  button:hover, .btn:hover { border-color:var(--brand); color:var(--brand); }
+  .primary { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .primary:hover { background:#115e59; color:#fff; }
+  .danger { color:var(--red); border-color:#fecaca; }
+  .danger:hover { color:#fff; background:var(--red); border-color:var(--red); }
+  input, select, textarea {
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:9px 10px;
+    font:inherit;
+    font-size:13px;
+    background:#fff;
+    color:var(--ink);
+  }
+  textarea { min-height:96px; resize:vertical; }
+  label { display:grid; gap:5px; color:var(--muted); font-size:12px; font-weight:700; }
+  .notice {
+    border-left:4px solid var(--amber);
+    background:#fffbeb;
+    color:#78350f;
+    border-radius:6px;
+    padding:11px 13px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .result {
+    background:#101827;
+    color:#d8e0ed;
+    border-radius:8px;
+    padding:12px;
+    min-height:118px;
+    font-size:12px;
+    line-height:1.5;
+    overflow:auto;
+    white-space:pre-wrap;
+  }
+  footer { color:var(--muted); font-size:12px; padding:18px clamp(12px,3vw,34px); border-top:1px solid var(--line); }
+  @media (max-width:900px) {
+    .span-3, .span-4, .span-5, .span-6, .span-7 { grid-column:span 12; }
+    nav { margin-left:0; }
+  }
+</style>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+<header>
+  <div class="topline">
+    <div>
+      <h1>JH-구글자동화수익대시보드</h1>
+      <p class="subtitle">Blogger, AdSense, Search Console, Make.com, Discord 운영을 사람 검수 중심으로 묶는 수익화 자동화 MVP</p>
+    </div>
+    <nav class="jh-nav"></nav>
+  </div>
+</header>
+
+<main>
+  <section class="grid">
+    <div class="stat span-3"><strong id="statPhase">1</strong><span>active phase</span></div>
+    <div class="stat span-3"><strong id="statAgents">6</strong><span>ready or guarded agents</span></div>
+    <div class="stat span-3"><strong id="statQueue">3</strong><span>content queue items</span></div>
+    <div class="stat span-3"><strong id="statReview">0</strong><span>human review waiting</span></div>
+  </section>
+
+  <section class="band">
+    <div class="grid">
+      <div class="span-7">
+        <p class="label">Phase Roadmap</p>
+        <div class="grid" id="phaseGrid"></div>
+      </div>
+      <div class="span-5">
+        <p class="label">Safety Gate</p>
+        <div class="notice">
+          광고 자동 클릭, 본인/지인 클릭 요청, 트래픽 조작, 구매 트래픽, 대량 자동 발행, 무검수 AI 글 발행은 차단 상태로만 기록됩니다. Blogger 발행과 Make.com 외부 전송은 사람 검수 후 승인 단계로만 이동합니다.
+        </div>
+        <div class="controls" style="margin-top:12px">
+          <button class="danger" onclick="buildPayload('click_ads',['click_ads','simulate_traffic'])">금지 액션 테스트</button>
+          <button onclick="buildPayload('run_policy_check',['run_policy_check','create_review_packet'])">정책 검수 패킷</button>
+          <button class="primary" onclick="buildPayload('send_make_webhook',['prepare_make_webhook_payload','send_make_webhook'])">Make 전송 승인 요청</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="span-7">
+      <p class="label">Content Queue</p>
+      <div class="grid" id="queueGrid"></div>
+    </div>
+    <div class="span-5">
+      <p class="label">Request Builder</p>
+      <div class="grid">
+        <label class="span-12">키워드<input id="keywordInput" value="블로그 애드센스 승인 체크리스트"></label>
+        <label class="span-12">클러스터<select id="clusterInput">
+          <option value="google-adsense-basics">google-adsense-basics</option>
+          <option value="ai-productivity-tools">ai-productivity-tools</option>
+          <option value="digital-template-review">digital-template-review</option>
+          <option value="ai-automation">ai-automation</option>
+          <option value="blogger-adsense">blogger-adsense</option>
+        </select></label>
+        <label class="span-12">요청 요약<textarea id="summaryInput">검색 의도, 승인 조건, 실행 체크리스트, FAQ를 포함한 Blogger 초안을 만들고 사람 검수 패킷으로 넘긴다.</textarea></label>
+      </div>
+      <div class="controls" style="margin-top:10px">
+        <button class="primary" onclick="buildPayload('draft_article',['score_keyword','draft_outline','draft_article','run_policy_check'])">초안 생성 큐</button>
+        <button onclick="buildPayload('publish_blogger_draft',['create_review_packet','publish_blogger_draft'])">발행 승인 큐</button>
+        <button onclick="copyPayload()">복사</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="span-7">
+      <p class="label">Agent Roster</p>
+      <div class="grid" id="agentGrid"></div>
+    </div>
+    <div class="span-5">
+      <p class="label">Discord Operations</p>
+      <div class="phase">
+        <div class="phase-head"><h3>#jh-google-revenue-dashboard</h3><span class="badge guard">approval</span></div>
+        <p class="muted">채널 생성은 Discord 관리자 권한 또는 봇 토큰이 필요합니다. 토큰은 코드에 저장하지 않고 환경 변수나 Discord 개발자 포털에서만 관리합니다.</p>
+        <div class="controls">
+          <button onclick="buildPayload('create_discord_channel',['create_discord_channel'])">채널 생성 승인 요청</button>
+          <button onclick="buildPayload('send_weekly_report',['send_weekly_report'])">주간 리포트 전송 요청</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="label">Last AgentBus Payload</p>
+    <div class="result" id="payloadResult">대기 중</div>
+  </section>
+</main>
+
+<footer>
+  Source plan: google_blog_adsense_monetization_plan.docx. Runtime queue: ObsidianVault/10_AgentBus/jh_google_revenue_inbox.
+</footer>
+
+<script>
+const state = {
+  project_name: 'JH-구글자동화수익대시보드',
+  dashboard_type: 'jh_google_revenue',
+  target_channel: 'jh-google-revenue-dashboard',
+  phases: [
+    ['phase-0','Foundation','active',25,'프로젝트 계약, 안전 정책, 운영 대시보드, AgentBus 큐를 만든다.'],
+    ['phase-1','Content Pipeline','planned',0,'키워드 점수화, 글 목차, Blogger 초안, 정책 검수 패킷을 연결한다.'],
+    ['phase-2','Metrics And Revenue','planned',0,'Search Console, AdSense, 수동 KPI 입력을 RPM 중심 리포트로 통합한다.'],
+    ['phase-3','Make Bridge','planned',0,'Make.com webhook으로 Sheets, Gmail, Discord, Blogger 초안 작업을 연결한다.']
+  ],
+  agents: [
+    ['KeywordScout','ready','키워드 점수화와 콘텐츠 우선순위 산정'],
+    ['ContentDraft','ready','목차와 Blogger 초안 생성, 발행은 하지 않음'],
+    ['PolicyGuard','ready','AdSense, 스팸, AI 콘텐츠 정책 검수'],
+    ['HumanReview','guarded','발행 전 사람 검수와 승인 기록'],
+    ['RevenueAnalyst','ready','RPM, pageview, lead, content KPI 분석'],
+    ['MakeBridge','guarded','Make.com webhook 패킷 준비와 승인 후 전송']
+  ],
+  queue: [
+    ['kw-001','블로그 애드센스 승인 체크리스트','google-adsense-basics',15,'keyword_scored'],
+    ['kw-002','무료 AI 생산성 도구 비교','ai-productivity-tools',14,'keyword_scored'],
+    ['kw-003','Make.com으로 블로그 운영 기록 자동 저장','ai-automation',13,'outline_needed']
+  ]
+};
+let lastPayload = null;
+
+function render() {
+  document.getElementById('statPhase').textContent = state.phases.filter(p => p[2] === 'active').length;
+  document.getElementById('statAgents').textContent = state.agents.length;
+  document.getElementById('statQueue').textContent = state.queue.length;
+  document.getElementById('statReview').textContent = JSON.parse(localStorage.getItem('jhgrev-review-count') || '0');
+
+  document.getElementById('phaseGrid').innerHTML = state.phases.map(p => `
+    <article class="phase span-6">
+      <div class="phase-head"><h3>${p[1]}</h3><span class="badge ${p[2] === 'active' ? 'active' : ''}">${p[2]}</span></div>
+      <p class="muted">${p[4]}</p>
+      <div class="bar"><div class="fill" style="width:${p[3]}%"></div></div>
+    </article>
+  `).join('');
+
+  document.getElementById('agentGrid').innerHTML = state.agents.map(a => `
+    <article class="agent span-6">
+      <div><h3>${a[0]}</h3><p>${a[2]}</p></div>
+      <span class="badge ${a[1] === 'guarded' ? 'guard' : 'active'}">${a[1]}</span>
+    </article>
+  `).join('');
+
+  document.getElementById('queueGrid').innerHTML = state.queue.map(item => `
+    <article class="queue-item span-6">
+      <div class="phase-head"><h3>${item[1]}</h3><span class="badge">${item[4]}</span></div>
+      <p>${item[2]}</p>
+      <div class="score-row"><span>score</span><div class="bar"><div class="fill" style="width:${item[3] / 15 * 100}%"></div></div><strong>${item[3]}</strong></div>
+      <div class="controls">
+        <button onclick="useQueue('${item[0]}')">초안 큐</button>
+        <button onclick="buildPayload('run_policy_check',['run_policy_check','create_review_packet'],'${item[1]}','${item[2]}')">검수</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function useQueue(id) {
+  const item = state.queue.find(x => x[0] === id);
+  if (!item) return;
+  document.getElementById('keywordInput').value = item[1];
+  document.getElementById('clusterInput').value = item[2];
+  buildPayload('draft_article', ['score_keyword','draft_outline','draft_article','run_policy_check'], item[1], item[2]);
+}
+
+function splitActions(actions) {
+  const immediateSet = new Set(['analyze_plan','score_keyword','draft_outline','draft_article','run_policy_check','create_review_packet','update_kpi_snapshot','prepare_make_webhook_payload','draft_blogger_post','sync_manual_metrics']);
+  const approvalSet = new Set(['create_discord_channel','send_make_webhook','import_search_console_data','import_adsense_data','publish_blogger_draft','request_adsense_review','send_weekly_report','update_public_site']);
+  const forbiddenSet = new Set(['click_ads','self_click_ads','ask_others_to_click_ads','simulate_traffic','buy_traffic','mass_publish','auto_publish_without_review','generate_low_value_content','bypass_adsense_policy']);
+  return actions.reduce((acc, action) => {
+    if (forbiddenSet.has(action)) acc.forbidden_actions.push(action);
+    else if (immediateSet.has(action)) acc.immediate_actions.push(action);
+    else if (approvalSet.has(action)) acc.approval_required_actions.push(action);
+    else acc.approval_required_actions.push(action);
+    return acc;
+  }, { immediate_actions: [], approval_required_actions: [], forbidden_actions: [] });
+}
+
+function buildPayload(action, actions, keywordOverride, clusterOverride) {
+  const keyword = keywordOverride || document.getElementById('keywordInput').value.trim();
+  const cluster = clusterOverride || document.getElementById('clusterInput').value;
+  const split = splitActions(actions);
+  const blocked = split.forbidden_actions.length > 0;
+  const approvalRequired = blocked || split.approval_required_actions.length > 0;
+  const contentActions = new Set(['draft_outline','draft_article','draft_blogger_post','publish_blogger_draft','request_adsense_review']);
+  const humanReview = actions.some(a => contentActions.has(a));
+  if (humanReview) {
+    const next = Number(localStorage.getItem('jhgrev-review-count') || '0') + 1;
+    localStorage.setItem('jhgrev-review-count', String(next));
+  }
+  lastPayload = {
+    type: 'jh_google_revenue_request',
+    dashboard_type: state.dashboard_type,
+    project_name: state.project_name,
+    target_channel: state.target_channel,
+    request_id: 'jhgrev-' + Date.now(),
+    action,
+    title: keyword || state.project_name,
+    keyword,
+    content_cluster: cluster,
+    summary: document.getElementById('summaryInput').value.trim(),
+    requested_actions: actions,
+    immediate_actions: split.immediate_actions,
+    approval_required_actions: split.approval_required_actions,
+    forbidden_actions: split.forbidden_actions,
+    approval_required: approvalRequired,
+    execution_mode: blocked ? 'blocked' : approvalRequired ? 'approval_required' : 'immediate',
+    human_review_required: humanReview,
+    policy: {
+      no_ad_clicking: true,
+      no_traffic_manipulation: true,
+      no_bulk_auto_publish: true,
+      secrets_source: 'environment'
+    },
+    created_at: new Date().toISOString(),
+    source_dashboard_url: location.href
+  };
+  document.getElementById('payloadResult').textContent = JSON.stringify(lastPayload, null, 2);
+  render();
+}
+
+async function copyPayload() {
+  if (!lastPayload) buildPayload('draft_article', ['score_keyword','draft_outline','draft_article','run_policy_check']);
+  const text = JSON.stringify(lastPayload, null, 2);
+  try {
+    await navigator.clipboard.writeText(text);
+    document.getElementById('payloadResult').textContent = text + '\n\nCopied to clipboard.';
+  } catch (err) {
+    document.getElementById('payloadResult').textContent = text + '\n\nClipboard failed: ' + err.message;
+  }
+}
+
+render();
+</script>
+</body>
+</html>

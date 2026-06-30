@@ -1,0 +1,971 @@
+{
+  "meta": {
+    "version": "2.0",
+    "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
+    "last_updated": "2026-06-28",
+    "last_completed": "CL-053"
+  },
+  "tasks": [
+    {
+      "id": "CL-001",
+      "title": "AgentBus 7개 승인 게이트 구현",
+      "description": "requires_approval=true 태스크 승인/거부 워크플로우. Discord 명령: !approve <ID>, !reject <ID>. approve_task.py 기반 확장.",
+      "priority": "P0",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "!show 명령 추가 (pending 태스크 상세 조회). !pending/!approve/!reject 기존 구현 확인. !help 도움말 갱신.",
+      "source": "PART-1/2 지시 문서",
+      "refs": [
+        "scripts/approve_task.py",
+        "ObsidianVault/03_Projects/agents/bucky.md"
+      ]
+    },
+    {
+      "id": "CL-002",
+      "title": "!buki startproject 워크플로우 구현",
+      "description": "Gemini 리서치 → BUKI 요구사항 → Codex 설계검토 → Claude Code 계획 → Obsidian 저장. 순서 자동화 파이프라인.",
+      "priority": "P0",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "discord_bot.py에 !buki startproject 구현. Bucky 계획 생성 → ObsidianVault/03_Projects/ 저장. Gemini 미활성 상태라 Bucky로 대체.",
+      "source": "PART-2 지시 문서",
+      "refs": [
+        "scripts/bucky_bot_supervisor.py"
+      ]
+    },
+    {
+      "id": "CL-003",
+      "title": "Checkpoint 자동화 (!buki checkpoint)",
+      "description": "!buki checkpoint 명령 → 작업/결정/실패/다음액션 Obsidian 자동 저장. 세션 맥락 보존용.",
+      "priority": "P1",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "discord_bot.py에 !buki checkpoint 구현. 체크리스트 현황 + 승인대기 포함 → ObsidianVault/05_Logs/checkpoint-*.md 저장.",
+      "source": "PART-2 지시 문서",
+      "refs": [
+        "scripts/bucky_bot_supervisor.py",
+        "ObsidianVault/05_Logs/"
+      ]
+    },
+    {
+      "id": "CL-004",
+      "title": "Multi-Vault 구조 설계 및 전환",
+      "description": "vault-registry.md 설계. JH.AI-Core-Vault = 코어 권위, 프로젝트 Vault = 작업기억 전용. 06_Context_Packs 동결 유지. dry-run 검증 후 실제 전환.",
+      "priority": "P2",
+      "category": "설계",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "vault-registry.md 생성(00_System/). Core/Project 볼트 계층 설계 완료. 빈 폴더 02_Project/ + _templates/ 삭제. 09_Knowledge_Capture 마이그레이션은 스크립트 수정 필요 → 별도 승인 게이트 대기.",
+      "source": "PART-2 지시 문서",
+      "refs": [
+        "ObsidianVault/00_System/folder-registry.md",
+        "ObsidianVault/00_System/vault-registry.md"
+      ]
+    },
+    {
+      "id": "CL-005",
+      "title": "!취소/<ID>, !재시도/<ID> Discord 명령 구현",
+      "description": "Discord Bot에 태스크 취소/재시도 명령 추가. AgentBus 상태 관리 강화.",
+      "priority": "P2",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "bucky_worker_pool.py에 cancel_task()/retry_task() 추가. discord_bot.py _handle_jh_tasks()에 !취소/!cancel, !재시도/!retry 명령 추가. !help 갱신.",
+      "source": "PART-2 지시 문서",
+      "refs": [
+        "scripts/bucky_worker_pool.py",
+        "scripts/discord_bot.py"
+      ]
+    },
+    {
+      "id": "CL-006",
+      "title": "음성→태스크 자동 분류 (STT → !task)",
+      "description": "음성 입력을 텍스트로 변환 후 자동 !task 생성. STT 파이프라인 구현.",
+      "priority": "P2",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "BuckyVoiceSink._process_user_audio()에 _is_voice_task() 감지 후 tq.add()/pool.submit() 자동 등록 로직 추가. Discord 알림 포함.",
+      "source": "PART-2 지시 문서",
+      "refs": [
+        "scripts/discord_bot.py"
+      ]
+    },
+    {
+      "id": "CL-007",
+      "title": "Codex AgentBus 피드백 수신 (단방향→양방향)",
+      "description": "현재 Codex는 단방향. Codex 리뷰 결과를 AgentBus로 피드백 수신하는 양방향 구조로 개선.",
+      "priority": "P2",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "bucky_worker_pool.py _deliver_codex_result()에 tq.update(task_id, 'codex_reviewed', body) 추가. Codex 결과 파일의 task_id로 AgentBus DB 상태 갱신.",
+      "source": "PART-2 지시 문서",
+      "refs": [
+        "scripts/bucky_worker_pool.py"
+      ]
+    },
+    {
+      "id": "CL-008",
+      "title": "Cloudflare Zero Trust Access 설정",
+      "description": "obsidian-agent-brain-system.pages.dev 보호. Zero Trust → Access → Applications → Self-hosted. Policy: dltkddlf231@gmail.com만 허용. /portfolio.html 예외 설정.",
+      "priority": "대기",
+      "category": "인프라",
+      "status": "pending",
+      "added": "2026-06-04",
+      "source": "집 PC 복귀 후 진행 필요",
+      "refs": [
+        "docs/_worker.js"
+      ]
+    },
+    {
+      "id": "CL-009",
+      "title": "Gemini CLI 활성화",
+      "description": ".env에 GEMINI_API_KEY= 입력 + Gemini CLI 구독 설치. Agent Dispatcher Gemini 루트 활성화.",
+      "priority": "대기",
+      "category": "설정",
+      "status": "pending",
+      "added": "2026-06-02",
+      "source": "project_next_plan",
+      "refs": [
+        ".env"
+      ]
+    },
+    {
+      "id": "CL-010",
+      "title": "Anthropic API 크레딧 충전",
+      "description": "Agent Dispatcher E2E 검증에 필요. 현재 크레딧 소진 상태.",
+      "priority": "대기",
+      "category": "설정",
+      "status": "pending",
+      "added": "2026-06-02",
+      "source": "project_next_plan",
+      "refs": []
+    },
+    {
+      "id": "CL-011",
+      "title": "타오바오/아마존 쇼핑몰 착수",
+      "description": "사업자 등록, 첫 상품 테스트 미착수. 구매대행 사업화 첫 단계.",
+      "priority": "대기",
+      "category": "사업",
+      "status": "pending",
+      "added": "2026-06-02",
+      "source": "project_next_plan",
+      "refs": []
+    },
+    {
+      "id": "CL-012",
+      "title": "Graph 그룹 UI 수동 추가",
+      "description": "InfraNodus Obsidian 그래프 그룹 UI 수동 설정 필요. 태그 파이프라인은 완료됐으나 그룹 UI 미완.",
+      "priority": "P2",
+      "category": "설정",
+      "status": "done",
+      "added": "2026-06-02",
+      "completed": "2026-06-09",
+      "completion_note": "graph.json colorGroups 갱신: 10_AgentBus(보라), 03_Projects(장미), 03_Knowledge(주황), 05_Frameworks(청록), 06_Context_Packs(녹색), 00_System(노랑), 05_Logs(하늘), 07_Reports(파랑), Inbox(산호) 추가.",
+      "source": "2026-06-02 세션3",
+      "refs": [
+        "ObsidianVault/.obsidian/graph.json"
+      ]
+    },
+    {
+      "id": "CL-013",
+      "title": "User-Bucky 체크리스트 대시보드 구축",
+      "description": "미완료/진행중/처리완료 태스크를 대시보드에서 관리. 재개 버튼으로 Bucky Agent에 작업 재개 지시를 전송.",
+      "priority": "P0",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-04",
+      "source": "사용자 지시 2026-06-04",
+      "refs": [
+        "docs/task-board.html",
+        "data/user_checklist.json"
+      ]
+    },
+    {
+      "id": "CL-014",
+      "title": "봇 재시작 필요 (Discord에서 git pull 후 재시작 하면 적용)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-06",
+      "completed": "2026-06-09",
+      "completion_note": "bot_restart.signal 생성 → 워치독 감지 → 봇 재시작 완료 (PID 45616, Session: faead745)",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-015",
+      "title": "Obsidian 3D Graph 플러그인 설치 + Galaxy 스타일 적용",
+      "description": "현재 galaxy-graph.css는 2D 그래프만 변경함. TikTok @metakaihos 영상처럼 3D 회전하려면 커뮤니티 플러그인 '3D Graph' (HEmile) 필요. 설치 경로: Obsidian Settings → Community Plugins → Browse → '3D Graph'. 설치 후 galaxy CSS 색상값을 3D Graph 플러그인 설정에도 동일하게 적용해야 함. 기존 galaxy-graph.css는 유지(2D 뷰 fallback).",
+      "priority": "P1",
+      "category": "설정",
+      "status": "done",
+      "added": "2026-06-06",
+      "completed": "2026-06-09",
+      "completion_note": "3d-graph v2.0.1 이미 설치+활성화 확인. data.json: 02_Projects→03_Projects 수정, 기본노드 #c8d8ff, particleCount 18, nodeSize 1.5. galaxy-graph.css에 3D 뷰 컨테이너 CSS 추가.",
+      "source": "사용자 지시 2026-06-06b — 3D 회전 안됨",
+      "refs": [
+        "ObsidianVault/.obsidian/snippets/galaxy-graph.css",
+        "ObsidianVault/.obsidian/graph.json"
+      ]
+    },
+    {
+      "id": "CL-016",
+      "title": "ANTHROPIC_API_KEY 설정 시 Haiku 모델로 자동 분석 가능 — `.env`에 키 추가하면 이후 주간 자동 실행됨",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-07",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-017",
+      "title": "패턴 감지 상시형(raw_import_watcher 통합) — 별도 승인 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-07",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/raw_import_watcher.py 구현 완료 확인. 음성/영상/YT URL/문서 패턴 감지 + --once/--interval 옵션 + RAW_IMPORT → 01_RAW 이동 로직. 코드베이스 검수에서 실제 구현 확인됨.",
+      "source": "discord-auto",
+      "refs": [
+        "scripts/raw_import_watcher.py"
+      ]
+    },
+    {
+      "id": "CL-018",
+      "title": "대기 중: Phase 3(폴더 번호 체계), Gemini CLI 구독, 타오바오/아마존, Agent Dispatcher E2E",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-08",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-019",
+      "title": "Discord 신규 채널 생성 + .env 등록 (앱 세션 브릿지)",
+      "description": "app_session_bridge.py 활성화에 필요. Discord 서버에 채널 2개 생성: 'jh-클로드코드앱', 'jh-코덱스앱'. 채널 ID를 .env에 JH_CLAUDE_CODE_CHANNEL_ID / JH_CODEX_CHANNEL_ID로 추가. 이후 봇 재시작.",
+      "priority": "P1",
+      "category": "설정",
+      "status": "done",
+      "added": "2026-06-09",
+      "source": "discord_bot.py 신규 채널 감지 (2026-06-09 세션)",
+      "refs": [
+        "scripts/app_session_bridge.py",
+        "docs/app-session.html",
+        ".env"
+      ],
+      "completed": "2026-06-10",
+      "completion_note": "discord_bot.py _init_jh_channels()에 jh-클로드코드앱/jh-코덱스앱 자동 생성 로직 이미 구현됨. .env에 JH_CLAUDE_CODE_CHANNEL_ID/JH_CODEX_CHANNEL_ID 저장 확인."
+    },
+    {
+      "id": "CL-020",
+      "title": "Claude Code 플러그인 설치 (superpowers, Understand-Anything, agentmemory) + watch 스킬 의존성",
+      "description": "버키에이전트 스킬 도입 가이드 참조. 3개 플러그인은 Claude Code에서 /plugin install 직접 실행 필요. watch 스킬은 Windows에서 winget install yt-dlp.yt-dlp + winget install Gyan.FFmpeg 수동 설치 필요.",
+      "priority": "P2",
+      "category": "설정",
+      "status": "pending",
+      "added": "2026-06-09",
+      "source": "클로드코드스킬도입/스킬도입가이드.md",
+      "refs": [
+        "클로드코드스킬도입/스킬도입가이드.md",
+        ".agents/skills/"
+      ]
+    },
+    {
+      "id": "CL-021",
+      "title": "원격 충돌(index.lock) — 집 PC에서 위 명령어 실행 필요",
+      "description": "index.lock 없음, origin/master 동기화 완료 — 자동 해결됨",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-09",
+      "completed": "2026-06-09",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-022",
+      "title": "push는 아직 안 함 — push 진행할까요?",
+      "description": "",
+      "priority": "완료",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-09",
+      "completed": "2026-06-09",
+      "completion_note": "git push origin master 완료: 841a1de",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-025",
+      "title": "태블릿 음성 인테이크 스크립트 구현 (Phase 1 — 로컬 Whisper)",
+      "description": "scripts/tablet_voice_intake.py 구현: 태블릿 마이크 30초 청크 캡처 → 로컬 Whisper STT → bucky_stt_enhancer 처리 → tablet-batch-upload-manifest 형식으로 패키징 → bucky_chat_server.py:8765 전송. 과금 없는 Phase 1 범위.",
+      "priority": "P1",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/tablet_voice_intake.py 구현 완료. 30초 청크 녹음→Whisper STT→stt_enhancer→manifest→POST. --check/--start/--model 옵션. 의존성 graceful fallback 포함.",
+      "source": "daily-plus Card 3 — afa1942d",
+      "refs": [
+        "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md",
+        "scripts/bucky_stt_enhancer.py",
+        "ObsidianVault/05_Frameworks/guides/tablet-batch-upload-manifest.md"
+      ]
+    },
+    {
+      "id": "CL-026",
+      "title": "tablet_setup.sh 원클릭 설치 스크립트 + Bucky /tablet-intake 엔드포인트",
+      "description": "scripts/tablet_setup.sh: Termux + Python + Whisper base 자동 설치. bucky_chat_server.py에 /tablet-intake POST 라우트 추가. Obsidian 04_SiteLog/voice_log_{DATE}.md 자동 저장.",
+      "priority": "P1",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "scripts/tablet_setup.sh 구현 완료 (Termux 원클릭 설치). bucky_chat_server.py에 /tablet-intake POST 엔드포인트 추가. ObsidianVault/04_SiteLog/voice_log_{DATE}.md 누적 저장.",
+      "source": "daily-plus Card 3 — afa1942d",
+      "refs": [
+        "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md",
+        "scripts/bucky_chat_server.py"
+      ]
+    },
+    {
+      "id": "CL-028",
+      "title": "Card 9 — 숏폼 훅 5종 + Trigger.dev 검증 자동화 (IMPL-RA-07~11)",
+      "description": "review-automation-protocol.md Phase 2 구현. 숏폼 훅 5종 템플릿(hook-library/) + Trigger.dev 5개 Job(git push/구현완료/세션시작/세션종료/검수완료). 착수 전 Trigger.dev 호스팅 방식(SaaS vs Docker) 결정 필요.",
+      "priority": "P1",
+      "category": "개발",
+      "status": "done",
+      "completed": "2026-06-10",
+      "completion_note": "훅 템플릿 5종(ObsidianVault/08_Content/hook-library/) + Trigger.dev job stub 5개(scripts/trigger_jobs/) 생성. Discord webhook/Obsidian 연동은 TODO 주석으로 남기고 호스팅 방식(SaaS/Docker) 결정 후 활성화 예정.",
+      "added": "2026-06-10",
+      "source": "daily-plus Card 9 — 사용자 승인 2026-06-10",
+      "refs": [
+        "ObsidianVault/00_UPGRADE/review-automation-protocol.md",
+        "ObsidianVault/08_Content/hook-library/",
+        "scripts/trigger_jobs/"
+      ]
+    },
+    {
+      "id": "CL-027",
+      "title": "⚠️ [승인 필요] 실시간 ASR 클라우드 제공자 선택 및 비용 경계 결정",
+      "description": "Phase 2 착수 전 승인 게이트. 선택지: 로컬 Whisper medium(무료/느림) vs OpenAI Whisper API($0.006/분) vs Deepgram Nova-2($0.0059/분) vs Google STT($0.016/분). 사용자가 선택지 확인 후 승인 시 별도 검증 계획 수립.",
+      "priority": "대기",
+      "category": "설정",
+      "status": "pending_approval",
+      "added": "2026-06-10",
+      "source": "daily-plus Card 3 next — 실시간 음성/ASR/비용 경계",
+      "refs": [
+        "ObsidianVault/05_Frameworks/guides/tablet-voice-intake-guide.md"
+      ]
+    },
+    {
+      "id": "CL-029",
+      "title": "커밋/푸시 (사용자 승인 대기)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "4eb7ef3 push 완료 — 자동 해결됨",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-033",
+      "title": "BuckyOS 벤치마킹 구현 — Hermes Agentic OS 수준의 실제 작동 대시보드",
+      "description": "영상 분석 완료(Jack Roberts Hermes OS). 현재 BuckyOS는 skeleton만 존재 → Phase 1~4 순차 구현으로 데이터+시각화+실시간 기능 추가. Phase 1(API): 1~2일, Phase 2(그래프+차트): 1~2일, Phase 3(실시간): 1일, Phase 4(디자인): 1~2일. 총 5~7일 예상.",
+      "priority": "P0",
+      "category": "개발",
+      "status": "done",
+      "completed": "2026-06-10",
+      "completion_note": "코드베이스 검수 완료: 3d-force-graph(Pantheon), Memory Stack 4레이어 탭, AI Spend 차트, Mission Goals 트리, /agent-os/ API 10개, 30초 자동갱신+Live 인디케이터, Obsidian Graph iframe 임베드 모두 구현 확인. 미완 3개(Activity Feed 독립 폴링, Demo 데이터 T021-T024, 실그래프 렌더 함수) 후속 태스크로 이관.",
+      "added": "2026-06-10",
+      "source": "영상 벤치마킹 분석 (Claude Code 2026-06-10)",
+      "refs": [
+        "ObsidianVault/00_System/BENCHMARKS_HERMES_AGENTIC_OS.md",
+        "ObsidianVault/00_System/INSTRUCTION_BUCKYOS_IMPLEMENTATION.md",
+        "docs/bucky-agent-os.html"
+      ]
+    },
+    {
+      "id": "CL-031",
+      "title": "Obsidian 그래프 뷰어 수정 — 2D/3D 설정 + AgentBus 필터 복구",
+      "description": "graph.json: -path:10_AgentBus 필터 제거 (AgentBus 노드 이제 표시). data.json: 3D Graph 설정 정리 (중복 제거, 색상 통일, nodeSize↑, particleCount↑, showLabels=true). Obsidian 재시작 필요.",
+      "priority": "P1",
+      "category": "설정",
+      "status": "done",
+      "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": "2D 그래프 필터 수정 완료. 3D Graph 설정 정리 완료. VAULT_GRAPH_AUDIT.md 작성. Obsidian 재시작 후 시각 검증 대기.",
+      "source": "그래프 뷰어 감시 (Claude Code 2026-06-10)",
+      "refs": [
+        "ObsidianVault/.obsidian/graph.json",
+        "ObsidianVault/.obsidian/plugins/3d-graph/data.json",
+        "ObsidianVault/00_System/VAULT_GRAPH_AUDIT.md"
+      ]
+    },
+    {
+      "id": "CL-030",
+      "title": "`data/bucky_memory.db`, `.agents/`, `.cache/`, 지식 노트 4개, `data/intake_queue/` 는 제외 (데이터/임시 파일)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "done",
+      "added": "2026-06-10",
+      "completed": "2026-06-10",
+      "completion_note": ".gitignore에 .agents/ .cache/ data/bucky_memory.db* data/intake_queue/processed/ data/wishket_loop_history.json 추가 완료",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-032",
+      "title": "Obsidian에서 3D Graph 플러그인 리로드 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-034",
+      "title": "git push (별도 승인 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-035",
+      "title": ".git/packed-refs.lock` 잠금 파일 (아래 안내)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-036",
+      "title": ".git/packed-refs.lock` 잔여 (push는 정상 완료, 무해)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-037",
+      "title": "Discord 봇 재시작은 별도 작업입니다 — 변경사항은 봇을 재시작해야 반영됩니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-038",
+      "title": "docs/data/user_checklist.json`의 checklist push — 별도 세션에서 처리 필요하면 말씀해 주세요.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-10",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-039",
+      "title": "Daily Plus 2026-06-10 지식 노트 7개 생성 완료",
+      "description": "Cards 2,3,5,6,7,11,12 distiller 처리. 03_Knowledge/ 저장.",
+      "priority": "P2",
+      "category": "지식관리",
+      "status": "done",
+      "added": "2026-06-11",
+      "completed": "2026-06-11",
+      "completion_note": "7개 지식 노트 생성: estimator-csv, cad-to-estimate-poc, bluebeam-autodesk, three-orchestration-patterns, floor-plan-lighting, jh-ai-sku-blueprint, one-page-demo-onboarding",
+      "source": "daily-plus/2026-06-10.md",
+      "refs": [
+        "ObsidianVault/03_Knowledge/2026-06-11-dp-*.md"
+      ]
+    },
+    {
+      "id": "CL-040",
+      "title": "Daily Plus 2026-06-10 Cards 8,10 검증 체크리스트 추가",
+      "description": "Vault Migration Safety + Agent Telemetry 체크리스트 → review-automation-protocol.md",
+      "priority": "P1",
+      "category": "검증",
+      "status": "done",
+      "added": "2026-06-11",
+      "completed": "2026-06-11",
+      "completion_note": "review-automation-protocol.md에 Card 8 (Vault Migration Safety) + Card 10 (Agent Telemetry 5가지 신호) 섹션 추가",
+      "source": "daily-plus/2026-06-10.md",
+      "refs": [
+        "ObsidianVault/00_UPGRADE/review-automation-protocol.md"
+      ]
+    },
+    {
+      "id": "CL-041",
+      "title": "daily-plus.html 2026-06-11 날짜 trend row 추가",
+      "description": "오늘 날짜(2026-06-11) trend 행 추가 — 수집 대기 표시",
+      "priority": "P2",
+      "category": "대시보드",
+      "status": "done",
+      "added": "2026-06-11",
+      "completed": "2026-06-11",
+      "completion_note": "2026-06-11 pulse 데이터 없음. trend row 추가 (수집 대기 표시). 스크립트 자동 생성 불가 (FileNotFoundError)",
+      "source": "session",
+      "refs": [
+        "docs/daily-plus.html"
+      ]
+    },
+    {
+      "id": "CL-042",
+      "title": "- Card 1 (obsidian-queue): collector 처리 대기",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-043",
+      "title": "Pulse 수집 — 오늘 ChatGPT Pulse 수집 후 `04_Wiki/daily-plus/2026-06-11.md` 업데이트하면 대시보드가 자동 반영됩니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-044",
+      "title": "자동 적용 파이프라인(스테이징 → 구현 자동화)은 이번에 건드리지 않았습니다. 현재는 여전히 수동 세션 방식입니다.",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-045",
+      "title": "E6 (로컬 LLM 실험) — 설치 환경 확인 필요, 다음 세션에서 별도 진행",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-046",
+      "title": "봇 재시작 (변경사항 적용을 위해 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-11",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-047",
+      "title": "봇 서버 재시작 (사용자 수행 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-048",
+      "title": "봇 서버 재시작 필요 (사용자 수행)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-049",
+      "title": "서버는 사용자가 재시작해야 합니다 (`start_bucky_server.bat` 또는 Discord에서 재시작 명령).",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "auto-wishket-20260612",
+      "title": "Wishket 공고 스캔 및 제안서 자동화 파이프라인 개선",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "freelance",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "wishket",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "auto-bucky-os-20260612",
+      "title": "BuckyOS 대시보드 성능 및 안정성 개선",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "infrastructure",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "bucky-os",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "auto-daily-plus-20260612",
+      "title": "Daily Plus 큐레이터 효율 개선 및 자동화",
+      "priority": "P2",
+      "status": "pending",
+      "tags": [
+        "productivity",
+        "auto-generated"
+      ],
+      "source": "repo-priority-auto",
+      "repo": "daily-plus",
+      "created_at": "2026-06-12T10:12:26"
+    },
+    {
+      "id": "CL-050",
+      "title": "아직 별도 존재 (삭제 미완) |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-051",
+      "title": "push 미진행 (별도 승인 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-052",
+      "title": "AgentBus 큐 승격 (우선순위 확정 시)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-053",
+      "title": "Tomorrow automation continuity",
+      "description": "내",
+      "priority": "P1",
+      "category": "개발",
+      "status": "done",
+      "added": "2026-06-12",
+      "source": "triage:2026-06-12-triage.md",
+      "refs": [
+        "scripts/chatgpt_daily_collector.py",
+        ".github/workflows/dashboard-update.yml"
+      ],
+      "completed": "2026-06-12",
+      "completion_note": "chatgpt_daily_collector.py에 --recovery-only 플래그 추가, dashboard-update.yml에 OABS 안전망 캡처 + 진화 리포트 스텝 추가. 워크플로우가 매일 OABS 경로로 수집→진화→보고 순차 실행 보장."
+    },
+    {
+      "id": "CL-054",
+      "title": "버키 처리 중 = 08:15에 방금 답변 완료",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "archived",
+      "added": "2026-06-12",
+      "source": "discord-auto",
+      "refs": [],
+      "archived_at": "2026-06-12",
+      "archive_reason": "discord-auto 자동감지 노이즈 (중복/안내문/이미 처리됨)"
+    },
+    {
+      "id": "CL-055",
+      "title": "Discord 채널 ID 등록 (`JH_KMONG_CHANNEL_ID=<ID>`) — 사용자가 직접 `.env`에 추가 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-13",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-056",
+      "title": "실제 복구는 미실시 (사용자 승인 대기). Chrome 띄우기/스케줄 변경은 환경 건드리므로 사전 승인 필수 (CLAUDE.md \"approval gate\" 규칙).",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-13",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-057",
+      "title": "Discord 알림 403 오류 (webhook URL 만료로 추정 — 별도 확인 필요)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-14",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-058",
+      "title": "① Hermes 공식 repo 19만 stars 검증 미수행 ② VPS 후보 비교표 미작성 ③ Vault sync 전략(G드라이브↔repo) 별도 결정 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-14",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-059",
+      "title": "수정된 파일들의 상태 확인 및 커밋 여부",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-17",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-060",
+      "title": "ObsidianVault/.obsidian/graph.json, BUCKY_STATUS.md — 옵시디언 내부 파일, 의도적 제외",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-18",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-061",
+      "title": "진짜 운영 페이지(`docs/workflow/index.html`, 695줄, 동적)에 사용자 요청 반영",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-19",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-062",
+      "title": ".tmp_strengthen_wishket_filter.py` 임시파일 삭제는 확인 후 수동 제거 권고. `cloudscraper` 설치(`pip install cloudscraper`)는 집 PC에서 직접 필요",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-20",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-063",
+      "title": "락쿠텐 고라 API/스크래핑 가능 여부 조사 (Codex 배정 필요), 자연어 상담 에이전트 실제 구현 (별도 세션 권장)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-23",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-064",
+      "title": "GitHub Pages 배포 (cherry-pick 상태 해소 후 1~2분 내 가능)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-24",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-065",
+      "title": "협력사 단가 입수 시 위 10개 항목 자동 검증 로직 (Track C 후속).",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-24",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-066",
+      "title": "대기** | 동기화 완료 후 활성화 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-25",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-067",
+      "title": "음성 파일 분석** — Google Drive 링크(`1FNFbp0AHS02K60Y45Govx0tpZbbeMhNz`) jp-golf 보완사항 음성 분석 및 적용. 이전 세션에서 요청됐으나 완료 기록 없음",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-26",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-068",
+      "title": "전체 보류 중** — 사용자 명시 승인 대기 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-069",
+      "title": "보류 중** — 구독 비용 결정 대기 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-070",
+      "title": "미수신 | \"오늘의 플러스\" 신규 입력 없음 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-071",
+      "title": "gbrain 대기**: MCP 서버 연결 완료 후 조회 가능 (강제 폴링 안 함)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-072",
+      "title": "중간 정지** — `.mcp.json` 편집 승인 대기 |",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    }
+  ]
+}

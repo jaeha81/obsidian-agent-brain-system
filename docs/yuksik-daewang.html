@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ko">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+ <meta name="theme-color" content="#181411">
+ <meta name="description" content="육식대왕 서오릉향동본점 모바일 안내. 전화하기와 네이버 길찾기를 가장 빠르게 이용하세요.">
+ <title>육식대왕 서오릉향동본점</title>
+ <style>
+ :root{--primary:#E6532F;--primary-dark:#B83620;--ink:#181411;--paper:#F5EFE5;--card:#FFFDF8;--muted:#756B62;--line:#DED4C7;--safe-bottom:env(safe-area-inset-bottom,0px)}
+ *{box-sizing:border-box}
+ html{scroll-behavior:smooth;background:var(--ink)}
+ body{margin:0;background:var(--paper);color:var(--ink);font-family:Pretendard,"Noto Sans KR",Apple SD Gothic Neo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+ button,a{font:inherit}
+ a{color:inherit;text-decoration:none}
+ button{border:0}
+ .page{min-height:100vh;overflow:hidden;padding-bottom:calc(94px + var(--safe-bottom))}
+ .shell{width:min(1120px,100%);margin:0 auto;padding:0 20px}
+ .topbar{position:absolute;inset:0 0 auto;z-index:10;padding:18px 0;color:#fff}
+ .topbar .shell{display:flex;align-items:center;justify-content:space-between;gap:16px}
+ .brand{display:flex;align-items:center;gap:11px;min-width:0}
+ .brand-mark{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(255,255,255,.34);border-radius:14px;background:rgba(24,20,17,.72);backdrop-filter:blur(10px)}
+ .brand-mark svg{width:26px;height:26px}
+ .brand-copy{min-width:0}
+ .brand-name{font-weight:900;letter-spacing:-.04em;line-height:1.1;font-size:17px;white-space:nowrap}
+ .branch{display:block;font-size:11px;opacity:.72;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .share-btn{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:14px;color:#fff;background:rgba(24,20,17,.72);border:1px solid rgba(255,255,255,.28);cursor:pointer;backdrop-filter:blur(10px)}
+ .share-btn svg{width:19px;height:19px}
+ .hero{position:relative;background:var(--ink);color:#fff;min-height:680px;padding:118px 0 74px;isolation:isolate}
+ .hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,black,transparent 76%);z-index:-2}
+ .hero:after{content:"肉";position:absolute;right:-14px;top:85px;color:rgba(255,255,255,.035);font-family:Georgia,serif;font-weight:900;font-size:260px;line-height:1;z-index:-1;transform:rotate(-7deg)}
+ .hero-grid{display:grid;gap:42px;align-items:center}
+ .eyebrow{display:inline-flex;align-items:center;gap:8px;color:#F8C6B8;font-size:13px;font-weight:800;letter-spacing:.06em}
+ .eyebrow:before{content:"";width:26px;height:2px;background:var(--primary);border-radius:99px}
+ h1{font-size:clamp(42px,13vw,74px);line-height:1.02;letter-spacing:-.075em;margin:20px 0 22px;max-width:720px;word-break:keep-all}
+ .hero-copy{font-size:17px;line-height:1.72;color:rgba(255,255,255,.72);margin:0;max-width:610px;word-break:keep-all}
+ .hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:32px;max-width:520px}
+ .cta{min-height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:900;letter-spacing:-.02em;transition:transform .18s ease,filter .18s ease}
+ .cta:active{transform:scale(.98)}
+ .cta-primary{background:var(--primary);color:white}
+ .cta-secondary{background:white;color:var(--ink)}
+ .cta svg{width:20px;height:20px}
+ .hero-note{display:flex;align-items:flex-start;gap:9px;color:rgba(255,255,255,.5);font-size:12px;margin-top:18px}
+ .hero-note svg{width:16px;height:16px;flex:0 0 auto;margin-top:1px;color:var(--primary)}
+ .meat-visual{position:relative;display:grid;place-items:center;min-height:270px}
+ .plate{position:relative;width:min(300px,82vw);aspect-ratio:1;border:1px solid rgba(255,255,255,.12);border-radius:50%;display:grid;place-items:center;background:#221D19;box-shadow:0 28px 80px rgba(0,0,0,.36)}
+ .plate:before,.plate:after{content:"";position:absolute;border-radius:50%;border:1px dashed rgba(255,255,255,.12)}
+ .plate:before{inset:22px}.plate:after{inset:44px}
+ .plate svg{width:72%;height:72%;z-index:2;filter:drop-shadow(0 18px 16px rgba(0,0,0,.32))}
+ .seal{position:absolute;right:-5px;bottom:16px;width:86px;height:86px;border:3px double var(--primary);border-radius:50%;display:grid;place-items:center;color:var(--primary);font-weight:900;font-family:serif;line-height:1.05;text-align:center;transform:rotate(-10deg);background:var(--ink);z-index:3}
+ .seal small{display:block;font-family:inherit;font-size:11px;letter-spacing:.18em}
+ .spark{position:absolute;width:8px;height:8px;background:var(--primary);transform:rotate(45deg);border-radius:2px}
+ .spark.s1{left:8%;top:20%}.spark.s2{right:9%;top:10%;width:5px;height:5px}.spark.s3{right:2%;bottom:27%}
+ .section{padding:76px 0}
+ .section-kicker{font-size:12px;font-weight:900;color:var(--primary-dark);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+ .section h2{font-size:clamp(30px,8vw,50px);line-height:1.13;letter-spacing:-.055em;margin:0;word-break:keep-all}
+ .section-lead{margin:14px 0 0;color:var(--muted);font-size:15px;max-width:620px}
+ .point-grid{display:grid;gap:12px;margin-top:28px}
+ .point-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;grid-template-columns:46px 1fr;gap:15px;align-items:start}
+ .point-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:#FCE7DE;color:var(--primary-dark)}
+ .point-icon svg{width:22px;height:22px}
+ .point-card h3{margin:1px 0 6px;font-size:18px;letter-spacing:-.035em}
+ .point-card p{margin:0;color:var(--muted);font-size:14px;word-break:keep-all}
+ .menu-section{background:#EAE0D3;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+ .menu-head{display:flex;flex-direction:column;gap:9px}
+ .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:28px}
+ .menu-card{min-height:156px;background:var(--card);border:1px solid rgba(117,107,98,.22);border-radius:22px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+ .menu-card:after{content:"";position:absolute;width:62px;height:62px;border:12px solid rgba(230,83,47,.08);border-radius:50%;right:-22px;bottom:-24px}
+ .menu-index{font-size:12px;font-weight:900;color:var(--primary);letter-spacing:.12em}
+ .menu-card h3{font-size:20px;line-height:1.24;letter-spacing:-.04em;margin:28px 0 4px;word-break:keep-all}
+ .menu-card p{margin:0;color:var(--muted);font-size:13px}
+ .disclaimer{display:flex;gap:10px;align-items:flex-start;margin-top:18px;padding:15px 16px;border:1px solid rgba(117,107,98,.26);border-radius:16px;color:var(--muted);font-size:12px;background:rgba(255,255,255,.38)}
+ .disclaimer svg{width:17px;height:17px;flex:0 0 auto;margin-top:1px}
+ .visit-card{margin-top:28px;background:var(--ink);color:#fff;border-radius:28px;padding:26px;overflow:hidden;position:relative}
+ .visit-card:after{content:"";position:absolute;right:-55px;bottom:-70px;width:180px;height:180px;border-radius:50%;border:34px solid rgba(230,83,47,.12)}
+ .visit-row{position:relative;z-index:1;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+ .visit-row:first-child{padding-top:0}.visit-row:last-of-type{border-bottom:0}
+ .visit-label{font-size:11px;color:rgba(255,255,255,.48);font-weight:800;letter-spacing:.1em;margin-bottom:7px}
+ .visit-value{font-size:17px;line-height:1.55;font-weight:800;letter-spacing:-.025em;word-break:keep-all}
+ .visit-sub{margin-top:5px;color:rgba(255,255,255,.58);font-size:12px}
+ .copy-btn{margin-top:12px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.16);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer}
+ .visit-actions{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}
+ .visit-actions .cta{min-height:54px;border-radius:16px}
+ .insta-link{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;padding:17px 2px 0;color:rgba(255,255,255,.72);font-size:13px;font-weight:800;position:relative;z-index:1}
+ .insta-link svg{width:18px;height:18px}
+ footer{padding:0 0 36px;color:var(--muted);font-size:12px}
+ .footer-inner{border-top:1px solid var(--line);padding-top:22px;display:flex;flex-direction:column;gap:8px}
+ .footer-name{font-weight:900;color:var(--ink);font-size:14px}
+ .sticky-actions{position:fixed;z-index:50;left:0;right:0;bottom:0;padding:10px 12px calc(10px + var(--safe-bottom));background:rgba(245,239,229,.92);border-top:1px solid rgba(117,107,98,.2);backdrop-filter:blur(16px)}
+ .sticky-inner{display:grid;grid-template-columns:1fr 1.2fr;gap:9px;width:min(620px,100%);margin:0 auto}
+ .sticky-actions .cta{min-height:58px;border-radius:18px}
+ .toast{position:fixed;left:50%;bottom:calc(96px + var(--safe-bottom));transform:translate(-50%,16px);background:var(--ink);color:#fff;padding:11px 15px;border-radius:13px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.2s ease;z-index:80;white-space:nowrap}
+ .toast.show{opacity:1;transform:translate(-50%,0)}
+ @media(min-width:760px){
+ .shell{padding:0 32px}.hero{padding-top:145px;min-height:760px}.hero-grid{grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:42px}.meat-visual{min-height:420px}.plate{width:min(360px,34vw)}
+ .point-grid{grid-template-columns:repeat(3,1fr)}.point-card{grid-template-columns:1fr;min-height:228px}.menu-grid{grid-template-columns:repeat(4,1fr)}.menu-card{min-height:190px}.visit-card{padding:38px}.visit-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:40px}.visit-actions{align-self:end}.sticky-actions{display:none}.page{padding-bottom:0}.section{padding:104px 0}
+ }
+ @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta,.toast{transition:none}}
+ </style>
+</head>
+<body>
+ <script id="business-data" type="application/json">{
+ "schemaVersion": "1.0.0",
+ "updatedAt": "2026-06-22",
+ "business": {
+ "name": "육식대왕",
+ "branch": "서오릉향동본점",
+ "fullName": "육식대왕 서오릉향동본점",
+ "category": "숙성 돼지고기 전문점",
+ "phoneDisplay": "0507-1494-7920",
+ "phoneTel": "050714947920",
+ "alternatePhone": "02-2039-7911",
+ "address": "경기 고양시 덕양구 꽃마을로 68 로데오프라자 1층",
+ "lotAddress": "경기 고양시 덕양구 향동동 522",
+ "regionLabel": "고양 향동 · 서오릉",
+ "naverMapUrl": "https://naver.me/GHVwLmtw",
+ "instagramUrl": "https://www.instagram.com/meat_great_king/",
+ "hoursStatus": "unverified",
+ "hoursText": "",
+ "parkingStatus": "unverified",
+ "parkingText": "",
+ "priceStatus": "unverified"
+ },
+ "theme": {
+ "primary": "#E6532F",
+ "primaryDark": "#B83620",
+ "ink": "#181411",
+ "paper": "#F5EFE5",
+ "card": "#FFFDF8",
+ "muted": "#756B62",
+ "line": "#DED4C7"
+ },
+ "copy": {
+ "eyebrow": "고양 향동 · 숙성 고기 전문점",
+ "headline": "오늘은, 제대로 고기 먹는 날",
+ "subheadline": "향동에서 만나는 숙성 한돈과 이베리코. 전화 한 번, 길찾기 한 번으로 바로 방문하세요.",
+ "callLabel": "전화하기",
+ "directionsLabel": "길찾기",
+ "menuTitle": "고기 취향대로 골라보세요",
+ "menuIntro": "대표 메뉴는 가격 없이 안내합니다.",
+ "menuNote": "메뉴 구성과 판매 여부는 변동될 수 있습니다. 정확한 내용은 매장에 문의해 주세요.",
+ "visitTitle": "찾기 쉽게, 연락하기 빠르게",
+ "hoursFallback": "운영시간은 방문 전 전화로 확인해 주세요.",
+ "parkingFallback": "주차 안내는 방문 전 매장에 확인해 주세요.",
+ "notice": "가격과 운영시간은 확인 전까지 공개하지 않습니다.",
+ "footer": "좋은 고기 한 끼가 생각날 때, 육식대왕 서오릉향동본점"
+ },
+ "menuHighlights": [
+ {
+ "name": "숙성 삼겹살",
+ "descriptor": "한돈"
+ },
+ {
+ "name": "숙성 꽃목살",
+ "descriptor": "이베리코"
+ },
+ {
+ "name": "숙성 플루마",
+ "descriptor": "이베리코 특수부위"
+ },
+ {
+ "name": "벌집 껍데기",
+ "descriptor": "한돈 목등심"
+ }
+ ],
+ "sellingPoints": [
+ {
+ "title": "숙성육 중심",
+ "text": "한돈과 이베리코를 중심으로 고기 메뉴를 구성합니다.",
+ "icon": "cut"
+ },
+ {
+ "title": "향동 1층 매장",
+ "text": "꽃마을로 68 로데오프라자 1층에서 만날 수 있습니다.",
+ "icon": "pin"
+ },
+ {
+ "title": "전화·길찾기 우선",
+ "text": "모바일에서 바로 통화하고 네이버 지도로 이동합니다.",
+ "icon": "phone"
+ }
+ ],
+ "visibility": {
+ "menu": true,
+ "hours": false,
+ "parking": false,
+ "instagram": true
+ },
+ "verification": {
+ "verified": [
+ "상호 및 지점명",
+ "도로명·지번 주소",
+ "사용자 제공 네이버 지도 링크",
+ "대표 전화 0507-1494-7920",
+ "업종 및 대표 메뉴명"
+ ],
+ "withheld": [
+ {
+ "field": "운영시간",
+ "reason": "공개 검색 결과의 오픈 시간과 휴무일 정보가 서로 상충함"
+ },
+ {
+ "field": "가격",
+ "reason": "공식 최신 가격 확인 전이므로 고객 화면에서 비노출"
+ },
+ {
+ "field": "주차 상세",
+ "reason": "제3자 정보는 있으나 최신 공식 확인 전이므로 고객 화면에서 비노출"
+ }
+ ],
+ "sourceAudit": [
+ {
+ "name": "사용자 제공 정보",
+ "url": "https://naver.me/GHVwLmtw",
+ "usedFor": [
+ "상호",
+ "지점명",
+ "주소",
+ "길찾기 링크"
+ ],
+ "status": "primary"
+ },
+ {
+ "name": "공식 인스타그램 프로필 검색 결과",
+ "url": "https://www.instagram.com/meat_great_king/",
+ "usedFor": [
+ "대표 전화",
+ "업종·메뉴 키워드"
+ ],
+ "status": "cross-checked"
+ },
+ {
+ "name": "식신 매장 페이지",
+ "url": "https://www.siksinhot.com/P/1735841",
+ "usedFor": [
+ "주소",
+ "대표 전화",
+ "업종",
+ "메뉴명"
+ ],
+ "status": "cross-checked"
+ },
+ {
+ "name": "공개 SNS 검색 결과",
+ "url": "https://www.instagram.com/meat_great_king/",
+ "usedFor": [
+ "운영시간 상충 여부 확인"
+ ],
+ "status": "withheld"
+ }
+ ]
+ }
+}</script>
+ <div class="page">
+ <header class="topbar">
+ <div class="shell">
+ <a class="brand" href="#top" aria-label="홈으로">
+ <span class="brand-mark" aria-hidden="true">
+ <svg viewBox="0 0 32 32" fill="none"><path d="M5 20 3.5 9.5l7 4L16 5l5.5 8.5 7-4L27 20H5Z" fill="currentColor"/><path d="M7 23h18v4H7z" fill="currentColor" opacity=".75"/></svg>
+ </span>
+ <span class="brand-copy"><span class="brand-name" data-bind="business.name"></span><span class="branch" data-bind="business.branch"></span></span>
+ </a>
+ <button class="share-btn" id="shareButton" aria-label="공유하기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.6 6.6-4.2M8.7 13.4l6.6 4.2"/></svg></button>
+ </div>
+ </header>
+
+ <main id="top">
+ <section class="hero">
+ <div class="shell hero-grid">
+ <div>
+ <div class="eyebrow" data-bind="copy.eyebrow"></div>
+ <h1 data-bind="copy.headline"></h1>
+ <p class="hero-copy" data-bind="copy.subheadline"></p>
+ <div class="hero-actions">
+ <a class="cta cta-primary js-call" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg><span data-bind="copy.callLabel"></span></a>
+ <a class="cta cta-secondary js-map" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.6"/></svg><span data-bind="copy.directionsLabel"></span></a>
+ </div>
+ <div class="hero-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg><span data-bind="copy.notice"></span></div>
+ </div>
+ <div class="meat-visual" aria-hidden="true">
+ <span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span>
+ <div class="plate">
+ <svg viewBox="0 0 300 260" fill="none">
+ <path d="M65 75c20-35 73-52 119-36 36 13 64 46 60 77-4 35-43 48-61 71-18 23-31 43-68 34-39-9-65-47-72-81-5-25 7-48 22-65Z" fill="#E87957" stroke="#F5B19C" stroke-width="5"/>
+ <path d="M80 83c35 16 47 42 41 77M117 54c23 25 35 51 34 83M169 48c-1 25 14 52 38 68M65 137c29-2 56 7 80 29M116 195c25-17 54-24 83-20" stroke="#FFD3C6" stroke-width="8" stroke-linecap="round" opacity=".7"/>
+ <path d="M90 62c4 8 9 12 18 17M205 91c-11 7-16 15-19 25M79 170c10-7 17-9 29-10" stroke="#8F2E1D" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+ </svg>
+ <div class="seal">숙성<small>MEAT</small></div>
+ </div>
+ </div>
+ </div>
+ </section>
+
+ <section class="section">
+ <div class="shell">
+ <div class="section-kicker">WHY VISIT</div>
+ <h2>복잡한 설명보다<br>방문에 필요한 핵심만</h2>
+ <div class="point-grid" id="sellingPointGrid"></div>
+ </div>
+ </section>
+
+ <section class="section menu-section" id="menuSection">
+ <div class="shell">
+ <div class="menu-head"><div><div class="section-kicker">MENU KEYWORDS</div><h2 data-bind="copy.menuTitle"></h2></div><p class="section-lead" data-bind="copy.menuIntro"></p></div>
+ <div class="menu-grid" id="menuGrid"></div>
+ <div class="disclaimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg><span data-bind="copy.menuNote"></span></div>
+ </div>
+ </section>
+
+ <section class="section">
+ <div class="shell">
+ <div class="section-kicker">VISIT</div>
+ <h2 data-bind="copy.visitTitle"></h2>
+ <div class="visit-card">
+ <div class="visit-grid">
+ <div>
+ <div class="visit-row"><div class="visit-label">ADDRESS</div><div class="visit-value" data-bind="business.address"></div><div class="visit-sub" data-bind="business.lotAddress"></div><button class="copy-btn" id="copyAddress">주소 복사</button></div>
+ <div class="visit-row"><div class="visit-label">PHONE</div><a class="visit-value js-call" href="#" data-bind="business.phoneDisplay"></a></div>
+ <div class="visit-row" id="hoursRow"><div class="visit-label">HOURS</div><div class="visit-value" id="hoursValue"></div></div>
+ <div class="visit-row" id="parkingRow"><div class="visit-label">PARKING</div><div class="visit-value" id="parkingValue"></div></div>
+ </div>
+ <div class="visit-actions">
+ <a class="cta cta-primary js-call" href="#"><span data-bind="copy.callLabel"></span></a>
+ <a class="cta cta-secondary js-map" href="#" target="_blank" rel="noopener"><span data-bind="copy.directionsLabel"></span></a>
+ </div>
+ </div>
+ <a class="insta-link" id="instagramLink" href="#" target="_blank" rel="noopener"><span>인스타그램에서 매장 소식 보기</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a>
+ </div>
+ </div>
+ </section>
+ </main>
+
+ <footer><div class="shell footer-inner"><div class="footer-name" data-bind="business.fullName"></div><div data-bind="copy.footer"></div><div>※ 실제 운영정보는 네이버 지도 또는 매장 전화로 최종 확인해 주세요.</div></div></footer>
+ </div>
+
+ <nav class="sticky-actions" aria-label="빠른 연락">
+ <div class="sticky-inner">
+ <a class="cta cta-secondary js-map" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.6"/></svg><span data-bind="copy.directionsLabel"></span></a>
+ <a class="cta cta-primary js-call" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg><span data-bind="copy.callLabel"></span></a>
+ </div>
+ </nav>
+ <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+ <script>
+ (()=>{
+ const data = JSON.parse(document.getElementById('business-data').textContent);
+ const get=(path)=>path.split('.').reduce((o,k)=>o&&o[k],data);
+ document.documentElement.style.setProperty('--primary',data.theme.primary);
+ document.documentElement.style.setProperty('--primary-dark',data.theme.primaryDark);
+ document.documentElement.style.setProperty('--ink',data.theme.ink);
+ document.documentElement.style.setProperty('--paper',data.theme.paper);
+ document.documentElement.style.setProperty('--card',data.theme.card);
+ document.documentElement.style.setProperty('--muted',data.theme.muted);
+ document.documentElement.style.setProperty('--line',data.theme.line);
+ document.querySelectorAll('[data-bind]').forEach(el=>{const v=get(el.dataset.bind);if(v!==undefined)el.textContent=v});
+ document.querySelectorAll('.js-call').forEach(a=>a.href='tel:'+data.business.phoneTel);
+ document.querySelectorAll('.js-map').forEach(a=>a.href=data.business.naverMapUrl);
+ document.getElementById('instagramLink').href=data.business.instagramUrl;
+ if(!data.visibility.instagram)document.getElementById('instagramLink').hidden=true;
+ const icons={
+ cut:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4c4 0 6 2 7 5 1-3 3-5 7-5v7c0 5-3 9-7 9s-7-4-7-9V4Z"/><path d="M9 12h6"/></svg>',
+ pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+ phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></svg>'
+ };
+ document.getElementById('sellingPointGrid').innerHTML=data.sellingPoints.map(x=>`<article class="point-card"><div class="point-icon">${icons[x.icon]||icons.cut}</div><div><h3>${escapeHtml(x.title)}</h3><p>${escapeHtml(x.text)}</p></div></article>`).join('');
+ document.getElementById('menuGrid').innerHTML=data.menuHighlights.map((x,i)=>`<article class="menu-card"><div class="menu-index">0${i+1}</div><div><h3>${escapeHtml(x.name)}</h3><p>${escapeHtml(x.descriptor)}</p></div></article>`).join('');
+ document.getElementById('menuSection').hidden=!data.visibility.menu;
+ const hoursValue=data.visibility.hours&&data.business.hoursStatus==='verified'&&data.business.hoursText?data.business.hoursText:data.copy.hoursFallback;
+ document.getElementById('hoursValue').textContent=hoursValue;
+ const parkingValue=data.visibility.parking&&data.business.parkingStatus==='verified'&&data.business.parkingText?data.business.parkingText:data.copy.parkingFallback;
+ document.getElementById('parkingValue').textContent=parkingValue;
+ const toast=document.getElementById('toast');let toastTimer;
+ const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1800)};
+ document.getElementById('copyAddress').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(data.business.address);showToast('주소를 복사했습니다')}catch(e){showToast('주소: '+data.business.address)}});
+ document.getElementById('shareButton').addEventListener('click',async()=>{const payload={title:data.business.fullName,text:data.copy.subheadline,url:data.business.naverMapUrl};try{if(navigator.share)await navigator.share(payload);else{await navigator.clipboard.writeText(data.business.naverMapUrl);showToast('매장 링크를 복사했습니다')}}catch(e){}});
+ const ld={"@context":"https://schema.org","@type":"Restaurant","name":data.business.fullName,"telephone":data.business.phoneDisplay,"servesCuisine":"Korean barbecue","address":{"@type":"PostalAddress","streetAddress":data.business.address,"addressLocality":"고양시","addressRegion":"경기도","addressCountry":"KR"},"sameAs":[data.business.naverMapUrl,data.business.instagramUrl]};
+ const ldEl=document.createElement('script');ldEl.type='application/ld+json';ldEl.textContent=JSON.stringify(ld);document.head.appendChild(ldEl);
+ function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+ })();
+ </script>
+</body>
+</html>

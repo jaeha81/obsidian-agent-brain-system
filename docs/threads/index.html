@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#58a6ff">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>Threads 자동화 - JH Bucky Brain System</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
+})();
+</script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+    --teal: #2dd4bf;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header {
+    background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px; position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+  .jh-nav { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; margin-bottom:10px; }
+  .jh-nav a {
+    font-size:0.78rem; color:var(--muted); text-decoration:none; border:1px solid var(--border);
+    padding:5px 12px; border-radius:20px; transition:all 0.2s; line-height:1.2;
+  }
+  .jh-nav a:hover, .jh-nav a.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,0.08); }
+  main { padding: 24px 28px 80px; max-width: 1100px; margin: 0 auto; }
+  section { margin-bottom: 24px; background: var(--card); border:1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  section h2 { font-size: 0.95rem; color: var(--accent); margin-bottom: 12px; }
+  .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .stat { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #0d1117; }
+  .stat strong { display: block; font-size: 1.1rem; color: var(--accent); word-break: break-all; }
+  .stat span { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table th, table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  table code { font-family: ui-monospace, monospace; color: var(--purple); background: rgba(188,140,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+  .badge { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: rgba(88,166,255,0.12); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+  .badge.warn { background: rgba(255,166,87,0.12); color: var(--orange); border-color: rgba(255,166,87,0.3); }
+  .badge.ok { background: rgba(63,185,80,0.12); color: var(--green); border-color: rgba(63,185,80,0.3); }
+  .badge.teal { background: rgba(45,212,191,0.12); color: var(--teal); border-color: rgba(45,212,191,0.3); }
+  pre { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--text); overflow-x: auto; }
+  .muted { color: var(--muted); font-size: 0.78rem; }
+  a.link { color: var(--accent); text-decoration: none; }
+  a.link:hover { text-decoration: underline; }
+  .note {
+    border-left: 3px solid var(--orange); background: rgba(255,166,87,0.06);
+    padding: 10px 14px; border-radius: 4px; font-size: 0.82rem; color: var(--text); line-height: 1.5;
+  }
+  footer { padding: 18px 28px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.72rem; text-align: center; }
+</style>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+
+<nav class="jh-nav" style="padding:6px 28px;border-bottom:1px solid var(--border);background:#0d1117"></nav>
+
+<header>
+  <h1>Threads 자동화 <span class="badge">🧵 API 제어</span></h1>
+  <p>쓰레드 수익화 대시보드를 Discord <code>#jh-쓰레드자동화</code> 채널에서 원격 제어합니다.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>§1. 채널 정보</h2>
+    <div class="grid">
+      <div class="stat"><strong>#jh-쓰레드자동화</strong><span>Discord 채널</span></div>
+      <div class="stat"><strong id="dashboard-url">localhost:3000</strong><span>대시보드 URL (THREADS_DASHBOARD_URL)</span></div>
+      <div class="stat"><strong>Next.js API</strong><span>호출 대상</span></div>
+      <div class="stat"><strong id="env-state">.env 확인 필요</strong><span>환경변수 상태</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>§2. 제어 커맨드</h2>
+    <table>
+      <thead><tr><th>Discord 입력</th><th>API 호출</th><th>분류</th></tr></thead>
+      <tbody>
+        <tr><td><code>!threads status</code></td><td><code>GET /api/health</code></td><td><span class="badge ok">상태</span></td></tr>
+        <tr><td><code>!threads run</code></td><td><code>GET /api/cron/threads-daily</code></td><td><span class="badge">발행</span></td></tr>
+        <tr><td><code>!threads dry-run</code></td><td><code>?dry_run=true</code></td><td><span class="badge teal">테스트</span></td></tr>
+        <tr><td><code>!threads revenue</code></td><td><code>GET /api/revenue</code></td><td><span class="badge ok">수익</span></td></tr>
+        <tr><td><code>!threads accounts</code></td><td><code>GET /api/accounts</code></td><td><span class="badge">계정</span></td></tr>
+        <tr><td><code>[THREADS_CMD] {"action": "status"}</code></td><td>JSON 형식 (확장용)</td><td><span class="badge">JSON</span></td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin-top:10px">한국어 별칭: <code>!threads 상태</code>, <code>!threads 실행</code>, <code>!threads 테스트</code>, <code>!threads 수익</code>, <code>!threads 계정</code> 도 동일하게 처리된다.</p>
+  </section>
+
+  <section>
+    <h2>§3. 자연어 위임 동작</h2>
+    <div class="note">
+      <strong>특이 동작:</strong> 명령어가 아닌 자연어 메시지(<code>!threads</code>/<code>[THREADS_CMD]</code> 접두어 없음)는
+      이 핸들러가 <code>False</code>를 반환하여 메인 라우터로 위임됩니다. 즉 채널에 그냥 "오늘 발행 잘 됐어?"라고 쓰면 Bucky가 응답합니다.
+    </div>
+  </section>
+
+  <section>
+    <h2>§4. 필수 환경변수</h2>
+    <table>
+      <thead><tr><th>키</th><th>설명</th><th>위치</th></tr></thead>
+      <tbody>
+        <tr><td><code>JH_THREADS_CHANNEL_ID</code></td><td>Discord 채널 ID</td><td>버키 <code>.env</code></td></tr>
+        <tr><td><code>THREADS_DASHBOARD_URL</code></td><td>대시보드 베이스 URL (기본: <code>http://localhost:3000</code>)</td><td>버키 <code>.env</code></td></tr>
+        <tr><td><code>THREADS_CRON_SECRET</code></td><td>cron 보호 Bearer 토큰 (cron 경로 호출 시 자동 첨부)</td><td>버키 <code>.env</code></td></tr>
+        <tr><td><code>THREADS_DISCORD_WEBHOOK</code></td><td>대시보드 → Discord 알림 webhook (선택)</td><td>프로젝트 <code>.env</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>§5. 셋업 스크립트</h2>
+    <pre># Discord 채널 + Webhook 자동 생성
+python -X utf8 scripts/setup_threads_discord.py
+
+# Webhook 권한 부여
+python -X utf8 scripts/grant_webhook_permission.py</pre>
+  </section>
+
+  <section>
+    <h2>§6. 정본 문서</h2>
+    <ul style="list-style:none;padding:0">
+      <li>📄 <code>docs/threads/AGENT.md</code> (이 에이전트 메타데이터)</li>
+      <li>📄 <code>scripts/discord_bot.py</code> → <code>_handle_threads_command()</code> · <code>_THREADS_ACTION_MAP</code></li>
+      <li>📄 <code>scripts/setup_threads_discord.py</code> (채널·Webhook 생성)</li>
+      <li>📄 <code>scripts/grant_webhook_permission.py</code> (Webhook 권한)</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  📡 채널: Discord <code>#jh-쓰레드자동화</code> · API: <code>THREADS_DASHBOARD_URL</code>
+</footer>
+
+<script src="/shared/nav.js"></script>
+</body>
+</html>

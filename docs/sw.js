@@ -1,4 +1,4 @@
-const CACHE = 'bucky-v1';
+const CACHE = 'bucky-v3';
 const STATIC = [
   '/offline.html',
   '/manifest.json',
@@ -41,15 +41,22 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache-first for static assets
-  e.respondWith(
-    caches.match(e.request).then(hit => {
-      if (hit) return hit;
-      return fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
-      });
-    })
-  );
+  // Cache-first only for immutable static assets
+  if (/\.(svg|png|jpg|jpeg|ico|css|woff2?)$/.test(url.pathname)) {
+    e.respondWith(
+      caches.match(e.request).then(hit => {
+        if (hit) return hit;
+        return fetch(e.request).then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  // Everything else (APIs like /os/*, live JSON) — network only, never cached.
+  // Caching these replayed stale multi-MB graph payloads and bypassed
+  // the server's Cache-Control: no-store.
 });

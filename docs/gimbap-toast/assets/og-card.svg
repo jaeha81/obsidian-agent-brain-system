@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#e64a2e"/>
+  <path d="M0 0h1200v630H0z" fill="url(#grid)" opacity=".2"/>
+  <defs>
+    <pattern id="grid" width="54" height="54" patternUnits="userSpaceOnUse">
+      <path d="M54 0H0v54" fill="none" stroke="#fff" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect x="78" y="72" width="118" height="118" rx="31" fill="#fff4d2"/>
+  <path d="M96 109c0-12 10-22 22-22h29c12 0 22 10 22 22v46c0 8-7 15-15 15h-43c-8 0-15-7-15-15z" fill="#f4ba3e" stroke="#e64a2e" stroke-width="7"/>
+  <circle cx="162" cy="147" r="25" fill="#172431" stroke="#fff4d2" stroke-width="6"/>
+  <circle cx="162" cy="147" r="16" fill="#fff"/>
+  <text x="80" y="286" fill="#fff" font-family="Arial, sans-serif" font-size="34" font-weight="800">PAJU · YADANG</text>
+  <text x="80" y="385" fill="#fff" font-family="Arial, sans-serif" font-size="74" font-weight="900">분식포차 김밥과 토스트</text>
+  <text x="80" y="474" fill="#f4ba3e" font-family="Arial, sans-serif" font-size="58" font-weight="900">따뜻한 한 끼부터 늦은 밤 한잔까지</text>
+  <text x="82" y="548" fill="#fff" fill-opacity=".78" font-family="Arial, sans-serif" font-size="28">경기 파주시 하우고개길 90 · 031-946-5478</text>
+</svg>

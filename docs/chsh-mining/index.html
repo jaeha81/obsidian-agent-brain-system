@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#58a6ff">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>CHSH Mining - JH Bucky Brain System</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+  if(window!==window.top){document.documentElement.classList.add('in-iframe');}
+})();
+</script>
+<style>.in-iframe header,.in-iframe footer{display:none!important}</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header {
+    background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px; position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  header p { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+  .jh-nav { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; margin-bottom:10px; }
+  .jh-nav a {
+    font-size:0.78rem; color:var(--muted); text-decoration:none; border:1px solid var(--border);
+    padding:5px 12px; border-radius:20px; transition:all 0.2s; line-height:1.2;
+  }
+  .jh-nav a:hover, .jh-nav a.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,0.08); }
+  main { padding: 24px 28px 80px; max-width: 1100px; margin: 0 auto; }
+  section { margin-bottom: 24px; background: var(--card); border:1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  section h2 { font-size: 0.95rem; color: var(--accent); margin-bottom: 12px; }
+  .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .stat { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #0d1117; }
+  .stat strong { display: block; font-size: 1.3rem; color: var(--accent); }
+  .stat span { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table th, table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  table code { font-family: ui-monospace, monospace; color: var(--purple); background: rgba(188,140,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+  .badge { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: rgba(88,166,255,0.12); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+  .badge.warn { background: rgba(255,166,87,0.12); color: var(--orange); border-color: rgba(255,166,87,0.3); }
+  .badge.ok { background: rgba(63,185,80,0.12); color: var(--green); border-color: rgba(63,185,80,0.3); }
+  pre { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--text); overflow-x: auto; }
+  .muted { color: var(--muted); font-size: 0.78rem; }
+  a.link { color: var(--accent); text-decoration: none; }
+  a.link:hover { text-decoration: underline; }
+  footer { padding: 18px 28px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.72rem; text-align: center; }
+</style>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+
+<nav class="jh-nav" style="padding:6px 28px;border-bottom:1px solid var(--border);background:#0d1117"></nav>
+
+<header>
+  <h1>CHSH Mining <span class="badge" id="state-badge">⚙️ Discord 제어</span></h1>
+  <p>AI-mining-CHSHAUTOMATION 파이프라인을 Discord <code>#jh-chsh-mining</code> 채널에서 원격 제어합니다.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>§1. 채널 정보</h2>
+    <div class="grid">
+      <div class="stat"><strong>#jh-chsh-mining</strong><span>Discord 채널</span></div>
+      <div class="stat"><strong>D:\ai프로젝트\AI-mining-CHSHAUTOMATION</strong><span>로컬 경로</span></div>
+      <div class="stat"><strong>Python 3.14</strong><span>런타임</span></div>
+      <div class="stat"><strong id="env-state">.env 확인 필요</strong><span>환경변수 상태</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>§2. 제어 커맨드</h2>
+    <table>
+      <thead><tr><th>Discord 입력</th><th>실행 동작</th><th>분류</th></tr></thead>
+      <tbody>
+        <tr><td><code>!mining status</code></td><td><code>python main.py --status</code></td><td><span class="badge ok">조회</span></td></tr>
+        <tr><td><code>!mining run</code></td><td><code>python main.py --run-now</code></td><td><span class="badge">파이프라인</span></td></tr>
+        <tr><td><code>!mining evolve</code></td><td><code>python main.py --evolve</code></td><td><span class="badge">Evolution</span></td></tr>
+        <tr><td><code>!mining upload</code></td><td><code>python main.py --upload</code></td><td><span class="badge">업로드</span></td></tr>
+        <tr><td><code>!mining revenue</code></td><td><code>python main.py --revenue-sync</code></td><td><span class="badge ok">수익</span></td></tr>
+        <tr><td><code>[CHSH_CMD] {"action": "run"}</code></td><td>JSON 형식 (확장용)</td><td><span class="badge">JSON</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>§3. 자동 스케줄 (목표 상태)</h2>
+    <pre>01:30 KST → Evolution 에이전트 → #jh-chsh-mining 알림
+02:00 KST → 일일 파이프라인 → #jh-chsh-mining 알림
+07:00 / 12:00 / 18:00 → 업로드 실행
+23:00 KST → 수익 집계 → #jh-chsh-mining 리포트</pre>
+    <p class="muted" style="margin-top:10px">스케줄은 로컬 PC의 Windows Task Scheduler가 실행한다 (<code>setup_scheduler.ps1</code>).</p>
+  </section>
+
+  <section>
+    <h2>§4. 필수 환경변수</h2>
+    <table>
+      <thead><tr><th>키</th><th>설명</th><th>위치</th></tr></thead>
+      <tbody>
+        <tr><td><code>JH_CHSH_MINING_CHANNEL_ID</code></td><td>Discord 채널 ID</td><td>버키 <code>.env</code></td></tr>
+        <tr><td><code>CHSH_MINING_LOCAL_AGENT_PATH</code></td><td>로컬 프로젝트 경로 (기본: <code>D:\ai프로젝트\AI-mining-CHSHAUTOMATION</code>)</td><td>버키 <code>.env</code></td></tr>
+        <tr><td><code>ANTHROPIC_API_KEY</code></td><td>Evolution 에이전트용 Claude API 키</td><td>프로젝트 <code>.env</code></td></tr>
+        <tr><td><code>DISCORD_BOT_TOKEN</code></td><td>슬래시 커맨드 직접 응답용 (선택)</td><td>프로젝트 <code>.env</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>§5. 검증 명령</h2>
+    <pre># 1. DB 테이블 확인
+python -c "from analytics.models import init_db; init_db(); print('DB OK')"
+
+# 2. 상태 출력
+python main.py --status
+
+# 3. Evolution 테스트 (Claude API 키 필요)
+python main.py --evolve
+
+# 4. Task Scheduler 등록 (관리자 권한)
+.\setup_scheduler.ps1
+Get-ScheduledTask | Where-Object {$_.TaskName -like "MiningBot*"}</pre>
+  </section>
+
+  <section>
+    <h2>§6. 정본 문서</h2>
+    <ul style="list-style:none;padding:0">
+      <li>📄 <a class="link" href="/repo/">RepoAgent — 레포 분류</a></li>
+      <li>📄 <code>ObsidianVault/03_Projects/agents/chsh-mining.md</code> (Bucky Context Pack 정본)</li>
+      <li>📄 <code>scripts/discord_bot.py</code> → <code>_handle_chsh_mining_command()</code></li>
+      <li>📄 <code>docs/chsh-mining/AGENT.md</code> (이 에이전트 메타데이터)</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  📡 채널: Discord <code>#jh-chsh-mining</code> · 정본: <code>ObsidianVault/03_Projects/agents/chsh-mining.md</code>
+</footer>
+
+<script src="/shared/nav.js"></script>
+</body>
+</html>

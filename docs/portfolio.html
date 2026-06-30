@@ -1,0 +1,745 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JH AI 자동화 포트폴리오 — 건설·인테리어 도메인 특화</title>
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0d1421;
+    --card: #111827;
+    --card-hover: #141e2e;
+    --border: #1f2d44;
+    --border-bright: #2a3f5e;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --muted2: #94a3b8;
+    --accent: #3b82f6;
+    --accent2: #60a5fa;
+    --green: #10b981;
+    --green2: #34d399;
+    --purple: #8b5cf6;
+    --purple2: #a78bfa;
+    --orange: #f59e0b;
+    --orange2: #fbbf24;
+    --pink: #ec4899;
+    --teal: #14b8a6;
+    --glow: rgba(59,130,246,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── NAV ─── */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo { font-weight: 800; font-size: 1rem; color: var(--text); text-decoration: none; }
+  .nav-logo span { color: var(--accent2); }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a { color: var(--muted2); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent); color: #fff;
+    padding: 7px 18px; border-radius: 6px;
+    font-size: 0.85rem; font-weight: 700; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--accent2); }
+  @media (max-width: 680px) { .nav-links { display: none; } }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59,130,246,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 10% 60%, rgba(16,185,129,0.08) 0%, transparent 40%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.035;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: var(--accent2);
+    padding: 7px 18px; border-radius: 999px;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em;
+    margin-bottom: 28px; position: relative;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 900; line-height: 1.12;
+    letter-spacing: -0.03em; margin-bottom: 24px;
+    position: relative;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent2) 0%, var(--purple2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-desc {
+    color: var(--muted2); font-size: 1.1rem; max-width: 600px;
+    margin: 0 auto 40px; line-height: 1.75;
+    position: relative;
+  }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; position: relative; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
+    color: #fff; padding: 14px 28px; border-radius: 8px;
+    font-weight: 700; font-size: 1rem; text-decoration: none;
+    box-shadow: 0 0 24px rgba(59,130,246,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(59,130,246,0.55); }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-bright);
+    color: var(--text); padding: 14px 28px; border-radius: 8px;
+    font-weight: 600; font-size: 1rem; text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--muted); }
+  .hero-sub { margin-top: 20px; color: var(--muted); font-size: 0.85rem; position: relative; }
+
+  /* ─── STATS ─── */
+  .stats-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; flex-wrap: wrap;
+  }
+  .stat-item {
+    flex: 1; min-width: 140px;
+    padding: 24px 28px; text-align: center;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-size: 2rem; font-weight: 900; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--muted2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-num.green { background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%); -webkit-background-clip: text; background-clip: text; }
+  .stat-num.blue { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip: text; background-clip: text; }
+  .stat-num.purple { background: linear-gradient(135deg, var(--purple) 0%, var(--purple2) 100%); -webkit-background-clip: text; background-clip: text; }
+  .stat-num.orange { background: linear-gradient(135deg, var(--orange) 0%, var(--orange2) 100%); -webkit-background-clip: text; background-clip: text; }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+  /* ─── SECTION ─── */
+  .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+  .section-label {
+    display: inline-block;
+    color: var(--accent2); font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .section-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .section-sub { color: var(--muted2); font-size: 0.95rem; margin-bottom: 48px; }
+  .divider { border: none; border-top: 1px solid var(--border); }
+
+  /* ─── ACHIEVEMENTS ─── */
+  .achieve-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 0; }
+  .achieve-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .achieve-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    border-radius: 12px 12px 0 0;
+  }
+  .achieve-card.a-green::before { background: linear-gradient(90deg, var(--green), var(--teal)); }
+  .achieve-card.a-blue::before { background: linear-gradient(90deg, var(--accent), var(--purple)); }
+  .achieve-card.a-orange::before { background: linear-gradient(90deg, var(--orange), var(--pink)); }
+  .achieve-card.a-purple::before { background: linear-gradient(90deg, var(--purple), var(--accent)); }
+  .achieve-card:hover { border-color: var(--border-bright); }
+  .achieve-big {
+    font-size: 2.4rem; font-weight: 900; letter-spacing: -0.03em;
+    margin-bottom: 4px; line-height: 1;
+  }
+  .achieve-card.a-green .achieve-big { color: var(--green2); }
+  .achieve-card.a-blue .achieve-big { color: var(--accent2); }
+  .achieve-card.a-orange .achieve-big { color: var(--orange2); }
+  .achieve-card.a-purple .achieve-big { color: var(--purple2); }
+  .achieve-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+  .achieve-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+  /* ─── PRODUCTS ─── */
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+  .product-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px;
+    display: flex; flex-direction: column;
+    transition: border-color 0.25s, background 0.25s, transform 0.25s, box-shadow 0.25s;
+    position: relative; overflow: hidden;
+  }
+  .product-card:hover {
+    border-color: var(--border-bright);
+    background: var(--card-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .product-card.featured {
+    border-color: rgba(59,130,246,0.3);
+  }
+  .product-card.featured:hover {
+    border-color: rgba(59,130,246,0.6);
+    box-shadow: 0 12px 40px rgba(59,130,246,0.12);
+  }
+  .product-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .product-icon { font-size: 2rem; }
+  .product-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 700;
+  }
+  .product-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .status-live { background: rgba(16,185,129,0.12); color: var(--green2); }
+  .status-live::before { background: var(--green); animation: pulse-dot 2s infinite; }
+  .status-beta { background: rgba(59,130,246,0.12); color: var(--accent2); }
+  .status-beta::before { background: var(--accent); }
+  .status-dev { background: rgba(245,158,11,0.12); color: var(--orange2); }
+  .status-dev::before { background: var(--orange); }
+  .product-name { font-size: 1.15rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.01em; }
+  .product-desc { color: var(--muted2); font-size: 0.88rem; margin-bottom: 18px; flex: 1; line-height: 1.65; }
+  .product-meta { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+  .product-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+    border: 1px solid; letter-spacing: 0.01em;
+  }
+  .tag-blue { color: var(--accent2); border-color: rgba(59,130,246,0.25); background: rgba(59,130,246,0.06); }
+  .tag-green { color: var(--green2); border-color: rgba(16,185,129,0.25); background: rgba(16,185,129,0.06); }
+  .tag-purple { color: var(--purple2); border-color: rgba(139,92,246,0.25); background: rgba(139,92,246,0.06); }
+  .tag-orange { color: var(--orange2); border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.06); }
+  .tag-teal { color: var(--teal); border-color: rgba(20,184,166,0.25); background: rgba(20,184,166,0.06); }
+  .tag-pink { color: var(--pink); border-color: rgba(236,72,153,0.25); background: rgba(236,72,153,0.06); }
+  .product-demo {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--accent2); font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; padding: 6px 14px;
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 6px; background: rgba(59,130,246,0.06);
+    transition: background 0.2s, border-color 0.2s;
+    align-self: flex-start;
+  }
+  .product-demo:hover { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.4); }
+  .product-demo::after { content: '↗'; }
+
+  /* ─── RESULT BAR ─── */
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .result-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .result-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .ri-green { background: rgba(16,185,129,0.12); }
+  .ri-blue { background: rgba(59,130,246,0.12); }
+  .ri-orange { background: rgba(245,158,11,0.12); }
+  .ri-purple { background: rgba(139,92,246,0.12); }
+  .result-content h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+  .result-content p { font-size: 0.84rem; color: var(--muted2); line-height: 1.55; }
+
+  /* ─── USE CASES ─── */
+  .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .usecase-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .usecase-card:hover { border-color: var(--border-bright); }
+  .usecase-num {
+    font-size: 0.72rem; font-weight: 800; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .usecase-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .usecase-card p { color: var(--muted2); font-size: 0.87rem; line-height: 1.6; }
+
+  /* ─── TECH ─── */
+  .tech-categories { display: flex; flex-direction: column; gap: 28px; }
+  .tech-group-label { color: var(--muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .tech-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tech-chip {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 7px 14px; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; color: var(--text);
+    display: flex; align-items: center; gap: 6px;
+    transition: border-color 0.2s;
+  }
+  .tech-chip:hover { border-color: var(--border-bright); }
+  .tech-chip span { color: var(--muted); font-weight: 400; font-size: 0.78rem; }
+
+  /* ─── CTA ─── */
+  .cta-section {
+    text-align: center; padding: 96px 24px;
+    position: relative; overflow: hidden;
+    border-top: 1px solid var(--border);
+  }
+  .cta-section::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(59,130,246,0.1) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .cta-section h2 { font-size: 2rem; font-weight: 900; margin-bottom: 16px; letter-spacing: -0.02em; position: relative; }
+  .cta-section p { color: var(--muted2); font-size: 1rem; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; }
+  .cta-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; position: relative; }
+  .cta-note { margin-top: 20px; color: var(--muted); font-size: 0.83rem; position: relative; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 24px; text-align: center;
+    color: var(--muted); font-size: 0.83rem;
+    display: flex; flex-direction: column; gap: 6px; align-items: center;
+  }
+  footer a { color: var(--muted2); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 2rem; }
+    .stat-item { min-width: 100px; padding: 16px; }
+    .stat-num { font-size: 1.6rem; }
+    .product-grid { grid-template-columns: 1fr; }
+  }
+</style>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="#" class="nav-logo">JH <span>AI</span></a>
+  <ul class="nav-links">
+    <li><a href="#products">제품</a></li>
+    <li><a href="#results">성과</a></li>
+    <li><a href="#usecases">유즈케이스</a></li>
+    <li><a href="#tech">기술</a></li>
+  </ul>
+  <a href="mailto:dltkddlf231@gmail.com" class="nav-cta">문의하기</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-badge">위시켓 응찰 중 · 빠른 응답 보장</div>
+  <h1>
+    건설·인테리어 도메인<br>
+    <span class="highlight">AI 에이전트 시스템</span>
+  </h1>
+  <p class="hero-desc">
+    10년 건축 설계 경험 × AI 자동화 기술로 만든 실무 검증 솔루션.<br>
+    현장에서 실제로 작동하는 멀티 에이전트 운영 체계를 구현합니다.
+  </p>
+  <div class="hero-actions">
+    <a href="mailto:dltkddlf231@gmail.com" class="btn-primary">협업 문의하기</a>
+    <a href="./ai-usage.html" class="btn-secondary" target="_blank">AI 사용량 대시보드 보기</a>
+  </div>
+  <p class="hero-sub">위시켓 프리랜서 활동 중 · AI 자동화·웹개발·데이터 분석</p>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num blue">7+</div>
+      <div class="stat-label">운영 중인 AI 제품</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">10년</div>
+      <div class="stat-label">건축·인테리어 경력</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num green">100%</div>
+      <div class="stat-label">위시켓 자동화 테스트 통과 (23/23)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num orange">28%</div>
+      <div class="stat-label">구매대행 평균 마진율</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num purple">24/7</div>
+      <div class="stat-label">자동화 파이프라인 운영</div>
+    </div>
+  </div>
+</div>
+
+<!-- Achievements -->
+<section class="section" id="results">
+  <div class="section-label">검증된 성과</div>
+  <h2 class="section-title">수치로 증명하는 결과물</h2>
+  <p class="section-sub">실제 운영 데이터 기반 성과 지표</p>
+  <div class="achieve-grid">
+    <div class="achieve-card a-green">
+      <div class="achieve-big">23/23</div>
+      <div class="achieve-title">위시켓 자동화 테스트</div>
+      <div class="achieve-desc">Phase 3 전체 테스트 케이스 통과. 공고 모니터링·제안서 생성·응찰 기록까지 완전 자동화.</div>
+    </div>
+    <div class="achieve-card a-orange">
+      <div class="achieve-big">28%</div>
+      <div class="achieve-title">구매대행 평균 마진율</div>
+      <div class="achieve-desc">iHerb·Amazon 소싱 → 8개 지표 자동 검증 → 60점 이상 상품만 등재. Make.com 워크플로우 연동.</div>
+    </div>
+    <div class="achieve-card a-blue">
+      <div class="achieve-big">5+</div>
+      <div class="achieve-title">에이전트 동시 운영</div>
+      <div class="achieve-desc">Claude Code, Codex, AgentBus, 위시켓 봇, Discord 봇을 단일 Bucky 오케스트레이터로 통합 관리.</div>
+    </div>
+    <div class="achieve-card a-purple">
+      <div class="achieve-big">200+</div>
+      <div class="achieve-title">Vault 노트 자동 처리</div>
+      <div class="achieve-desc">Obsidian 지식베이스 YAML 자동 주입·태깅·분류. 57개 Knowledge 노트 완전 엔리치 완료.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- Products -->
+<section class="section" id="products">
+  <div class="section-label">핵심 제품</div>
+  <h2 class="section-title">실제 운영 중인 AI 시스템</h2>
+  <p class="section-sub">건설·AI·자동화 교차점에서 만들어진 프로덕션 수준의 솔루션들</p>
+  <div class="product-grid">
+
+    <div class="product-card featured">
+      <div class="product-header">
+        <div class="product-icon">🤖</div>
+        <span class="product-status status-live">운영 중</span>
+      </div>
+      <div class="product-name">Bucky AI 오케스트레이터</div>
+      <div class="product-desc">여러 AI 에이전트(Claude, Codex)를 중앙에서 조율하는 에이전트 운영체제. 사용자 요청을 의미 분석해 최적 에이전트로 자동 라우팅하고, Context Pack 기반으로 작업 지침을 압축·전달합니다. Discord 실시간 운영 채널 연동.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-blue">Claude API</span>
+          <span class="tag tag-purple">Multi-Agent</span>
+          <span class="tag tag-green">Discord 봇</span>
+          <span class="tag tag-orange">Python</span>
+          <span class="tag tag-teal">Obsidian 연동</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-header">
+        <div class="product-icon">🏗️</div>
+        <span class="product-status status-live">개발 완료</span>
+      </div>
+      <div class="product-name">모델하우스 AI 상담사</div>
+      <div class="product-desc">건축·인테리어 현장 지식을 학습한 AI 상담 키오스크. 방문객 질의에 실시간 대응하고, 자재 선정·비용 견적·시공 일정을 자동 안내합니다. 10년 현장 경험 기반 도메인 지식 내재화.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-blue">RAG</span>
+          <span class="tag tag-green">건축 도메인</span>
+          <span class="tag tag-purple">FastAPI</span>
+          <span class="tag tag-orange">키오스크 UI</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card featured">
+      <div class="product-header">
+        <div class="product-icon">📋</div>
+        <span class="product-status status-live">운영 중</span>
+      </div>
+      <div class="product-name">위시켓 자동화 에이전트</div>
+      <div class="product-desc">프리랜서 수주 플랫폼 공고를 24시간 모니터링하고 도메인 적합도를 분석해 경쟁력 있는 제안서를 자동 생성합니다. Phase 3 전체 테스트 23/23 통과. 응찰 기록·결과 추적 포함.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-green">23/23 테스트 통과</span>
+          <span class="tag tag-blue">자동화</span>
+          <span class="tag tag-purple">AI 제안서</span>
+          <span class="tag tag-orange">Python</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-header">
+        <div class="product-icon">📊</div>
+        <span class="product-status status-live">운영 중</span>
+      </div>
+      <div class="product-name">AgentBus 작업 관리 시스템</div>
+      <div class="product-desc">AI 에이전트 간 작업 분배·추적·결과 수집 파이프라인. 태스크 큐잉, 실패 재시도, Discord 실시간 상태 알림, Obsidian 연동까지 포함한 에이전트 운영 인프라.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-orange">Task Queue</span>
+          <span class="tag tag-blue">Discord</span>
+          <span class="tag tag-green">모니터링</span>
+          <span class="tag tag-teal">Obsidian</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card featured">
+      <div class="product-header">
+        <div class="product-icon">🛒</div>
+        <span class="product-status status-beta">베타</span>
+      </div>
+      <div class="product-name">스나이퍼 구매대행 플랫폼</div>
+      <div class="product-desc">iHerb·Amazon 해외직구 상품을 8개 지표로 자동 평가(100점 만점)하고 마진·통관 리스크를 계산해 60점 이상 상품만 등재하는 검증 플랫폼. 평균 마진율 28% 달성. Make.com 자동화 연동.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-green">마진율 28%</span>
+          <span class="tag tag-blue">Vercel 배포</span>
+          <span class="tag tag-purple">Make.com</span>
+          <span class="tag tag-orange">리스크 분석</span>
+        </div>
+        <a href="https://sniper-buying-dashboard.vercel.app/" class="product-demo" target="_blank">라이브 데모 보기</a>
+      </div>
+    </div>
+
+    <div class="product-card featured">
+      <div class="product-header">
+        <div class="product-icon">📈</div>
+        <span class="product-status status-live">운영 중</span>
+      </div>
+      <div class="product-name">AI 사용량 대시보드</div>
+      <div class="product-desc">Claude, ChatGPT, Codex 구독 현황과 구독 ROI를 실시간 추적하는 대시보드. 에이전트별 활용 지표, 비용 효율성, 작업 성과를 시각화합니다. 자동 수집 파이프라인 연동.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-blue">실시간 대시보드</span>
+          <span class="tag tag-green">ROI 추적</span>
+          <span class="tag tag-purple">자동 수집</span>
+          <span class="tag tag-orange">HTML/CSS/JS</span>
+        </div>
+        <a href="./ai-usage.html" class="product-demo" target="_blank">대시보드 열기</a>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-header">
+        <div class="product-icon">🔍</div>
+        <span class="product-status status-beta">베타</span>
+      </div>
+      <div class="product-name">Graphify 코드베이스 분석기</div>
+      <div class="product-desc">대형 코드베이스를 지식 그래프로 변환해 AI가 효율적으로 탐색하도록 돕는 도구. Context 낭비 없이 필요한 구조만 추출해 Claude/Codex에 전달합니다.</div>
+      <div class="product-meta">
+        <div class="product-tags">
+          <span class="tag tag-teal">지식 그래프</span>
+          <span class="tag tag-blue">Context 최적화</span>
+          <span class="tag tag-orange">Python</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- Results / Delivery -->
+<section class="section">
+  <div class="section-label">협업 경험</div>
+  <h2 class="section-title">이런 결과를 만들었습니다</h2>
+  <p class="section-sub">실제 프로젝트에서 검증된 실행력</p>
+  <div class="result-grid">
+    <div class="result-card">
+      <div class="result-icon ri-green">✅</div>
+      <div class="result-content">
+        <h3>위시켓 자동화 Phase 3 완료</h3>
+        <p>공고 크롤링·도메인 분석·제안서 생성·응찰 기록까지 23개 테스트 전부 통과. 실제 응찰 파이프라인 운영 중.</p>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="result-icon ri-blue">🚀</div>
+      <div class="result-content">
+        <h3>스나이퍼 MVP Vercel 배포</h3>
+        <p>아이디어에서 Vercel 라이브 배포까지 단독 구현. 8개 지표 스코어링·마진 계산·관리자 대시보드 포함.</p>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="result-icon ri-orange">⚡</div>
+      <div class="result-content">
+        <h3>Discord 봇 + 음성 STT 통합</h3>
+        <p>Whisper 기반 음성 인식, 실시간 채널 분기, 응답 속도 1~3초 단축. 멀티 채널 에이전트 운영 체계 구현.</p>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="result-icon ri-purple">🧠</div>
+      <div class="result-content">
+        <h3>Obsidian 지식베이스 자동화</h3>
+        <p>200+ 노트 YAML 자동 주입·태깅·MOC 생성. RAG 준비 완료 상태의 구조화된 지식 베이스 구축.</p>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="result-icon ri-green">🏗️</div>
+      <div class="result-content">
+        <h3>건축·인테리어 현장 문서 자동화</h3>
+        <p>10년 설계 경험 기반 견적서·시방서·하자 보고서 AI 초안 생성 + Human-in-the-loop 검토 플로우.</p>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="result-icon ri-blue">📊</div>
+      <div class="result-content">
+        <h3>AI 구독 ROI 자동 추적</h3>
+        <p>Claude·ChatGPT·Codex 사용량을 자동 수집해 ROI 대시보드로 시각화. 비용 대비 성과 지표 실시간 확인.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- Use cases -->
+<section class="section" id="usecases">
+  <div class="section-label">유즈케이스</div>
+  <h2 class="section-title">이런 문제를 해결합니다</h2>
+  <p class="section-sub">건설·부동산·인테리어·AI 자동화 분야의 실제 문제 해결 경험</p>
+  <div class="usecase-grid">
+    <div class="usecase-card">
+      <div class="usecase-num">USE CASE 01</div>
+      <h3>현장 문서 자동화</h3>
+      <p>견적서·시방서·하자 보고서를 AI가 초안 생성. 설계사가 검토·확정하는 Human-in-the-loop 흐름으로 품질을 유지하면서 작성 시간 80% 단축.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-num">USE CASE 02</div>
+      <h3>고객 상담 자동화</h3>
+      <p>모델하우스·분양 현장에서 방문객 질의를 AI가 1차 응답. 자재 옵션, 가격 범위, 공기(工期) 안내를 24시간 자동화.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-num">USE CASE 03</div>
+      <h3>수주 파이프라인 자동화</h3>
+      <p>프리랜서 플랫폼 공고 모니터링 → 적합도 분석 → 제안서 생성 → 응찰 기록까지 완전 자동화. 23/23 테스트 통과.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-num">USE CASE 04</div>
+      <h3>멀티 에이전트 운영</h3>
+      <p>Claude, Codex, 도메인 특화 에이전트를 단일 Discord 채널에서 통합 관리. 복잡한 작업의 병렬 처리와 결과 통합.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-num">USE CASE 05</div>
+      <h3>지식 베이스 & RAG 구축</h3>
+      <p>Obsidian 기반 지식 관리 시스템에 AI 자동 분류·태깅·요약 파이프라인 구축. 200+ 노트 자동 처리 완료.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-num">USE CASE 06</div>
+      <h3>e-Commerce 자동화</h3>
+      <p>해외직구 상품 자동 검증·마진 계산·통관 리스크 분석. 8개 지표 스코어링으로 60점 이상 상품만 선별 등재.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- Tech stack -->
+<section class="section" id="tech">
+  <div class="section-label">기술 스택</div>
+  <h2 class="section-title">실무에서 검증한 기술들</h2>
+  <p class="section-sub">실제 운영 중인 시스템에서 사용하는 기술 스택</p>
+  <div class="tech-categories">
+    <div>
+      <div class="tech-group-label">AI · LLM</div>
+      <div class="tech-list">
+        <div class="tech-chip">Claude API <span>Sonnet/Opus</span></div>
+        <div class="tech-chip">OpenAI <span>GPT-4o</span></div>
+        <div class="tech-chip">Whisper <span>STT</span></div>
+        <div class="tech-chip">RAG <span>지식 검색</span></div>
+        <div class="tech-chip">Embeddings <span>벡터 검색</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="tech-group-label">백엔드 · 자동화</div>
+      <div class="tech-list">
+        <div class="tech-chip">Python <span>3.11+</span></div>
+        <div class="tech-chip">FastAPI <span>REST API</span></div>
+        <div class="tech-chip">Discord.py <span>봇 운영</span></div>
+        <div class="tech-chip">Make.com <span>워크플로우</span></div>
+        <div class="tech-chip">GitHub Actions <span>CI/CD</span></div>
+        <div class="tech-chip">SQLite / PostgreSQL <span>데이터베이스</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="tech-group-label">프론트엔드 · 배포</div>
+      <div class="tech-list">
+        <div class="tech-chip">HTML/CSS/JS <span>대시보드</span></div>
+        <div class="tech-chip">Vercel <span>프론트엔드</span></div>
+        <div class="tech-chip">Cloudflare Pages <span>정적 호스팅</span></div>
+        <div class="tech-chip">Docker <span>컨테이너</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="tech-group-label">도메인 특화</div>
+      <div class="tech-list">
+        <div class="tech-chip">AutoCAD <span>건축 도면</span></div>
+        <div class="tech-chip">Obsidian <span>지식 관리</span></div>
+        <div class="tech-chip">Playwright <span>자동화</span></div>
+        <div class="tech-chip">Git <span>버전 관리</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>프로젝트 협업 문의</h2>
+  <p>건설·인테리어 AI 자동화, 에이전트 시스템 구축, 프리랜서 개발 — 24시간 이내 응답합니다.</p>
+  <div class="cta-actions">
+    <a href="mailto:dltkddlf231@gmail.com" class="btn-primary">이메일로 문의하기</a>
+    <a href="https://www.wishket.com" class="btn-secondary" target="_blank">위시켓 프로필 보기</a>
+  </div>
+  <p class="cta-note">보통 24시간 이내 응답 · 첫 미팅 무료 · 위시켓 응찰 가능</p>
+</section>
+
+<footer>
+  <div class="footer-links">
+    <a href="./index.html">메인 대시보드</a>
+    <a href="./ai-usage.html">AI 사용량</a>
+    <a href="./org-structure.html">조직 구조도</a>
+    <a href="https://sniper-buying-dashboard.vercel.app/" target="_blank">스나이퍼 플랫폼</a>
+  </div>
+  <p>JH AI 자동화 포트폴리오 — 건축 설계 + AI 개발 · 2026</p>
+</footer>
+
+</body>
+</html>

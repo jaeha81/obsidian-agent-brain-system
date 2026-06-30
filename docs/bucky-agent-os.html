@@ -1,0 +1,2491 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bucky Mission Control — Agent OS</title>
+<meta name="theme-color" content="#04040e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bucky OS">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/3d-force-graph@1.73.5/dist/3d-force-graph.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+/* ─────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────── */
+:root {
+  --bg:       #04040e;
+  --surface:  #080812;
+  --card:     rgba(10,10,22,0.72);
+  --border:   rgba(0,212,255,0.12);
+  --border-h: rgba(0,212,255,0.45);
+  --cyan:     #00d4ff;
+  --amber:    #f5a623;
+  --green:    #00ff88;
+  --purple:   #a855f7;
+  --red:      #ff4757;
+  --muted:    #4a4a6a;
+  --text:     #e8e8f8;
+  --text-d:   #9898b8;
+  --sans:     "Space Grotesk", system-ui, sans-serif;
+  --mono:     "Space Mono", "Fira Code", monospace;
+  --r:        10px;
+  --gap:      14px;
+  --jh-nav-h: 34px;
+  --topbar-h: 52px;
+  --tabbar-h: 44px;
+}
+
+/* ─────────────────────────────────────────
+   RESET + BASE
+───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  overflow-x: hidden;
+}
+
+/* ─────────────────────────────────────────
+   BACKGROUND: deep dark + radial gradients + grid
+───────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,212,255,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 80% 80%, rgba(168,85,247,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─────────────────────────────────────────
+   TOPBAR
+───────────────────────────────────────── */
+#topbar {
+  position: fixed; top: var(--jh-nav-h); left: 0; right: 0;
+  height: var(--topbar-h);
+  background: rgba(4,4,14,0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 16px;
+  z-index: 200;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-weight: 700;
+  font-size: 13px; letter-spacing: 0.12em;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+}
+
+.logo-ring {
+  position: relative; width: 22px; height: 22px;
+  border: 2px solid rgba(0,212,255,0.4);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin-ring 3s linear infinite;
+  flex-shrink: 0;
+}
+
+.logo-ring::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px; height: 7px;
+  background: var(--cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--cyan);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes spin-ring { to { transform: rotate(360deg); } }
+@keyframes pulse-dot {
+  0%,100% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  50%      { opacity:.4; transform:translate(-50%,-50%) scale(0.6); }
+}
+
+.topbar-divider { width: 1px; height: 26px; background: var(--border); flex-shrink: 0; }
+
+.sys-label {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted); letter-spacing: 0.1em;
+}
+.sys-val {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-d); margin-left: 4px;
+}
+
+.topbar-nav {
+  display: flex; align-items: center; gap: 2px;
+}
+.nav-link {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); padding: 4px 10px;
+  border-radius: 4px; text-decoration: none;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  transition: color .15s, background .15s;
+  border: 1px solid transparent;
+}
+.nav-link:hover {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  border-color: rgba(0,212,255,0.2);
+}
+.nav-link.active {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.08);
+  border-color: rgba(0,212,255,0.25);
+}
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+#demo-badge {
+  display: none;
+  font-family: var(--mono); font-size: 9px;
+  padding: 3px 8px; border-radius: 3px;
+  background: rgba(245,166,35,0.18);
+  color: var(--amber);
+  border: 1px solid rgba(245,166,35,0.4);
+  letter-spacing: 0.08em;
+}
+#demo-badge.visible { display: inline-block; }
+
+.live-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(0,255,136,0.7);
+  flex-shrink: 0;
+  transition: opacity .3s;
+}
+.live-dot.pulse {
+  animation: livePulse .6s ease-in-out;
+}
+@keyframes livePulse {
+  0%   { box-shadow: 0 0 6px rgba(0,255,136,0.7); }
+  50%  { box-shadow: 0 0 16px rgba(0,255,136,1); }
+  100% { box-shadow: 0 0 6px rgba(0,255,136,0.7); }
+}
+.live-ts {
+  font-family: var(--mono); font-size: 8px;
+  color: var(--muted); letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.refresh-btn {
+  background: rgba(0,212,255,0.06);
+  border: 1px solid rgba(0,212,255,0.25);
+  color: var(--cyan); padding: 5px 14px;
+  border-radius: 5px; cursor: pointer;
+  font-size: 10px; font-family: var(--mono);
+  letter-spacing: 0.08em;
+  transition: all .18s;
+}
+.refresh-btn:hover {
+  background: rgba(0,212,255,0.14);
+  border-color: rgba(0,212,255,0.5);
+  box-shadow: 0 0 12px rgba(0,212,255,0.2);
+}
+
+#clock {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0,212,255,0.4);
+  min-width: 64px; text-align: right;
+}
+
+/* ─────────────────────────────────────────
+   TAB BAR
+───────────────────────────────────────── */
+#tabbar {
+  position: fixed;
+  top: calc(var(--jh-nav-h) + var(--topbar-h)); left: 0; right: 0;
+  height: var(--tabbar-h);
+  background: rgba(4,4,14,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 4px;
+  z-index: 190;
+}
+
+.tab-btn {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted); padding: 6px 16px;
+  border-radius: 6px; cursor: pointer;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: color .15s, background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  border-color: rgba(0,212,255,0.2);
+}
+.tab-btn.active {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+  text-shadow: 0 0 10px rgba(0,212,255,0.4);
+}
+.tab-btn-icon { margin-right: 5px; font-style: normal; }
+
+/* ─────────────────────────────────────────
+   MAIN CONTAINER
+───────────────────────────────────────── */
+#main {
+  position: relative; z-index: 1;
+  margin-top: calc(var(--jh-nav-h) + var(--topbar-h) + var(--tabbar-h));
+  min-height: calc(100vh - var(--jh-nav-h) - var(--topbar-h) - var(--tabbar-h));
+}
+
+/* ─────────────────────────────────────────
+   TAB PANES
+───────────────────────────────────────── */
+.tab-pane {
+  display: none;
+  padding: var(--gap);
+}
+.tab-pane.active {
+  display: grid;
+  gap: var(--gap);
+}
+
+/* OPS tab: health | tasks | overview / dream | activity */
+#pane-ops {
+  grid-template-columns: 300px 1fr 280px;
+  grid-template-rows: auto auto auto;
+}
+#pane-ops #card-health   { grid-column: 1;   grid-row: 1; }
+#pane-ops #card-tasks    { grid-column: 2;   grid-row: 1 / 3; }
+#pane-ops #card-overview { grid-column: 3;   grid-row: 1; }
+#pane-ops #card-dream    { grid-column: 1;   grid-row: 2; }
+#pane-ops #card-activity { grid-column: 1/4; grid-row: 3; }
+
+/* AGENTS tab: agent room + skills + design lab */
+#pane-agents {
+  grid-template-columns: 1fr 280px;
+  grid-template-rows: auto auto auto;
+}
+#pane-agents #card-agents     { grid-column: 1/3; grid-row: 1; }
+#pane-agents #card-skills     { grid-column: 1/3; grid-row: 2; }
+#pane-agents #card-design-lab { grid-column: 1/3; grid-row: 3; }
+
+/* BRAIN tab: graph big + memory */
+#pane-brain {
+  grid-template-columns: 1fr 280px;
+  grid-template-rows: 460px auto;
+}
+#pane-brain #card-graph  { grid-column: 1/3; grid-row: 1; }
+#pane-brain #card-memory { grid-column: 1/3; grid-row: 2; }
+
+/* METRICS tab: goals | spend / bench / repo */
+#pane-metrics {
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: auto auto auto;
+}
+#pane-metrics #card-goals         { grid-column: 1;   grid-row: 1 / 3; }
+#pane-metrics #card-spend         { grid-column: 2;   grid-row: 1; }
+#pane-metrics #card-bench         { grid-column: 2;   grid-row: 2; }
+#pane-metrics #card-repo-priority { grid-column: 1/3; grid-row: 3; }
+
+/* ─────────────────────────────────────────
+   CARD: GLASS MORPHISM BASE
+───────────────────────────────────────── */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: border-color .22s, box-shadow .22s;
+}
+
+.card:hover {
+  border-color: rgba(0,212,255,0.35);
+  box-shadow: 0 0 28px rgba(0,212,255,0.07), inset 0 0 28px rgba(0,212,255,0.03);
+}
+
+.card-header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,212,255,0.02);
+}
+
+.card-title {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-d); font-family: var(--mono);
+}
+
+.card-badge {
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 7px; border-radius: 3px;
+  margin-left: auto; letter-spacing: 0.06em;
+}
+
+.badge-cyan   { background: rgba(0,212,255,0.12); color:var(--cyan);   border:1px solid rgba(0,212,255,0.28); }
+.badge-amber  { background: rgba(245,166,35,0.12); color:var(--amber);  border:1px solid rgba(245,166,35,0.28); }
+.badge-green  { background: rgba(0,255,136,0.10);  color:var(--green);  border:1px solid rgba(0,255,136,0.28); }
+.badge-purple { background: rgba(168,85,247,0.12); color:var(--purple); border:1px solid rgba(168,85,247,0.28); }
+.badge-red    { background: rgba(255,71,87,0.12);  color:var(--red);    border:1px solid rgba(255,71,87,0.28); }
+
+.card-body { padding: 14px; flex: 1; overflow-y: auto; }
+
+/* grid placements are now scoped per tab pane (see TAB PANES section above) */
+
+/* ─────────────────────────────────────────
+   AGENT HEALTH
+───────────────────────────────────────── */
+.agent-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(0,212,255,0.07);
+}
+.agent-row:last-child { border-bottom: none; }
+
+.agent-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+
+.dot-active, .dot-online, .dot-fresh {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%,100% { box-shadow: 0 0 5px var(--green); }
+  50%      { box-shadow: 0 0 14px var(--green), 0 0 22px rgba(0,255,136,0.3); }
+}
+
+.dot-idle {
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+  animation: dot-pulse-amber 2.5s ease-in-out infinite;
+}
+@keyframes dot-pulse-amber {
+  0%,100% { box-shadow: 0 0 4px var(--amber); }
+  50%      { box-shadow: 0 0 12px var(--amber); }
+}
+
+.dot-offline, .dot-stale { background: var(--red); box-shadow: 0 0 5px var(--red); }
+
+.agent-info { flex: 1; }
+.agent-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.agent-detail { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 2px; }
+.agent-tag {
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 3px; letter-spacing: 0.06em;
+}
+
+/* ─────────────────────────────────────────
+   TASK BOARD
+───────────────────────────────────────── */
+.task-summary {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  margin-bottom: 14px;
+}
+.task-stat {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 7px; padding: 9px; text-align: center;
+}
+.task-stat-val {
+  font-family: var(--mono); font-size: 22px; font-weight: 700;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+}
+.task-stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.task-section-label {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); letter-spacing: 0.1em;
+  margin: 12px 0 6px;
+}
+
+.task-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; margin-bottom: 4px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 7px; cursor: default;
+  transition: border-color .18s, background .18s;
+}
+.task-item:hover {
+  border-color: rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.04);
+}
+
+.task-id { font-family: var(--mono); font-size: 10px; color: var(--muted); flex-shrink: 0; min-width: 52px; }
+.task-title { font-size: 12px; flex: 1; line-height: 1.45; }
+.task-pri {
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 3px;
+  flex-shrink: 0; align-self: flex-start; margin-top: 1px;
+}
+
+.pri-P0 { background:rgba(255,71,87,0.2);   color:var(--red);   border:1px solid rgba(255,71,87,0.4); }
+.pri-P1 { background:rgba(245,166,35,0.15); color:var(--amber); border:1px solid rgba(245,166,35,0.3); }
+.pri-P2 { background:rgba(0,212,255,0.1);   color:var(--cyan);  border:1px solid rgba(0,212,255,0.25); }
+.pri-wait{ background:rgba(74,74,106,0.2);  color:var(--muted); border:1px solid rgba(74,74,106,0.3); }
+
+.task-done { opacity: .42; }
+.task-done .task-title { text-decoration: line-through; }
+
+/* ─────────────────────────────────────────
+   SKILL PANTHEON
+───────────────────────────────────────── */
+.skill-graph-wrap {
+  position: relative; height: 260px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+}
+.skill-graph-wrap canvas { display: block; }
+
+#cy-skill { width: 100%; height: 100%; }
+
+.skill-legend {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-top: 8px; font-family: var(--mono); font-size: 9px; color: var(--muted);
+}
+.skill-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.legend-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.legend-dot-hub   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.legend-dot-skill { background: var(--cyan); }
+.legend-dot-pack  { background: var(--amber); }
+
+.skill-focus {
+  margin-top: 8px; padding: 8px 10px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.12); border-radius: 6px;
+  font-size: 10px; color: var(--text-d); line-height: 1.4;
+  min-height: 32px;
+}
+
+.cp-list { margin-top: 10px; }
+.cp-item {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  padding: 4px 0; border-bottom: 1px solid rgba(0,212,255,0.07);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cp-item:last-child { border-bottom: none; }
+.cp-item::before { content: '◈ '; color: var(--amber); }
+
+/* ─────────────────────────────────────────
+   DREAM REPORT
+───────────────────────────────────────── */
+.dream-session { margin-bottom: 12px; }
+.dream-title {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--cyan); margin-bottom: 6px; font-weight: 700;
+  text-shadow: 0 0 10px rgba(0,212,255,0.3);
+}
+.dream-body {
+  font-size: 11px; color: var(--text-d);
+  line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+}
+.dream-sep { border: none; border-top: 1px solid rgba(0,212,255,0.08); margin: 10px 0; }
+
+/* ─────────────────────────────────────────
+   MEMORY STACK
+───────────────────────────────────────── */
+.mem-stats {
+  display: flex; gap: 14px; margin-bottom: 12px;
+  font-family: var(--mono); font-size: 11px;
+}
+.mem-stat-item { color: var(--muted); }
+.mem-stat-item strong { color: var(--text-d); text-shadow: 0 0 10px rgba(0,212,255,0.2); }
+
+.kb-stats {
+  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.kb-item {
+  flex: 1; min-width: 70px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-top: 2px solid var(--cyan);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: var(--mono); font-size: 10px; color: var(--text-d);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.kb-lbl {
+  font-size: 8px; letter-spacing: 0.08em; color: var(--muted); font-weight: 700;
+}
+
+.mem-layers { display: flex; flex-direction: column; gap: 8px; }
+
+.mem-layer-card {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; overflow: hidden;
+}
+
+.mem-layer-card[data-layer="short"]     { border-bottom: 2px solid var(--cyan); }
+.mem-layer-card[data-layer="episodic"]  { border-bottom: 2px solid var(--purple); }
+.mem-layer-card[data-layer="semantic"]  { border-bottom: 2px solid var(--amber); }
+.mem-layer-card[data-layer="procedural"]{ border-bottom: 2px solid var(--green); }
+
+.mem-layer-header {
+  padding: 7px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.mem-layer-name {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.mem-layer-card[data-layer="short"]     .mem-layer-name { color: var(--cyan); }
+.mem-layer-card[data-layer="episodic"]  .mem-layer-name { color: var(--purple); }
+.mem-layer-card[data-layer="semantic"]  .mem-layer-name { color: var(--amber); }
+.mem-layer-card[data-layer="procedural"].mem-layer-name { color: var(--green); }
+
+.mem-layer-count {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+}
+.mem-layer-body { padding: 6px 10px 8px; }
+.mem-fact-item {
+  font-size: 11px; color: var(--text-d);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.45;
+}
+.mem-fact-item:last-child { border-bottom: none; }
+.mem-fact-ts {
+  font-family: var(--mono); font-size: 9px; color: var(--muted); margin-left: 6px;
+}
+
+/* ─────────────────────────────────────────
+   ACTIVITY FEED
+───────────────────────────────────────── */
+.activity-list { display: flex; flex-direction: column; gap: 5px; }
+.activity-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,212,255,0.07);
+  border-radius: 6px;
+  transition: border-color .15s;
+}
+.activity-item:hover { border-color: rgba(0,212,255,0.2); }
+
+.activity-type-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 4px;
+}
+.type-task      { background: var(--amber);  box-shadow: 0 0 6px var(--amber); }
+.type-report    { background: var(--cyan);   box-shadow: 0 0 6px var(--cyan); }
+.type-chat      { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+.type-knowledge { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+.type-system    { background: var(--muted); }
+.type-error     { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+
+.activity-content { flex: 1; }
+.activity-title   { font-size: 11px; font-weight: 500; }
+.activity-detail  { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.activity-ts      { font-family: var(--mono); font-size: 9px; color: var(--muted); flex-shrink: 0; }
+
+/* ─────────────────────────────────────────
+   SYSTEM OVERVIEW
+───────────────────────────────────────── */
+.overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ov-block {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 8px; padding: 10px; text-align: center;
+}
+.ov-val {
+  font-family: var(--mono); font-size: 24px; font-weight: 700;
+}
+.ov-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.ov-cyan   { color: var(--cyan);   text-shadow: 0 0 20px rgba(0,212,255,0.5); }
+.ov-amber  { color: var(--amber);  text-shadow: 0 0 20px rgba(245,166,35,0.5); }
+.ov-green  { color: var(--green);  text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+.ov-purple { color: var(--purple); text-shadow: 0 0 20px rgba(168,85,247,0.5); }
+.ov-red    { color: var(--red);    text-shadow: 0 0 20px rgba(255,71,87,0.4); }
+
+/* ─────────────────────────────────────────
+   MISSION GOALS
+───────────────────────────────────────── */
+.goal-card-inner {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 8px; padding: 10px; margin-bottom: 10px;
+}
+.goal-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.goal-meta  { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.goal-pct   {
+  font-family: var(--mono); font-size: 26px; font-weight: 700;
+  color: var(--cyan); text-shadow: 0 0 20px rgba(0,212,255,0.6);
+  text-align: right; margin-bottom: 4px;
+}
+
+.progress-wrap { margin: 8px 0 14px; }
+.progress-bar-bg {
+  height: 6px; background: rgba(0,212,255,0.08);
+  border-radius: 6px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0,212,255,0.5);
+  transition: width .6s ease;
+}
+
+.subtask-list { display: flex; flex-direction: column; gap: 5px; }
+.subtask-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 8px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 5px; font-size: 11px; line-height: 1.4;
+}
+.subtask-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.subtask-done    .subtask-dot { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.subtask-pending .subtask-dot { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+.subtask-done    { color: var(--green); opacity: 0.7; }
+.subtask-pending { color: var(--text-d); }
+
+/* ─────────────────────────────────────────
+   AI SPEND
+───────────────────────────────────────── */
+.spend-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+  margin-bottom: 14px;
+}
+.spend-stat {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 8px; padding: 12px; text-align: center;
+}
+.spend-stat-val {
+  font-family: var(--mono); font-size: 28px; font-weight: 700;
+}
+.spend-stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+.spend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+.spend-model-card {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-radius: 8px; padding: 10px;
+  transition: border-color .18s;
+}
+.spend-model-card:hover { border-color: rgba(0,212,255,0.25); }
+.spend-model-name { font-family: var(--mono); font-size: 10px; color: var(--cyan); margin-bottom: 5px; }
+.spend-model-calls {
+  font-family: var(--mono); font-size: 20px; font-weight: 700;
+  color: var(--text); text-shadow: 0 0 14px rgba(0,212,255,0.3);
+}
+.spend-model-meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* ─────────────────────────────────────────
+   SYSTEM BENCHMARK
+───────────────────────────────────────── */
+.bench-stats {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+  margin-bottom: 14px;
+}
+.bench-stat {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 8px; padding: 10px; text-align: center;
+}
+.bench-stat-val { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+.bench-stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+.bench-run-btn {
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.35);
+  color: var(--cyan); padding: 8px 20px;
+  border-radius: 6px; cursor: pointer;
+  font-size: 10px; font-family: var(--mono);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: all .18s; margin-bottom: 14px;
+  display: block; width: 100%;
+}
+.bench-run-btn:hover:not(:disabled) {
+  background: rgba(0,212,255,0.16);
+  border-color: rgba(0,212,255,0.6);
+  box-shadow: 0 0 14px rgba(0,212,255,0.2);
+}
+.bench-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.bench-results { display: flex; flex-direction: column; gap: 5px; }
+.bench-row {
+  display: grid; grid-template-columns: 150px 1fr 72px 44px;
+  align-items: center; gap: 10px;
+  padding: 7px 10px;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
+}
+.bench-row-name { font-family: var(--mono); font-size: 9px; color: var(--text-d); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bench-bar-wrap { height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.bench-bar-fill { height: 100%; border-radius: 3px; transition: width .45s ease; }
+.bench-ms { font-family: var(--mono); font-size: 9px; text-align: right; }
+.bench-status { font-family: var(--mono); font-size: 8px; padding: 2px 5px; border-radius: 3px; text-align: center; letter-spacing: 0.05em; }
+.bench-ok   { background: rgba(0,255,136,0.12);  color: var(--green); border: 1px solid rgba(0,255,136,0.22); }
+.bench-slow { background: rgba(245,166,35,0.12); color: var(--amber); border: 1px solid rgba(245,166,35,0.22); }
+.bench-fail { background: rgba(255,71,87,0.12);  color: var(--red);   border: 1px solid rgba(255,71,87,0.22); }
+.bench-idle { background: rgba(74,74,106,0.18);  color: var(--muted); border: 1px solid rgba(74,74,106,0.2); }
+
+.bench-score {
+  display: flex; align-items: center; gap: 18px;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-radius: 8px; margin-top: 14px;
+}
+.bench-score-num { font-family: var(--mono); font-size: 36px; font-weight: 700; line-height: 1; }
+.bench-score-grade { font-family: var(--mono); font-size: 20px; font-weight: 700; margin-left: 3px; }
+.bench-score-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.1em; margin-top: 4px; }
+
+/* ─────────────────────────────────────────
+   PROJECT GRAPH iframe
+───────────────────────────────────────── */
+.graph-frame { width:100%; height:100%; border:0; background:var(--bg); display:block; }
+
+/* ─────────────────────────────────────────
+   LOADING / SPINNER
+───────────────────────────────────────── */
+.loading-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; color: var(--muted); font-size: 12px;
+}
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,212,255,0.15);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,0.4); }
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 1200px) {
+  #pane-ops     { grid-template-columns: 1fr 1fr; }
+  #pane-agents  { grid-template-columns: 1fr; }
+  #pane-brain   { grid-template-columns: 1fr; grid-template-rows: 360px auto; }
+  #pane-metrics { grid-template-columns: 1fr; }
+
+  #pane-ops #card-health   { grid-column:1; grid-row:1; }
+  #pane-ops #card-dream    { grid-column:2; grid-row:1; }
+  #pane-ops #card-tasks    { grid-column:1/3; grid-row:2; }
+  #pane-ops #card-overview { grid-column:1; grid-row:3; }
+  #pane-ops #card-activity { grid-column:2; grid-row:3; }
+
+  #pane-agents #card-agents     { grid-column:1; }
+  #pane-agents #card-skills     { grid-column:1; }
+  #pane-agents #card-design-lab { grid-column:1; }
+
+  #pane-brain #card-graph  { grid-column:1; }
+  #pane-brain #card-memory { grid-column:1; }
+
+  #pane-metrics #card-goals         { grid-column:1; grid-row:auto; }
+  #pane-metrics #card-spend         { grid-column:1; grid-row:auto; }
+  #pane-metrics #card-bench         { grid-column:1; grid-row:auto; }
+  #pane-metrics #card-repo-priority { grid-column:1; grid-row:auto; }
+}
+
+/* ─────────────────────────────────────────
+   REPO PRIORITY
+───────────────────────────────────────── */
+.rp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.rp-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.rp-card.revenue-direct { border-left: 3px solid var(--green); }
+.rp-card.revenue-potential { border-left: 3px solid var(--amber); }
+.rp-card.revenue-operational { border-left: 3px solid rgba(255,255,255,0.2); }
+.rp-score {
+  position: absolute; top: 12px; right: 14px;
+  font-size: 20px; font-weight: 800;
+  font-family: var(--mono);
+  color: var(--cyan);
+}
+.rp-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.rp-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.rp-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.rp-tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-family: var(--mono); }
+.rp-tag.auto-ok { background: rgba(0,255,136,.12); color: var(--green); }
+.rp-tag.auto-no { background: rgba(255,71,87,.1); color: var(--red); }
+.rp-tag.deployed { background: rgba(0,212,255,.1); color: var(--cyan); }
+.rp-tag.local { background: rgba(255,255,255,.06); color: var(--muted); }
+.rp-auto-note { font-size: 11px; color: var(--amber); margin-top: 4px; }
+
+/* ─────────────────────────────────────────
+   AGENT ROOM
+───────────────────────────────────────── */
+.agent-room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.ar-card {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.ar-card:hover { transform: translateY(-1px); border-color: rgba(14,165,233,0.3); }
+.ar-card.s-online  { border-left-color: #22c55e; }
+.ar-card.s-active  { border-left-color: #22c55e; }
+.ar-card.s-standby { border-left-color: #f59e0b; }
+.ar-card.s-idle    { border-left-color: #6b7280; }
+.ar-card.s-pending { border-left-color: #374151; }
+.ar-card.s-offline { border-left-color: #ef4444; }
+.ar-header { display: flex; align-items: center; gap: 10px; }
+.ar-emoji  { font-size: 22px; line-height: 1; }
+.ar-name   { font-weight: 700; font-size: 14px; color: #e0e0e0; }
+.ar-role   { font-size: 10px; color: #0ea5e9; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.ar-status-badge {
+  margin-left: auto;
+  font-size: 10px; padding: 2px 7px; border-radius: 4px;
+  white-space: nowrap; font-weight: 600;
+}
+.ar-desc   { font-size: 12px; color: #888; line-height: 1.45; flex: 1; }
+.ar-tags   { display: flex; flex-wrap: wrap; gap: 4px; }
+.ar-tag    { font-size: 10px; background: rgba(14,165,233,0.1); color: #7dd3fc; border-radius: 4px; padding: 2px 6px; }
+.ar-call-btn {
+  margin-top: 4px;
+  padding: 6px 12px;
+  background: rgba(14,165,233,0.12);
+  border: 1px solid rgba(14,165,233,0.28);
+  border-radius: 6px;
+  color: #7dd3fc;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ar-call-btn:hover { background: rgba(14,165,233,0.28); }
+.ar-call-note { font-size: 11px; color: #4b5563; margin-top: 4px; }
+
+/* Agent Call Modal */
+#agent-call-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72); z-index: 9000;
+  align-items: center; justify-content: center;
+}
+#agent-call-modal.open { display: flex; }
+.acm-box {
+  background: #0f0f1e;
+  border: 1px solid rgba(14,165,233,0.25);
+  border-radius: 14px;
+  padding: 24px;
+  width: min(520px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.acm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.acm-title  { font-size: 16px; font-weight: 700; color: #e0e0e0; }
+.acm-close  { background: none; border: none; color: #666; cursor: pointer; font-size: 22px; line-height: 1; padding: 0; }
+.acm-close:hover { color: #e0e0e0; }
+.acm-desc   { font-size: 12px; color: #6b7280; margin: 0 0 14px; }
+.acm-textarea {
+  width: 100%; min-height: 110px;
+  background: #0a0a18; border: 1px solid #2a2a3e;
+  border-radius: 8px; padding: 10px; color: #d1d5db;
+  font-size: 13px; resize: vertical; box-sizing: border-box;
+  font-family: inherit;
+}
+.acm-textarea:focus { outline: none; border-color: rgba(14,165,233,0.5); }
+.acm-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.acm-cancel { padding: 8px 16px; background: #1f1f2e; border: 1px solid #333; border-radius: 6px; color: #9ca3af; cursor: pointer; font-size: 13px; }
+.acm-submit { padding: 8px 18px; background: #0ea5e9; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 13px; font-weight: 700; }
+.acm-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.acm-feedback { margin-top: 10px; font-size: 12px; min-height: 18px; }
+
+@media (max-width: 700px) {
+  #tabbar { gap: 2px; padding: 0 10px; }
+  .tab-btn { padding: 5px 10px; font-size: 9px; }
+  .tab-btn-icon { display: none; }
+
+  .tab-pane.active { grid-template-columns: 1fr !important; }
+  .tab-pane .card {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+  .spend-stats { grid-template-columns: 1fr 1fr; }
+  .bench-stats { grid-template-columns: 1fr 1fr; }
+  .task-summary { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+<style>
+.in-iframe .jh-nav,.in-iframe #topbar,.in-iframe #tabbar{display:none!important}
+.in-iframe #main{margin-top:0!important}
+.jh-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--jh-nav-h); z-index: 300;
+  background: rgba(2,2,10,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,212,255,0.06);
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 2px;
+}
+.jh-nav a {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--muted); text-decoration: none;
+  padding: 3px 8px; border-radius: 3px;
+  letter-spacing: 0.06em;
+  transition: color .15s, background .15s;
+}
+.jh-nav a:hover { color: var(--cyan); background: rgba(0,212,255,0.06); }
+.jh-nav .auth-end { margin-left: auto; }
+</style>
+<script>(function(){if(window!==window.top){document.documentElement.classList.add('in-iframe');}})();</script>
+<script src="/shared/nav.js" defer></script>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+
+<nav class="jh-nav"></nav>
+
+<!-- ═══════════════════════════════════════
+     TOPBAR
+═══════════════════════════════════════ -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-ring"></div>
+    BUCKY&nbsp;MISSION&nbsp;CONTROL
+  </div>
+  <div class="topbar-divider"></div>
+  <span class="sys-label">SYS</span>
+  <span class="sys-val" id="sys-status">Initializing…</span>
+  <div class="topbar-divider"></div>
+  <nav class="topbar-nav">
+    <a class="nav-link active" href="bucky-agent-os.html">OS</a>
+    <a class="nav-link" href="ai-usage.html">AI SPEND</a>
+    <a class="nav-link" href="wishket.html">WISHKET</a>
+    <a class="nav-link" href="project-graph.html" target="_blank">GRAPH</a>
+  </nav>
+  <div class="topbar-divider"></div>
+  <span class="sys-label">TASKS</span>
+  <span class="sys-val" id="sys-tasks">—</span>
+  <div class="topbar-divider"></div>
+  <span class="sys-label">SKILLS</span>
+  <span class="sys-val" id="sys-skills">—</span>
+  <div class="topbar-right">
+    <span id="demo-badge">⚠ DEMO MODE</span>
+    <span id="live-dot" class="live-dot" title="30s auto-refresh"></span>
+    <span id="live-ts" class="live-ts">LIVE</span>
+    <button class="refresh-btn" onclick="loadAll()">⟳ REFRESH</button>
+    <span id="clock">00:00:00</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TAB BAR
+═══════════════════════════════════════ -->
+<div id="tabbar">
+  <button class="tab-btn active" onclick="switchTab('ops')" id="tab-btn-ops">
+    <i class="tab-btn-icon">⚙</i>운영
+  </button>
+  <button class="tab-btn" onclick="switchTab('agents')" id="tab-btn-agents">
+    <i class="tab-btn-icon">🤖</i>에이전트
+  </button>
+  <button class="tab-btn" onclick="switchTab('brain')" id="tab-btn-brain">
+    <i class="tab-btn-icon">🧠</i>지식
+  </button>
+  <button class="tab-btn" onclick="switchTab('metrics')" id="tab-btn-metrics">
+    <i class="tab-btn-icon">📊</i>성과
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTAINER
+═══════════════════════════════════════ -->
+<div id="main">
+
+  <!-- ════════════════════════════════════
+       TAB: 운영 (OPS)
+  ════════════════════════════════════ -->
+  <div class="tab-pane active" id="pane-ops">
+
+    <!-- Health -->
+    <div class="card" id="card-health">
+      <div class="card-header">
+        <span class="card-title">Agent Health</span>
+        <span class="card-badge badge-green" id="health-badge">—</span>
+      </div>
+      <div class="card-body" id="health-body">
+        <div class="loading-row"><div class="spinner"></div>Loading agents…</div>
+      </div>
+    </div>
+
+    <!-- Tasks (spans rows 1-2) -->
+    <div class="card" id="card-tasks">
+      <div class="card-header">
+        <span class="card-title">Mission Control — Tasks</span>
+        <span class="card-badge badge-amber" id="tasks-badge">—</span>
+      </div>
+      <div class="card-body" id="tasks-body">
+        <div class="loading-row"><div class="spinner"></div>Loading tasks…</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="card" id="card-overview">
+      <div class="card-header">
+        <span class="card-title">System Overview</span>
+        <span class="card-badge badge-amber" id="overview-badge">v2.0</span>
+      </div>
+      <div class="card-body" id="overview-body">
+        <div class="loading-row"><div class="spinner"></div>Loading…</div>
+      </div>
+    </div>
+
+    <!-- Dream -->
+    <div class="card" id="card-dream">
+      <div class="card-header">
+        <span class="card-title">Dream Report</span>
+        <span class="card-badge badge-amber" id="dream-badge">HANDOFF</span>
+      </div>
+      <div class="card-body" id="dream-body">
+        <div class="loading-row"><div class="spinner"></div>Loading sessions…</div>
+      </div>
+    </div>
+
+    <!-- Activity (full width row 3) -->
+    <div class="card" id="card-activity">
+      <div class="card-header">
+        <span class="card-title">Activity Feed</span>
+        <span class="card-badge badge-green" id="activity-badge">LIVE</span>
+      </div>
+      <div class="card-body" id="activity-body">
+        <div class="loading-row"><div class="spinner"></div>Loading activity…</div>
+      </div>
+    </div>
+
+  </div><!-- /#pane-ops -->
+
+  <!-- ════════════════════════════════════
+       TAB: 에이전트 (AGENTS)
+  ════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-agents">
+
+    <!-- Agent Room (full width) -->
+    <div class="card" id="card-agents">
+      <div class="card-header">
+        <span class="card-title">Agent Room</span>
+        <span class="card-badge badge-cyan" id="agents-badge">—</span>
+      </div>
+      <div class="card-body" id="agents-body">
+        <div class="loading-row"><div class="spinner"></div>Loading agents…</div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="card" id="card-skills">
+      <div class="card-header">
+        <span class="card-title">Skill Pantheon</span>
+        <span class="card-badge badge-cyan" id="skills-badge">—</span>
+      </div>
+      <div class="card-body" id="skills-body">
+        <div class="loading-row"><div class="spinner"></div>Loading skills…</div>
+      </div>
+    </div>
+
+    <!-- Design Lab -->
+    <div class="card" id="card-design-lab">
+      <div class="card-header">
+        <span class="card-title">Design Lab</span>
+        <span class="card-badge badge-purple">CODEX</span>
+      </div>
+      <div class="card-body" id="design-lab-body">
+        <div style="font-size:11px;color:#6b7280;margin-bottom:10px;line-height:1.5">
+          Design Lang CLI + Codex Product Design Plugin 파이프라인.<br>
+          레퍼런스 URL → DESIGN.md 추출 → Codex 구현 패킷 생성.
+        </div>
+        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">참고 URL</label>
+        <input id="design-ref-url" type="url" placeholder="https://example.com"
+               style="width:100%;background:#0a0a18;border:1px solid #2a2a3e;border-radius:6px;padding:8px;color:#d1d5db;font-size:12px;box-sizing:border-box;font-family:inherit;margin-bottom:10px">
+        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">수정 요구사항 (저작권 변형 포함)</label>
+        <textarea id="design-modification" class="acm-textarea" style="min-height:70px"
+                  placeholder="예) 컬러 팔레트는 보라색 계열로, 폰트는 Pretendard로 변경. 히어로 섹션 그리드 비율 재배치."></textarea>
+        <label style="display:block;font-size:11px;color:#9ca3af;margin:10px 0 4px">대상 프로젝트 (선택)</label>
+        <input id="design-project" type="text" placeholder="예) D:/AI프로젝트/내프로젝트"
+               style="width:100%;background:#0a0a18;border:1px solid #2a2a3e;border-radius:6px;padding:8px;color:#d1d5db;font-size:12px;box-sizing:border-box;font-family:inherit">
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button onclick="generateDesignPacket('lang')"
+                  style="flex:1;min-width:140px;padding:8px 14px;background:#0ea5e9;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:700">
+            1. Design Lang 패킷
+          </button>
+          <button onclick="generateDesignPacket('codex')"
+                  style="flex:1;min-width:140px;padding:8px 14px;background:#a855f7;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:700">
+            2. Codex 구현 패킷
+          </button>
+        </div>
+        <div id="design-feedback" style="font-size:11px;color:#22c55e;margin-top:8px;min-height:14px"></div>
+        <pre id="design-output"
+             style="display:none;margin-top:10px;background:#0a0a18;border:1px solid #2a2a3e;border-radius:6px;padding:10px;color:#d1d5db;font-size:11px;max-height:240px;overflow:auto;white-space:pre-wrap;font-family:Consolas,monospace"></pre>
+        <div style="font-size:10px;color:#f59e0b;margin-top:10px;line-height:1.5">
+          ⚠️ 저작권: 레퍼런스 디자인을 그대로 사용 금지. 컬러·폰트·레이아웃 중 최소 2개 변형 필수.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#pane-agents -->
+
+  <!-- ════════════════════════════════════
+       TAB: 지식 (BRAIN)
+  ════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-brain">
+
+    <!-- Graph (full width, tall) -->
+    <div class="card" id="card-graph">
+      <div class="card-header">
+        <span class="card-title">Obsidian Project Graph</span>
+        <span class="card-badge badge-cyan">LIVE</span>
+      </div>
+      <div class="card-body" style="padding:0;overflow:hidden">
+        <iframe class="graph-frame" src="project-graph.html" title="Obsidian project graph"></iframe>
+      </div>
+    </div>
+
+    <!-- Memory Stack -->
+    <div class="card" id="card-memory">
+      <div class="card-header">
+        <span class="card-title">Memory Stack</span>
+        <span class="card-badge badge-purple" id="memory-badge">LOCAL</span>
+      </div>
+      <div class="card-body" id="memory-body">
+        <div class="loading-row"><div class="spinner"></div>Loading memory…</div>
+      </div>
+    </div>
+
+  </div><!-- /#pane-brain -->
+
+  <!-- ════════════════════════════════════
+       TAB: 성과 (METRICS)
+  ════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-metrics">
+
+    <!-- Goals (col 1, spans rows 1-2) -->
+    <div class="card" id="card-goals">
+      <div class="card-header">
+        <span class="card-title">Mission Goals</span>
+        <span class="card-badge badge-amber" id="goals-badge">GOAL MODE</span>
+      </div>
+      <div class="card-body" id="goals-body">
+        <div class="loading-row"><div class="spinner"></div>Loading goals…</div>
+      </div>
+    </div>
+
+    <!-- AI Spend (col 2, row 1) -->
+    <div class="card" id="card-spend">
+      <div class="card-header">
+        <span class="card-title">AI Spend — Usage Analytics</span>
+        <span class="card-badge badge-green" id="spend-badge">USAGE</span>
+      </div>
+      <div class="card-body" id="spend-body">
+        <div class="loading-row"><div class="spinner"></div>Loading usage…</div>
+      </div>
+    </div>
+
+    <!-- Benchmark (col 2, row 2) -->
+    <div class="card" id="card-bench">
+      <div class="card-header">
+        <span class="card-title">System Benchmark</span>
+        <span class="card-badge badge-cyan" id="bench-badge">READY</span>
+      </div>
+      <div class="card-body" id="bench-body">
+        <div class="loading-row"><div class="spinner"></div>초기화 중…</div>
+      </div>
+    </div>
+
+    <!-- Repo Priority (full width, row 3) -->
+    <div class="card" id="card-repo-priority">
+      <div class="card-header">
+        <span class="card-title">Repo 수익성 우선순위</span>
+        <span class="card-badge badge-cyan" id="repo-priority-badge">—</span>
+      </div>
+      <div class="card-body" id="repo-priority-body">
+        <div class="loading-row"><div class="spinner"></div>Loading repos…</div>
+      </div>
+    </div>
+
+  </div><!-- /#pane-metrics -->
+
+</div><!-- /#main -->
+
+<!-- ── AGENT CALL MODAL ── -->
+<div id="agent-call-modal">
+  <div class="acm-box">
+    <div class="acm-header">
+      <span class="acm-title" id="acm-title">에이전트 호출</span>
+      <button class="acm-close" onclick="closeAgentModal()">✕</button>
+    </div>
+    <p class="acm-desc" id="acm-desc"></p>
+    <textarea class="acm-textarea" id="acm-input"
+      placeholder="이 에이전트에게 전달할 작업을 입력하세요…"></textarea>
+    <div class="acm-footer">
+      <button class="acm-cancel" onclick="closeAgentModal()">취소</button>
+      <button class="acm-submit" id="acm-submit" onclick="submitAgentCall()">호출</button>
+    </div>
+    <div class="acm-feedback" id="acm-feedback"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════════════════ */
+function fmtHMS(d) {
+  return String(d.getHours()).padStart(2,'0') + ':' +
+         String(d.getMinutes()).padStart(2,'0') + ':' +
+         String(d.getSeconds()).padStart(2,'0');
+}
+(function tickClock() {
+  const el = document.getElementById('clock');
+  function upd() { el.textContent = fmtHMS(new Date()); }
+  upd(); setInterval(upd, 1000);
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════════ */
+// Use same-origin (relative) when served by local Flask; fall back to explicit localhost otherwise
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? '' : 'http://localhost:8765';
+let _demoMode = false;
+
+/* ═══════════════════════════════════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════════════════════════════════ */
+const DEMO = {
+  health: {
+    agents: [
+      { name: 'Bucky',       status: 'active',  detail: 'Orchestrator · port 8765' },
+      { name: 'Codex',       status: 'idle',    detail: 'Reviewer · waiting' },
+      { name: 'Discord Bot', status: 'online',  detail: '봇 #jh-태스크보드 연결됨' },
+      { name: 'Wishket',     status: 'idle',    detail: 'Sniper loop 대기 중' },
+    ]
+  },
+  tasks: {
+    summary: { total: 10, pending: 3, p0_count: 0, p1_count: 2, done: 7 },
+    pending: [
+      { id: 'T027', title: 'KB 지식 인테이크 위젯 — Vault 통계 Memory Stack 통합', priority: 'P1' },
+      { id: 'T025', title: 'Anthropic API 공식 잔여량 자동 수집 파이프라인', priority: 'P1' },
+      { id: 'T026', title: 'Cloudflare Pages 이전 (GitHub Pages 대체)', priority: 'P2' },
+    ],
+    done: [
+      { id: 'T021', title: 'BuckyOS Skill Pantheon — cytoscape 3D 그래프 구현', completion_note: '2026-06-10' },
+      { id: 'T022', title: 'Memory Stack 4-layer 시각화 카드 UI', completion_note: '2026-06-10' },
+      { id: 'T023', title: 'Mission Control Goals + 진행률 카드 UI', completion_note: '2026-06-10' },
+      { id: 'T024', title: 'AI Spend 대시보드 카드 + Activity 피드 UI', completion_note: '2026-06-10' },
+      { id: 'T016', title: 'BuckyOS GAP 1~5 분석 완료', completion_note: '2026-06-10' },
+      { id: 'T017', title: 'Memory fit-bounds + Reset 버튼 추가', completion_note: '2026-06-10' },
+      { id: 'T018', title: 'bucky_memory.db 경로 수정', completion_note: '2026-06-10' },
+    ]
+  },
+  skills: {
+    summary: { total: 17 },
+    skills: [
+      { name: 'jh-brain',      category: 'knowledge' },
+      { name: 'jh-ultra',      category: 'execution' },
+      { name: 'jh-deploy',     category: 'devops' },
+      { name: 'jh-debug',      category: 'debug' },
+      { name: 'taste-skill',   category: 'design' },
+      { name: 'jh-github',     category: 'git' },
+      { name: 'jh-research',   category: 'research' },
+      { name: 'jh-plan',       category: 'planning' },
+      { name: 'claude-api',    category: 'api' },
+      { name: 'brainstorming', category: 'creative' },
+      { name: 'watch',         category: 'media' },
+      { name: 'goalmode',      category: 'agent' },
+    ],
+    context_pack_names: [
+      'bucky-agent-os', 'bucky-wishket', 'bucky-infranodus',
+      'bucky-discord', 'bucky-design',
+    ]
+  },
+  dream: {
+    total_sessions: 7,
+    sessions: [
+      { title: '2026-06-11 — Hermes DB 원칙 분석', body: '신영선 AI탐구 영상 분석 완료.\n7가지 DB 기반 에이전트 원칙 도출.\nT027 KB 인테이크 위젯 설계 시작.' },
+      { title: '2026-06-10e — Phase 2+3 완성', body: '30s 자동갱신·Live dot 인디케이터 추가.\nD3 edge 필터 버그 수정. T021~T024 완료.\n커밋: 3b36c20.' },
+      { title: '2026-06-10c — Memory Stack UI', body: 'Memory 4-layer 탭 시각화 구현.\n단기·에피소딕·시멘틱·절차적 레이어.\nAPI /agent-os/memory 확장.' },
+      { title: '2026-06-10b — Hermes GAP 분석', body: 'Pantheon 3D, Graph 임베드, Memory Stack,\nMission Control, AI Spend 5개 GAP 파악.\nCodex handoff 완료.' },
+      { title: '2026-06-10 — BuckyOS 재설계', body: 'bucky_memory.db 경로 수정.\nMemory fit-bounds + Reset 버튼 추가.\n$9.30/62세션 확인.' },
+    ]
+  },
+  memory: {
+    summary: { fact_count: 45, session_count: 9, message_count: 172, kb_nodes: 6279, kb_clusters: 15, kb_intake_today: 12 },
+    layers: {
+      short_term: [
+        { role: 'user', content: '헤르메스 DB 7원칙 분석 → T027 KB 인테이크 위젯 설계', ts: '2026-06-11T09:21:00' },
+        { role: 'assistant', content: 'KB 통계 위젯 Memory Stack 통합 계획 수립', ts: '2026-06-11T09:22:00' },
+      ],
+      episodic: [
+        { id: 9, preview: 'Hermes DB 원칙 분석 세션', started: '2026-06-11T09:21:00', msg_count: 8 },
+        { id: 8, preview: 'Hermes GAP 분석 세션', started: '2026-06-10T21:00:00', msg_count: 24 },
+      ],
+      semantic: {
+        goal: [
+          { fact: 'DB 없는 AI는 매번 새 인턴 — 지식 DB가 에이전트의 핵심 자산', ts: '2026-06-11' },
+          { fact: 'BuckyOS Hermes Agentic OS 수준으로 업그레이드', ts: '2026-06-10' },
+        ],
+        tech: [
+          { fact: 'Vault 6,279 노드 / 15 클러스터 — graphify 2026-06-11 기준', ts: '2026-06-11' },
+          { fact: 'cytoscape@3.28.1 CDN — Skill Pantheon 그래프', ts: '2026-06-10' },
+        ],
+      },
+      procedural: [
+        { fact: '완료 보고 증거 강제: 파일 경로 + 출력 첨부 필수', category: 'protocol', ts: '2026-06-01' },
+        { fact: '저장 경계: G:/내 드라이브/obsidian-agent-brain-system/ 또는 D:/AI프로젝트/ 만 허용', category: 'safety', ts: '2026-06-01' },
+      ]
+    }
+  },
+  goals: {
+    active: true,
+    goal: 'BuckyOS Hermes Agentic OS 수준 업그레이드',
+    summary: { progress_percent: 85 },
+    focus: true,
+    created: '2026-06-09',
+    subtasks: [
+      { id: 1, body: 'Skill Pantheon cytoscape 그래프 구현', status: 'done' },
+      { id: 2, body: 'Memory Stack 4-layer 카드 UI', status: 'done' },
+      { id: 3, body: 'Mission Goals progress bar + Activity 피드', status: 'done' },
+      { id: 4, body: 'AI Spend 30s 자동갱신 + Live 인디케이터', status: 'done' },
+      { id: 5, body: 'AI Spend 공식 잔여량 실제 파이프라인 (T025)', status: 'pending' },
+      { id: 6, body: 'KB 지식 인테이크 위젯 — Memory Stack Vault 통계 통합 (T027)', status: 'pending' },
+    ]
+  },
+  spend: {
+    summary: { total_calls: 62, successes: 58, limit_events: 4 },
+    models: {
+      'claude-sonnet-4-6': { calls: 45, failures: 2, limit_events: 2 },
+      'claude-opus-4-7':   { calls: 12, failures: 1, limit_events: 1 },
+      'claude-haiku-4-5':  { calls:  5, failures: 1, limit_events: 1 },
+    }
+  },
+  activity: {
+    events: [
+      { type:'system',    title:'2026-06-11 세션: Hermes DB 7원칙 분석 → T027 설계', ts:'2026-06-11T09:21:00' },
+      { type:'knowledge', title:'YT 노트 3개 캡처: 헤르메스 에이전트 DB 특집 (신영선 AI탐구)', ts:'2026-06-11T09:18:00' },
+      { type:'report',    title:'Daily Plus 오전 리포트: 12 후보 수집 (0 적용)', ts:'2026-06-11T09:00:00' },
+      { type:'task',   title:'T021~T024 완료: Hermes GAP 1~5 UI 전 구현', ts:'2026-06-10T23:50:00' },
+      { type:'system', title:'Phase 2+3 자동갱신 + Live dot 인디케이터 추가 (3b36c20)', ts:'2026-06-10T23:30:00' },
+      { type:'system', title:'bucky-os.html D3 edge 필터 버그 수정', ts:'2026-06-10T23:10:00' },
+      { type:'report', title:'Hermes GAP 5개 분석 → Codex handoff', ts:'2026-06-10T21:30:00' },
+      { type:'task',   title:'T017 완료: Memory fit-bounds + Reset 버튼', ts:'2026-06-10T19:45:00' },
+    ]
+  },
+  overview: {
+    agents: { bucky:'active', codex:'idle', discord:'online', wishket:'idle' },
+    tasks:  { pending:2, done:7 },
+    knowledge: { skills:12, context_packs:5 },
+    checked_at: '2026-06-11T09:21:00'
+  },
+  agents: {
+    summary: { total: 8, online: 2, standby: 1, pending: 4, offline: 0 },
+    agents: [
+      { id:'bucky',            name:'Bucky',            emoji:'🧠', role:'오케스트레이터',     description:'중앙 조율, Context Pack 생성, 작업 분류 및 라우팅',       domain:['전략','브리핑','라우팅','작업 분해'],  status:'online',  callable:true,  call_endpoint:'/chat' },
+      { id:'claude_code',      name:'Claude Code',      emoji:'⚡', role:'1번 구현자',         description:'프론트엔드 / UI / HTML / CSS / 아키텍처 / 복잡한 구현',  domain:['프론트엔드','UI','아키텍처'],          status:'online',  callable:true,  call_endpoint:'/intake' },
+      { id:'codex',            name:'Codex',            emoji:'🔧', role:'2번 구현자',         description:'백엔드 / 스크립트 / API / 자동화 / 테스트 / 버그 수정',  domain:['백엔드','스크립트','API','자동화'],    status:'standby', callable:true,  call_endpoint:'/intake' },
+      { id:'wishket_agent',    name:'Wishket Agent',    emoji:'💼', role:'수주 자동화',        description:'Wishket 프리랜서 프로젝트 탐색, 제안서 생성, 자동 매칭',  domain:['Wishket','프리랜서','제안서'],        status:'idle',    callable:true,  call_endpoint:'/intake' },
+      { id:'gemini_research',  name:'Gemini Research',  emoji:'🔍', role:'리서치 에이전트',   description:'웹 / 시장 / 기술 리서치, 출처 기반 요약',                 domain:['리서치','검색','트렌드'],             status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+      { id:'gemini_multimodal',name:'Gemini Multimodal',emoji:'🏗️',role:'이미지 / 도면 분석', description:'AutoCAD 도면, 현장사진, 자재 이미지 분석',               domain:['도면','이미지','현장사진'],           status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+      { id:'gemini_content',   name:'Gemini Content',   emoji:'✍️', role:'콘텐츠 생성',       description:'블로그, 유튜브 쇼츠, SNS 광고문구, 영상 프롬프트 생성',  domain:['블로그','유튜브','SNS'],              status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+      { id:'gemini_validator', name:'Gemini Validator', emoji:'✅', role:'교차 검증',          description:'Claude / Codex 산출물 독립 교차검증',                    domain:['검증','리뷰','QA'],                   status:'pending', callable:false, call_note:'GEMINI_API_KEY 미등록' },
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════════ */
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function priClass(p) {
+  const m = { P0:'pri-P0', P1:'pri-P1', P2:'pri-P2' };
+  return m[p] || 'pri-wait';
+}
+
+function priLabel(p) { return p || '대기'; }
+
+function setDemoMode(on) {
+  _demoMode = on;
+  const badge = document.getElementById('demo-badge');
+  if (on) badge.classList.add('visible');
+  else badge.classList.remove('visible');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FETCH WITH FALLBACK
+   withFallback(path, demoData, renderFn)
+═══════════════════════════════════════════════════════════════ */
+async function withFallback(path, demoData, renderFn) {
+  // Pre-render DEMO immediately — cards never blank
+  try { renderFn(demoData, true); setDemoMode(true); } catch (_) {}
+
+  try {
+    const res = await fetch(API + path, { signal: AbortSignal.timeout(3500) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    renderFn(data, false);
+    setDemoMode(false);
+  } catch (_) {
+    // Keep already-rendered DEMO; ensure badge stays
+    try { setDemoMode(true); } catch (_) {}
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDERERS
+═══════════════════════════════════════════════════════════════ */
+
+/* ── rHealth ── */
+function rHealth(d, demo) {
+  const el = document.getElementById('health-body');
+  const badge = document.getElementById('health-badge');
+  const agents = (d.agents || []);
+  const onCnt = agents.filter(a => ['active','online','fresh'].includes(a.status)).length;
+
+  badge.textContent = `${onCnt}/${agents.length} ONLINE`;
+  badge.className = 'card-badge ' + (onCnt === agents.length ? 'badge-green' : onCnt > 0 ? 'badge-amber' : 'badge-red');
+  document.getElementById('sys-status').textContent = `${onCnt}/${agents.length} agents${demo ? ' (demo)' : ''}`;
+
+  el.innerHTML = agents.map(a => {
+    const isOn = ['active','online','fresh'].includes(a.status);
+    const tagClass = isOn ? 'badge-green' : a.status === 'idle' ? 'badge-amber' : 'badge-red';
+    return `<div class="agent-row">
+      <div class="agent-dot dot-${esc(a.status)}"></div>
+      <div class="agent-info">
+        <div class="agent-name">${esc(a.name)}</div>
+        <div class="agent-detail">${esc(a.detail || '')}</div>
+      </div>
+      <span class="agent-tag ${tagClass}">${esc(a.status.toUpperCase())}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── rTasks ── */
+function rTasks(d, demo) {
+  const el = document.getElementById('tasks-body');
+  const badge = document.getElementById('tasks-badge');
+  const { pending = [], done = [], summary = {} } = d;
+
+  badge.textContent = `${summary.pending ?? pending.length} PENDING`;
+  badge.className = 'card-badge ' + ((summary.pending ?? pending.length) > 0 ? 'badge-amber' : 'badge-green');
+  document.getElementById('sys-tasks').textContent = `${summary.pending ?? pending.length} pending`;
+
+  const statsHtml = `<div class="task-summary">
+    <div class="task-stat"><div class="task-stat-val">${summary.total || 0}</div><div class="task-stat-lbl">Total</div></div>
+    <div class="task-stat"><div class="task-stat-val" style="color:var(--red);text-shadow:0 0 20px rgba(255,71,87,0.5)">${summary.p0_count || 0}</div><div class="task-stat-lbl">P0</div></div>
+    <div class="task-stat"><div class="task-stat-val" style="color:var(--amber);text-shadow:0 0 20px rgba(245,166,35,0.5)">${summary.p1_count || 0}</div><div class="task-stat-lbl">P1</div></div>
+    <div class="task-stat"><div class="task-stat-val" style="color:var(--green);text-shadow:0 0 20px rgba(0,255,136,0.5)">${summary.done || done.length}</div><div class="task-stat-lbl">Done</div></div>
+  </div>`;
+
+  const pendingHtml = pending.length
+    ? `<div class="task-section-label">▸ PENDING (${pending.length})</div>` +
+      pending.map(t => `<div class="task-item">
+        <span class="task-id">${esc(t.id)}</span>
+        <span class="task-title">${esc(t.title)}</span>
+        <span class="task-pri ${priClass(t.priority)}">${priLabel(t.priority)}</span>
+      </div>`).join('')
+    : `<div style="color:var(--green);font-size:12px;padding:8px 0">All tasks complete</div>`;
+
+  const doneHtml = done.length
+    ? `<div class="task-section-label" style="margin-top:14px">▸ RECENTLY DONE</div>` +
+      done.map(t => `<div class="task-item task-done">
+        <span class="task-id">${esc(t.id)}</span>
+        <span class="task-title">${esc(t.title)}</span>
+        ${t.completion_note ? `<span class="task-pri pri-wait">${esc(t.completion_note.slice(0,10))}</span>` : ''}
+      </div>`).join('')
+    : '';
+
+  el.innerHTML = statsHtml + pendingHtml + doneHtml;
+}
+
+/* ── rSkills (3D Force Graph Pantheon) ── */
+let _fg3d = null;
+
+function rSkills(d, demo) {
+  const el = document.getElementById('skills-body');
+  const badge = document.getElementById('skills-badge');
+  const { skills = [], summary = {}, context_pack_names = [] } = d;
+
+  const total = summary.total || skills.length;
+  badge.textContent = `${total} SKILLS`;
+  document.getElementById('sys-skills').textContent = `${total} skills`;
+
+  el.innerHTML = `
+    <div class="skill-graph-wrap" id="skill-graph-3d-wrap">
+      <div id="fg3d-skill" style="width:100%;height:100%"></div>
+    </div>
+    <div class="skill-legend">
+      <span><i class="legend-dot legend-dot-hub"></i>Bucky Hub</span>
+      <span><i class="legend-dot legend-dot-skill"></i>Skill (${skills.length})</span>
+      <span><i class="legend-dot legend-dot-pack"></i>Context Pack (${context_pack_names.length})</span>
+    </div>
+    <div class="skill-focus" id="skill-focus">노드를 클릭하면 상세 정보가 표시됩니다</div>
+    <div class="task-section-label" style="margin-top:12px">▸ CONTEXT PACKS (${context_pack_names.length})</div>
+    <div class="cp-list">
+      ${context_pack_names.slice(0, 12).map(n => `<div class="cp-item">${esc(n)}</div>`).join('')}
+      ${context_pack_names.length > 12 ? `<div class="cp-item" style="color:var(--cyan)">+${context_pack_names.length - 12} more</div>` : ''}
+    </div>`;
+
+  requestAnimationFrame(() => buildSkillGraph3D(skills, context_pack_names));
+}
+
+function buildSkillGraph3D(skills, packs) {
+  const container = document.getElementById('fg3d-skill');
+  if (!container) return;
+
+  // Cleanup previous
+  if (_fg3d) { try { _fg3d._destructor && _fg3d._destructor(); } catch(_) {} _fg3d = null; }
+  container.innerHTML = '';
+
+  // If 3d-force-graph not loaded, fall back to styled list
+  if (typeof ForceGraph3D === 'undefined') {
+    container.innerHTML = `<div style="padding:20px;color:var(--muted);font-size:11px;text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">🌐</div>
+      <div style="color:var(--cyan);font-weight:600;margin-bottom:4px">${skills.length} Skills · ${packs.length} Context Packs</div>
+      <div>3D graph loading…</div>
+    </div>`;
+    return;
+  }
+
+  const nodes = [];
+  const links = [];
+
+  nodes.push({ id: 'hub', name: 'BUCKY', type: 'hub', color: '#00ff88', val: 20 });
+
+  skills.slice(0, 20).forEach((s, i) => {
+    const id = `skill-${i}`;
+    const label = s.name.replace(/^(auto-|jh-)/, '').replace(/-(general|agent|workflow)$/, '');
+    nodes.push({ id, name: label, full: s.name, type: 'skill', color: '#00d4ff', val: 4, cat: s.category || '' });
+    links.push({ source: 'hub', target: id, type: 'skill' });
+  });
+
+  packs.slice(0, 8).forEach((p, i) => {
+    const id = `pack-${i}`;
+    const label = String(p).replace('bucky-', '');
+    nodes.push({ id, name: label, full: p, type: 'pack', color: '#f5a623', val: 3 });
+    links.push({ source: 'hub', target: id, type: 'pack' });
+  });
+
+  const wrap = document.getElementById('skill-graph-3d-wrap');
+  const W = wrap ? wrap.clientWidth  : 260;
+  const H = wrap ? wrap.clientHeight : 260;
+
+  _fg3d = ForceGraph3D({ controlType: 'orbit' })(container)
+    .width(W).height(H)
+    .backgroundColor('rgba(0,0,0,0)')
+    .graphData({ nodes, links })
+    .nodeLabel(n => `${n.name}${n.cat ? ' · ' + n.cat : ''}`)
+    .nodeColor(n => n.color)
+    .nodeVal(n => n.val)
+    .nodeResolution(12)
+    .nodeOpacity(0.9)
+    .linkColor(l => l.type === 'pack' ? 'rgba(245,166,35,0.25)' : 'rgba(0,212,255,0.2)')
+    .linkWidth(0.6)
+    .linkOpacity(0.7)
+    .onNodeClick(node => {
+      const el = document.getElementById('skill-focus');
+      if (!el) return;
+      const t = node.type === 'hub' ? 'Orchestrator Hub' : node.type === 'pack' ? 'Context Pack' : 'Skill';
+      el.innerHTML = `<span style="color:var(--cyan)">${esc(node.full || node.name)}</span> <span style="color:var(--muted)">— ${t}</span>`;
+      _fg3d.centerAt(node.x, node.y, node.z, 600);
+      _fg3d.zoom(3, 600);
+    });
+}
+
+/* ── rDream ── */
+function rDream(d, demo) {
+  const el = document.getElementById('dream-body');
+  const badge = document.getElementById('dream-badge');
+  const { sessions = [], total_sessions = 0 } = d;
+
+  badge.textContent = `${total_sessions} SESSIONS`;
+
+  if (!sessions.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:11px">No handoff sessions found</div>';
+    return;
+  }
+
+  el.innerHTML = sessions.map((s, i) => `
+    <div class="dream-session">
+      <div class="dream-title">◆ ${esc(s.title)}</div>
+      <div class="dream-body">${esc(s.body)}</div>
+      ${i < sessions.length - 1 ? '<hr class="dream-sep">' : ''}
+    </div>`).join('');
+}
+
+/* ── rMemory ── */
+function rMemory(d, demo) {
+  const el = document.getElementById('memory-body');
+  const badge = document.getElementById('memory-badge');
+  const s = d.summary || {};
+  const L = d.layers || {};
+
+  badge.textContent = `${s.fact_count || 0}F · ${s.session_count || 0}S`;
+
+  const kbHtml = (s.kb_nodes || s.kb_clusters || s.kb_intake_today)
+    ? `<div class="kb-stats">
+        <div class="kb-item"><span class="kb-lbl">VAULT</span>${(s.kb_nodes || 0).toLocaleString()} nodes</div>
+        <div class="kb-item"><span class="kb-lbl">CLUSTERS</span>${s.kb_clusters || 0}</div>
+        <div class="kb-item"><span class="kb-lbl">TODAY</span><span style="color:var(--amber)">${s.kb_intake_today || 0}</span> intake</div>
+      </div>` : '';
+
+  const statsHtml = `<div class="mem-stats">
+    <span class="mem-stat-item"><strong>${s.fact_count || 0}</strong> facts</span>
+    <span class="mem-stat-item"><strong>${s.session_count || 0}</strong> sessions</span>
+    <span class="mem-stat-item"><strong>${s.message_count || 0}</strong> msgs</span>
+  </div>${kbHtml}`;
+
+  function layerFacts(items, cls) {
+    if (!items || !items.length) return '<div style="color:var(--muted);font-size:10px">No entries</div>';
+    return items.slice(0,3).map(f => {
+      const content = f.content || f.fact || f.preview || JSON.stringify(f).slice(0,60);
+      const ts = (f.ts || f.started || '').slice(0,10);
+      return `<div class="mem-fact-item">${esc(content)}${ts ? `<span class="mem-fact-ts">${esc(ts)}</span>` : ''}</div>`;
+    }).join('');
+  }
+
+  function semanticFacts(sem) {
+    if (!sem || typeof sem !== 'object') return '<div style="color:var(--muted);font-size:10px">No facts</div>';
+    const all = [];
+    for (const [, facts] of Object.entries(sem)) {
+      if (Array.isArray(facts)) facts.forEach(f => all.push(f));
+    }
+    return layerFacts(all.slice(0,3));
+  }
+
+  const layersHtml = `<div class="mem-layers">
+    <div class="mem-layer-card" data-layer="short">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Short-Term</span>
+        <span class="mem-layer-count">${(L.short_term || []).length} msgs</span>
+      </div>
+      <div class="mem-layer-body">${layerFacts(L.short_term, 'short')}</div>
+    </div>
+    <div class="mem-layer-card" data-layer="episodic">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Episodic</span>
+        <span class="mem-layer-count">${(L.episodic || []).length} sessions</span>
+      </div>
+      <div class="mem-layer-body">${layerFacts(L.episodic, 'episodic')}</div>
+    </div>
+    <div class="mem-layer-card" data-layer="semantic">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Semantic</span>
+        <span class="mem-layer-count">${s.fact_count || 0} facts</span>
+      </div>
+      <div class="mem-layer-body">${semanticFacts(L.semantic)}</div>
+    </div>
+    <div class="mem-layer-card" data-layer="procedural">
+      <div class="mem-layer-header">
+        <span class="mem-layer-name">Procedural</span>
+        <span class="mem-layer-count">${(L.procedural || []).length} rules</span>
+      </div>
+      <div class="mem-layer-body">${layerFacts(L.procedural, 'procedural')}</div>
+    </div>
+  </div>`;
+
+  el.innerHTML = statsHtml + layersHtml;
+}
+
+/* ── rActivity ── */
+function rActivity(d, demo) {
+  const el = document.getElementById('activity-body');
+  const badge = document.getElementById('activity-badge');
+  const events = d.events || [];
+  badge.textContent = `${events.length} EVENTS`;
+
+  if (!events.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:11px">No recent activity</div>';
+    return;
+  }
+
+  el.innerHTML = `<div class="activity-list">` +
+    events.slice(0,10).map(e => `<div class="activity-item">
+      <div class="activity-type-dot type-${esc(e.type || 'system')}"></div>
+      <div class="activity-content">
+        <div class="activity-title">${esc(e.title || '')}</div>
+        ${e.detail ? `<div class="activity-detail">${esc(e.detail.slice(0,80))}</div>` : ''}
+      </div>
+      <div class="activity-ts">${esc((e.ts || '').slice(11,16))}</div>
+    </div>`).join('') +
+    `</div>`;
+}
+
+/* ── rOverview ── */
+function rOverview(d, demo) {
+  const el = document.getElementById('overview-body');
+  const agents = d.agents || {};
+  const tasks  = d.tasks  || {};
+  const know   = d.knowledge || {};
+  const onlineAgents = Object.values(agents).filter(s => ['active','online','fresh'].includes(s)).length;
+  const totalAgents  = Object.keys(agents).length || 4;
+  const checkedTs = (d.checked_at || '').slice(11,19);
+
+  el.innerHTML = `<div class="overview-grid">
+    <div class="ov-block">
+      <div class="ov-val ${onlineAgents === totalAgents ? 'ov-green' : 'ov-amber'}">${onlineAgents}/${totalAgents}</div>
+      <div class="ov-lbl">Agents</div>
+    </div>
+    <div class="ov-block">
+      <div class="ov-val ov-amber">${tasks.pending ?? 0}</div>
+      <div class="ov-lbl">Pending</div>
+    </div>
+    <div class="ov-block">
+      <div class="ov-val ov-cyan">${know.skills ?? 0}</div>
+      <div class="ov-lbl">Skills</div>
+    </div>
+    <div class="ov-block">
+      <div class="ov-val ov-purple">${know.context_packs ?? 0}</div>
+      <div class="ov-lbl">Ctx Packs</div>
+    </div>
+  </div>
+  ${checkedTs ? `<div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--muted)">Last checked: ${esc(checkedTs)}${demo ? ' (DEMO)' : ''}</div>` : ''}`;
+}
+
+/* ── rGoals ── */
+function rGoals(d, demo) {
+  const el = document.getElementById('goals-body');
+  const badge = document.getElementById('goals-badge');
+  const summary  = d.summary  || {};
+  const subtasks = d.subtasks || [];
+  const pct = Math.max(0, Math.min(100, summary.progress_percent || 0));
+
+  badge.textContent = d.active ? `${pct}%` : 'NO GOAL';
+  badge.className = 'card-badge ' + (d.active ? 'badge-amber' : 'badge-cyan');
+
+  if (!d.active) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:11px">No active mission goal</div>`;
+    return;
+  }
+
+  const doneCnt = subtasks.filter(t => t.status === 'done').length;
+
+  el.innerHTML = `
+    <div class="goal-card-inner">
+      <div class="goal-title">${esc(d.goal || '')}</div>
+      <div class="goal-meta">${d.focus ? 'Focus ON' : 'Focus OFF'} · ${esc(d.created || '')}</div>
+    </div>
+    <div class="goal-pct">${pct}%</div>
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px">SUBTASKS (${doneCnt}/${subtasks.length})</div>
+    <div class="subtask-list">
+      ${subtasks.map(t => `<div class="subtask-item subtask-${t.status || 'pending'}">
+        <div class="subtask-dot"></div>
+        <span>${esc(t.body || '')}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+/* ── rSpend ── */
+let _spendChart = null;
+
+function rSpend(d, demo) {
+  const el = document.getElementById('spend-body');
+  const badge = document.getElementById('spend-badge');
+  const s = d.summary || {};
+  const models = d.models || {};
+  const modelEntries = Object.entries(models);
+
+  badge.textContent = `${s.total_calls || 0} CALLS`;
+  badge.className = 'card-badge ' + ((s.limit_events || 0) > 0 ? 'badge-amber' : 'badge-green');
+
+  const statsHtml = `<div class="spend-stats">
+    <div class="spend-stat">
+      <div class="spend-stat-val ov-cyan">${s.total_calls || 0}</div>
+      <div class="spend-stat-lbl">Total Calls</div>
+    </div>
+    <div class="spend-stat">
+      <div class="spend-stat-val ov-green">${s.successes || 0}</div>
+      <div class="spend-stat-lbl">Success</div>
+    </div>
+    <div class="spend-stat">
+      <div class="spend-stat-val ${(s.limit_events||0) > 0 ? 'ov-red' : 'ov-green'}">${s.limit_events || 0}</div>
+      <div class="spend-stat-lbl">Limits Hit</div>
+    </div>
+  </div>`;
+
+  const chartHtml = modelEntries.length ? `
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">
+      <div style="width:140px;height:140px;flex-shrink:0;position:relative">
+        <canvas id="spend-donut" width="140" height="140"></canvas>
+      </div>
+      <div style="flex:1">
+        ${modelEntries.map(([name, m], i) => {
+          const colours = ['#00d4ff','#a855f7','#f5a623','#00ff88','#ff4757'];
+          const pct = s.total_calls ? Math.round((m.calls||0)/s.total_calls*100) : 0;
+          return `<div style="margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <div style="width:8px;height:8px;border-radius:2px;background:${colours[i%colours.length]};flex-shrink:0"></div>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--text-d)">${esc(name.replace('claude-','').replace('-20251001',''))}</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto">${m.calls||0} calls</span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${colours[i%colours.length]};border-radius:2px"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  const modelHtml = `<div class="spend-grid">` +
+    modelEntries.map(([name, m]) => `
+      <div class="spend-model-card">
+        <div class="spend-model-name">${esc(name)}</div>
+        <div class="spend-model-calls">${m.calls || 0}<span style="font-size:12px;color:var(--muted);font-weight:400"> calls</span></div>
+        <div class="spend-model-meta">${m.failures || 0} failures · ${m.limit_events || 0} limits</div>
+      </div>`).join('') +
+    `</div>`;
+
+  el.innerHTML = statsHtml + chartHtml + modelHtml;
+
+  // Draw donut chart
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('spend-donut');
+    if (!canvas || typeof Chart === 'undefined' || !modelEntries.length) return;
+    if (_spendChart) { _spendChart.destroy(); _spendChart = null; }
+    const palette = ['#00d4ff','#a855f7','#f5a623','#00ff88','#ff4757'];
+    _spendChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: modelEntries.map(([k]) => k.replace('claude-','').replace('-20251001','')),
+        datasets: [{
+          data: modelEntries.map(([,m]) => m.calls || 0),
+          backgroundColor: palette.slice(0, modelEntries.length).map(c => c + '55'),
+          borderColor: palette.slice(0, modelEntries.length),
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: false,
+        cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} calls` },
+            backgroundColor: 'rgba(4,4,14,0.9)',
+            titleColor: '#00d4ff', bodyColor: '#9898b8', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1,
+          }
+        },
+      }
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AGENT ROOM
+═══════════════════════════════════════════════════════════════ */
+const _STATUS_COLOR = {
+  online:'#22c55e', active:'#22c55e', standby:'#f59e0b',
+  idle:'#6b7280', pending:'#374151', offline:'#ef4444'
+};
+const _STATUS_LABEL = {
+  online:'ONLINE', active:'ACTIVE', standby:'STANDBY',
+  idle:'IDLE', pending:'보류중', offline:'OFFLINE'
+};
+let _agentRegistry = [];
+
+function rAgents(d) {
+  const body  = document.getElementById('agents-body');
+  const badge = document.getElementById('agents-badge');
+  const { agents = [], summary = {} } = d;
+  _agentRegistry = agents;
+
+  const onlineCount = summary.online ?? agents.filter(a => ['online','active'].includes(a.status)).length;
+  badge.textContent = `${onlineCount}/${agents.length} ACTIVE`;
+  badge.className = `card-badge ${onlineCount > 0 ? 'badge-green' : 'badge-amber'}`;
+
+  body.innerHTML = `<div class="agent-room-grid">${agents.map(a => {
+    const sc = _STATUS_COLOR[a.status] || '#6b7280';
+    const sl = _STATUS_LABEL[a.status] || a.status.toUpperCase();
+    const tags = (a.domain || []).slice(0,4).map(d => `<span class="ar-tag">${esc(d)}</span>`).join('');
+    const action = a.callable
+      ? `<button class="ar-call-btn" data-agent-id="${esc(a.id)}" onclick="openAgentModal(this.dataset.agentId)">호출하기</button>`
+      : `<div class="ar-call-note">${esc(a.call_note || '비활성')}</div>`;
+    return `
+      <div class="ar-card s-${esc(a.status)}">
+        <div class="ar-header">
+          <span class="ar-emoji">${esc(a.emoji)}</span>
+          <div><div class="ar-name">${esc(a.name)}</div><div class="ar-role">${esc(a.role)}</div></div>
+          <span class="ar-status-badge" style="background:${sc}22;color:${sc}">${sl}</span>
+        </div>
+        <div class="ar-desc">${esc(a.description)}</div>
+        <div class="ar-tags">${tags}</div>
+        ${a.last_called ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">최근 호출: ${esc(a.last_called.slice(0,16))}${a.call_count ? ` · ${a.call_count}회` : ''}</div>` : ''}
+        ${action}
+      </div>`;
+  }).join('')}</div>`;
+}
+
+/* ── Agent Modal ── */
+let _acmAgent = null;
+
+function openAgentModal(agentId) {
+  _acmAgent = _agentRegistry.find(a => a.id === agentId);
+  if (!_acmAgent) return;
+  document.getElementById('acm-title').textContent = `${_acmAgent.emoji} ${_acmAgent.name} 호출`;
+  document.getElementById('acm-desc').textContent  = `역할: ${_acmAgent.role} — ${_acmAgent.description}`;
+  document.getElementById('acm-input').value    = '';
+  document.getElementById('acm-feedback').textContent = '';
+  document.getElementById('acm-feedback').style.color = '';
+  const btn = document.getElementById('acm-submit');
+  btn.disabled = false; btn.textContent = '호출';
+  const modal = document.getElementById('agent-call-modal');
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('acm-input').focus(), 80);
+}
+
+function closeAgentModal() {
+  document.getElementById('agent-call-modal').classList.remove('open');
+  _acmAgent = null;
+  const replyEl = document.getElementById('acm-reply');
+  if (replyEl) replyEl.remove();
+  document.getElementById('acm-feedback').textContent = '';
+  document.getElementById('acm-feedback').style.color = '';
+}
+
+async function submitAgentCall() {
+  if (!_acmAgent) return;
+  const task = document.getElementById('acm-input').value.trim();
+  if (!task) {
+    document.getElementById('acm-feedback').textContent = '작업 내용을 입력해주세요.';
+    document.getElementById('acm-feedback').style.color = '#f59e0b';
+    return;
+  }
+  const btn = document.getElementById('acm-submit');
+  btn.disabled = true; btn.textContent = '전송 중…';
+  const fb = document.getElementById('acm-feedback');
+  const agentName = _acmAgent.name;
+  const agentId   = _acmAgent.id;
+
+  try {
+    const endpoint = _acmAgent.call_endpoint || '/intake';
+    let body;
+    if (endpoint === '/chat') {
+      body = { message: `[Agent Room → ${agentName}] ${task}` };
+      fb.style.color = '#6b7280';
+      fb.textContent = 'Bucky 처리 중… 최대 30초 소요됩니다';
+    } else {
+      body = { type: 'agent_call', agent: agentId, task, source: 'agent-room' };
+    }
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // Phase 2-3: last_called 기록
+    fetch('/agent-os/agents/call', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent_id: agentId, task, caller: 'agent-room' }),
+    }).catch(() => {});
+    const data = await res.json();
+    if (endpoint === '/chat' && data.reply) {
+      // Bucky replied inline — show the reply in the modal (modal may have been closed)
+      const modal = document.getElementById('agent-call-modal');
+      if (!modal.classList.contains('open')) {
+        // Modal was closed while waiting — reopen to show reply
+        modal.classList.add('open');
+      }
+      fb.style.color = '#22c55e';
+      btn.textContent = '완료 ✓';
+      btn.disabled = false;
+      let replyEl = document.getElementById('acm-reply');
+      if (!replyEl) {
+        replyEl = document.createElement('div');
+        replyEl.id = 'acm-reply';
+        replyEl.style.cssText = 'margin-top:12px;padding:12px;background:#0f1923;border:1px solid #1e3a5f;border-radius:8px;font-size:13px;color:#cbd5e1;white-space:pre-wrap;max-height:260px;overflow-y:auto;text-align:left;';
+        fb.parentNode.insertBefore(replyEl, fb.nextSibling);
+      }
+      replyEl.textContent = data.reply;
+      fb.textContent = `${agentName} 응답 완료`;
+    } else {
+      fb.style.color = '#22c55e';
+      fb.textContent = `${agentName}에게 전달됐습니다. Discord #jh-results를 확인하세요.`;
+      btn.textContent = '완료 ✓';
+      setTimeout(closeAgentModal, 2200);
+    }
+  } catch (e) {
+    fb.style.color = '#ef4444';
+    fb.textContent = `전송 실패: ${e.message}`;
+    btn.disabled = false; btn.textContent = '다시 호출';
+  }
+}
+
+// Close on backdrop click
+document.getElementById('agent-call-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAgentModal();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   LOAD ALL
+═══════════════════════════════════════════════════════════════ */
+async function loadAll() {
+  await Promise.allSettled([
+    withFallback('/agent-os/health',         DEMO.health,   rHealth),
+    withFallback('/agent-os/tasks',          DEMO.tasks,    rTasks),
+    withFallback('/agent-os/skills',         DEMO.skills,   rSkills),
+    withFallback('/agent-os/dream',          DEMO.dream,    rDream),
+    withFallback('/agent-os/memory',         DEMO.memory,   rMemory),
+    withFallback('/os/activity',             DEMO.activity, rActivity),
+    withFallback('/agent-os/overview',       DEMO.overview, rOverview),
+    withFallback('/agent-os/goals',          DEMO.goals,    rGoals),
+    withFallback('/agent-os/spend',          DEMO.spend,    rSpend),
+    withFallback('/agent-os/agents',         DEMO.agents,   rAgents),
+    withFallback('/agent-os/repo-priority',  null,          rRepoPriority),
+  ]);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPO PRIORITY
+═══════════════════════════════════════════════════════════════ */
+function rRepoPriority(d) {
+  const body  = document.getElementById('repo-priority-body');
+  const badge = document.getElementById('repo-priority-badge');
+  if (!d || !d.repos) { body.innerHTML = '<div class="loading-row">데이터 없음</div>'; return; }
+
+  const repos = d.repos || [];
+  const top = d.top;
+  const autoCount = (d.auto_eligible || []).length;
+  badge.textContent = top ? `TOP: ${top.name}` : `${repos.length}개 레포`;
+  badge.className = 'card-badge badge-green';
+
+  const REVENUE_LABEL = { direct: '직접수익', potential: '수익잠재', operational: '운영' };
+
+  function queueAutoRepos() {
+    const btn = document.getElementById('btn-queue-auto');
+    if (btn) { btn.disabled = true; btn.textContent = '등록 중…'; }
+    fetch('/agent-os/repo-priority/queue', { method: 'POST', credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(res => {
+        if (btn) btn.textContent = `✅ ${res.queued}개 등록 완료`;
+        setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = `자동 큐 등록 (${autoCount}개)`; } }, 3000);
+      })
+      .catch(() => { if (btn) { btn.disabled = false; btn.textContent = '등록 실패 — 재시도'; } });
+  }
+
+  function saveSnapshot() {
+    const btn = document.getElementById('btn-snapshot');
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중…'; }
+    fetch('/agent-os/repo-priority/snapshot', { method: 'POST', credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(res => {
+        const alerts = res.alerts || [];
+        if (btn) btn.textContent = alerts.length ? `⚠️ ${alerts.length}개 하락 감지` : '✅ 스냅샷 저장';
+        setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = '주간 스냅샷 저장'; } }, 3000);
+      })
+      .catch(() => { if (btn) { btn.disabled = false; btn.textContent = '저장 실패'; } });
+  }
+
+  body.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button id="btn-queue-auto" onclick="document.getElementById('btn-queue-auto').onclick=null;(${queueAutoRepos.toString()})()" style="padding:7px 14px;border:1px solid #22c55e;background:#f0fdf4;color:#15803d;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">자동 큐 등록 (${autoCount}개)</button>
+      <button id="btn-snapshot" onclick="document.getElementById('btn-snapshot').onclick=null;(${saveSnapshot.toString()})()" style="padding:7px 14px;border:1px solid #60a5fa;background:#eff6ff;color:#1d4ed8;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">주간 스냅샷 저장</button>
+    </div>
+    <div class="rp-grid">${repos.map(r => `
+      <div class="rp-card revenue-${r.revenue_type}">
+        <span class="rp-score">${r.score}</span>
+        <div class="rp-name">${esc(r.name)}</div>
+        <div class="rp-desc">${esc(r.description)}</div>
+        <div class="rp-tags">
+          <span class="rp-tag ${r.auto_ok ? 'auto-ok' : 'auto-no'}">${r.auto_ok ? '자동개발 가능' : '승인필요'}</span>
+          <span class="rp-tag ${r.deploy_status === 'deployed' ? 'deployed' : 'local'}">${esc(r.deploy_status)}</span>
+          <span class="rp-tag" style="background:rgba(255,255,255,.06);color:var(--muted)">${REVENUE_LABEL[r.revenue_type] || r.revenue_type}</span>
+        </div>
+        ${r.open_tasks ? `<div class="rp-auto-note">미완료 태스크 ${r.open_tasks}개</div>` : ''}
+      </div>`).join('')}
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SYSTEM BENCHMARK
+═══════════════════════════════════════════════════════════════ */
+const BENCH_ENDPOINTS = [
+  { path: '/agent-os/health',   name: 'agent-os/health' },
+  { path: '/agent-os/tasks',    name: 'agent-os/tasks' },
+  { path: '/agent-os/skills',   name: 'agent-os/skills' },
+  { path: '/agent-os/dream',    name: 'agent-os/dream' },
+  { path: '/agent-os/memory',   name: 'agent-os/memory' },
+  { path: '/os/activity',       name: 'os/activity' },
+  { path: '/agent-os/overview', name: 'agent-os/overview' },
+  { path: '/agent-os/goals',    name: 'agent-os/goals' },
+  { path: '/agent-os/spend',    name: 'agent-os/spend' },
+  { path: '/agent-os/agents',        name: 'agent-os/agents' },
+  { path: '/agent-os/repo-priority', name: 'agent-os/repo-priority' },
+];
+const BENCH_TIMEOUT = 5000;
+
+async function _measureEndpoint(path) {
+  const t0 = performance.now();
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), BENCH_TIMEOUT);
+    const res = await fetch(API + path, { signal: ctrl.signal, cache: 'no-store' });
+    clearTimeout(tid);
+    await res.text();
+    return { ms: Math.round(performance.now() - t0), timeout: false };
+  } catch {
+    return { ms: BENCH_TIMEOUT, timeout: true };
+  }
+}
+
+function _benchColor(ms, timeout) {
+  if (timeout || ms >= BENCH_TIMEOUT) return 'var(--red)';
+  if (ms < 300) return 'var(--green)';
+  if (ms < 1000) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function _benchStatusCls(ms, timeout) {
+  if (timeout || ms >= BENCH_TIMEOUT) return ['FAIL', 'bench-fail'];
+  if (ms < 300)  return ['OK',   'bench-ok'];
+  return ['SLOW', 'bench-slow'];
+}
+
+function _renderBench(results, running) {
+  const body  = document.getElementById('bench-body');
+  const badge = document.getElementById('bench-badge');
+  if (!body) return;
+
+  const done = results.filter(r => r.ms !== null);
+  const avgMs  = done.length ? Math.round(done.reduce((s,r)=>s+r.ms,0)/done.length) : 0;
+  const minMs  = done.length ? Math.min(...done.map(r=>r.ms)) : 0;
+  const maxMs  = done.length ? Math.max(...done.map(r=>r.ms)) : 0;
+  const pass   = done.filter(r => !r.timeout && r.ms < 1000).length;
+  const pctStr = done.length ? Math.round(pass/done.length*100)+'%' : '—';
+  const score  = done.length ? Math.max(0, Math.min(100, Math.round(100 - avgMs/20))) : 0;
+  const grade  = score>=90?'S':score>=75?'A':score>=55?'B':score>=35?'C':'D';
+  const scoreCol = score>=75?'var(--green)':score>=55?'var(--cyan)':score>=35?'var(--amber)':'var(--red)';
+  const maxBar = Math.max(1000, maxMs || 1000);
+
+  if (!running && badge) {
+    badge.textContent = done.length ? `${score} PTS` : 'READY';
+    badge.className = 'card-badge ' + (score>=75?'badge-green':score>=55?'badge-cyan':score>=35?'badge-amber':'badge-red');
+  }
+
+  const statsHtml = `<div class="bench-stats">
+    <div class="bench-stat"><div class="bench-stat-val ov-cyan">${done.length?avgMs+'ms':'—'}</div><div class="bench-stat-lbl">Avg Latency</div></div>
+    <div class="bench-stat"><div class="bench-stat-val ov-green">${done.length?minMs+'ms':'—'}</div><div class="bench-stat-lbl">Min</div></div>
+    <div class="bench-stat"><div class="bench-stat-val ${maxMs>1000?'ov-red':'ov-amber'}">${done.length?maxMs+'ms':'—'}</div><div class="bench-stat-lbl">Max</div></div>
+    <div class="bench-stat"><div class="bench-stat-val ov-green">${pctStr}</div><div class="bench-stat-lbl">Pass Rate</div></div>
+  </div>`;
+
+  const btnHtml = `<button class="bench-run-btn" id="bench-run-btn" onclick="runBenchmark()"${running?' disabled':''}>
+    ${running?'⟳ Measuring…':'▶ Run Benchmark'}
+  </button>`;
+
+  const rowsHtml = `<div class="bench-results">` +
+    results.map(r => {
+      if (r.ms === null) return `<div class="bench-row">
+        <div class="bench-row-name">${esc(r.name)}</div>
+        <div class="bench-bar-wrap"><div class="bench-bar-fill" style="width:0%"></div></div>
+        <div class="bench-ms" style="color:var(--muted)">—</div>
+        <div class="bench-status bench-idle">${running?'…':'IDLE'}</div>
+      </div>`;
+      const [stxt, scls] = _benchStatusCls(r.ms, r.timeout);
+      const barW = r.timeout ? 100 : Math.round(r.ms/maxBar*100);
+      const col  = _benchColor(r.ms, r.timeout);
+      return `<div class="bench-row">
+        <div class="bench-row-name">${esc(r.name)}</div>
+        <div class="bench-bar-wrap"><div class="bench-bar-fill" style="width:${barW}%;background:${col}"></div></div>
+        <div class="bench-ms" style="color:${col}">${r.timeout?'TIMEOUT':r.ms+'ms'}</div>
+        <div class="bench-status ${scls}">${stxt}</div>
+      </div>`;
+    }).join('') + `</div>`;
+
+  const scoreHtml = (done.length && !running) ? `<div class="bench-score">
+    <div>
+      <div class="bench-score-num" style="color:${scoreCol}">${score}<span class="bench-score-grade" style="color:${scoreCol}">${grade}</span></div>
+      <div class="bench-score-lbl">SYSTEM SCORE</div>
+    </div>
+    <div style="font-size:11px;color:var(--text-d);line-height:1.7">
+      ${avgMs<300?'API 응답 우수':avgMs<600?'API 응답 양호':'API 응답 지연'}<br>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">${done.length}/${results.length} endpoints · ${fmtHMS(new Date())}</span>
+    </div>
+  </div>` : '';
+
+  body.innerHTML = statsHtml + btnHtml + rowsHtml + scoreHtml;
+}
+
+let _benchRunning = false;
+
+async function runBenchmark() {
+  if (_benchRunning) return;
+  _benchRunning = true;
+  const badge = document.getElementById('bench-badge');
+  if (badge) { badge.textContent = 'RUNNING…'; badge.className = 'card-badge badge-amber'; }
+  const results = BENCH_ENDPOINTS.map(e => ({ ...e, ms: null, timeout: false }));
+  try {
+    _renderBench(results, true);
+    for (const r of results) {
+      const { ms, timeout } = await _measureEndpoint(r.path);
+      r.ms = ms; r.timeout = timeout;
+      _renderBench(results, true);
+    }
+    _renderBench(results, false);
+  } finally {
+    _benchRunning = false;
+  }
+}
+
+function initBench() {
+  const results = BENCH_ENDPOINTS.map(e => ({ ...e, ms: null, timeout: false }));
+  _renderBench(results, false);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-REFRESH (Phase 3)
+   - All cards: every 30 s
+   - Activity feed: every 12 s (real-time feel)
+═══════════════════════════════════════════════════════════════ */
+function startAutoRefresh() {
+  const dot = document.getElementById('live-dot');
+  const ts  = document.getElementById('live-ts');
+
+  // Full refresh every 30 s
+  setInterval(() => {
+    if (dot) dot.classList.add('pulse');
+    loadAll().then(() => {
+      if (dot)  dot.classList.remove('pulse');
+      if (ts)   ts.textContent = 'Updated ' + fmtHMS(new Date());
+    });
+  }, 30_000);
+
+  // Activity feed refreshes faster
+  setInterval(() => {
+    withFallback('/os/activity', DEMO.activity, rActivity);
+  }, 12_000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN LAB
+═══════════════════════════════════════════════════════════════ */
+function generateDesignPacket(mode) {
+  const url = (document.getElementById('design-ref-url')?.value || '').trim();
+  const mod = (document.getElementById('design-modification')?.value || '').trim();
+  const proj = (document.getElementById('design-project')?.value || '').trim() || '<프로젝트 경로>';
+  const fb = document.getElementById('design-feedback');
+  const out = document.getElementById('design-output');
+
+  if (!url) {
+    fb.style.color = '#ef4444';
+    fb.textContent = '참고 URL을 입력하세요.';
+    return;
+  }
+  let slug = '';
+  try {
+    const u = new URL(url);
+    slug = (u.hostname + u.pathname).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase();
+  } catch (e) {
+    fb.style.color = '#ef4444';
+    fb.textContent = '유효한 URL 형식이 아닙니다.';
+    return;
+  }
+
+  const packPath = `ObsidianVault/06_Context_Packs/design-extracted/${slug}/`;
+  let packet = '';
+
+  if (mode === 'lang') {
+    packet =
+`# Codex 패킷: designlang (Design Lang CLI) 실행
+
+agent: Codex
+role: design-extraction
+reference_url: ${url}
+output_dir: ${packPath}
+
+전제 조건 (최초 1회):
+  - D:/AI프로젝트/design-extract 이미 clone 됨
+  - npm install 또는 글로벌 설치 (npm i -g designlang) 완료
+  - Playwright chromium 다운로드 완료
+
+실행 절차:
+1. 기본 추출 (17+ 파일):
+   > npx designlang ${url}
+2. 정밀 추출 (스크린샷+반응형+인터랙션):
+   > npx designlang --full ${url}
+3. 출력물 이동:
+   > mv ./design-extract-output/* "G:/내 드라이브/obsidian-agent-brain-system/${packPath}"
+
+확인할 산출물:
+  - *-design-language.md      (19섹션 — Codex 구현 입력용)
+  - *-design-tokens.json      (DTCG)
+  - *-figma-variables.json
+  - *-tailwind.config.js
+  - *-anatomy.tsx
+  - *-prompts/                (Cursor/Claude Artifacts/v0 패키지)
+
+done_when:
+  - design-language.md 19섹션 모두 채워짐
+  - tokens/tailwind/figma-variables 모두 생성
+next_action: "2번 Codex 구현 패킷으로 진행"
+`;
+  } else if (mode === 'codex') {
+    packet =
+`# Codex 패킷: Product Design Plugin 구현
+
+agent: Codex
+role: design-implementation
+project: ${proj}
+reference_url: ${url}
+design_assets: ${packPath}
+
+전제 조건:
+  - Codex Product Design Plugin 활성화 완료
+  - ${packPath}*-design-language.md 추출 완료 (Step 1 산출물)
+
+수정 요구사항:
+${mod || '(미입력 — 저작권 변형 가이드를 받아 진행)'}
+
+실행 절차:
+1. Codex Product Design Plugin 활성화 확인
+2. 입력:
+   - reference URL: ${url}
+   - *-design-language.md 첨부 (${packPath})
+   - *-prompts/ 폴더의 Claude Artifacts 프롬프트 활용
+   - 수정 요구사항 위 내용 그대로 적용
+3. 구현 산출물을 ${proj} 에 직접 생성
+
+저작권 가드레일 (필수):
+  - 컬러·폰트·레이아웃 중 최소 2개 변형
+  - 원본 자산 직접 복사·재배포 금지
+
+done_when:
+  - 참고 URL의 주요 인터랙션 재현
+  - 프로젝트 스택과 호환 (빌드 성공)
+  - Codex 독립 검수 통과
+record_path: ObsidianVault/10_AgentBus/reports/<YYYYMMDD>_design_${slug}_review.md
+next_action: "#jh-results 채널 알림"
+`;
+  }
+
+  out.style.display = 'block';
+  out.textContent = packet;
+
+  try {
+    navigator.clipboard.writeText(packet).then(() => {
+      fb.style.color = '#22c55e';
+      fb.textContent = `✓ 패킷 생성 + 클립보드 복사 완료 (${mode === 'lang' ? '1단계 Design Lang' : '2단계 Codex 구현'})`;
+    }, () => {
+      fb.style.color = '#f59e0b';
+      fb.textContent = '패킷 생성 완료 (클립보드 복사 실패 — 아래 영역에서 직접 복사)';
+    });
+  } catch (e) {
+    fb.style.color = '#f59e0b';
+    fb.textContent = '패킷 생성 완료 (클립보드 미지원 — 아래 영역에서 직접 복사)';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════════════════════ */
+const TAB_IDS = ['ops', 'agents', 'brain', 'metrics'];
+
+function switchTab(name) {
+  if (!TAB_IDS.includes(name)) return;
+  TAB_IDS.forEach(t => {
+    const pane = document.getElementById('pane-' + t);
+    const btn  = document.getElementById('tab-btn-' + t);
+    if (pane) pane.classList.toggle('active', t === name);
+    if (btn)  btn.classList.toggle('active', t === name);
+  });
+  try { localStorage.setItem('bucky-active-tab', name); } catch(e) {}
+  // lazy-init bench and 3d graph when their tabs become visible
+  if (name === 'metrics') initBench();
+}
+
+(function restoreTab() {
+  try {
+    const urlTab = new URLSearchParams(location.search).get('tab');
+    if (urlTab && TAB_IDS.includes(urlTab)) { switchTab(urlTab); return; }
+    const saved = localStorage.getItem('bucky-active-tab');
+    if (saved && TAB_IDS.includes(saved)) switchTab(saved);
+  } catch(e) {}
+})();
+
+/* ── Init ── */
+loadAll();
+initBench();
+startAutoRefresh();
+setInterval(loadAll, 60000);
+
+/* ── PWA Service Worker ── */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

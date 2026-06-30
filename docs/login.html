@@ -3,97 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0a0f1e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bucky">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <title>Bucky Agent OS — 로그인</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
-    background: #0a0f1e;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+     font-family: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+     background: #0a0f1e;
+     min-height: 100vh;
+     display: flex;
+     align-items: center;
+     justify-content: center;
   }
-  .login-wrap { width: 100%; max-width: 420px; padding: 20px; }
-  .brand { text-align: center; margin-bottom: 32px; }
+  .login-wrap {
+     width: 100%;
+     max-width: 420px;
+     padding: 20px;
+  }
+  .brand {
+     text-align: center;
+     margin-bottom: 32px;
+  }
   .brand-icon {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, #1a3a6b, #2563eb);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem;
-    margin: 0 auto 16px;
-    box-shadow: 0 8px 32px rgba(37,99,235,0.35);
+     width: 56px; height: 56px;
+     background: linear-gradient(135deg, #1a3a6b, #2563eb);
+     border-radius: 16px;
+     display: flex; align-items: center; justify-content: center;
+     font-size: 1.6rem;
+     margin: 0 auto 16px;
+     box-shadow: 0 8px 32px rgba(37,99,235,0.35);
   }
-  .brand h1 { color: #e2e8f0; font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; }
-  .brand p { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
+  .brand h1 {
+     color: #e2e8f0;
+     font-size: 1.3rem;
+     font-weight: 700;
+     letter-spacing: -0.02em;
+  }
+  .brand p {
+     color: #64748b;
+     font-size: 0.85rem;
+     margin-top: 4px;
+  }
   .card {
-    background: #111827;
-    border: 1px solid #1e293b;
-    border-radius: 16px;
-    padding: 36px 32px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+     background: #111827;
+     border: 1px solid #1e293b;
+     border-radius: 16px;
+     padding: 36px 32px;
+     box-shadow: 0 24px 64px rgba(0,0,0,0.5);
   }
-  .field-label { display: block; color: #94a3b8; font-size: 0.82rem; margin-bottom: 8px; }
+  .field-label {
+     display: block;
+     color: #94a3b8;
+     font-size: 0.82rem;
+     margin-bottom: 8px;
+     letter-spacing: 0.02em;
+  }
   .password-input {
-    width: 100%; padding: 13px 16px;
-    background: #0f172a; border: 1px solid #1e293b; border-radius: 10px;
-    color: #e2e8f0; font-size: 1rem; outline: none; transition: border-color 0.2s;
+     width: 100%;
+     padding: 13px 16px;
+     background: #0f172a;
+     border: 1px solid #1e293b;
+     border-radius: 10px;
+     color: #e2e8f0;
+     font-size: 1rem;
+     outline: none;
+     transition: border-color 0.2s;
+     letter-spacing: 0.05em;
   }
-  .password-input:focus { border-color: #2563eb; }
+  .password-input:focus {
+     border-color: #2563eb;
+  }
   .login-btn {
-    width: 100%; margin-top: 20px; padding: 13px;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    border: none; border-radius: 10px; color: #fff;
-    font-size: 1rem; font-weight: 700; cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
+     width: 100%;
+     margin-top: 20px;
+     padding: 13px;
+     background: linear-gradient(135deg, #1d4ed8, #2563eb);
+     border: none;
+     border-radius: 10px;
+     color: #fff;
+     font-size: 1rem;
+     font-weight: 700;
+     cursor: pointer;
+     transition: opacity 0.2s, transform 0.1s;
+     letter-spacing: -0.01em;
   }
   .login-btn:hover { opacity: 0.9; }
   .login-btn:active { transform: scale(0.99); }
   .error-msg {
-    margin-top: 14px; padding: 10px 14px;
-    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-    border-radius: 8px; color: #f87171; font-size: 0.85rem;
+     margin-top: 14px;
+     padding: 10px 14px;
+     background: rgba(239,68,68,0.1);
+     border: 1px solid rgba(239,68,68,0.3);
+     border-radius: 8px;
+     color: #f87171;
+     font-size: 0.85rem;
+     display: none;
   }
-  .footer-note { text-align: center; margin-top: 24px; color: #334155; font-size: 0.78rem; }
-</style>
-</head>
-<body>
-<div class="login-wrap">
-  <div class="brand">
-    <div class="brand-icon">🤖</div>
-    <h1>Bucky Agent OS</h1>
-    <p>운영 대시보드 접근</p>
+  .footer-note {
+     text-align: center;
+     margin-top: 24px;
+     color: #334155;
+     font-size: 0.78rem;
+  }
+  </style>
+ </head>
+ <body>
+  <div class="login-wrap">
+     <div class="brand">
+          <div class="brand-icon">🤖</div>
+          <h1>Bucky Agent OS</h1>
+         <p>운영 대시보드 접근</p>
+     </div>
+    <div class="card">
+        <label class="field-label">비밀번호</label>
+        <input type="password" class="password-input" id="pw" placeholder="비밀번호를 입력하세요" autofocus>
+        <button class="login-btn" onclick="doLogin()">로그인</button>
+        <div class="error-msg" id="err">비밀번호가 올바르지 않습니다.</div>
+    </div>
+    <p class="footer-note">obsidian-agent-brain-system &mdash; 내부 전용</p>
   </div>
-  <div class="card">
-    <form id="loginForm" method="POST" action="/api/login">
-      <input type="hidden" name="redirect" id="redirectInput" value="/">
-      <label class="field-label">비밀번호</label>
-      <input type="password" name="password" id="pw" class="password-input" placeholder="비밀번호를 입력하세요" autofocus autocomplete="current-password">
-      <button type="submit" class="login-btn">로그인</button>
-    </form>
-    <div id="errMsg" class="error-msg" style="display:none">비밀번호가 올바르지 않습니다.</div>
-  </div>
-  <p class="footer-note">obsidian-agent-brain-system &mdash; 내부 전용</p>
-</div>
-<script>
-(function() {
-  var params = new URLSearchParams(location.search);
-  var redirect = params.get('redirect') || params.get('r');
-  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-    document.getElementById('redirectInput').value = redirect;
-  }
-  if (params.get('error')) {
-    document.getElementById('errMsg').style.display = 'block';
-  }
-  document.getElementById('pw').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('loginForm').submit(); }
-  });
-})();
-</script>
-</body>
+ 
+ <script>
+    var params = new URLSearchParams(location.search);
+    var target = params.get('redirect') || params.get('r') || '/';
+
+    if (params.get('error') === '1') {
+        document.getElementById('err').style.display = 'block';
+    }
+
+    document.getElementById('pw').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    function doLogin() {
+        var pw = document.getElementById('pw').value;
+        var redirect = target;
+
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/api/login';
+        form.style.display = 'none';
+
+        var pwInput = document.createElement('input');
+        pwInput.name = 'password';
+        pwInput.value = pw;
+
+        var redirInput = document.createElement('input');
+        redirInput.name = 'redirect';
+        redirInput.value = redirect;
+
+        form.appendChild(pwInput);
+        form.appendChild(redirInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+ </script>
+ </body>
 </html>

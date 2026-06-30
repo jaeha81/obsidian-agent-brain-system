@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JP Golf — 한 마디면 일본 골프 예약 끝</title>
+<meta name="description" content="일본 골프 티타임을 한국어로 실시간 검색하고 공식 예약 페이지로 연결합니다. 지역·날짜·인원을 말씀해 주세요.">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green: #1c4d3e;
+    --green-deep: #0f2d24;
+    --green-soft: #2a6b56;
+    --green-pale: #e8efe9;
+    --cream: #f8f4ed;
+    --cream-deep: #efe9da;
+    --charcoal: #1a1a1a;
+    --ink: #2a2a2a;
+    --gray: #6a6a6a;
+    --gray-light: #b8b8b8;
+    --gold: #b8893d;
+    --gold-soft: #d4a957;
+    --border: #e6e1d6;
+    --white: #ffffff;
+    --radius: 14px;
+    --shadow-sm: 0 1px 2px rgba(15, 45, 36, 0.04), 0 1px 3px rgba(15, 45, 36, 0.06);
+    --shadow-md: 0 4px 12px rgba(15, 45, 36, 0.08);
+    --shadow-lg: 0 10px 40px rgba(15, 45, 36, 0.12);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, sans-serif;
+    color: var(--charcoal);
+    background: var(--cream);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'tnum' 1, 'palt' 1;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; }
+
+  /* Beta banner */
+  .beta-banner {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: #7c3aed;
+    color: #fff;
+    text-align: center;
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .beta-banner a { color: #e9d5ff; text-decoration: underline; }
+
+  /* Nav */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(248, 244, 237, 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--green-deep);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 30px;
+    height: 30px;
+    background: var(--green);
+    color: var(--cream);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  .nav-links a {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--green); }
+  .nav-cta {
+    background: var(--green-deep);
+    color: var(--cream);
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .nav-cta:hover {
+    background: var(--green);
+    transform: translateY(-1px);
+  }
+
+  /* Hero */
+  .hero {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 80px 28px 60px;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 24px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--green-soft);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(42, 107, 86, 0.18);
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -1.2px;
+    color: var(--green-deep);
+    margin-bottom: 20px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--gold);
+    position: relative;
+    white-space: nowrap;
+  }
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--gray);
+    margin-bottom: 36px;
+    max-width: 480px;
+    line-height: 1.7;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+  .stat-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--green-deep);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  /* Chat widget */
+  .chat-widget {
+    background: var(--white);
+    border-radius: 22px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 580px;
+    position: relative;
+  }
+  .chat-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--white), var(--cream));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-avatar {
+    width: 38px;
+    height: 38px;
+    background: var(--green-deep);
+    color: var(--cream);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 0.86rem;
+    letter-spacing: -0.5px;
+  }
+  .chat-id { line-height: 1.3; }
+  .chat-id strong {
+    font-size: 0.94rem;
+    color: var(--charcoal);
+    display: block;
+  }
+  .chat-id-status {
+    font-size: 0.74rem;
+    color: var(--green-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .chat-id-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #2ea865;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 22px;
+    background: var(--cream);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(28, 77, 62, 0.025) 0%, transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(184, 137, 61, 0.025) 0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .chat-body::-webkit-scrollbar { width: 6px; }
+  .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .msg {
+    max-width: 82%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    animation: msgIn 0.35s ease-out;
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.ai {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+  .msg.user {
+    background: var(--green-deep);
+    color: var(--cream);
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+  }
+  .typing {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px 0;
+  }
+  .typing span {
+    width: 6px;
+    height: 6px;
+    background: var(--gray-light);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding-top: 4px;
+    animation: msgIn 0.4s ease-out;
+  }
+  .sug-btn {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    color: var(--green-deep);
+    transition: all 0.18s;
+    font-weight: 500;
+  }
+  .sug-btn:hover {
+    background: var(--green-deep);
+    color: var(--cream);
+    border-color: var(--green-deep);
+    transform: translateY(-1px);
+  }
+
+  /* Structured cards inside chat */
+  .info-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    align-self: flex-start;
+    max-width: 90%;
+    box-shadow: var(--shadow-sm);
+    animation: msgIn 0.4s ease-out;
+  }
+  .info-card h5 {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row span:first-child { color: var(--gray); font-size: 0.82rem; }
+  .info-row span:last-child { font-weight: 600; color: var(--ink); }
+
+  .course-result {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    align-self: flex-start;
+    max-width: 92%;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: msgIn 0.4s ease-out;
+  }
+  .course-result:hover {
+    border-color: var(--green-soft);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .course-result.selected {
+    border-color: var(--green);
+    background: var(--green-pale);
+  }
+  .course-name {
+    font-weight: 700;
+    color: var(--green-deep);
+    margin-bottom: 4px;
+    font-size: 0.92rem;
+  }
+  .course-meta {
+    color: var(--gray);
+    font-size: 0.78rem;
+    margin-bottom: 8px;
+  }
+  .course-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .course-time {
+    font-size: 0.82rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .course-price {
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: var(--green-deep);
+  }
+  .course-price small {
+    font-size: 0.7rem;
+    color: var(--gray);
+    font-weight: 500;
+    margin-left: 3px;
+  }
+  .course-tag {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--white);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .redirect-card {
+    background: var(--green-pale);
+    border: 1.5px solid var(--green-soft);
+    border-radius: 14px;
+    padding: 18px;
+    align-self: flex-start;
+    max-width: 92%;
+    animation: msgIn 0.4s ease-out;
+  }
+  .redirect-card h5 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--green-deep);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .redirect-card p {
+    font-size: 0.82rem;
+    color: var(--ink);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .redirect-card a.redirect-btn {
+    display: inline-block;
+    background: var(--green-deep);
+    color: var(--cream);
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .redirect-card .price-note {
+    font-size: 0.74rem;
+    color: var(--gray);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* Chat input */
+  .chat-input {
+    border-top: 1px solid var(--border);
+    background: var(--white);
+    padding: 14px 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .chat-input input {
+    flex: 1;
+    border: none;
+    background: var(--cream);
+    border-radius: 999px;
+    padding: 11px 18px;
+    font-size: 0.9rem;
+    color: var(--ink);
+    font-family: inherit;
+    outline: none;
+    transition: box-shadow 0.2s;
+  }
+  .chat-input input:focus {
+    box-shadow: 0 0 0 3px rgba(28, 77, 62, 0.12);
+  }
+  .chat-send {
+    background: var(--green-deep);
+    color: var(--cream);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+  }
+  .chat-send:hover { background: var(--green); }
+  .chat-send svg { width: 16px; height: 16px; }
+
+  /* Trust band */
+  .trust-band {
+    background: var(--green-deep);
+    color: var(--cream);
+    padding: 28px 0;
+    margin-top: 40px;
+  }
+  .trust-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .trust-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(248, 244, 237, 0.08);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .trust-icon svg { width: 18px; height: 18px; color: var(--gold-soft); }
+  .trust-text strong {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--cream);
+    margin-bottom: 2px;
+  }
+  .trust-text span {
+    font-size: 0.76rem;
+    color: rgba(248, 244, 237, 0.6);
+  }
+
+  /* Sections */
+  section.block {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 96px 28px 24px;
+  }
+  .section-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--green-soft);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 800;
+    color: var(--green-deep);
+    letter-spacing: -0.8px;
+    line-height: 1.2;
+    margin-bottom: 18px;
+    max-width: 720px;
+  }
+  .section-lead {
+    font-size: 1rem;
+    color: var(--gray);
+    max-width: 600px;
+    margin-bottom: 48px;
+    line-height: 1.7;
+  }
+
+  /* How it works */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    position: relative;
+  }
+  .step {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    position: relative;
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .step:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .step-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+  }
+  .step h3 {
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .step p {
+    font-size: 0.9rem;
+    color: var(--gray);
+    line-height: 1.65;
+  }
+
+  /* Course showcase */
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .course-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+  }
+  .course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--green-soft);
+  }
+  .course-img {
+    height: 140px;
+    background: linear-gradient(135deg, var(--green-soft), var(--green-deep));
+    position: relative;
+    overflow: hidden;
+  }
+  .course-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 70% 30%, rgba(184, 137, 61, 0.35) 0%, transparent 50%),
+      radial-gradient(circle at 30% 80%, rgba(248, 244, 237, 0.15) 0%, transparent 40%);
+  }
+  .course-img::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(180deg, transparent, rgba(15, 45, 36, 0.5));
+  }
+  .course-region {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(248, 244, 237, 0.92);
+    color: var(--green-deep);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+    z-index: 2;
+  }
+  .course-body {
+    padding: 18px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .course-card h4 {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+  .course-jp {
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-bottom: 14px;
+    font-feature-settings: 'palt' 1;
+  }
+  .course-feats {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .course-feats span {
+    background: var(--green-pale);
+    color: var(--green-deep);
+    font-size: 0.72rem;
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-weight: 600;
+  }
+  .course-price-row {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .course-price-yen {
+    font-size: 1.06rem;
+    font-weight: 800;
+    color: var(--green-deep);
+  }
+  .course-price-yen small {
+    font-weight: 500;
+    color: var(--gray);
+    font-size: 0.7rem;
+    margin-left: 3px;
+  }
+  .course-price-krw {
+    font-size: 0.78rem;
+    color: var(--gray);
+  }
+
+  /* FAQ */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 800px;
+  }
+  .faq-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .faq-item:hover { border-color: var(--green-soft); }
+  .faq-q {
+    padding: 18px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--green-deep);
+    user-select: none;
+  }
+  .faq-q::after {
+    content: '+';
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--gray);
+    transition: transform 0.2s;
+  }
+  .faq-item.open .faq-q::after {
+    transform: rotate(45deg);
+    color: var(--green);
+  }
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 22px;
+    font-size: 0.88rem;
+    color: var(--gray);
+    line-height: 1.7;
+  }
+  .faq-item.open .faq-a {
+    max-height: 200px;
+    padding: 0 22px 18px;
+  }
+
+  /* Final CTA */
+  .final-cta {
+    margin-top: 96px;
+    background: linear-gradient(135deg, var(--green-deep), var(--green));
+    color: var(--cream);
+    border-radius: 0;
+    padding: 80px 28px;
+    text-align: center;
+  }
+  .final-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .final-cta h2 {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin-bottom: 16px;
+    line-height: 1.25;
+  }
+  .final-cta h2 em {
+    font-style: normal;
+    color: var(--gold-soft);
+  }
+  .final-cta p {
+    font-size: 1rem;
+    color: rgba(248, 244, 237, 0.78);
+    margin-bottom: 32px;
+  }
+  .final-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--cream);
+    color: var(--green-deep);
+    padding: 16px 36px;
+    border-radius: 999px;
+    font-size: 0.96rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  }
+  .final-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Footer */
+  footer {
+    background: var(--green-deep);
+    color: rgba(248, 244, 237, 0.65);
+    padding: 56px 28px 32px;
+    font-size: 0.82rem;
+  }
+  .footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid rgba(248, 244, 237, 0.08);
+  }
+  .footer-brand .logo { color: var(--cream); }
+  .footer-brand p {
+    font-size: 0.82rem;
+    line-height: 1.7;
+    margin-top: 14px;
+    max-width: 320px;
+  }
+  footer h6 {
+    color: var(--cream);
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: 0.3px;
+  }
+  footer ul { list-style: none; }
+  footer li { margin-bottom: 8px; }
+  footer a { transition: color 0.2s; }
+  footer a:hover { color: var(--cream); }
+  .footer-legal {
+    max-width: 1180px;
+    margin: 24px auto 0;
+    font-size: 0.74rem;
+    color: rgba(248, 244, 237, 0.4);
+    line-height: 1.7;
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 60px 24px 40px;
+      gap: 40px;
+    }
+    .chat-widget { height: 540px; }
+    .trust-inner { grid-template-columns: repeat(2, 1fr); }
+    .steps { grid-template-columns: 1fr; }
+    section.block { padding: 72px 24px 24px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .nav-links { gap: 16px; }
+    .nav-links a:not(.nav-cta) { display: none; }
+    .hero-stats { flex-wrap: wrap; gap: 20px; }
+    .trust-inner { grid-template-columns: 1fr; }
+    .footer-inner { grid-template-columns: 1fr; }
+    .final-cta { padding: 60px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Beta Banner -->
+<div class="beta-banner">
+  🔵 베타 데모 · 실제 예약은 제휴사 공식 페이지에서 완료됩니다 · 표시된 데이터는 예시입니다
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">JP</span>
+      <span>Golf</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how">이용 방법</a>
+      <a href="#courses">인기 골프장</a>
+      <a href="#faq">자주 묻는 질문</a>
+      <a href="#chat" class="nav-cta">상담 시작</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero with chat -->
+<section class="hero" id="chat">
+  <div>
+    <div class="hero-eyebrow">베타 서비스 · 일본 골프 플랜 검색</div>
+    <h1>
+      일본 골프 티타임,<br>
+      <em>한국어로 실시간 검색</em>
+    </h1>
+    <p class="hero-sub">
+      지역·날짜·인원을 말씀해 주세요. 실제 검색 가능한 플랜을 비교하고 공식 예약 페이지로 연결합니다.
+    </p>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">일본</div>
+        <div class="stat-label">골프장 검색</div>
+      </div>
+      <div>
+        <div class="stat-num">실시간</div>
+        <div class="stat-label">플랜 비교</div>
+      </div>
+      <div>
+        <div class="stat-num">공식</div>
+        <div class="stat-label">예약 페이지 연결</div>
+      </div>
+      <div>
+        <div class="stat-num">한국어</div>
+        <div class="stat-label">상담 AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat widget -->
+  <div class="chat-widget">
+    <div class="chat-header">
+      <div class="chat-avatar">JP</div>
+      <div class="chat-id">
+        <strong>JP Golf 상담 AI</strong>
+        <span class="chat-id-status">베타 데모 · 예시 결과 표시</span>
+      </div>
+    </div>
+    <div class="chat-body" id="chatBody"></div>
+    <form class="chat-input" id="chatForm">
+      <input type="text" id="chatInput" placeholder="메시지를 입력하세요…" autocomplete="off">
+      <button type="submit" class="chat-send" aria-label="전송">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- Trust band -->
+<div class="trust-band">
+  <div class="trust-inner">
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <div class="trust-text">
+        <strong>베타 서비스</strong>
+        <span>현재 데모 데이터로 운영 중</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="trust-text">
+        <strong>일본 골프장 검색</strong>
+        <span>실제 플랜 비교 예정</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </div>
+      <div class="trust-text">
+        <strong>공식 예약 페이지 연결</strong>
+        <span>최종 예약은 제휴사에서 완료</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="trust-text">
+        <strong>한국어 상담 AI</strong>
+        <span>편하게 대화하듯 검색</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How it works -->
+<section class="block" id="how">
+  <div class="section-eyebrow">How it works</div>
+  <h2 class="section-title">AI가 먼저 말을 건네는, 진짜 편한 예약</h2>
+  <p class="section-lead">
+    딱딱한 폼도, 끝없는 옵션 선택도 없습니다.
+    AI가 실제 상담사처럼 자연스럽게 먼저 물어봐요. 손님은 편하게 대답만 하시면 됩니다.
+  </p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">STEP 01</div>
+      <h3>AI가 먼저 물어봐요</h3>
+      <p>AI가 딱딱한 로봇 말투 대신, 친근한 상담사처럼 먼저 말을 걸어요. "언제 가세요? 몇 분이세요?" — 편하게 대답만 하시면 됩니다.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 02</div>
+      <h3>AI가 즉시 검색합니다</h3>
+      <p>락쿠텐 고라 등 일본 골프 예약 사이트를 직접 조회해 가용 티타임·코스 정보·가격을 한국어로 정리해 제시합니다. 마음에 안 들면 즉시 다른 옵션을 다시 찾습니다.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 03</div>
+      <h3>조건 확인 후 공식 예약 페이지로 이동</h3>
+      <p>원하는 플랜을 선택하면 제휴사 공식 예약 페이지로 연결됩니다. 최종 가격·취소 정책·포함 조건은 예약 페이지에서 확인하세요.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Popular courses -->
+<section class="block" id="courses">
+  <div class="section-eyebrow">Popular Courses</div>
+  <h2 class="section-title">한국 골퍼가 가장 많이 찾는<br>일본 인기 골프장</h2>
+  <p class="section-lead">
+    도쿄 근교부터 오사카·후쿠오카까지. 항공편 접근성과 코스 난이도, 한국어 응대 가능 여부를 함께 안내합니다.
+  </p>
+  <div class="course-grid">
+    <article class="course-card">
+      <div class="course-img">
+        <div class="course-region">TOKYO</div>
+      </div>
+      <div class="course-body">
+        <h4>치바 그린 컨트리클럽</h4>
+        <div class="course-jp">千葉グリーンカントリークラブ</div>
+        <div class="course-feats">
+          <span>나리타 40분</span>
+          <span>한국어 가능</span>
+          <span>27홀</span>
+        </div>
+        <div class="course-price-row">
+          <div class="course-price-yen">¥18,500<small>~</small></div>
+          <div class="course-price-krw">약 173,000원</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card">
+      <div class="course-img" style="background: linear-gradient(135deg, #2a6b56, #1c4d3e);">
+        <div class="course-region">HAKONE</div>
+      </div>
+      <div class="course-body">
+        <h4>하코네 긴란 골프클럽</h4>
+        <div class="course-jp">箱根銀蘭ゴルフクラブ</div>
+        <div class="course-feats">
+          <span>온천 연계</span>
+          <span>후지산 뷰</span>
+          <span>18홀</span>
+        </div>
+        <div class="course-price-row">
+          <div class="course-price-yen">¥28,500<small>~</small></div>
+          <div class="course-price-krw">약 267,000원</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card">
+      <div class="course-img" style="background: linear-gradient(135deg, #1c4d3e, #0f2d24);">
+        <div class="course-region">OSAKA</div>
+      </div>
+      <div class="course-body">
+        <h4>오사카 사쿠라 컨트리클럽</h4>
+        <div class="course-jp">大阪さくらカントリークラブ</div>
+        <div class="course-feats">
+          <span>간사이공항 50분</span>
+          <span>벚꽃 명소</span>
+          <span>18홀</span>
+        </div>
+        <div class="course-price-row">
+          <div class="course-price-yen">¥16,800<small>~</small></div>
+          <div class="course-price-krw">약 157,000원</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card">
+      <div class="course-img" style="background: linear-gradient(135deg, #3a8b76, #2a6b56);">
+        <div class="course-region">KYOTO</div>
+      </div>
+      <div class="course-body">
+        <h4>교토 골프 클럽 카메오카</h4>
+        <div class="course-jp">京都ゴルフ倶楽部亀岡コース</div>
+        <div class="course-feats">
+          <span>고즈넉한 분위기</span>
+          <span>한국어 가능</span>
+          <span>27홀</span>
+        </div>
+        <div class="course-price-row">
+          <div class="course-price-yen">¥22,000<small>~</small></div>
+          <div class="course-price-krw">약 206,000원</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card">
+      <div class="course-img" style="background: linear-gradient(135deg, #2a6b56, #1c4d3e);">
+        <div class="course-region">FUKUOKA</div>
+      </div>
+      <div class="course-body">
+        <h4>후쿠오카 레이크사이드 CC</h4>
+        <div class="course-jp">福岡レイクサイドカントリークラブ</div>
+        <div class="course-feats">
+          <span>공항 30분</span>
+          <span>호수 코스</span>
+          <span>18홀</span>
+        </div>
+        <div class="course-price-row">
+          <div class="course-price-yen">¥15,800<small>~</small></div>
+          <div class="course-price-krw">약 148,000원</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="course-card">
+      <div class="course-img" style="background: linear-gradient(135deg, #1c4d3e, #0f2d24);">
+        <div class="course-region">OKINAWA</div>
+      </div>
+      <div class="course-body">
+        <h4>오키나와 인터내셔널 GC</h4>
+        <div class="course-jp">沖縄インターナショナルGC</div>
+        <div class="course-feats">
+          <span>해변 코스</span>
+          <span>연중 가능</span>
+          <span>36홀</span>
+        </div>
+        <div class="course-price-row">
+          <div class="course-price-yen">¥21,500<small>~</small></div>
+          <div class="course-price-krw">약 201,000원</div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="block" id="faq">
+  <div class="section-eyebrow">FAQ</div>
+  <h2 class="section-title">예약 전 자주 묻는 질문</h2>
+  <p class="section-lead">처음 이용하시는 분들을 위해 자주 받는 질문을 정리했습니다.</p>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">예약 확정까지 얼마나 걸리나요?</div>
+      <div class="faq-a">AI 상담을 통해 골프장과 시간 확정 후 자동 예약까지 평균 1~3분 소요됩니다. 실시간으로 일본 사이트를 직접 조회하므로 가용 여부도 즉시 확인됩니다.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">결제는 어떻게 진행되나요?</div>
+      <div class="faq-a">계좌 입금과 카드 결제 모두 가능합니다. 계좌 입금 시 AI가 은행과 연동되어 입금을 자동 확인하고, 확인 즉시 예약증이 한국어로 번역되어 발송됩니다.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">한국어로 응대 가능한 골프장만 추천하나요?</div>
+      <div class="faq-a">기본적으로 한국어 응대 가능한 골프장을 우선 추천합니다. 다만 원하시면 일본어 전용 골프장도 안내드리며, 이 경우 현지 의사소통 가이드를 함께 제공합니다.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">호텔이나 항공권도 함께 예약되나요?</div>
+      <div class="faq-a">현재는 골프장 티타임 예약만 제공합니다. 호텔·픽업·항공권 예약은 단계적으로 확장 예정이며, 골프 일정에 맞춘 통합 패키지 서비스를 준비 중입니다.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">예약 취소나 변경은 가능한가요?</div>
+      <div class="faq-a">각 골프장 규정에 따라 다릅니다. 예약 확정 시 취소 정책을 한국어로 정확히 안내드리며, AI 상담을 통해 변경 요청도 즉시 가능합니다.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">단체(8명 이상) 예약도 되나요?</div>
+      <div class="faq-a">네, 가능합니다. 단체 예약은 골프장별로 별도 협의가 필요한 경우가 많아, AI가 상담 중 단체임을 감지하면 자동으로 단체 전용 절차로 전환합니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+  <div class="final-cta-inner">
+    <h2>이번 일본 골프 여행,<br><em>AI랑 편하게 얘기해보세요</em></h2>
+    <p>회원가입 없이, 채팅창 열면 AI가 먼저 말을 걸어요.<br>대답만 하시면 예약까지 다 됩니다.</p>
+    <a href="#chat" class="final-cta-btn">
+      지금 상담 시작
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="logo">
+        <span class="logo-mark">JP</span>
+        <span>Golf</span>
+      </a>
+      <p>한국 골퍼를 위한 일본 골프장 AI 예약 서비스. AI가 사람처럼 먼저 대화를 이끌어 일본 2,000여 개 골프장의 티타임을 30초 안에 확정합니다.</p>
+    </div>
+    <div>
+      <h6>서비스</h6>
+      <ul>
+        <li><a href="#how">이용 방법</a></li>
+        <li><a href="#courses">인기 골프장</a></li>
+        <li><a href="#chat">상담 시작</a></li>
+        <li><a href="#faq">자주 묻는 질문</a></li>
+      </ul>
+    </div>
+    <div>
+      <h6>고객지원</h6>
+      <ul>
+        <li><a href="mailto:dltkddlf231@gmail.com">이메일 문의</a></li>
+        <li><a href="#faq">자주 묻는 질문</a></li>
+      </ul>
+      <p style="font-size:0.74rem;margin-top:10px;color:rgba(248,244,237,0.45);line-height:1.6;">예약·결제·취소는 제휴사<br>공식 예약 페이지에서 진행됩니다.</p>
+    </div>
+    <div>
+      <h6>안내</h6>
+      <ul>
+        <li><span style="color:rgba(248,244,237,0.5);">이용약관 (준비 중)</span></li>
+        <li><span style="color:rgba(248,244,237,0.5);">개인정보처리방침 (준비 중)</span></li>
+        <li><span style="color:rgba(248,244,237,0.5);">사업자 정보 (준비 중)</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-legal">
+    상호 JP Golf · 대표 재하 · 사업자등록 진행 중 · 통신판매업 신고 예정<br>
+    본 서비스는 베타 데모로 운영 중입니다. 현재 표시되는 골프장·가격·날짜는 예시 데이터이며 실제 예약·결제 기능은 제공되지 않습니다.<br>
+    최종 예약과 결제는 제휴사 공식 예약 페이지에서 완료됩니다. 표시된 가격과 재고는 실시간으로 변동될 수 있습니다.<br>
+    문의: dltkddlf231@gmail.com · © 2026 JP Golf. All rights reserved.
+  </div>
+</footer>
+
+<script>
+(function() {
+  const body = document.getElementById('chatBody');
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('chatInput');
+
+  let chatMessages = [];
+  let selectedCourse = null;
+  const GOLF_API_URL = '/api/golf-chat';
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function scrollBottom() {
+    requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+  }
+
+  function addMsg(role, text) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + role;
+    el.textContent = text;
+    body.appendChild(el);
+    scrollBottom();
+  }
+
+  function addTyping() {
+    const el = document.createElement('div');
+    el.className = 'msg ai';
+    el.id = 'typingMsg';
+    el.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    body.appendChild(el);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingMsg');
+    if (el) el.remove();
+  }
+
+  function addSuggestions(items) {
+    const wrap = document.createElement('div');
+    wrap.className = 'suggestions';
+    items.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'sug-btn';
+      btn.type = 'button';
+      btn.textContent = t;
+      btn.addEventListener('click', () => {
+        wrap.remove();
+        const isBookingBtn = t.startsWith('공식 페이지에서 최종 가격 확인');
+        handleUserInput(t, { _explicitBooking: isBookingBtn });
+      });
+      wrap.appendChild(btn);
+    });
+    body.appendChild(wrap);
+    scrollBottom();
+  }
+
+  function addInfoCard(data) {
+    const el = document.createElement('div');
+    el.className = 'info-card';
+    let rows = Object.entries(data).map(([k, v]) =>
+      `<div class="info-row"><span>${k}</span><span>${v}</span></div>`).join('');
+    el.innerHTML = `<h5>제가 이해한 내용</h5>${rows}`;
+    body.appendChild(el);
+    scrollBottom();
+  }
+
+  function addCourseResult(course, idx) {
+    const el = document.createElement('div');
+    el.className = 'course-result';
+    el.innerHTML = `
+      <div class="course-name">${course.tag ? `<span class="course-tag">${course.tag}</span>` : ''}<span style="font-size:0.7rem;color:#b8893d;font-weight:600;margin-right:6px;">[예시]</span>${course.name}</div>
+      <div class="course-meta">${course.jp} · ${course.region}</div>
+      <div class="course-foot">
+        <div class="course-time">${course.time}</div>
+        <div class="course-price">¥${course.price.toLocaleString()}<small>/인</small></div>
+      </div>
+    `;
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.course-result').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedCourse = course;
+      handleUserInput('이걸로 예약해주세요: ' + course.name);
+    });
+    body.appendChild(el);
+    scrollBottom();
+  }
+
+  function addRedirectCard(course) {
+    const el = document.createElement('div');
+    el.className = 'redirect-card';
+    el.innerHTML = `
+      <h5>공식 예약 페이지 연결</h5>
+      <p>${course ? course.name + ' — 예시 데이터입니다. 최종 가격·재고는 공식 페이지에서 확인하세요.' : '최종 가격과 재고는 제휴사 공식 예약 페이지에서 확인됩니다.'}</p>
+      <a class="redirect-btn" href="https://booking.rakuten.co.jp/golf/" target="_blank" rel="noopener sponsored">공식 페이지에서 최종 가격 확인 및 예약 →</a>
+      <div class="price-note">표시된 가격과 재고는 실시간으로 변동될 수 있으며 최종 조건은 제휴사 예약 페이지에서 확인됩니다.</div>
+    `;
+    body.appendChild(el);
+    scrollBottom();
+  }
+
+  async function aiSay(text, suggestions, options) {
+    addTyping();
+    await delay(options?.fast ? 400 : 800);
+    removeTyping();
+    addMsg('ai', text);
+    if (suggestions) {
+      await delay(200);
+      addSuggestions(suggestions);
+    }
+  }
+
+  const courses = [
+    { name: '치바 그린 컨트리클럽', jp: '千葉グリーンCC', region: '도쿄 근교', time: '7:42 / 7:50 / 8:06 가능', price: 18500, tag: '추천' },
+    { name: '하코네 긴란 골프클럽', jp: '箱根銀蘭GC', region: '하코네', time: '8:20 / 9:00 가능', price: 28500 },
+    { name: '나리타 노스 컨트리클럽', jp: '成田ノースCC', region: '나리타 인근', time: '7:30 / 8:10 가능', price: 16800 }
+  ];
+
+  function handleUserInput(text, options = {}) {
+    if (!options.skipEcho) addMsg('user', text);
+
+    // 처음부터 다시 요청
+    if (/처음부터 다시/.test(text)) {
+      (async () => {
+        chatMessages = [];
+        selectedCourse = null;
+        await aiSay('다시 시작할게요! 일본 어디로 가실 거예요? 😊',
+          ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']
+        );
+        chatMessages = [{ role: 'assistant', content: '다시 시작할게요! 일본 어디로 가실 거예요? 😊' }];
+      })();
+      return;
+    }
+
+    // 명시적 예약 버튼 클릭 → AI 경유 없이 바로 redirect 카드
+    if (options._explicitBooking) {
+      (async () => {
+        addTyping();
+        await delay(600);
+        removeTyping();
+        addMsg('ai', '제휴사 공식 예약 페이지로 이동합니다.');
+        await delay(300);
+        addRedirectCard(selectedCourse);
+        await delay(800);
+        addMsg('ai', '공식 예약 페이지에서 최종 가격과 조건을 확인하신 후 예약해 주세요.');
+        addSuggestions(['처음부터 다시']);
+        chatMessages.push({ role: 'assistant', content: '공식 예약 페이지로 연결했습니다. 처음부터 다시 상담하시려면 알려주세요.' });
+      })();
+      return;
+    }
+
+    chatMessages.push({ role: 'user', content: text });
+
+    (async () => {
+      addTyping();
+      try {
+        const res = await fetch(GOLF_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: chatMessages })
+        });
+        const data = await res.json();
+        removeTyping();
+
+        if (!res.ok) throw new Error(data.error || 'API error');
+
+        const rawContent = data.content || '죄송해요, 잠시 오류가 발생했어요. 다시 말씀해 주세요!';
+
+        const showCourses = rawContent.includes('[[SHOW_COURSES]]');
+        const bookingMatch = rawContent.match(/\[\[SHOW_BOOKING:(\d)\]\]/);
+
+        const displayText = rawContent
+          .replace(/\[\[SHOW_COURSES\]\]/g, '')
+          .replace(/\[\[SHOW_BOOKING:\d\]\]/g, '')
+          .trim();
+
+        if (displayText) addMsg('ai', displayText);
+        chatMessages.push({ role: 'assistant', content: rawContent });
+
+        if (showCourses) {
+          await delay(400);
+          courses.forEach((c, i) => addCourseResult(c, i));
+        }
+
+        if (bookingMatch) {
+          const idx = parseInt(bookingMatch[1], 10);
+          selectedCourse = courses[idx] ?? courses[0];
+          await delay(400);
+          addSuggestions(['공식 페이지에서 최종 가격 확인 및 예약', '다른 골프장 보기', '처음부터 다시']);
+        }
+
+      } catch (err) {
+        removeTyping();
+        console.error('Golf AI error:', err);
+        addMsg('ai', '잠깐 연결에 문제가 생겼어요. 다시 말씀해 주세요!');
+      }
+    })();
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    handleUserInput(text);
+  });
+
+  // FAQ toggle
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
+
+  // Initial greeting
+  (async function init() {
+    chatMessages = [];
+    selectedCourse = null;
+    await delay(400);
+    addMsg('ai', '안녕하세요~ JP Golf 상담 AI예요 😊');
+    await delay(500);
+    const greeting = '일본 골프 여행 계획 중이세요? 어디로 가고 싶으세요? 대충 말씀해 주셔도 제가 다 알아서 찾아드릴게요!';
+    await aiSay(greeting, ['도쿄 근교', '오사카 · 교토', '후쿠오카', '하코네 · 후지']);
+    chatMessages = [{ role: 'assistant', content: '안녕하세요~ JP Golf 상담 AI예요 😊 ' + greeting }];
+  })();
+})();
+</script>
+
+</body>
+</html>
