@@ -1,0 +1,59 @@
+{
+  "name": "Bucky Agent OS",
+  "short_name": "Bucky",
+  "description": "JH AI 에이전트 운영 대시보드",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1117",
+  "theme_color": "#58a6ff",
+  "lang": "ko",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "위시켓 대시보드",
+      "short_name": "위시켓",
+      "url": "/wishket.html",
+      "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
+    },
+    {
+      "name": "데일리 리포트",
+      "short_name": "데일리",
+      "url": "/daily-plus.html",
+      "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
+    },
+    {
+      "name": "태스크 보드",
+      "short_name": "태스크",
+      "url": "/task-board.html",
+      "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
+    },
+    {
+      "name": "AI 사용량",
+      "short_name": "AI",
+      "url": "/ai-usage.html",
+      "icons": [{"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"}]
+    }
+  ],
+  "categories": ["productivity", "business"]
+}

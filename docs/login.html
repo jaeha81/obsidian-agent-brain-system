@@ -83,7 +83,7 @@
 <script>
 (function() {
   var params = new URLSearchParams(location.search);
-  var redirect = params.get('redirect');
+  var redirect = params.get('redirect') || params.get('r');
   if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
     document.getElementById('redirectInput').value = redirect;
   }

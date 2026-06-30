@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Maskable: content in center 80% (102px padding each side) -->
+  <rect width="512" height="512" fill="#0d1117"/>
+  <text x="256" y="300" font-size="240" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="700" fill="#58a6ff">B</text>
+  <circle cx="370" cy="145" r="30" fill="#3fb950"/>
+</svg>
