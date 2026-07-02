@@ -3,12 +3,12 @@ sync_system_enhance.py
 ──────────────────────
 PostToolUse 훅으로 Write/Edit 직후 자동 실행.
 stdin에서 Claude Code 훅 페이로드를 읽고,
-career-strategy 파일이 수정됐을 때만 system_enhance.json 재생성 + git push.
+career-strategy 파일이 수정됐을 때만 system_enhance.json 재생성.
 
 수동 실행: python scripts/sync_system_enhance.py --force
 """
 
-import sys, json, os, re, subprocess
+import sys, json, os, re
 from datetime import date, datetime
 from pathlib import Path
 
@@ -184,48 +184,7 @@ def _parse_section_list(text: str, section_title: str) -> list:
 
 
 # ──────────────────────────────────────────
-# 4. Git commit + push (stash 보호 포함)
-# ──────────────────────────────────────────
-def run_git(args: list) -> tuple:
-    """git 명령 실행 → (returncode, stdout+stderr)"""
-    result = subprocess.run(
-        ["git", "-C", str(ROOT)] + args,
-        capture_output=True, text=True, encoding="utf-8", errors="replace"
-    )
-    return result.returncode, (result.stdout + result.stderr).strip()
-
-def git_push(changed: bool):
-    if not changed:
-        return
-
-    # 1. stage + commit
-    run_git(["add", "docs/data/system_enhance.json"])
-    rc, out = run_git(["commit", "-m",
-                        f"chore(system-enhance): 상태 자동 동기화 {date.today()}"])
-    if rc != 0 and "nothing to commit" in out:
-        return  # 실제 변경 없으면 종료
-
-    # 2. unstaged 변경사항 stash (pull --rebase 실패 방지)
-    _, stash_out = run_git(["stash", "--include-untracked",
-                             "--message", "sync_system_enhance auto-stash"])
-    stashed = "No local changes" not in stash_out
-
-    # 3. pull --rebase
-    rc, out = run_git(["pull", "--rebase", "origin", "master"])
-    if rc != 0:
-        # rebase 실패 시 abort 후 계속 진행
-        run_git(["rebase", "--abort"])
-
-    # 4. push
-    run_git(["push", "origin", "master"])
-
-    # 5. stash pop 복원
-    if stashed:
-        run_git(["stash", "pop"])
-
-
-# ──────────────────────────────────────────
-# 5. 메인
+# 4. 메인
 # ──────────────────────────────────────────
 def main():
     # 훅 페이로드 읽기 (stdin JSON)
@@ -265,9 +224,6 @@ def main():
 
     # 타임스탬프 기록
     MARKER.write_text(datetime.now().isoformat(), encoding="utf-8")
-
-    # Git push
-    git_push(changed)
 
     if changed:
         print(f"[sync_system_enhance] 동기화 완료 → {DATA.name}", flush=True)
