@@ -179,6 +179,7 @@ scripts/discord_bot_patched_*.py
 scripts/bucky_bot_supervisor_patched.py
 scripts/PATCH_NOTES_*.md
 scripts/REASSEMBLE_*.md
+scripts/*.bak_*
 
 # Token/secret files (never commit)
 token.txt
