@@ -14,7 +14,8 @@
   ],
   "rewrites": [
     { "source": "/bucky-daily.html", "destination": "/api/protected?page=bucky-daily" },
-    { "source": "/investment-report.html", "destination": "/api/protected?page=investment-report" }
+    { "source": "/investment-report.html", "destination": "/api/protected?page=investment-report" },
+    { "source": "/wishket-protected.html", "destination": "/api/protected?page=wishket" }
   ],
   "headers": [
     {
