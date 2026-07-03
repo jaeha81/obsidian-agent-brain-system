@@ -154,6 +154,7 @@ JH_REPO_DASHBOARD_CHANNEL_ID: str = os.getenv("JH_REPO_DASHBOARD_CHANNEL_ID", ""
 JH_WISHKET_CHANNEL_ID: str        = os.getenv("JH_WISHKET_CHANNEL_ID", "").strip()
 JH_DAILYPLUS_CHANNEL_ID: str      = os.getenv("JH_DAILYPLUS_CHANNEL_ID", "").strip()
 JH_TASKBOARD_CHANNEL_ID: str      = os.getenv("JH_TASKBOARD_CHANNEL_ID", "").strip()
+JH_LOCAL_CHANNEL_ID: str          = os.getenv("JH_LOCAL_CHANNEL_ID", "").strip()
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
@@ -2618,11 +2619,24 @@ def _persist_env_key(key: str, value: str) -> None:
         print(f"[Setup] .env 저장 실패: {e}", flush=True)
 
 
+_JH_LOCAL_STATUS_KEYWORDS = (
+    "상태", "status", "cpu", "디스크", "용량", "메모리",
+    "프로세스", "봇", "파이프라인", "pipeline", "git",
+    "동기화", "살아있", "돌아가", "실행 중", "실행중",
+)
+
+
+def _jh_local_wants_status(text: str) -> bool:
+    """jh-local 채널 메시지가 PC 상태 조회를 원하는지 키워드로 판단."""
+    lowered = text.lower()
+    return any(kw in lowered for kw in _JH_LOCAL_STATUS_KEYWORDS)
+
+
 async def _init_jh_channels(client) -> None:
     """jh-chat + intake 채널 자동 생성. (deprecated: jh-tasks/jh-status/jh-results/jh-briefing 삭제 2026-06-09)"""
     global JH_CHAT_CHANNEL_ID
     global JH_REPO_DASHBOARD_CHANNEL_ID, JH_WISHKET_CHANNEL_ID, JH_DAILYPLUS_CHANNEL_ID, JH_TASKBOARD_CHANNEL_ID
-    global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID
+    global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID, JH_LOCAL_CHANNEL_ID
     if not client.guilds:
         return
     guild = client.guilds[0]
@@ -2634,6 +2648,7 @@ async def _init_jh_channels(client) -> None:
         ("jh-태스크보드",   "JH_TASKBOARD_CHANNEL_ID",       "📋 태스크보드 → Bucky 라우팅"),
         ("jh-클로드코드앱",  "JH_CLAUDE_CODE_CHANNEL_ID",    "🤖 Claude Code 앱 세션 요청/상태 보고"),
         ("jh-코덱스앱",     "JH_CODEX_CHANNEL_ID",          "🔍 Codex 앱 세션 요청/상태 보고"),
+        ("jh-local",       "JH_LOCAL_CHANNEL_ID",           "🖥️ 로컬 PC 상태 실시간 대화"),
     ]
     _globals = globals()
     for ch_name, env_key, topic in _specs:
@@ -2665,6 +2680,7 @@ async def _init_jh_channels(client) -> None:
         ("JH_TASKBOARD_CHANNEL_ID",      JH_TASKBOARD_CHANNEL_ID),
         ("JH_CLAUDE_CODE_CHANNEL_ID",    JH_CLAUDE_CODE_CHANNEL_ID),
         ("JH_CODEX_CHANNEL_ID",          JH_CODEX_CHANNEL_ID),
+        ("JH_LOCAL_CHANNEL_ID",          JH_LOCAL_CHANNEL_ID),
     ]
     for _env_key, _ch_id in _intake_env_keys:
         if _ch_id:
@@ -3992,6 +4008,25 @@ class BuckyDiscordBot(discord.Client):
         if await _handle_wishket_development_payload(message, content):
             return
 
+        # ── jh-local: 로컬 PC 상태 실시간 대화 ────────────────────────────────────
+        if JH_LOCAL_CHANNEL_ID and channel_id == JH_LOCAL_CHANNEL_ID:
+            if content in ("!로컬상태", "!local-status", "!jh-local-status"):
+                try:
+                    from jh_local_status import build_report as _jhl_report, format_text as _jhl_text
+                    report = await asyncio.to_thread(_jhl_report)
+                    for chunk in split_message(_jhl_text(report)):
+                        await message.channel.send(chunk)
+                except Exception as _jhl_e:
+                    await message.channel.send(f"⚠️ jh-local 상태 조회 실패: {_jhl_e}")
+                return
+            if content and not content.startswith("!") and _jh_local_wants_status(content):
+                try:
+                    from jh_local_status import build_report as _jhl_report, format_text as _jhl_text
+                    report = await asyncio.to_thread(_jhl_report)
+                    content = f"[로컬 PC 실시간 상태]\n{_jhl_text(report)}\n\n[사용자 질문]\n{content}"
+                except Exception as _jhl_e:
+                    print(f"[JH-Local] 상태 조회 실패: {_jhl_e}", flush=True)
+
         # ── Sync Sentinel — PC/스토리지/Git/Docker 상태 확인 ─────────────────────
         if content in ("!sync", "!pc", "!sync-status", "!pc-status", "!동기화상태", "!PC상태"):
             try:
@@ -4227,6 +4262,7 @@ class BuckyDiscordBot(discord.Client):
                 "`!session new` / `!새세션` — 새 세션 강제 시작\n"
                 "`!session help` / `!세션도움말` — 세션 기능 도움말\n"
                 "`!queue` / `!agentbus` / `!큐상태` — AgentBus 큐 읽기 전용 점검\n"
+                "`!로컬상태` / `!local-status` — jh-local 채널: CPU/디스크/봇/파이프라인/git 상태 즉시 조회\n"
                 "`!context-pack <내용>` / `!pack <내용>` / `!팩 <내용>` — 최소 컨텍스트 팩 선택\n"
                 "**[AgentBus 승인 게이트]**\n"
                 "`!pending` / `!승인목록` — 승인 대기 태스크 목록\n"
