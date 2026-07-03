@@ -11,8 +11,8 @@ param(
 $ErrorActionPreference = "Continue"
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $scriptsDir = $PSScriptRoot
-$pythonExe = (Get-Command python -ErrorAction SilentlyContinue)?.Source
-if (-not $pythonExe) { $pythonExe = "python" }
+$_pyCmd = Get-Command python -ErrorAction SilentlyContinue
+$pythonExe = if ($_pyCmd) { $_pyCmd.Source } else { "python" }
 
 $logDir = Join-Path $repoRoot "logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
