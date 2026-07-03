@@ -1,0 +1,229 @@
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from scripts import daily_plus_morning_report as morning
+
+
+class DailyPlusMorningReportTests(unittest.TestCase):
+    def test_report_needs_attention_for_zero_candidate_404_capture(self):
+        report_text = """---
+date: 2026-05-31
+card_count: 0
+candidate_count: 0
+---
+
+# Pulse Evolution Report - 2026-05-31
+"""
+        capture_text = """---
+date: 2026-05-31
+card_count: 0
+---
+
+# ChatGPT Pulse - 2026-05-31
+
+## Overview
+
+404 Not Found
+"""
+
+        self.assertTrue(morning.report_needs_attention(report_text, capture_text))
+
+    def test_report_needs_attention_false_for_candidate_report(self):
+        report_text = """---
+date: 2026-05-30
+card_count: 3
+candidate_count: 3
+---
+
+### P1 · Card 1: Example
+"""
+        capture_text = "## Overview\n\nPulse\n\n## Pulse Cards"
+
+        self.assertFalse(morning.report_needs_attention(report_text, capture_text))
+
+    def test_generate_dashboard_falls_back_to_subprocess_on_permission_error(self):
+        output_path = ROOT / "docs" / "daily-plus.html"
+        completed = mock.Mock(
+            returncode=0,
+            stdout=f"[daily-plus-dashboard] wrote {output_path}\n",
+            stderr="",
+        )
+
+        with mock.patch.object(morning, "generate", side_effect=PermissionError("denied")):
+            with mock.patch.object(morning.subprocess, "run", return_value=completed) as run_mock:
+                output = morning.generate_dashboard("2026-06-04")
+
+        self.assertEqual(output, output_path)
+        run_mock.assert_called_once()
+
+    def test_generate_dashboard_raises_when_subprocess_fallback_fails(self):
+        completed = mock.Mock(returncode=1, stdout="", stderr="fallback failed")
+
+        with mock.patch.object(morning, "generate", side_effect=PermissionError("denied")):
+            with mock.patch.object(morning.subprocess, "run", return_value=completed):
+                with self.assertRaises(RuntimeError):
+                    morning.generate_dashboard("2026-06-04")
+
+    def test_generate_dashboard_retries_without_date_when_dated_fallback_fails(self):
+        output_path = ROOT / "docs" / "daily-plus.html"
+        first = mock.Mock(returncode=1, stdout="", stderr="dated failed")
+        second = mock.Mock(
+            returncode=0,
+            stdout=f"[daily-plus-dashboard] wrote {output_path}\n",
+            stderr="",
+        )
+
+        with mock.patch.object(morning, "generate", side_effect=PermissionError("denied")):
+            with mock.patch.object(morning.subprocess, "run", side_effect=[first, second]) as run_mock:
+                output = morning.generate_dashboard("2026-06-04")
+
+        self.assertEqual(output, output_path)
+        self.assertEqual(run_mock.call_count, 2)
+
+    def test_dashboard_is_current_requires_date_and_report_marker(self):
+        path = mock.Mock(spec=Path)
+        path.exists.return_value = True
+        path.read_text.return_value = (
+            "2026-06-04\nObsidianVault\\00_UPGRADE\\pulse-evolution\\2026-06-04.md\n"
+        )
+
+        self.assertTrue(morning.dashboard_is_current(path, "2026-06-04"))
+        self.assertFalse(morning.dashboard_is_current(path, "2026-06-05"))
+
+    def test_write_text_or_keep_existing_accepts_matching_existing_file(self):
+        path = mock.Mock(spec=Path)
+        path.write_text.side_effect = PermissionError("denied")
+        path.exists.return_value = True
+        path.read_text.return_value = "date: 2026-06-04\nstatus: ready\nhttps://jaeha81.github.io/obsidian-agent-brain-system/daily-plus.html\n"
+
+        morning.write_text_or_keep_existing(
+            path,
+            "body",
+            ["date: 2026-06-04", "status: ready", morning.PUBLIC_URL],
+        )
+
+    def test_write_text_or_keep_existing_retries_after_permission_error(self):
+        path = mock.Mock(spec=Path)
+        path.write_text.side_effect = [PermissionError("denied"), None]
+        path.exists.return_value = False
+
+        with mock.patch.object(morning.time, "sleep") as sleep_mock:
+            morning.write_text_or_keep_existing(
+                path,
+                "body",
+                ["date: 2026-06-04", "status: ready", morning.PUBLIC_URL],
+            )
+
+        self.assertEqual(path.write_text.call_count, 2)
+        sleep_mock.assert_called_once()
+
+    def test_build_report_writes_attention_report_when_dashboard_refresh_is_blocked(self):
+        report_path = ROOT / "ObsidianVault" / "00_UPGRADE" / "pulse-evolution" / "2026-06-06.md"
+        capture_path = ROOT / "ObsidianVault" / "04_Wiki" / "daily-plus" / "2026-06-06.md"
+        attention_path = (
+            ROOT
+            / "ObsidianVault"
+            / "10_AgentBus"
+            / "reports"
+            / "20260606_daily_plus_dashboard_report.md"
+        )
+        report_text = """---
+date: 2026-06-06
+card_count: 12
+candidate_count: 12
+---
+
+# Pulse Evolution Report - 2026-06-06
+"""
+        capture_text = """---
+date: 2026-06-06
+card_count: 12
+---
+
+# ChatGPT Pulse - 2026-06-06
+
+## Overview
+
+Pulse
+"""
+
+        with mock.patch.object(morning, "latest_report", return_value=report_path):
+            with mock.patch.object(morning, "read_text", side_effect=[report_text, capture_text]):
+                with mock.patch.object(morning, "generate_dashboard", side_effect=RuntimeError("html locked")):
+                    with mock.patch.object(morning, "dashboard_is_current", return_value=False):
+                        with mock.patch.object(
+                            morning,
+                            "write_attention_report",
+                            return_value=attention_path,
+                        ) as write_attention_report:
+                            output = morning.build_report()
+
+        self.assertEqual(output, attention_path)
+        write_attention_report.assert_called_once_with(
+            report_path,
+            capture_path,
+            "Public dashboard refresh failed: html locked",
+        )
+
+    def test_build_report_runs_graphify_evolution_after_ready_report(self):
+        report_path = ROOT / "ObsidianVault" / "00_UPGRADE" / "pulse-evolution" / "2026-06-10.md"
+        capture_path = ROOT / "ObsidianVault" / "04_Wiki" / "daily-plus" / "2026-06-10.md"
+        output_path = ROOT / "docs" / "daily-plus.html"
+        graphify_record = (
+            ROOT
+            / "ObsidianVault"
+            / "10_AgentBus"
+            / "completed"
+            / "20260610_daily_graphify_evolution.md"
+        )
+        report_text = """---
+date: 2026-06-10
+card_count: 2
+candidate_count: 2
+---
+
+### P1 - Card 1
+"""
+        capture_text = """---
+date: 2026-06-10
+card_count: 2
+---
+
+## Pulse Cards
+"""
+        candidate = mock.Mock(status="applied")
+
+        with mock.patch.object(morning, "latest_report", return_value=report_path):
+            with mock.patch.object(morning, "read_text", side_effect=[report_text, capture_text]):
+                with mock.patch.object(morning, "generate_dashboard", return_value=output_path):
+                    with mock.patch.object(morning, "parse_candidates", return_value=[candidate]):
+                        with mock.patch.object(morning, "attach_statuses"):
+                            with mock.patch.object(morning, "candidate_scores", return_value=(5, 4)):
+                                with mock.patch.object(morning, "load_history", return_value=[]):
+                                    with mock.patch.object(morning, "write_text_or_keep_existing"):
+                                        with mock.patch.object(
+                                            morning,
+                                            "run_daily_graphify_evolution",
+                                            return_value=graphify_record,
+                                        ) as run_graphify:
+                                            output = morning.build_report()
+
+        self.assertEqual(
+            output,
+            ROOT
+            / "ObsidianVault"
+            / "10_AgentBus"
+            / "reports"
+            / "20260610_daily_plus_dashboard_report.md",
+        )
+        run_graphify.assert_called_once_with(date="2026-06-10")
+
+
+if __name__ == "__main__":
+    unittest.main()

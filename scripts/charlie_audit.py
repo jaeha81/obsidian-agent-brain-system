@@ -43,13 +43,13 @@ def _find_git():
 _GIT = _find_git()
 
 
-def run_git(args):
+def run_git(args, timeout=30):
     if not _GIT:
         return 1, ""
     try:
         result = subprocess.run(
             [_GIT, "-C", str(ROOT)] + args,
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
         )
         return result.returncode, (result.stdout + result.stderr)
     except Exception as exc:
@@ -141,7 +141,10 @@ def check_git_status():
 
 
 def git_log_summary(since):
-    rc, out = run_git(["log", f"--since={since}", "--pretty=format:%x01%h|%ad|%s", "--date=short", "--name-only"])
+    rc, out = run_git(
+        ["log", f"--since={since}", "--pretty=format:%x01%h|%ad|%s", "--date=short", "--name-only"],
+        timeout=120,  # can be slow on cloud-synced (Google Drive) worktrees
+    )
     if rc != 0:
         return []
     commits = []
