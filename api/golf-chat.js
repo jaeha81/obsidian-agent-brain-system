@@ -13,6 +13,8 @@ const SYSTEM_PROMPT = `당신은 일본 골프 예약을 도와주는 친근한 
 - 마커 외 응답은 자연스러운 한국어 대화체로 작성하세요
 - 예산이 맞지 않거나 원하는 지역이 없으면 솔직하게 알려주세요`;
 
+const FREE_MODEL = process.env.JP_GOLF_GEMINI_MODEL || 'gemini-2.5-flash-lite';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method Not Allowed' });
@@ -37,35 +39,37 @@ export default async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // MVP 무료 검증 단계: 전 모드 Gemini 2.5 Flash-Lite 무료 티어 사용.
+  // 결제 연동(가이드모드) 완료 후 Claude Haiku 4.5 유료 전환 예정 — ObsidianVault/03_Projects/jp-golf/2026-07-04-ai-api-stack.md 참조.
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: 'API key not configured' });
     return;
   }
 
-  const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      system: SYSTEM_PROMPT,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
-    }),
-  });
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${FREE_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: messages.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+      }),
+    }
+  );
 
-  if (!anthropicRes.ok) {
-    const err = await anthropicRes.text();
+  if (!geminiRes.ok) {
+    const err = await geminiRes.text();
     res.status(502).json({ error: 'Upstream API error', detail: err });
     return;
   }
 
-  const data = await anthropicRes.json();
-  const content = data?.content?.[0]?.text ?? '죄송해요, 잠시 오류가 발생했어요.';
+  const data = await geminiRes.json();
+  const content = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '죄송해요, 잠시 오류가 발생했어요.';
 
   res.status(200).json({ content });
 }
