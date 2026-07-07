@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시스템진화 — JH</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+})();
+</script>
+<style>
+:root{
+  --bg:#07100d;--bg2:#0a150f;--card:#0e1f17;--card2:#112519;
+  --border:#1a3a28;--border2:#1f4a32;
+  --accent:#f97316;--accent2:#3b82f6;
+  --purple:#a855f7;--purple2:#7c3aed;
+  --text:#e2e8f0;--dim:#94a3b8;
+  --green:#22c55e;--red:#ef4444;--yellow:#eab308;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;font-size:13px}
+
+/* NAV */
+nav.jh-nav{
+  display:flex;flex-wrap:wrap;gap:4px;
+  padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100
+}
+nav.jh-nav a{
+  padding:5px 12px;border-radius:6px;border:1px solid transparent;
+  color:var(--dim);text-decoration:none;font-size:12px;font-weight:500;transition:all .15s
+}
+nav.jh-nav a:hover{color:var(--text);border-color:var(--border2);background:var(--card)}
+nav.jh-nav a.active{color:var(--text);border-color:var(--border2);background:var(--card2)}
+nav.jh-nav a[href*="system-evolution"]{color:var(--purple) !important;border-color:rgba(168,85,247,.3)}
+nav.jh-nav a[href*="system-evolution"]:hover,
+nav.jh-nav a[href*="system-evolution"].active{background:rgba(168,85,247,.12) !important;border-color:rgba(168,85,247,.5) !important}
+
+/* LAYOUT */
+.page-wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(124,58,237,.08));
+  border:1px solid rgba(168,85,247,.25);border-radius:12px;
+  padding:28px 24px 22px;margin-bottom:24px;position:relative;overflow:hidden
+}
+.hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,85,247,.12),transparent 70%);pointer-events:none
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 10px;border-radius:99px;
+  background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);
+  color:var(--green);font-size:10px;font-weight:700;letter-spacing:.8px;
+  margin-bottom:10px
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.badge-dot.on{background:var(--green);box-shadow:0 0 4px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.3}
+.hero p{color:var(--dim);font-size:13px;line-height:1.6;max-width:600px}
+.hero-meta{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.hero-meta span{font-size:11px;color:var(--dim)}
+.hero-meta strong{color:var(--text)}
+
+/* SECTION */
+.section-title{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1px solid var(--border)
+}
+.section+.section{margin-top:28px}
+
+/* PHASE STATUS TAG (재사용) */
+.phase-status-tag{
+  display:inline-block;padding:2px 7px;border-radius:4px;
+  font-size:9px;font-weight:700;letter-spacing:.5px;margin-left:6px;vertical-align:middle
+}
+.phase-status-tag.active{background:rgba(168,85,247,.2);color:var(--purple)}
+.phase-status-tag.pending{background:rgba(148,163,184,.1);color:var(--dim)}
+.phase-status-tag.done{background:rgba(34,197,94,.15);color:var(--green)}
+
+/* KPI GRID (재사용) */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.kpi-card{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;
+  transition:border-color .15s
+}
+.kpi-card:hover{border-color:var(--border2)}
+.kpi-info{flex:1;min-width:0}
+.kpi-label{font-size:12px;color:var(--text);font-weight:600}
+.kpi-due{font-size:11px;color:var(--dim);margin-top:2px;line-height:1.4}
+
+/* BEFORE / AFTER (task-cols 재사용) */
+.task-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:620px){.task-cols{grid-template-columns:1fr}}
+.task-list{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px}
+.task-list.after-card{border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.04)}
+.task-list-title{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.6px;margin-bottom:10px}
+.task-list ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.task-list li{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:12px;color:var(--text);line-height:1.5
+}
+.task-list li::before{
+  content:'→';color:var(--purple);font-size:11px;font-weight:700;
+  flex-shrink:0;margin-top:1px
+}
+.task-list.after-card li::before{color:var(--green)}
+
+/* GROWTH CARDS (신규) */
+.grow-card{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;transition:border-color .15s
+}
+.grow-card:hover{border-color:var(--border2)}
+.grow-before{font-size:11px;color:var(--dim)}
+.grow-arrow{color:var(--green);font-weight:700}
+.grow-now{font-size:26px;font-weight:800;color:var(--accent);line-height:1.1;margin:4px 0 2px}
+.grow-now .unit{font-size:13px;font-weight:600;color:var(--dim);margin-left:3px}
+.grow-label{font-size:12px;color:var(--text);font-weight:500}
+
+/* TIMELINE (신규 · 세로 스택) */
+.timeline{display:flex;flex-direction:column;gap:8px}
+.tl-item{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;border-left:3px solid var(--border2)
+}
+.tl-item.done{border-left-color:var(--green)}
+.tl-item.active{border-left-color:var(--purple);background:rgba(168,85,247,.06)}
+.tl-date{font-size:10px;color:var(--dim);font-weight:600;letter-spacing:.4px}
+.tl-title{font-size:13px;font-weight:700;color:var(--text);margin:3px 0 5px}
+.tl-desc{font-size:12px;color:var(--dim);line-height:1.55}
+
+/* COMPONENT DOTS (신규) */
+.comp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.comp-dot.live{background:var(--green);box-shadow:0 0 6px var(--green)}
+.comp-dot.building{background:var(--accent);box-shadow:0 0 6px rgba(249,115,22,.5)}
+.comp-dot.planned{background:var(--dim)}
+
+/* ROADMAP (신규) */
+.road-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px}
+.road-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.road-id{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:30px;height:22px;padding:0 6px;border-radius:5px;
+  background:rgba(168,85,247,.15);color:var(--purple);font-size:11px;font-weight:800
+}
+.road-title{font-size:13px;font-weight:700;color:var(--text)}
+.road-why{font-size:12px;color:var(--dim);line-height:1.5}
+
+/* FOOTER (재사용) */
+.page-footer{
+  margin-top:32px;padding-top:16px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px
+}
+.page-footer span{font-size:11px;color:var(--dim)}
+.review-pill{
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;
+  background:var(--card);border:1px solid var(--border);color:var(--dim)
+}
+.review-pill strong{color:var(--text)}
+</style>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+
+<nav class="jh-nav"></nav>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="hero" id="hero">
+    <div class="hero-badge">
+      <div class="badge-dot on"></div>
+      SYSTEM EVOLUTION · LIVE
+    </div>
+    <h1 id="hero-title">—</h1>
+    <p id="hero-sub">—</p>
+    <div class="hero-meta" id="hero-meta">
+      <span>최종 업데이트 <strong>—</strong></span>
+      <span>다음 갱신 <strong>—</strong></span>
+    </div>
+  </div>
+
+  <!-- BEFORE / AFTER -->
+  <div class="section">
+    <div class="section-title">이전 → 이후</div>
+    <div class="task-cols">
+      <div class="task-list">
+        <div class="task-list-title" id="before-title">이전</div>
+        <ul id="before-list"></ul>
+      </div>
+      <div class="task-list after-card">
+        <div class="task-list-title" id="after-title">이후</div>
+        <ul id="after-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROWTH -->
+  <div class="section">
+    <div class="section-title">성장 지표 (시작 → 지금)</div>
+    <div class="kpi-grid" id="growth-grid"></div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="section">
+    <div class="section-title">진화 타임라인 (과거 → 현재)</div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <!-- NOW / COMPONENTS -->
+  <div class="section">
+    <div class="section-title">지금 살아있는 것</div>
+    <div class="kpi-grid" id="components-grid"></div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="section">
+    <div class="section-title">앞으로 (성장 방향)</div>
+    <div class="kpi-grid" id="roadmap-grid"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <span id="footer-updated">데이터 기준: —</span>
+    <div class="review-pill">다음 갱신 <strong>매일 오전 8시 자동</strong></div>
+  </div>
+
+</div>
+
+<script src="/shared/nav.js"></script>
+<script>
+(function(){
+  function fmt(n){ return (typeof n==='number') ? n.toLocaleString('en-US') : n; }
+
+  function statusTag(s){
+    if(s==='active'||s==='in_progress') return '<span class="phase-status-tag active">진행중</span>';
+    if(s==='done') return '<span class="phase-status-tag done">완료</span>';
+    return '<span class="phase-status-tag pending">예정</span>';
+  }
+
+  function render(d){
+    // Hero
+    document.getElementById('hero-title').textContent = d.story.headline;
+    document.getElementById('hero-sub').textContent = d.story.reassurance;
+    document.getElementById('hero-meta').innerHTML =
+      '<span>최종 업데이트 <strong>'+d.meta.last_updated+'</strong></span>'+
+      '<span>다음 갱신 <strong>'+d.meta.next_update+'</strong></span>';
+
+    // Before / After
+    var b = d.story.before, a = d.story.after;
+    document.getElementById('before-title').textContent = b.title;
+    document.getElementById('before-list').innerHTML = b.points.map(function(p){return '<li>'+p+'</li>';}).join('');
+    document.getElementById('after-title').textContent = a.title;
+    document.getElementById('after-list').innerHTML = a.points.map(function(p){return '<li>'+p+'</li>';}).join('');
+
+    // Growth
+    document.getElementById('growth-grid').innerHTML = d.growth_metrics.map(function(m){
+      return '<div class="grow-card">'+
+        '<div class="grow-before">'+fmt(m.before.value)+' <span style="opacity:.65">('+m.before.date+')</span> <span class="grow-arrow">→</span></div>'+
+        '<div class="grow-now">'+fmt(m.now)+'<span class="unit">'+m.unit+'</span></div>'+
+        '<div class="grow-label">'+m.label+'</div>'+
+        '</div>';
+    }).join('');
+
+    // Timeline
+    document.getElementById('timeline').innerHTML = d.timeline.map(function(t){
+      var cls = t.status==='done'?'done':(t.status==='active'?'active':'');
+      return '<div class="tl-item '+cls+'">'+
+        '<div class="tl-date">'+t.date+'</div>'+
+        '<div class="tl-title">'+t.title+statusTag(t.status)+'</div>'+
+        '<div class="tl-desc">'+t.desc+'</div>'+
+        '</div>';
+    }).join('');
+
+    // Components
+    document.getElementById('components-grid').innerHTML = d.components.map(function(c){
+      return '<div class="kpi-card">'+
+        '<div class="comp-dot '+c.status+'"></div>'+
+        '<div class="kpi-info">'+
+          '<div class="kpi-label">'+c.name+'</div>'+
+          '<div class="kpi-due">'+c.desc+'</div>'+
+        '</div>'+
+        '</div>';
+    }).join('');
+
+    // Roadmap
+    document.getElementById('roadmap-grid').innerHTML = d.roadmap_phases.map(function(p){
+      return '<div class="road-card">'+
+        '<div class="road-head">'+
+          '<span class="road-id">'+p.id+'</span>'+
+          '<span class="road-title">'+p.title+'</span>'+
+          statusTag(p.status)+
+        '</div>'+
+        '<div class="road-why">'+p.why+'</div>'+
+        '</div>';
+    }).join('');
+
+    // Footer
+    document.getElementById('footer-updated').textContent = '데이터 기준: '+d.meta.last_updated;
+  }
+
+  fetch('/data/system_evolution.json?t='+Date.now())
+    .then(function(r){ return r.json(); })
+    .then(render)
+    .catch(function(e){
+      document.getElementById('hero-sub').textContent =
+        '데이터 로드 실패: '+e.message+' — JSON 경로를 확인하세요.';
+    });
+})();
+</script>
+</body>
+</html>

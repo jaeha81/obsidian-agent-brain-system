@@ -56,6 +56,9 @@ if (-not $SkipGptSession) {
 # 3. Daily Plus 대시보드 + 모닝 리포트 생성
 $reportOk = RunPython "daily_plus_morning_report.py" @() "Daily Plus 대시보드 생성"
 
+# 3b. System Evolution 대시보드 데이터 생성 (Daily Plus 수집과 독립)
+RunPython "build_system_evolution.py" @() "System Evolution 생성"
+
 # 4. git push (대시보드 생성 성공 시)
 if ($reportOk -and -not $SkipGitPush) {
     Log "START: git push"
@@ -65,6 +68,8 @@ if ($reportOk -and -not $SkipGitPush) {
         if ($gitStatus) {
             & git add `
                 "docs/daily-plus.html" `
+                "docs/system-evolution.html" `
+                "docs/data/system_evolution.json" `
                 "ObsidianVault/04_Wiki/daily-plus/" `
                 "ObsidianVault/00_UPGRADE/pulse-evolution/" `
                 "ObsidianVault/01_RAW/gpt-sessions/" `

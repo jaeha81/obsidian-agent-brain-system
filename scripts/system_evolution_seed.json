@@ -1,0 +1,99 @@
+{
+  "story": {
+    "headline": "2달 전 빈 폴더 하나 → 지금 스스로 기록하고 자라는 두뇌",
+    "before": {
+      "title": "시작할 때 (2026-05-22)",
+      "points": [
+        "노트 100여 개가 흩어져 있었음",
+        "자동으로 하는 일이 아무것도 없었음",
+        "기억이 여기저기 나뉘어 찾기 어려웠음"
+      ]
+    },
+    "after": {
+      "title": "지금",
+      "points": [
+        "매일 자동으로 수집·정리됨",
+        "여러 에이전트가 서로 일을 나눠서 협업",
+        "묻지 않아도 매일 아침 스스로 리포트를 만듦"
+      ]
+    },
+    "reassurance": "시스템은 지금도 살아서 매일 스스로 갱신되고 있습니다. 오늘 이 화면의 숫자도 자동으로 채워진 것입니다."
+  },
+  "growth_metrics": [
+    {
+      "id": "vault_wiki",
+      "label": "정리된 위키 노트",
+      "unit": "개",
+      "before": { "value": 0, "date": "2026-05-22" },
+      "now_source": { "type": "md_count", "path": "ObsidianVault/04_Wiki" }
+    },
+    {
+      "id": "vault_knowledge",
+      "label": "지식 캡처",
+      "unit": "개",
+      "before": { "value": 0, "date": "2026-05-22" },
+      "now_source": { "type": "md_count", "path": "ObsidianVault/09_Knowledge_Capture" }
+    },
+    {
+      "id": "scripts",
+      "label": "자동화 스크립트",
+      "unit": "개",
+      "before": { "value": 0, "date": "2026-05-22" },
+      "now_source": { "type": "glob_count", "pattern": "scripts/*.py" }
+    },
+    {
+      "id": "commits",
+      "label": "누적 변경 기록 (성장의 흔적)",
+      "unit": "회",
+      "before": { "value": 1, "date": "2026-05-22" },
+      "now_source": { "type": "git_commits" }
+    },
+    {
+      "id": "graph_nodes",
+      "label": "지식 그래프 노드",
+      "unit": "개",
+      "before": { "value": 119, "date": "2026-05-22" },
+      "now_source": { "type": "static", "value": 23303, "now_date": "2026-05-24" }
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-05-22",
+      "title": "기반 완성 (1~6단계)",
+      "status": "done",
+      "desc": "폴더 구조와 첫 자동 파이프라인이 자리를 잡았습니다. 노트 181개를 옮겨 담으며 출발했습니다."
+    },
+    {
+      "date": "2026-05-24",
+      "title": "지식 그래프 첫 전체 빌드",
+      "status": "done",
+      "desc": "노트들이 서로 연결되어 두뇌 지도가 생겼습니다. 노드 2만 3천여 개 규모."
+    },
+    {
+      "date": "2026-06-28",
+      "title": "매일 아침 자동 리포트 시작",
+      "status": "done",
+      "desc": "묻지 않아도 매일 스스로 수집하고 정리해서 보고하기 시작했습니다."
+    },
+    {
+      "date": "2026-07-07",
+      "title": "홈PC · 클라우드 역할 분리",
+      "status": "active",
+      "desc": "더 안 꺼지고 안정적이도록 시스템을 '집 PC(개발)'와 '클라우드(항상 켜짐)' 두 축으로 나누는 중입니다."
+    }
+  ],
+  "components": [
+    { "name": "디스코드 봇", "status": "live", "desc": "메시지를 받아 지식으로 저장 — 정상 작동 중" },
+    { "name": "채팅 서버", "status": "live", "desc": "대화를 실시간으로 처리 — 정상 작동 중" },
+    { "name": "에이전트 협업 버스", "status": "live", "desc": "에이전트들이 서로 일을 주고받음 — 정상 작동 중" },
+    { "name": "견적 시스템", "status": "live", "desc": "MVP 완료, 실제 견적에 사용 가능" },
+    { "name": "로컬 세컨드 브레인", "status": "building", "desc": "재설치·정비 중 — 곧 복귀 예정" },
+    { "name": "클라우드 서버", "status": "building", "desc": "두 대를 하나로 합치는 정리 중" }
+  ],
+  "roadmap_phases": [
+    { "id": "P0", "title": "역할 분리 & 안정화", "status": "done", "why": "먼저 안 넘어지게 만드는 단계 — 완료됨." },
+    { "id": "P1", "title": "클라우드 완전 세컨드 브레인", "status": "planned", "why": "집 PC를 꺼도 두뇌가 계속 살아있게 만듭니다." },
+    { "id": "P2", "title": "안전한 연결 & 비밀정보 정리", "status": "planned", "why": "어디서든 안전하게 접속하고, 비밀번호를 안전하게 보관." },
+    { "id": "P3", "title": "중복 정리 & 다이어트", "status": "planned", "why": "군더더기를 덜어 가볍고 빠르게 만듭니다." }
+  ]
+}
