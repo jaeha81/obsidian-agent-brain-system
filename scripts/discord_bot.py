@@ -158,6 +158,12 @@ JH_LOCAL_CHANNEL_ID: str          = os.getenv("JH_LOCAL_CHANNEL_ID", "").strip()
 # 앱 세션 채널: Claude Code / Codex 앱 세션 요청/상태 보고
 JH_CLAUDE_CODE_CHANNEL_ID: str = os.getenv("JH_CLAUDE_CODE_CHANNEL_ID", "").strip()
 JH_CODEX_CHANNEL_ID: str       = os.getenv("JH_CODEX_CHANNEL_ID", "").strip()
+# 역할 컨텍스트 채널 (channel_roles/*.md 주입 대상)
+JH_MYINTRO_CHANNEL_ID: str     = os.getenv("JH_MYINTRO_CHANNEL_ID", "").strip()
+JH_SHORTS_CHANNEL_ID: str      = os.getenv("JH_SHORTS_CHANNEL_ID", "").strip()
+JH_CHSH_MINING_CHANNEL_ID: str = os.getenv("JH_CHSH_MINING_CHANNEL_ID", "").strip()
+JH_THREADS_CHANNEL_ID: str     = os.getenv("JH_THREADS_CHANNEL_ID", "").strip()
+JH_KMONG_CHANNEL_ID: str       = os.getenv("JH_KMONG_CHANNEL_ID", "").strip()
 # 작업 채널: 채널 = 독립 Claude Code 인스턴스 (tools 허용, 병렬 실행)
 JH_WORK_CHANNEL_IDS: set[str] = {
     c.strip() for c in os.getenv("JH_WORK_CHANNEL_IDS", "").split(",") if c.strip()
@@ -169,7 +175,9 @@ TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "")
 GUILD_ID: str = os.getenv("DISCORD_GUILD_ID", "")
 ALLOWED_CHANNELS: set[str] = {
     c.strip() for c in os.getenv("DISCORD_CHANNEL_IDS", "").split(",") if c.strip()
-} | JH_WORK_CHANNEL_IDS  # 작업 채널 자동 포함
+} | JH_WORK_CHANNEL_IDS | {
+    c for c in (JH_TASKBOARD_CHANNEL_ID, JH_LOCAL_CHANNEL_ID) if c
+}  # 작업 채널 + 전용 핸들러/역할 채널(taskboard·local) 자동 포함
 VAULT = Path(os.getenv("VAULT_PATH", str(_ROOT / "ObsidianVault")))
 INBOX = VAULT / "10_AgentBus" / "inbox"
 MIN_LENGTH: int = int(os.getenv("DISCORD_MIN_LENGTH", "1"))
@@ -437,6 +445,47 @@ def _load_bucky_context() -> str:
         return text
     except Exception:
         return BUCKY_SYSTEM_PROMPT
+
+
+_CHANNEL_ROLE_DIR = _VAULT / "00_System" / "channel_roles"
+
+def _load_channel_role_context(filename: str) -> str:
+    path = _CHANNEL_ROLE_DIR / filename
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace").strip()
+        return f"\n\n---\n\n# Channel Role Context\n\n{text}" if text else ""
+    except Exception:
+        return ""
+
+
+def _get_channel_role_context(channel_id: str) -> str:
+    """채널 ID에 해당하는 역할 컨텍스트 파일을 로드한다."""
+    channel_var_map = {
+        JH_CHAT_CHANNEL_ID:           "JHHUB_ROLE.md",
+        JH_REPO_DASHBOARD_CHANNEL_ID: "REPO_DASHBOARD_ROLE.md",
+        JH_WISHKET_CHANNEL_ID:        "WISHKET_ROLE.md",
+        JH_KMONG_CHANNEL_ID:          "KMONG_ROLE.md",
+        JH_DAILYPLUS_CHANNEL_ID:      "DAILYPLUS_ROLE.md",
+        JH_TASKBOARD_CHANNEL_ID:      "TASKBOARD_ROLE.md",
+        JH_CLAUDE_CODE_CHANNEL_ID:    "CLAUDE_CODE_ROLE.md",
+        JH_CODEX_CHANNEL_ID:          "CODEX_ROLE.md",
+        JH_MYINTRO_CHANNEL_ID:        "MYINTRO_ROLE.md",
+        JH_SHORTS_CHANNEL_ID:         "SHORTS_ROLE.md",
+        JH_CHSH_MINING_CHANNEL_ID:    "CHSH_MINING_ROLE.md",
+        JH_THREADS_CHANNEL_ID:        "THREADS_ROLE.md",
+    }
+    for ch_id, filename in channel_var_map.items():
+        if ch_id and str(channel_id) == str(ch_id):
+            return _load_channel_role_context(filename)
+    return ""
+
+
+def _load_agent_context(channel_id: str, user_message: str = "") -> str:
+    context = _load_bucky_context()
+    role_context = _get_channel_role_context(channel_id)
+    if role_context:
+        context = f"{context}{role_context}"
+    return context
 
 # ── 사용자 접근제어 ─────────────────────────────────────────────────────────────
 
@@ -1740,7 +1789,7 @@ async def ask_bucky(
         rag_context = await asyncio.to_thread(_get_rag_context, user_message)
         rag_block = f"\n\n{rag_context}" if rag_context else ""
 
-    bucky_context = _load_bucky_context()
+    bucky_context = _load_agent_context(channel_id, user_message)
     session_anchor = (
         "# Active dashboard session\n\n"
         f"- key: {session_key}\n"
@@ -2639,7 +2688,10 @@ async def _init_jh_channels(client) -> None:
     global JH_CLAUDE_CODE_CHANNEL_ID, JH_CODEX_CHANNEL_ID, JH_LOCAL_CHANNEL_ID
     if not client.guilds:
         return
-    guild = client.guilds[0]
+    # guilds[0]은 순서 보장이 없어 권한 없는 서버(jH-test)로 잡힐 수 있음 — .env GUILD_ID 우선
+    guild = discord.utils.get(client.guilds, id=int(GUILD_ID)) if GUILD_ID.isdigit() else None
+    if guild is None:
+        guild = client.guilds[0]
     _specs = [
         ("jh-chat",        "JH_CHAT_CHANNEL_ID",            "💬 JH ↔ Bucky 대화 전용"),
         ("jh-레포대시보드",  "JH_REPO_DASHBOARD_CHANNEL_ID", "📦 Repo 대시보드 → Bucky 라우팅"),
@@ -3269,6 +3321,11 @@ async def _handle_work_channel(message: Message) -> None:
     # ── Claude Code 실행 ──────────────────────────────────────────────────────
     custom_sp = os.getenv(f"JH_WORK_PROMPT_{channel_id}", "").strip()
     system_prompt = custom_sp or _WORK_SYSTEM_PROMPT
+    # 채널 역할 컨텍스트 주입 — claude-code/codex 채널의 CLAUDE_CODE_ROLE.md/CODEX_ROLE.md
+    # (rolewire가 ask_bucky에만 물려 work 채널에서 죽어있던 것을 복구)
+    _role_ctx = _get_channel_role_context(channel_id)
+    if _role_ctx:
+        system_prompt = f"{system_prompt}{_role_ctx}"
 
     # 이전 세션에서 남은 thinking 메시지 삭제
     _old_tm = _active_thinking_msgs.pop(channel_id, None)
