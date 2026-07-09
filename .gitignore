@@ -110,6 +110,9 @@ ObsidianVault/03_Projects/*
 data/bucky_memory.db
 data/bucky_memory.db-shm
 data/bucky_memory.db-wal
+data/bucky_tasks.db
+data/bucky_tasks.db-shm
+data/bucky_tasks.db-wal
 data/intake_queue/processed/
 data/intake_queue/failed/
 data/wishket_loop_history.json
