@@ -22,7 +22,13 @@ TOKEN = "test-token-phase3-client"
 
 sys.path.insert(0, str(CORE))
 import client  # noqa: E402
-from client import OracleClientError, submit_task, get_task  # noqa: E402
+from client import (  # noqa: E402
+    OracleClientError,
+    submit_task,
+    get_task,
+    claim_task,
+    update_status,
+)
 
 TMP = Path(tempfile.mkdtemp(prefix="bucky_client_test_"))
 with socket.socket() as _s:  # 빈 포트 확보 — 고정 포트 충돌 방지
@@ -153,6 +159,39 @@ try:
     ok, e = raises(lambda: submit_task("chat", base_url=BASE, token=None))
     check("C8 토큰 없음 → 호출 전 예외(status None)",
           ok and e is not None and e.status is None, f"got {ok} {e!r}")
+
+    # --- 폴링 측(claim_task/update_status) ---
+    # C9 submit → claim으로 선점(→assigned)
+    sub = submit_task("chat", payload={"instruction": "폴링용"}, target_agent="home-pc-agent",
+                      base_url=BASE, token=TOKEN)
+    claimed = claim_task("home-pc-agent", base_url=BASE, token=TOKEN)
+    check("C9 claim → 해당 태스크 + assigned",
+          claimed is not None and claimed["task_id"] == sub["task_id"]
+          and claimed["status"] == "assigned", f"got {claimed}")
+
+    # C10~C11 running → completed 전이 + result 첨부
+    up = update_status(sub["task_id"], "running", base_url=BASE, token=TOKEN)
+    check("C10 assigned→running", up.get("status") == "running", f"got {up}")
+    up2 = update_status(sub["task_id"], "completed", result={"reply": "됐어"},
+                        base_url=BASE, token=TOKEN)
+    check("C11 running→completed", up2.get("status") == "completed", f"got {up2}")
+    done = get_task(sub["task_id"], base_url=BASE, token=TOKEN)
+    check("C12 result 보존", done.get("result") == {"reply": "됐어"}, f"got {done}")
+
+    # C13 큐 소진 → claim None
+    check("C13 빈 큐 claim → None",
+          claim_task("home-pc-agent", base_url=BASE, token=TOKEN) is None)
+
+    # C14 미등록 agent_id → 서버 400
+    ok, e = raises(lambda: claim_task("ghost-agent", base_url=BASE, token=TOKEN), status=400)
+    check("C14 미등록 agent_id claim 400", ok, f"got {e!r}")
+
+    # C15 허용되지 않는 전이(completed→running) → 서버 409
+    ok, e = raises(
+        lambda: update_status(sub["task_id"], "running", base_url=BASE, token=TOKEN),
+        status=409,
+    )
+    check("C15 잘못된 전이 409", ok, f"got {e!r}")
 finally:
     server.kill()
     server.wait()

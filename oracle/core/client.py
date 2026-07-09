@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Bucky Core API 클라이언트 — submit 측 (Phase 3-④).
+"""Bucky Core API 클라이언트 — 오라클 #2 API 래퍼 (Phase 3-④).
 
-Discord 봇 등 명령 투입 측이 오라클 #2의 API로 태스크를 생성/조회한다.
+submit 측(Discord 봇 등 명령 투입)은 태스크를 생성/조회(submit_task/get_task)하고,
+폴링 측(집PC 워커)은 태스크를 선점하고 상태를 보고(claim_task/update_status)한다.
 api_server.py와 동일하게 stdlib(urllib)만 사용 — pip 설치 없이 어느 노드에서나 임포트된다.
 서버가 검증의 단일 원천이므로 필드 검증은 서버에 위임하고, 여기서는 요청 구성·인증
 부착·HTTP 오류를 사람이 읽을 수 있는 예외로 번역하는 것만 담당한다.
@@ -11,9 +12,12 @@ Env:
     BUCKY_API_TOKEN   Bearer 인증 토큰 (없으면 호출 시 OracleClientError)
 
 Usage:
-    from client import submit_task, get_task
-    res = submit_task("chat", payload={"instruction": "..."}, target_agent="bucky-main")
+    from client import submit_task, get_task, claim_task, update_status
+    res = submit_task("chat", payload={"instruction": "..."}, target_agent="home-pc-agent")
     task = get_task(res["task_id"])
+    # 폴링 측(집PC):
+    task = claim_task("home-pc-agent")                       # None이면 큐가 비어 있음
+    update_status(task["task_id"], "completed", result={"reply": "..."})
 """
 
 from __future__ import annotations
@@ -111,4 +115,46 @@ def get_task(
     """GET /api/v1/tasks/{task_id} — 태스크 레코드 반환(미존재 시 404 → OracleClientError)."""
     return _request(
         "GET", f"/api/v1/tasks/{task_id}", base_url=base_url, token=token, timeout=timeout
+    )
+
+
+def claim_task(
+    agent_id: str,
+    *,
+    base_url: str | None = None,
+    token: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict | None:
+    """POST /api/v1/tasks/claim — 이 에이전트용 pending 태스크 1개를 선점(→assigned).
+
+    가져갈 태스크가 있으면 태스크 레코드(dict), 큐가 비어 있으면 None을 반환한다.
+    미등록 agent_id는 서버가 400으로 거부(→ OracleClientError).
+    """
+    res = _request(
+        "POST", "/api/v1/tasks/claim",
+        base_url=base_url, token=token, body={"agent_id": agent_id}, timeout=timeout,
+    )
+    return res.get("task")
+
+
+def update_status(
+    task_id: str,
+    status: str,
+    *,
+    result: dict | None = None,
+    base_url: str | None = None,
+    token: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict:
+    """POST /api/v1/tasks/{task_id}/status — 상태 전이 보고. 성공 시 {"task_id", "status"}.
+
+    result는 completed/failed 등 종료 보고 시 첨부하는 산출물(선택). 허용되지 않는 전이는
+    서버가 409로 거부(→ OracleClientError)한다.
+    """
+    body: dict = {"status": status}
+    if result is not None:
+        body["result"] = result
+    return _request(
+        "POST", f"/api/v1/tasks/{task_id}/status",
+        base_url=base_url, token=token, body=body, timeout=timeout,
     )
