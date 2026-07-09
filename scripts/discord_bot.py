@@ -1982,6 +1982,55 @@ def _register_tasks_commands(tree: app_commands.CommandTree) -> None:
             await interaction.followup.send(f"⚠️ 리포트 생성 오류: {e}")
 
 
+# ── /oracle 슬래시 명령어 등록 (Phase 3-④) ───────────────────────────────────
+
+def _register_oracle_commands(tree: app_commands.CommandTree) -> None:
+    """오라클 Bucky Core API로 태스크 투입(/oracle) 등록 — Phase 3-④."""
+
+    @tree.command(name="oracle", description="오라클 Bucky Core에 태스크 투입 (POST /api/v1/tasks)")
+    @app_commands.describe(
+        task_type="태스크 유형 (예: chat, research, estimate)",
+        instruction="대상 에이전트에게 전달할 지시 내용",
+        agent="대상 에이전트 ID (기본: bucky-main)",
+        priority="우선순위 (기본: normal)",
+    )
+    @app_commands.choices(priority=[
+        app_commands.Choice(name="low", value="low"),
+        app_commands.Choice(name="normal", value="normal"),
+        app_commands.Choice(name="high", value="high"),
+    ])
+    async def cmd_oracle(
+        interaction: discord.Interaction,
+        task_type: str,
+        instruction: str,
+        agent: str = "bucky-main",
+        priority: app_commands.Choice[str] | None = None,
+    ) -> None:
+        await interaction.response.defer(thinking=True)
+        prio = priority.value if priority else "normal"
+        try:
+            sys.path.insert(0, str(_ROOT / "oracle" / "core"))
+            from client import submit_task
+            res = await asyncio.to_thread(
+                submit_task,
+                task_type,
+                payload={"instruction": instruction},
+                target_agent=agent,
+                priority=prio,
+                source="discord",
+                requested_by=str(interaction.user),
+            )
+            await interaction.followup.send(
+                "✅ **오라클 태스크 투입 완료**\n"
+                f"• task_id: `{res['task_id']}`\n"
+                f"• status: `{res['status']}`\n"
+                f"• agent: `{agent}` · priority: `{prio}` · type: `{task_type}`"
+            )
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ 오라클 태스크 투입 실패: {e}")
+            print(f"[Oracle] submit 실패: {e}", flush=True)
+
+
 # ── /landing · /deploy · /pipeline 슬래시 명령어 등록 ──────────────────────────
 
 def _register_deploy_commands(tree: app_commands.CommandTree) -> None:
@@ -3388,6 +3437,7 @@ class BuckyDiscordBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
         _register_evolve_commands(self.tree)
         _register_tasks_commands(self.tree)
+        _register_oracle_commands(self.tree)
         _register_deploy_commands(self.tree)
         _register_analyze_commands(self.tree)
         _register_wishket_commands(self.tree)

@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Bucky Core API 클라이언트 — submit 측 (Phase 3-④).
+
+Discord 봇 등 명령 투입 측이 오라클 #2의 API로 태스크를 생성/조회한다.
+api_server.py와 동일하게 stdlib(urllib)만 사용 — pip 설치 없이 어느 노드에서나 임포트된다.
+서버가 검증의 단일 원천이므로 필드 검증은 서버에 위임하고, 여기서는 요청 구성·인증
+부착·HTTP 오류를 사람이 읽을 수 있는 예외로 번역하는 것만 담당한다.
+
+Env:
+    ORACLE_API_URL    API 베이스 URL (기본 http://127.0.0.1:8700)
+    BUCKY_API_TOKEN   Bearer 인증 토큰 (없으면 호출 시 OracleClientError)
+
+Usage:
+    from client import submit_task, get_task
+    res = submit_task("chat", payload={"instruction": "..."}, target_agent="bucky-main")
+    task = get_task(res["task_id"])
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import urllib.error
+import urllib.request
+
+DEFAULT_BASE_URL = "http://127.0.0.1:8700"
+DEFAULT_TIMEOUT = 10
+
+
+class OracleClientError(RuntimeError):
+    """오라클 API 호출 실패. status는 서버 응답 코드(연결 전 실패 시 None)."""
+
+    def __init__(self, message: str, *, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+def _resolve_base_url(base_url: str | None) -> str:
+    return (base_url or os.environ.get("ORACLE_API_URL", DEFAULT_BASE_URL)).rstrip("/")
+
+
+def _resolve_token(token: str | None) -> str:
+    tok = (token or os.environ.get("BUCKY_API_TOKEN", "")).strip()
+    if not tok:
+        raise OracleClientError("BUCKY_API_TOKEN이 없어 오라클 API를 호출할 수 없습니다.")
+    return tok
+
+
+def _request(
+    method: str,
+    path: str,
+    *,
+    base_url: str | None,
+    token: str | None,
+    body: dict | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict:
+    url = _resolve_base_url(base_url) + path
+    data = json.dumps(body, ensure_ascii=False).encode("utf-8") if body is not None else None
+    req = urllib.request.Request(url, data=data, method=method)
+    req.add_header("Authorization", f"Bearer {_resolve_token(token)}")
+    if data is not None:
+        req.add_header("Content-Type", "application/json; charset=utf-8")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        try:
+            detail = json.loads(exc.read().decode("utf-8")).get("error", "")
+        except Exception:
+            detail = ""
+        raise OracleClientError(
+            f"오라클 API {method} {path} 실패 ({exc.code})" + (f": {detail}" if detail else ""),
+            status=exc.code,
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise OracleClientError(f"오라클 API 연결 실패 ({url}): {exc.reason}") from exc
+
+
+def submit_task(
+    task_type: str,
+    *,
+    payload: dict | None = None,
+    target_agent: str = "bucky-main",
+    priority: str = "normal",
+    source: str = "api",
+    requested_by: str = "unknown",
+    base_url: str | None = None,
+    token: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict:
+    """POST /api/v1/tasks — 태스크 생성. 성공 시 {"task_id", "status"} 반환."""
+    body = {
+        "task_type": task_type,
+        "target_agent": target_agent,
+        "priority": priority,
+        "payload": payload or {},
+        "source": source,
+        "requested_by": requested_by,
+    }
+    return _request("POST", "/api/v1/tasks", base_url=base_url, token=token, body=body, timeout=timeout)
+
+
+def get_task(
+    task_id: str,
+    *,
+    base_url: str | None = None,
+    token: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict:
+    """GET /api/v1/tasks/{task_id} — 태스크 레코드 반환(미존재 시 404 → OracleClientError)."""
+    return _request(
+        "GET", f"/api/v1/tasks/{task_id}", base_url=base_url, token=token, timeout=timeout
+    )
