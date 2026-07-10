@@ -1,0 +1,27 @@
+# Bucky OS V3 — 시스템 단일 설정 (Stage 3 스캐폴드)
+#
+# 규칙:
+#   - 경로는 root 기준 상대경로. root는 scripts/core/config.py가 자동 탐지
+#     (env BUCKY_ROOT로 override 가능).
+#   - 실제 비밀값 기록 금지 — env 변수 "이름"만 기록한다.
+# 소비처: scripts/core/config.py. 기존 파일의 하드코딩 경로는 Stage 7 이후 점진 이관.
+
+system:
+  name: bucky-os
+  version: v3
+  # 07-08 확정: 오라클 = 명령/오케스트레이터, 집PC = 데이터 보유 + 실행
+  topology: oracle-command-homepc-execute
+
+paths: # root 기준 상대경로
+  vault: ObsidianVault
+  agent_bus: ObsidianVault/10_AgentBus
+  data: data
+  docs: docs
+  scripts: scripts
+  config: config
+
+oracle:
+  # 07-10 사용자 승인: 작업 큐 정본 = oracle SQLite 큐 (10_AgentBus 파일 큐 신설 금지)
+  queue_of_record: true
+  api_url_env: ORACLE_API_URL
+  token_env: BUCKY_API_TOKEN

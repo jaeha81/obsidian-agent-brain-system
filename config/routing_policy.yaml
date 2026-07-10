@@ -1,0 +1,15 @@
+# Bucky OS V3 — provider 라우팅 정책 (Stage 3 스캐폴드)
+#
+# 범위: task_type → "provider 후보열"만 다룬다.
+#   claude 티어 선택(task→haiku/sonnet/opus)은 scripts/model_router.py TASK_TO_MODEL이
+#   정본이며 여기 중복하지 않는다 (config 단일화 원칙).
+# 효력: Stage 7(model_router provider 확장) 전까지는 참조용 스캐폴드 —
+#   실제 라우팅 동작은 기존 scripts/model_router.py가 정본.
+
+defaults:
+  # 기본 실행 provider와 폴백 순서 (provider 이름은 model_registry.yaml 키와 일치)
+  provider_chain: [claude_code, gemini]
+
+overrides:
+  # 역할 확정 사항만 기록: Codex = 독립 검수자
+  review: [codex_pro, claude_code]

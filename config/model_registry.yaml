@@ -1,0 +1,55 @@
+# Bucky OS V3 — 모델/프로바이더 레지스트리 (Stage 3 스캐폴드)
+#
+# 규칙:
+#   - 실제 키 값 기록 절대 금지 — env 변수 "이름"만 기록한다.
+#   - enabled: false 프로바이더는 어댑터(Stage 6)가 disabled로 처리 (crash 금지).
+# 소비처: Stage 6 provider adapter, Stage 7 model_router provider 확장.
+# 주의: claude 티어 선택(task→haiku/sonnet/opus) 정본은 scripts/model_router.py — 여기 중복 금지.
+
+providers:
+  claude_code:
+    enabled: true
+    kind: cli
+    command: claude
+    env_keys: [] # CLI 자체 로그인 사용, API 키 불필요
+    models: # scripts/model_router.py가 쓰는 별칭 그대로
+      haiku: haiku
+      sonnet: sonnet
+      opus: opus
+    default_model: sonnet
+    notes: "scripts/bucky_client.py 경유 실행. 티어 라우팅은 scripts/model_router.py가 정본."
+
+  codex_pro:
+    enabled: true
+    kind: cli
+    command: codex
+    env_keys: []
+    models: {} # CLI 기본 모델 사용 (모델명 고정 안 함)
+    default_model: null
+    notes: "역할: 독립 검수(reviewer). Claude 구현에 개입하지 않음."
+
+  openai_gpt:
+    enabled: false # 실사용 어댑터 없음 (AUDIT §3.5) — Stage 6에서 stub만
+    kind: api
+    env_keys: [OPENAI_API_KEY]
+    models: {}
+    default_model: null
+    notes: "활성화 전 사용자 승인 필요."
+
+  gemini:
+    enabled: true
+    kind: api
+    env_keys: [GEMINI_API_KEY]
+    models:
+      default: gemini-2.0-flash # scripts/gemini_client.py GEMINI_MODEL 기본값과 동일
+    default_model: default
+    model_env: GEMINI_MODEL # 모델명 override env
+    notes: "scripts/gemini_client.py 경유. 키 없으면 disabled 처리."
+
+  anthropic_api:
+    enabled: true
+    kind: api
+    env_keys: [ANTHROPIC_API_KEY]
+    models: {}
+    default_model: null
+    notes: "Vercel 함수(api/) 등 직접 API 호출 경로. 키 없으면 disabled 처리."
