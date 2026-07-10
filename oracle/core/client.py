@@ -18,6 +18,9 @@ Usage:
     # 폴링 측(집PC):
     task = claim_task("home-pc-agent")                       # None이면 큐가 비어 있음
     update_status(task["task_id"], "completed", result={"reply": "..."})
+    # obsidian-index 검색(B4):
+    hits = index_search("버키 코어", top_k=5, folder="03_Knowledge")
+    info = index_stats()
 """
 
 from __future__ import annotations
@@ -25,6 +28,7 @@ from __future__ import annotations
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8700"
@@ -157,4 +161,43 @@ def update_status(
     return _request(
         "POST", f"/api/v1/tasks/{task_id}/status",
         base_url=base_url, token=token, body=body, timeout=timeout,
+    )
+
+
+def index_search(
+    query: str,
+    *,
+    top_k: int = 5,
+    folder: str | None = None,
+    ntype: str | None = None,
+    base_url: str | None = None,
+    token: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict:
+    """GET /api/v1/index/search — obsidian-index 키워드 검색.
+
+    성공 시 {"query", "count", "results"} 반환. folder/ntype은 서버 측 필터
+    (쿼리스트링 folder=/type=). 인덱스 미구축이면 서버가 503, 빈 질의면 400으로
+    거부한다(둘 다 OracleClientError로 전달).
+    """
+    params: dict = {"q": query, "k": top_k}
+    if folder:
+        params["folder"] = folder
+    if ntype:
+        params["type"] = ntype
+    return _request(
+        "GET", "/api/v1/index/search?" + urllib.parse.urlencode(params),
+        base_url=base_url, token=token, timeout=timeout,
+    )
+
+
+def index_stats(
+    *,
+    base_url: str | None = None,
+    token: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> dict:
+    """GET /api/v1/index/stats — 인덱스 요약({"available", "count", "folders", ...}) 반환."""
+    return _request(
+        "GET", "/api/v1/index/stats", base_url=base_url, token=token, timeout=timeout
     )

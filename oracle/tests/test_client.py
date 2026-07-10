@@ -7,6 +7,7 @@ in-process로 호출해 왕복·오류 경로를 검증한다. test_api_server.p
 Usage:
     python -X utf8 oracle/tests/test_client.py
 """
+import json
 import os
 import socket
 import subprocess
@@ -28,6 +29,8 @@ from client import (  # noqa: E402
     get_task,
     claim_task,
     update_status,
+    index_search,
+    index_stats,
 )
 
 TMP = Path(tempfile.mkdtemp(prefix="bucky_client_test_"))
@@ -64,12 +67,14 @@ def raises(fn, status=None):
 
 
 print("== 클라이언트 통합 테스트 (실서버) ==")
+INDEX_DIR = TMP / "index"  # 서버 기동 시점엔 미구축 — C16/C17이 빈 상태를 먼저 검증
 env = dict(
     os.environ,
     BUCKY_API_TOKEN=TOKEN,
     BUCKY_DB_PATH=str(TMP / "test_tasks.db"),
     BUCKY_LOG_DIR=str(TMP / "logs"),
     BUCKY_AGENTS_FILE=str(AGENTS_YAML),
+    OBSIDIAN_INDEX_DIR=str(INDEX_DIR),
 )
 # 클라이언트가 실수로 env를 읽어 통과하는 위양성을 막기 위해, 명시 인자 테스트 구간에서는
 # 프로세스 env에서 토큰/URL을 비워 둔다(서버 subprocess는 위 env 사본으로 별도 기동).
@@ -192,6 +197,53 @@ try:
         status=409,
     )
     check("C15 잘못된 전이 409", ok, f"got {e!r}")
+
+    # --- obsidian-index 측(index_search/index_stats, B4 #1) ---
+    # C16 인덱스 미구축: stats는 200 + available=False
+    st = index_stats(base_url=BASE, token=TOKEN)
+    check("C16 인덱스 없음 → stats available=False",
+          st.get("available") is False and st.get("count") == 0, f"got {st}")
+
+    # C17 인덱스 미구축 검색 → 503
+    ok, e = raises(lambda: index_search("버키", base_url=BASE, token=TOKEN), status=503)
+    check("C17 인덱스 없음 검색 503", ok, f"got {e!r}")
+
+    # C18 인덱스 생성(mtime 캐시가 재기동 없이 반영) 후 검색 — 지식 선반이 원본 선반보다 상위
+    INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    recs = [
+        {"slug": "bucky-core", "path": "03_Knowledge/bucky-core.md", "title": "버키 코어 설계",
+         "folder": "03_Knowledge", "type": "knowledge", "keywords": ["버키", "코어"],
+         "headings": ["설계"], "tags": ["core"], "snippet": "버키 코어 설계 노트"},
+        {"slug": "bucky-raw", "path": "01_RAW/bucky-raw.md", "title": "버키 원본 메모",
+         "folder": "01_RAW", "type": "raw", "keywords": ["버키"],
+         "headings": [], "tags": [], "snippet": "원본 메모"},
+    ]
+    (INDEX_DIR / "records.jsonl").write_text(
+        "\n".join(json.dumps(r, ensure_ascii=False) for r in recs), encoding="utf-8")
+    (INDEX_DIR / "manifest.json").write_text(
+        json.dumps({"count": 2, "schema_version": 1,
+                    "generated_at": "2026-07-10T00:00:00",
+                    "folders": {"03_Knowledge": 1, "01_RAW": 1}}, ensure_ascii=False),
+        encoding="utf-8")
+    hits = index_search("버키", base_url=BASE, token=TOKEN)
+    check("C18 검색 성공 + 지식 선반 상위",
+          hits.get("count") == 2 and hits["results"][0]["folder"] == "03_Knowledge",
+          f"got {hits}")
+
+    # C19 folder 필터 — 해당 선반만 반환
+    hits2 = index_search("버키", folder="01_RAW", base_url=BASE, token=TOKEN)
+    check("C19 folder 필터",
+          hits2.get("count") == 1 and hits2["results"][0]["slug"] == "bucky-raw",
+          f"got {hits2}")
+
+    # C20 stats가 생성된 인덱스를 반영
+    st2 = index_stats(base_url=BASE, token=TOKEN)
+    check("C20 stats available=True count=2",
+          st2.get("available") is True and st2.get("count") == 2, f"got {st2}")
+
+    # C21 빈 질의 → 서버 400
+    ok, e = raises(lambda: index_search("  ", base_url=BASE, token=TOKEN), status=400)
+    check("C21 빈 질의 400", ok, f"got {e!r}")
 finally:
     server.kill()
     server.wait()
