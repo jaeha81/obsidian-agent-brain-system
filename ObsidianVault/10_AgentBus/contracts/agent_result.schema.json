@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bucky-os/contracts/agent_result.schema.json",
+  "title": "AgentResult",
+  "description": "Bucky OS V3 에이전트 보고 서식. status는 oracle 큐(oracle/core/api_server.py) 상태 체계와 호환 — 충돌 시 oracle 정본. Python 구현: scripts/core/agent_result.py",
+  "type": "object",
+  "required": ["agent", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "agent": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "assigned", "running", "waiting", "completed", "failed", "cancelled"],
+      "description": "oracle TRANSITIONS.keys() ∪ STATUS_TARGETS"
+    },
+    "summary": { "type": "string", "default": "" },
+    "files_changed": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "commands_run": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "test_result": { "type": "string", "default": "" },
+    "risks": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "next_actions": { "type": "array", "items": { "type": "string" }, "default": [] }
+  }
+}

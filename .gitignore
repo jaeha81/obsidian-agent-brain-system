@@ -89,6 +89,11 @@ ObsidianVault/03_Projects/*
 !ObsidianVault/03_Projects/agents/**
 !ObsidianVault/08_Content/
 !ObsidianVault/08_Content/**
+# V3 Stage 4: 에이전트 계약 스키마만 추적 (10_AgentBus 운영 파일은 계속 무시)
+!ObsidianVault/10_AgentBus/
+ObsidianVault/10_AgentBus/*
+!ObsidianVault/10_AgentBus/contracts/
+!ObsidianVault/10_AgentBus/contracts/**
 
 # Obsidian private runtime (repo-root; only Bucky bootstrap is tracked)
 /.obsidian/*

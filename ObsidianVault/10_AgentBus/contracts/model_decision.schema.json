@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bucky-os/contracts/model_decision.schema.json",
+  "title": "ModelDecision",
+  "description": "Bucky OS V3 라우팅 의사결정 로그. scripts/model_router.explain() 출력 + provider 확장(Stage 7). selected_provider는 config/model_registry.yaml providers 키와 일치.",
+  "type": "object",
+  "required": ["task_type", "selected_provider", "selected_model"],
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^task_\\d{8}_\\d{6}_[0-9a-f]{4}$",
+      "description": "연결된 TaskSpec.task_id (선택)"
+    },
+    "task_type": { "type": "string", "minLength": 1 },
+    "selected_provider": {
+      "type": "string",
+      "description": "config/model_registry.yaml providers 키 (claude_code/codex_pro/gemini/...)"
+    },
+    "selected_model": {
+      "type": "string",
+      "description": "claude 티어(haiku/sonnet/opus) 또는 provider 모델명"
+    },
+    "provider_chain": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "config/routing_policy.yaml provider_chain"
+    },
+    "fallback_chain": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "scripts/model_router.fallback_chain() 결과"
+    },
+    "reason": { "type": "string", "default": "" },
+    "decided_at": { "type": "string", "description": "ISO8601 UTC 초 단위" }
+  }
+}
