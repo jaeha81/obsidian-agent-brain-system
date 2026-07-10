@@ -217,3 +217,7 @@ _Private/
 
 # 견적 시스템 — 샘플 원본만 제외, 대시보드 데이터는 공개
 data/estimation_samples/
+
+# obsidian-index — 생성 산출물 제외 (코드/스키마만 커밋)
+data/obsidian-index/
+memory/obsidian-index/

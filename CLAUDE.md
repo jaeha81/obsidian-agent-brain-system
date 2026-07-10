@@ -1,6 +1,7 @@
 # Claude Code Instructions - Obsidian Agent Brain System
 
 > Canonical Bucky/Codex/Claude routing rules: `ObsidianVault/00_System/ROUTING_RULES.md` and `ObsidianVault/03_Projects/agents/bucky.md`
+> **볼트 라이브러리안 SOP** (3층 구조·SoT=`03_Knowledge`·Ingest/Query/Audit): `ObsidianVault/00_System/LIBRARIAN_RULES.md` — 볼트를 열면 먼저 읽는다
 > **전역 절대 규칙** (세션 관리·저장 경계·완료 보고 형식·역할·Bucky 패킷): `C:\Users\user1\.claude\CLAUDE.md` 참조
 
 ---
@@ -63,7 +64,7 @@ python -X utf8 scripts/vscode_context.py --open "경로/파일.py:라인번호"
 
 ## Karpathy 코딩 가이드라인 (항상 적용)
 
-> 출처: [Andrej Karpathy의 LLM 코딩 함정 관찰](https://x.com/karpathy/status/2015883857489522876). 전체 스킬: `.claude/skills/karpathy-guidelines/SKILL.md`.
+> 출처: [Andrej Karpathy의 LLM 코딩 함정 관찰](https://x.com/karpathy/status/2015883857489522876). 전체 지침은 아래 1~4 인라인 섹션이 정본이다.
 > 트레이드오프: 속도보다 신중함을 우선한다. 사소한 작업엔 판단껏 적용.
 
 ### 1. 코딩 전에 생각하라 — 가정·혼란을 숨기지 마라
@@ -100,10 +101,16 @@ python -X utf8 scripts/vscode_context.py --open "경로/파일.py:라인번호"
 
 > 영상 기반 원칙: "자동화보다 맥락이 먼저. 중복은 AI가 막는다." (투솔 AI, 2026-06-16)
 
+### 2층 정본(단일 진실원천) 정의 — 최우선
+
+- **정제 지식의 단일 진실원천(SoT) = `03_Knowledge/`.** (근거: `ObsidianVault/00_System/oabs-library-taxonomy-standard.md` — "큐레이트된 지식 선반".)
+- `04_Wiki/`는 **살아있는 도메인/데일리 위키 페이지**용이며 정본이 아니다. 정제 지식은 항상 `03_Knowledge/`로 승격한다.
+- 코드 경로도 이 정본을 따른다: `scripts/wiki_gate.py`(→ `03_Knowledge`), `scripts/knowledge_distiller.py`.
+
 ### 중복 저장 금지 (Deduplication Gate)
 
-- Raw/ 또는 01_RAW/에서 지식을 정제해 Wiki/로 옮기기 전, 동일 주제 기존 노트를 먼저 검색한다.
-- 새 노트 저장 전 "이 내용이 이미 Wiki/나 03_Knowledge/에 있는지" 반드시 확인한다.
+- `01_RAW/`에서 지식을 정제해 `03_Knowledge/`로 옮기기 전, 동일 주제 기존 노트를 먼저 검색한다.
+- 새 노트 저장 전 "이 내용이 이미 `03_Knowledge/`(2층 정본)에 있는지" 반드시 확인한다.
 - 중복 판정 기준: 동일 개념 70% 이상 겹침 → 새 파일 생성 금지, 기존 노트에 섹션 추가.
 - 동일 주제 노트가 이미 있으면 반드시 사용자에게 알리고 병합 여부를 결정하게 한다.
 
@@ -116,15 +123,15 @@ python -X utf8 scripts/vscode_context.py --open "경로/파일.py:라인번호"
 ### Raw → Wiki 파이프라인
 
 Raw 데이터(유튜브 트랜스크립트, X 팁, 슬랙 링크)가 들어오면:
-1. `01_RAW/` 또는 `Raw/`에 원본 저장
+1. `01_RAW/`에 원본 저장
 2. 정제 시 중복 체크 (위 기준 적용)
-3. 정제본만 `04_Wiki/` 또는 `Wiki/`에 저장
+3. 정제본만 `03_Knowledge/`(2층 정본)에 저장 — 코드 경로 동일(`wiki_gate.py`, `knowledge_distiller.py`)
 4. 원본은 정제 완료 후 태그 추가 (`#processed`) — 삭제하지 않음
 
 ### 주기적 병합 패스 (Weekly Merge)
 
 매주 1회, 다음을 실행한다:
-- 가장 오래된 미처리 `01_RAW/` 파일 10개를 Wiki로 정제
+- 가장 오래된 미처리 `01_RAW/` 파일 10개를 `03_Knowledge/`로 정제
 - `00_Inbox/` 중 7일 이상 된 항목을 처리하거나 Archive로 이동
 - 중복 노트 발견 시 병합 후 원본에 `#merged-into: <대상파일>` 태그 기록
 

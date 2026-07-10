@@ -17,6 +17,8 @@ Endpoints:
     POST /api/v1/tasks/{task_id}/status → 200 {"task_id", "status"}   (Bearer) §20.2 상태 전이
     GET  /api/v1/agents                → 200 {"agents": [...]}        (Bearer) 레지스트리 전체
     GET  /api/v1/agents/{agent_id}     → 200 agent record | 404       (Bearer)
+    GET  /api/v1/index/search?q=&k=&folder=&type= → 200 {"results":[...]} (Bearer) obsidian-index 검색
+    GET  /api/v1/index/stats           → 200 {"count", "folders", ...} (Bearer) 인덱스 요약
 
 Env:
     BUCKY_API_TOKEN        인증 토큰. 없으면 BUCKY_API_TOKEN_FILE에서 읽고, 둘 다 없으면 기동 거부.
@@ -40,6 +42,9 @@ from contextlib import closing
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+import obsidian_index  # 같은 디렉터리(oracle/core) 로컬 모듈 — obsidian-index 검색(B3)
 
 ROOT = Path(__file__).resolve().parents[2]
 DB_PATH = Path(os.environ.get("BUCKY_DB_PATH", ROOT / "data" / "bucky_tasks.db"))
@@ -250,6 +255,37 @@ class BuckyAPIHandler(BaseHTTPRequestHandler):
                 self._send_json(404, {"error": "task not found"}, task_id=task_id)
                 return
             self._send_json(200, row_to_task(row), task_id=task_id)
+            return
+        if self.path.startswith("/api/v1/index"):  # 쿼리스트링 포함 — urlparse로 분리
+            if not self._authorized():
+                self._send_json(401, {"error": "unauthorized"})
+                return
+            parsed = urlparse(self.path)
+            self._handle_index(parsed.path, parse_qs(parsed.query))
+            return
+        self._send_json(404, {"error": "not found"})
+
+    def _handle_index(self, path: str, params: dict) -> None:
+        if path == "/api/v1/index/stats":
+            self._send_json(200, obsidian_index.stats())
+            return
+        if path == "/api/v1/index/search":
+            if not obsidian_index.index_available():
+                self._send_json(503, {"error": "index not available",
+                                       "index_dir": str(obsidian_index.INDEX_DIR)})
+                return
+            q = (params.get("q") or [""])[0].strip()
+            if not q:
+                self._send_json(400, {"error": "query param 'q' required"})
+                return
+            try:
+                top_k = int((params.get("k") or ["5"])[0])
+            except ValueError:
+                top_k = 5
+            folder = (params.get("folder") or [None])[0]
+            ntype = (params.get("type") or [None])[0]
+            results = obsidian_index.search(q, top_k=top_k, folder=folder, ntype=ntype)
+            self._send_json(200, {"query": q, "count": len(results), "results": results})
             return
         self._send_json(404, {"error": "not found"})
 

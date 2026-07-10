@@ -26,7 +26,7 @@ from datetime import datetime
 
 VAULT_ROOT = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
 LOG_PATH = Path("G:/내 드라이브/obsidian-agent-brain-system/logs/gbrain_sync.jsonl")
-GBRAIN_TOKEN = "gbrain_4aedf7d4ad9b273fe2b0f04564f4bb5b779ae4179a6a053ff10039128af8ed48"
+GBRAIN_TOKEN = os.environ.get("GBRAIN_TOKEN", "")
 
 TIER_PREFIXES = {
     1: ["06_Context_Packs", "00_System"],
