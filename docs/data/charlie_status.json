@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-07-11 09:33:28",
+  "generated_at": "2026-07-11 15:51:48",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
   "summary": {
     "p1": 0,
     "p2": 1,
-    "p3": 0,
-    "findings": 1
+    "p3": 1,
+    "findings": 2
   },
   "user_intent": {
     "top_level_goal": "2026-06-05 이후 드리프트를 복구하고 Obsidian Brain System을 안정화한 뒤, GPU 작업은 로컬에 남기고 Oracle Cloud로 24/7 이전합니다.",
@@ -25,6 +25,13 @@
       "title": "Missing authority file: OPERATING_INTENT.md",
       "detail": "Charlie expects this file to exist as an instruction-authority source.",
       "evidence": "authority_files:OPERATING_INTENT.md"
+    },
+    {
+      "severity": "P3",
+      "area": "discord-runtime",
+      "title": "Discord bot PID file missing or stale",
+      "detail": "logs/discord_bot.pid does not point at a live process — the bot may not be running, or it was started without writing the PID file.",
+      "evidence": "runtime_status.bot_pid_file"
     }
   ],
   "authority_files": [
@@ -56,6 +63,61 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "376e1fd",
+        "date": "2026-07-11",
+        "subject": "docs: 플랜 상태 갱신 — 게이트 #1 통과·Stage 6 완료 (35dadd6)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "35dadd6",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 6 Provider Adapter Layer — 인터페이스 + 어댑터 5종 + 테스트 31",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "360216f",
+        "date": "2026-07-11",
+        "subject": "fix: Codex 재검수 LOW 보완 — self_test 런타임 경로 파일충돌 false-negative 제거 + §6 재검수 결과 기입",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "bdb436d",
+        "date": "2026-07-11",
+        "subject": "fix: Codex 필수수정 2건 — clean clone 경로 테스트 + 계약 검증 경계 보강",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "e9553ce",
+        "date": "2026-07-11",
+        "subject": "docs: Codex Phase 1 검수 결과 §5 기입 — 조건부 통과 (필수수정 2건)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "aca1ad5",
+        "date": "2026-07-11",
+        "subject": "fix: 죽은 자동화 수리 — 파이프라인 인자 전달·수집 인코딩·Chrome 경로 + Charlie 일일감사 편입",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "charlie",
+          "daily-plus",
+          "workflow-expansion"
+        ]
+      },
       {
         "commit": "0f58cae",
         "date": "2026-07-11",
@@ -433,70 +495,18 @@
         "areas": [
           "other"
         ]
-      },
-      {
-        "commit": "56899ac",
-        "date": "2026-07-02",
-        "subject": "fix: remove auto git push logic from sync_system_enhance.py (urgent safety fix)",
-        "areas": [
-          "bucky-discord-daily-plus"
-        ]
-      },
-      {
-        "commit": "803cf3e",
-        "date": "2026-07-02",
-        "subject": "remove auto git push hook from sync_system_enhance.py",
-        "areas": [
-          "bucky-discord-daily-plus"
-        ]
-      },
-      {
-        "commit": "857cae1",
-        "date": "2026-07-02",
-        "subject": "add .gitattributes for CRLF normalization",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "a6ae70b",
-        "date": "2026-06-30",
-        "subject": "feat(api): golf-chat + intake 엔드포인트 신규 추가 + my-dev URL 수정",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "c9afc62",
-        "date": "2026-06-30",
-        "subject": "fix(docs): 대시보드 전체 복원 — 0d22440 기준 docs/ 재구축 (120267c 대량 삭제 복구)",
-        "areas": [
-          "charlie",
-          "dashboard",
-          "google-revenue-dashboard",
-          "kmong",
-          "other"
-        ]
-      },
-      {
-        "commit": "2c84cc5",
-        "date": "2026-06-30",
-        "subject": "fix(dashboard): docs/index.html 및 대시보드 페이지 복구 — 모바일 루트 404 해결",
-        "areas": [
-          "dashboard"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 236,
-      "knowledge-vault": 67,
-      "other": 126,
-      "workflow-expansion": 111,
-      "instruction-authority": 14,
-      "bucky-discord-daily-plus": 62,
+      "dashboard": 235,
+      "other": 127,
+      "workflow-expansion": 113,
+      "bucky-discord-daily-plus": 60,
+      "charlie": 14,
       "daily-plus": 20,
+      "knowledge-vault": 67,
+      "instruction-authority": 14,
       "authentication": 13,
-      "charlie": 13,
       "kmong": 8,
       "support-tooling": 8,
       "google-revenue-dashboard": 5,
@@ -504,13 +514,13 @@
     }
   },
   "git_status": {
-    "changed_count": 19,
+    "changed_count": 16,
     "by_area": {
-      "workflow-expansion": 8,
-      "bucky-discord-daily-plus": 2,
-      "daily-plus": 1,
+      "dashboard": 1,
+      "workflow-expansion": 6,
       "other": 5,
-      "knowledge-vault": 3
+      "knowledge-vault": 3,
+      "bucky-discord-daily-plus": 1
     }
   },
   "runtime_status": {
@@ -519,22 +529,17 @@
       "error": null
     },
     "bot_pid_file": {
-      "valid": true,
-      "pid": 21088,
-      "raw_preview": null
+      "valid": false,
+      "pid": 25200,
+      "raw_preview": "25200"
     },
     "supervisor_pid_file": {
       "valid": false,
       "raw_preview": "not configured"
     },
     "process_ids": {
-      "python_pids": [
-        "4148",
-        "21088",
-        "14312",
-        "27572",
-        "27384"
-      ]
+      "python_pids": [],
+      "error": "expected string or bytes-like object, got 'NoneType'"
     },
     "discord_log": {
       "mtime": "",
@@ -544,7 +549,7 @@
     },
     "daily_plus_bridge": {
       "latest_outbox": "20260711_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-11 08:01"
+      "latest_sent": "2026-07-11 15:49"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-06-30",
