@@ -114,7 +114,8 @@ def self_test() -> int:
     for key, path in PATHS.items():
         mark = "OK " if path.is_dir() else "MISS"
         print(f"  [{mark}] {key}: {path}")
-        if not path.is_dir() and key not in RUNTIME_KEYS:
+        # 런타임 키는 "아예 없음"만 허용 — 일반 파일로 존재하면 실패 (Codex 재검수 LOW)
+        if not path.is_dir() and (key not in RUNTIME_KEYS or path.exists()):
             failures.append(f"경로 없음: {key}={path}")
 
     print("== config yaml ==")

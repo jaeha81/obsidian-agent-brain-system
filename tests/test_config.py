@@ -138,6 +138,18 @@ class SelfTestTests(unittest.TestCase):
     def test_self_test_passes(self):
         self.assertEqual(config.self_test(), 0)
 
+    def test_runtime_path_as_regular_file_fails(self):
+        # 런타임 경로가 디렉터리 아닌 일반 파일로 존재하면 self_test는 실패해야 함
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = Path(tmp) / "data"
+            fake.write_text("not a dir", encoding="utf-8")
+            original = config.PATHS["data"]
+            config.PATHS["data"] = fake
+            try:
+                self.assertEqual(config.self_test(), 1)
+            finally:
+                config.PATHS["data"] = original
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -165,3 +165,38 @@ $ git add --dry-run ObsidianVault/10_AgentBus/
 
 > 검수 완료 후 사용자에게 직접 보고. 사용자 승인 시 Claude가 Stage 6(Provider Adapter Layer) 착수.
 > **현 상태: 조건부 통과 — 필수 수정 2건 이행 + 사용자 승인 전 Stage 6 금지 유지.**
+
+---
+
+## 6. 필수 수정 이행 + 재검수 요청 (2026-07-11, 사용자 승인 후 Claude 이행)
+
+- 수정 커밋: `bdb436d` / diff 범위: `git diff 25fdc7d..bdb436d` (6 files)
+- 필수 수정 1 이행: `scripts/core/config.py`에 `RUNTIME_KEYS`(현재 `data`뿐) 도입 — 런타임 생성·gitignore 경로는 `self_test()`와 `test_all_paths_exist`에서 존재 비필수화 (존재하면 디렉터리여야 함은 유지)
+- 필수 수정 2 이행: `TaskSpec`/`AgentResult`의 `validate()`에 문자열 타입 검사 선행(`task_id`/`task_type`/`agent`), `from_dict()`는 비-dict 입력(`None` 포함) 시 예외 대신 필수 필드 `""`인 invalid 인스턴스 반환 → `validate()`가 위반 보고. 비정상 입력 테스트 8건 추가 (`InvalidInputTests` × 2 파일)
+- Claude 측 증거:
+  - `python -X utf8 -m unittest tests.test_config tests.test_task_spec tests.test_agent_result` → `Ran 59 tests — OK` (기존 51 + 신규 8)
+  - clean clone 재현: `data/` 없는 일회용 clone(scratchpad)에서 동일 명령 → `Ran 59 tests — OK`
+
+### 6.1 Codex 재검수 결과 기입란 (Codex가 채움)
+
+- 검수일: 2026-07-11 (Codex CLI 0.144.0, 일회용 clone HEAD=bdb436d, data/ 부재 환경. Codex 최종 메시지를 Claude가 그대로 전사)
+- 판정: ☑ 조건부 통과 / ☐ 통과 / ☐ 반려 — "필수 수정 2건은 모두 이행. 단 self_test()에 LOW급 false-negative 신규 발생"
+- 발견 이슈:
+  - [LOW] `scripts/core/config.py:117` — 런타임 경로가 일반 파일로 존재해도 실패에서 제외됨 (임시 파일 주입 시 `[MISS]` 출력하며 `self_test()==0` 재현) → `key not in RUNTIME_KEYS or path.exists()` 조건 + 회귀 테스트 요구
+  - [LOW] diff 범위 표기 — `25fdc7d..bdb436d`는 실제 5커밋/14파일(일일 데이터·수집 커밋 포함). 단 `bdb436d` 단독은 정확히 6파일로 **커밋 자체의 범위 오염 없음**
+- 요청 항목 판단: RUNTIME_KEYS=`{"data"}` 분류 타당 / from_dict invalid 인스턴스 계약 타당(소비자는 현재 테스트뿐) / selected_provider LOW는 범위 밖 유지가 맞음 / AI-Slop 미발견
+- 재검증 수행 내역 (Codex 직접 실행):
+  - `git show --stat bdb436d`: 6 files +81/-13, 무관 변경 없음
+  - 테스트: `Ran 59 tests — OK` (`DATA_EXISTS=False` 환경)
+  - 비정상 타입 직접 주입(task_id/task_type/agent=int, from_dict(None) 양쪽): 전부 `exception=NONE`, 오류 목록/invalid 인스턴스 반환
+  - 임시 일반 파일을 data 경로로 주입: `셀프테스트 PASS`(false-negative) 재현 → 위 LOW 근거
+  - `git diff --check`: 공백 오류 없음
+
+### 6.2 재검수 LOW 보완 이행 (2026-07-11, Claude)
+
+- `config.py` self_test: 런타임 키는 "아예 없음"만 허용 — 일반 파일로 존재하면 실패 처리 (`key not in RUNTIME_KEYS or path.exists()`)
+- 회귀 테스트 `test_runtime_path_as_regular_file_fails` 추가 (임시 일반 파일 주입 → `self_test()==1` 검증)
+- 증거: `Ran 60 tests — OK`
+- 나머지 LOW(diff 범위 표기)는 문서 사안 — `bdb436d` 단독 범위가 정본이며 본 문서에 명기함
+
+> **현 상태: 필수 수정 2건 + 재검수 LOW 보완 이행 완료. Stage 6 착수는 사용자 승인 대기.**
