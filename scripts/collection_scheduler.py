@@ -103,7 +103,7 @@ COLLECTORS = [
 def run_collector(collector: dict, dry_run: bool = False, timeout: int = 300) -> dict:
     script = SCRIPTS_DIR / collector["script"]
     args = collector["dry_run_args"] if dry_run else collector["args"]
-    cmd = [sys.executable, str(script)] + args
+    cmd = [sys.executable, "-X", "utf8", str(script)] + args
 
     result = {
         "name": collector["name"],
@@ -133,6 +133,7 @@ def run_collector(collector: dict, dry_run: bool = False, timeout: int = 300) ->
             capture_output=True,
             text=True,
             encoding="utf-8",
+            errors="replace",
             cwd=str(ROOT),
             timeout=timeout,
         )

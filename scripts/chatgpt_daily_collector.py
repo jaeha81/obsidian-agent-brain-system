@@ -52,8 +52,12 @@ PROFILE_DIR = Path(
     )
 )
 DEBUG_PORT = int(os.environ.get("GPT_COLLECTOR_DEBUG_PORT", "9222"))
-CHROME_EXE = os.environ.get("GPT_COLLECTOR_CHROME_EXE") or (
-    r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+_CHROME_CANDIDATES = (
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+)
+CHROME_EXE = os.environ.get("GPT_COLLECTOR_CHROME_EXE") or next(
+    (p for p in _CHROME_CANDIDATES if os.path.exists(p)), _CHROME_CANDIDATES[0]
 )
 
 HANGUL_RE = re.compile(r"[가-힣]")
@@ -728,8 +732,8 @@ def collect_mode(force: bool = False, evolve: bool = True, allow_recovery: bool 
         print(f"[WARN] Existing Daily Plus note is invalid; recollecting: {output_path}")
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    _launch_chrome(CHATGPT_URL)
     try:
+        _launch_chrome(CHATGPT_URL)
         value = _read_chatgpt_content()
         try:
             value = localize_capture(value)

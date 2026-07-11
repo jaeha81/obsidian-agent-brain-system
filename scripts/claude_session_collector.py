@@ -268,7 +268,8 @@ async def collect_mode(dry_run: bool = False, full: bool = False):
 
         log.info("claude.ai 접속 중...")
         try:
-            await page.goto("https://claude.ai/", wait_until="networkidle", timeout=60000)
+            await page.goto("https://claude.ai/", wait_until="domcontentloaded", timeout=60000)
+            await page.wait_for_timeout(3000)
         except Exception as e:
             log.error(f"접속 실패: {e}")
             await context.close()

@@ -1,1 +1,587 @@
-{}
+{
+  "generated_at": "2026-07-11 09:33:28",
+  "agent": "Charlie",
+  "state": "WARNING",
+  "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
+  "summary": {
+    "p1": 0,
+    "p2": 1,
+    "p3": 0,
+    "findings": 1
+  },
+  "user_intent": {
+    "top_level_goal": "2026-06-05 이후 드리프트를 복구하고 Obsidian Brain System을 안정화한 뒤, GPU 작업은 로컬에 남기고 Oracle Cloud로 24/7 이전합니다.",
+    "core_purpose": "효율적인 AI 사용, 강한 세션 기억, 효율적인 컨텍스트 관리, 사용자 피드백 기반 진화.",
+    "critical_failure_mode": "Bucky, Codex, Claude Code가 함께 덜 유용해지는 공유 성능 저하.",
+    "knowledge_loop": "Daily Plus와 GPT 대화가 Obsidian 지식 라이브러리를 강화하고, LLM Wiki, Graphify, Context Packs가 필요한 지식만 찾아 연결합니다.",
+    "session_continuity": "컨텍스트가 비대해지면 변경점, 보존 파일, 다음 세션 읽기 순서, 반복 금지 항목을 남깁니다.",
+    "bucky_role": "작업 운영 조율자",
+    "charlie_role": "독립 시스템 감사자"
+  },
+  "findings": [
+    {
+      "severity": "P2",
+      "area": "instruction-authority",
+      "title": "Missing authority file: OPERATING_INTENT.md",
+      "detail": "Charlie expects this file to exist as an instruction-authority source.",
+      "evidence": "authority_files:OPERATING_INTENT.md"
+    }
+  ],
+  "authority_files": [
+    {
+      "path": "AGENTS.md",
+      "exists": true,
+      "updated": "2026-06-20 06:33"
+    },
+    {
+      "path": "CLAUDE.md",
+      "exists": true,
+      "updated": "2026-07-09 17:05"
+    },
+    {
+      "path": "OPERATING_INTENT.md",
+      "exists": false,
+      "updated": ""
+    },
+    {
+      "path": "ObsidianVault/00_System/USER_OPERATING_INTENT.md",
+      "exists": true,
+      "updated": "2026-07-03 03:24"
+    },
+    {
+      "path": "ObsidianVault/03_Projects/agents/charlie.md",
+      "exists": true,
+      "updated": "2026-07-03 03:24"
+    }
+  ],
+  "change_timeline": {
+    "commits": [
+      {
+        "commit": "0f58cae",
+        "date": "2026-07-11",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-11 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "7ce6c8e",
+        "date": "2026-07-10",
+        "subject": "docs: V3 Stage 5 — Codex 검수 요청서 (Phase 1: Stage 3~4) + 플랜 상태 갱신",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "25fdc7d",
+        "date": "2026-07-10",
+        "subject": "feat: V3 Stage 4 — TaskSpec/AgentResult 계약 (테스트 33 PASS)",
+        "areas": [
+          "knowledge-vault",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "4f0b068",
+        "date": "2026-07-10",
+        "subject": "feat: V3 Stage 3 — config 단일화 스캐폴드 (테스트 18 PASS)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "df7c827",
+        "date": "2026-07-10",
+        "subject": "feat: B4 #1 — oracle client에 index_search/index_stats 추가 + 테스트 C16~C21 (22 PASS)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "36bf59f",
+        "date": "2026-07-10",
+        "subject": "docs: Bucky OS V3 Stage 0~2 — 실측 AUDIT + 12단계 MIGRATION_PLAN (큐 정본=oracle 확정)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "fd1e57f",
+        "date": "2026-07-10",
+        "subject": "feat: obsidian-index 파이프라인 (indexer + 오라클 /index 라우트 + 스키마 계약)",
+        "areas": [
+          "instruction-authority",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "c576457",
+        "date": "2026-07-10",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-10 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "3b43bc0",
+        "date": "2026-07-10",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-10 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "a5412d6",
+        "date": "2026-07-09",
+        "subject": "feat: Phase 3-⑤ 집PC 폴링 워커 — client claim/update + worker 루프",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "0cd1d18",
+        "date": "2026-07-09",
+        "subject": "test: Phase 3 종단 E2E 테스트 + 라이브 배포 런북",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "fe97ecb",
+        "date": "2026-07-09",
+        "subject": "feat: Phase 3-④ Discord Bot 연결 — 오라클 API submit 클라이언트 + /oracle 명령",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "other"
+        ]
+      },
+      {
+        "commit": "fd0dcce",
+        "date": "2026-07-09",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-09 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "648a182",
+        "date": "2026-07-09",
+        "subject": "feat: Phase 3-③ Agent Registry — oracle API 에이전트 레지스트리 + 검증 스위트",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "bbda732",
+        "date": "2026-07-09",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-09 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "4bbce6e",
+        "date": "2026-07-08",
+        "subject": "docs: Bucky OS 오라클 하이브리드 확정 플랜 문서 추가 (07-08 배너 정정 포함)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "d4a8b91",
+        "date": "2026-07-08",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-08 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "19ae095",
+        "date": "2026-07-08",
+        "subject": "chore: OCI A1 프로비저닝 스크립트 추가 (미실행·런타임만)",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "a2d17e5",
+        "date": "2026-07-07",
+        "subject": "fix: canonical 지침 로더 파일 3종 추가 복구 — P0-B 완결",
+        "areas": [
+          "knowledge-vault"
+        ]
+      },
+      {
+        "commit": "ff99cfb",
+        "date": "2026-07-07",
+        "subject": "fix: canonical 지침파일 복구 — ROUTING_RULES.md + agents/bucky.md",
+        "areas": [
+          "knowledge-vault"
+        ]
+      },
+      {
+        "commit": "a29806d",
+        "date": "2026-07-07",
+        "subject": "feat: Discord 봇 채널별 역할 컨텍스트 주입(rolewire) + GUILD_ID 서버선택 수정",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "knowledge-vault"
+        ]
+      },
+      {
+        "commit": "c84cb85",
+        "date": "2026-07-07",
+        "subject": "feat: 시스템 진화 대시보드 — 성장 지표·타임라인·로드맵",
+        "areas": [
+          "daily-plus",
+          "dashboard",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "15bc6fb",
+        "date": "2026-07-07",
+        "subject": "chore: 감시자 3중중복 단일화 — orphan watcher 5종 아카이브",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "632cca2",
+        "date": "2026-07-07",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-07 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "8c1357f",
+        "date": "2026-07-06",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-06 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "102c573",
+        "date": "2026-07-06",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-06 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "2570643",
+        "date": "2026-07-05",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-05 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "d04a3db",
+        "date": "2026-07-05",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-05 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "37737b3",
+        "date": "2026-07-04",
+        "subject": "fix(jp-golf): golf-chat 백엔드를 Gemini 2.5 Flash-Lite 무료 티어로 전환",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "8fbf889",
+        "date": "2026-07-04",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-04 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "2f9a1b6",
+        "date": "2026-07-03",
+        "subject": "feat: jh-local 채널 구현 - 로컬 PC 상태 실시간 대화",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "b3d4ae9",
+        "date": "2026-07-03",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-03 [skip ci]",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "f9ce4a7",
+        "date": "2026-07-03",
+        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "de29f49",
+        "date": "2026-07-03",
+        "subject": "fix: restore 264 scripts/tests deleted by 2026-06-28 regression commit",
+        "areas": [
+          "authentication",
+          "bucky-discord-daily-plus",
+          "charlie",
+          "daily-plus",
+          "kmong",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "6d150ae",
+        "date": "2026-07-03",
+        "subject": "fix: raise git log timeout in charlie_audit.py",
+        "areas": [
+          "support-tooling"
+        ]
+      },
+      {
+        "commit": "0ed23cb",
+        "date": "2026-07-03",
+        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "a0bf2fe",
+        "date": "2026-07-03",
+        "subject": "feat: implement Charlie audit system (Tasks 1-3 of 2026-06-15 plan)",
+        "areas": [
+          "charlie",
+          "knowledge-vault",
+          "other",
+          "support-tooling"
+        ]
+      },
+      {
+        "commit": "e03b897",
+        "date": "2026-07-03",
+        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "df55fc5",
+        "date": "2026-07-03",
+        "subject": "fix: add missing rewrite for protected wishket page",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "1e1e422",
+        "date": "2026-07-03",
+        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "be88c20",
+        "date": "2026-07-03",
+        "subject": "chore: reconcile with origin (engine scripts + racy-cache files, content-identical)",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "daily-plus",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "07478af",
+        "date": "2026-07-03",
+        "subject": "feat: bring Bucky engine scripts under version control (Phase 4)",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "daily-plus",
+          "other",
+          "support-tooling",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "9e42fa5",
+        "date": "2026-07-03",
+        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "1a0f1f4",
+        "date": "2026-07-03",
+        "subject": "chore: normalize line endings to LF (text files only, xlsx excluded)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "56899ac",
+        "date": "2026-07-02",
+        "subject": "fix: remove auto git push logic from sync_system_enhance.py (urgent safety fix)",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "803cf3e",
+        "date": "2026-07-02",
+        "subject": "remove auto git push hook from sync_system_enhance.py",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "857cae1",
+        "date": "2026-07-02",
+        "subject": "add .gitattributes for CRLF normalization",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "a6ae70b",
+        "date": "2026-06-30",
+        "subject": "feat(api): golf-chat + intake 엔드포인트 신규 추가 + my-dev URL 수정",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "c9afc62",
+        "date": "2026-06-30",
+        "subject": "fix(docs): 대시보드 전체 복원 — 0d22440 기준 docs/ 재구축 (120267c 대량 삭제 복구)",
+        "areas": [
+          "charlie",
+          "dashboard",
+          "google-revenue-dashboard",
+          "kmong",
+          "other"
+        ]
+      },
+      {
+        "commit": "2c84cc5",
+        "date": "2026-06-30",
+        "subject": "fix(dashboard): docs/index.html 및 대시보드 페이지 복구 — 모바일 루트 404 해결",
+        "areas": [
+          "dashboard"
+        ]
+      }
+    ],
+    "by_area": {
+      "dashboard": 236,
+      "knowledge-vault": 67,
+      "other": 126,
+      "workflow-expansion": 111,
+      "instruction-authority": 14,
+      "bucky-discord-daily-plus": 62,
+      "daily-plus": 20,
+      "authentication": 13,
+      "charlie": 13,
+      "kmong": 8,
+      "support-tooling": 8,
+      "google-revenue-dashboard": 5,
+      "discord-runtime": 2
+    }
+  },
+  "git_status": {
+    "changed_count": 19,
+    "by_area": {
+      "workflow-expansion": 8,
+      "bucky-discord-daily-plus": 2,
+      "daily-plus": 1,
+      "other": 5,
+      "knowledge-vault": 3
+    }
+  },
+  "runtime_status": {
+    "bucky_health": {
+      "ok": true,
+      "error": null
+    },
+    "bot_pid_file": {
+      "valid": true,
+      "pid": 21088,
+      "raw_preview": null
+    },
+    "supervisor_pid_file": {
+      "valid": false,
+      "raw_preview": "not configured"
+    },
+    "process_ids": {
+      "python_pids": [
+        "4148",
+        "21088",
+        "14312",
+        "27572",
+        "27384"
+      ]
+    },
+    "discord_log": {
+      "mtime": "",
+      "markers": {
+        "Bot ready": false
+      }
+    },
+    "daily_plus_bridge": {
+      "latest_outbox": "20260711_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-11 08:01"
+    },
+    "daily_plus_dashboard": {
+      "latest_date": "2026-06-30",
+      "mtime": "2026-06-30 14:08"
+    }
+  },
+  "operational_checks": [
+    {
+      "id": "charlie-dashboard-access",
+      "label": "대시보드 접속 비밀번호",
+      "status": "USER_APPROVAL",
+      "evidence": "정적 HTML 내부 비밀번호 게이트 적용",
+      "next": "공개 배포 후 모바일에서 비밀번호 입력 확인"
+    },
+    {
+      "id": "charlie-no-autofix",
+      "label": "Charlie는 자동 수정하지 않음",
+      "status": "PASS",
+      "evidence": "scripts/charlie_audit.py는 git add/commit/push를 호출하지 않음",
+      "next": "발견사항은 사용자 승인 후 별도로 수정"
+    }
+  ],
+  "registries": {
+    "error_registry": {
+      "path": "ObsidianVault/00_System/CHARLIE_ERROR_REGISTRY.md",
+      "exists": true,
+      "mtime": "2026-07-03 03:24"
+    },
+    "change_log": {
+      "path": "ObsidianVault/00_System/CHARLIE_CHANGE_LOG.md",
+      "exists": true,
+      "mtime": "2026-07-03 03:24"
+    },
+    "instruction_registry": {
+      "path": "ObsidianVault/00_System/PROJECT_INSTRUCTION_REGISTRY.md",
+      "exists": true,
+      "mtime": "2026-07-03 03:24"
+    }
+  }
+}
