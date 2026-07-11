@@ -25,7 +25,11 @@ class PathTests(unittest.TestCase):
 
     def test_all_paths_exist(self):
         for key, path in config.PATHS.items():
-            self.assertTrue(path.is_dir(), f"{key} 경로 없음: {path}")
+            if key in config.RUNTIME_KEYS:
+                # 런타임 생성 경로 — 깨끗한 clone에는 없어도 통과, 있으면 디렉터리여야 함
+                self.assertTrue(not path.exists() or path.is_dir(), f"{key} 경로가 디렉터리 아님: {path}")
+            else:
+                self.assertTrue(path.is_dir(), f"{key} 경로 없음: {path}")
 
     def test_env_root_override(self):
         with tempfile.TemporaryDirectory() as tmp:

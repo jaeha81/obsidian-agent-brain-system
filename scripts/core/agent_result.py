@@ -44,9 +44,9 @@ class AgentResult:
     next_actions: list[str] = field(default_factory=list)
 
     def validate(self) -> list[str]:
-        """계약 위반 목록 반환. 빈 리스트면 유효."""
+        """계약 위반 목록 반환. 빈 리스트면 유효. 잘못된 타입도 예외 없이 목록으로 보고."""
         errors: list[str] = []
-        if not (self.agent or "").strip():
+        if not isinstance(self.agent, str) or not self.agent.strip():
             errors.append("agent 필수")
         if self.status not in VALID_STATUSES:
             errors.append(f"status must be one of {VALID_STATUSES}: {self.status!r}")
@@ -59,7 +59,15 @@ class AgentResult:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "AgentResult":
-        """알 수 없는 키는 무시하고 복원."""
+    def from_dict(cls, data: object) -> "AgentResult":
+        """알 수 없는 키는 무시하고 복원.
+
+        비-dict 입력도 예외 없이 복원 — validate()가 위반을 보고하는 invalid 인스턴스가 된다.
+        """
+        if not isinstance(data, dict):
+            data = {}
         known = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in data.items() if k in known})
+        kwargs = {k: v for k, v in data.items() if k in known}
+        kwargs.setdefault("agent", "")
+        kwargs.setdefault("status", "")
+        return cls(**kwargs)

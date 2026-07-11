@@ -52,11 +52,11 @@ class TaskSpec:
             self.created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     def validate(self) -> list[str]:
-        """계약 위반 목록 반환. 빈 리스트면 유효."""
+        """계약 위반 목록 반환. 빈 리스트면 유효. 잘못된 타입도 예외 없이 목록으로 보고."""
         errors: list[str] = []
-        if not TASK_ID_RE.match(self.task_id or ""):
+        if not isinstance(self.task_id, str) or not TASK_ID_RE.match(self.task_id):
             errors.append(f"task_id 형식 불일치(oracle 호환 필요): {self.task_id!r}")
-        if not (self.task_type or "").strip():
+        if not isinstance(self.task_type, str) or not self.task_type.strip():
             errors.append("task_type 필수")
         if self.priority not in PRIORITIES:
             errors.append(f"priority must be one of {PRIORITIES}: {self.priority!r}")
@@ -70,7 +70,15 @@ class TaskSpec:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "TaskSpec":
-        """알 수 없는 키는 무시하고 복원 (oracle 큐 record에 여분 필드가 있어도 안전)."""
+    def from_dict(cls, data: object) -> "TaskSpec":
+        """알 수 없는 키는 무시하고 복원 (oracle 큐 record에 여분 필드가 있어도 안전).
+
+        비-dict 입력도 예외 없이 복원 — validate()가 위반을 보고하는 invalid 인스턴스가 된다.
+        """
+        if not isinstance(data, dict):
+            data = {}
         known = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in data.items() if k in known})
+        kwargs = {k: v for k, v in data.items() if k in known}
+        kwargs.setdefault("task_id", "")
+        kwargs.setdefault("task_type", "")
+        return cls(**kwargs)

@@ -92,6 +92,29 @@ class ValidateTests(unittest.TestCase):
         self.assertTrue(TaskSpec(task_id=new_task_id(), task_type="code").created_at)
 
 
+class InvalidInputTests(unittest.TestCase):
+    """비정상 타입 입력 — 검증 경계에서 예외 없이 오류 목록으로 보고 (Codex 필수 수정 2)."""
+
+    def test_non_string_fields_report_errors(self):
+        errors = TaskSpec(task_id=123, task_type=456).validate()
+        self.assertTrue(any("task_id" in e for e in errors))
+        self.assertTrue(any("task_type" in e for e in errors))
+
+    def test_none_fields_report_errors(self):
+        errors = TaskSpec(task_id=None, task_type=None).validate()
+        self.assertTrue(any("task_id" in e for e in errors))
+        self.assertTrue(any("task_type" in e for e in errors))
+
+    def test_from_dict_none_returns_invalid_spec(self):
+        spec = TaskSpec.from_dict(None)
+        self.assertIsInstance(spec, TaskSpec)
+        self.assertTrue(spec.validate())
+
+    def test_from_dict_non_dict_returns_invalid_spec(self):
+        for bad in ("문자열", 42, ["list"]):
+            self.assertTrue(TaskSpec.from_dict(bad).validate(), repr(bad))
+
+
 class OracleCompatTests(unittest.TestCase):
     def test_priorities_match_oracle(self):
         api = _load_oracle_api_server()

@@ -62,6 +62,9 @@ PATHS: dict[str, Path] = {
     "scripts": SCRIPTS,
 }
 
+# 런타임에 생성되는 gitignore 경로 — 깨끗한 clone에는 없어도 정상 (존재 필수화 금지).
+RUNTIME_KEYS: frozenset[str] = frozenset({"data"})
+
 # ─────────────────────────────────────────────────────────────
 # yaml 로더 (crash 금지 — 실패 시 빈 dict)
 # ─────────────────────────────────────────────────────────────
@@ -111,7 +114,7 @@ def self_test() -> int:
     for key, path in PATHS.items():
         mark = "OK " if path.is_dir() else "MISS"
         print(f"  [{mark}] {key}: {path}")
-        if not path.is_dir():
+        if not path.is_dir() and key not in RUNTIME_KEYS:
             failures.append(f"경로 없음: {key}={path}")
 
     print("== config yaml ==")

@@ -76,6 +76,28 @@ class ValidateTests(unittest.TestCase):
         self.assertTrue(any("status" in e for e in errors))
 
 
+class InvalidInputTests(unittest.TestCase):
+    """비정상 타입 입력 — 검증 경계에서 예외 없이 오류 목록으로 보고 (Codex 필수 수정 2)."""
+
+    def test_non_string_agent_reports_error(self):
+        errors = AgentResult(agent=123, status="completed").validate()
+        self.assertTrue(any("agent" in e for e in errors))
+
+    def test_none_fields_report_errors(self):
+        errors = AgentResult(agent=None, status=None).validate()
+        self.assertTrue(any("agent" in e for e in errors))
+        self.assertTrue(any("status" in e for e in errors))
+
+    def test_from_dict_none_returns_invalid_result(self):
+        res = AgentResult.from_dict(None)
+        self.assertIsInstance(res, AgentResult)
+        self.assertTrue(res.validate())
+
+    def test_from_dict_non_dict_returns_invalid_result(self):
+        for bad in ("문자열", 42, ["list"]):
+            self.assertTrue(AgentResult.from_dict(bad).validate(), repr(bad))
+
+
 class OracleCompatTests(unittest.TestCase):
     def test_statuses_match_oracle(self):
         api = _load_oracle_api_server()
