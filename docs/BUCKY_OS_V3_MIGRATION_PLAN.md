@@ -28,7 +28,7 @@
 | 5 | Codex 독립 검수 게이트 #1 | 없음 | — | ✅ 통과 07-11 (필수수정 2건 + LOW 보완 이행, 사용자 승인) |
 | 6 | Provider Adapter Layer | 신규 파일만 | 낮음~중간 | ✅ 완료 07-11 (35dadd6, 테스트 31) |
 | 7 | Model Router provider 확장 | 기존 1파일 수정 | 중간 | ✅ 완료 07-11 (8ff3655, 테스트 17, 택1=직접 수정) |
-| 8 | 오라클 큐 ↔ TaskSpec 연결 | 기존 수정 | 중간 | 대기 |
+| 8 | 오라클 큐 ↔ TaskSpec 연결 | 기존 수정 | 중간 | ✅ 완료 07-11 (worker.py+test_worker.py, oracle 4종 76 PASS) |
 | 9 | Codex 독립 검수 게이트 #2 | 없음 | — | 대기 |
 | 10 | usage_ledger + 대시보드 | 신규 위주 | 낮음 | 대기 |
 | 11 | Discord pipeline 분해 | 대형 수정 | **높음** | **홀드 (별도 승인)** |
