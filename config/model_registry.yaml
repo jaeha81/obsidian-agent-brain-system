@@ -53,3 +53,11 @@ providers:
     models: {}
     default_model: null
     notes: "Vercel 함수(api/) 등 직접 API 호출 경로. 키 없으면 disabled 처리."
+
+# 단가 (USD per 1M tokens) — Stage 10 usage_ledger 예산 추정 전용.
+# 키는 model_router 별칭(haiku/sonnet/opus)과 동일. 구독(CLI) 실행은 토큰 과금이
+# 아니므로 실청구와 다름. 출처: Anthropic 공식 API 단가 (2026-06 기준 — haiku 4.5 / sonnet / opus 4.8).
+pricing:
+  haiku: { input: 1.00, output: 5.00 }
+  sonnet: { input: 3.00, output: 15.00 }
+  opus: { input: 5.00, output: 25.00 }

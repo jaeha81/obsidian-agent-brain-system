@@ -5,13 +5,28 @@ Forwards JSON-RPC requests to gbrain's Streamable HTTP endpoint.
 Notifications (no 'id') are forwarded but responses are suppressed.
 """
 
+import os
 import sys
 import json
 import urllib.request
 import urllib.error
+from pathlib import Path
+
+# 토큰 하드코딩 제거 (Stage 10 동반 핫픽스 — current_state_audit.md §4 S1).
+# override=False — 호출측이 이미 설정한 env가 .env보다 우선 (bucky_client와 동일 정책).
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env", encoding="utf-8-sig", override=False)
+except Exception:
+    pass
 
 GBRAIN_URL = "http://localhost:8787/mcp"
-GBRAIN_TOKEN = "Bearer gbrain_3737d6b4ba540fd1ea1b6e92eaf8ed4b470c939b11e56eff7af69e6610f30e8a"
+_token = os.environ.get("GBRAIN_TOKEN", "").strip()
+if not _token:
+    print("[gbrain_mcp_proxy] GBRAIN_TOKEN 없음 — .env에 GBRAIN_TOKEN=<token> 설정 필요", file=sys.stderr)
+    sys.exit(1)
+GBRAIN_TOKEN = _token if _token.startswith("Bearer ") else f"Bearer {_token}"
 
 
 def send_to_gbrain(msg: dict) -> list[dict]:

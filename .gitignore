@@ -226,3 +226,6 @@ data/estimation_samples/
 # obsidian-index — 생성 산출물 제외 (코드/스키마만 커밋)
 data/obsidian-index/
 memory/obsidian-index/
+
+# 사용량 원장 (Stage 10) — 원장 jsonl은 로컬 전용 (오픈 퀘스천 2, 07-11 확정)
+data/usage/

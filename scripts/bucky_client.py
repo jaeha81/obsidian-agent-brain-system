@@ -52,6 +52,13 @@ except ImportError:
         pass
     _CLI_LOG_ENABLED = False
 
+# 사용량 원장 (Stage 10). record()는 자체적으로 예외를 전파하지 않는다.
+try:
+    from core.usage_ledger import record as _usage_record
+except Exception:
+    def _usage_record(*args, **kwargs) -> None:  # type: ignore[misc]
+        pass
+
 
 # Sonnet/Haiku/Opus 한도 초과 패턴 (Claude CLI stderr+stdout 결합 텍스트에 적용).
 # 오탐 방지: 429는 오류 문맥+단어 경계에서만("port 4290" 제외), resets am/pm은
@@ -282,6 +289,17 @@ def _invoke_bucky(
         model=model,
         task_type=task_type,
         source=source or ("with_tools" if with_tools else "no_tools"),
+    )
+    _usage_record(
+        provider="claude_code",
+        model=model,
+        layer="cli",
+        task_type=task_type,
+        source=source or ("with_tools" if with_tools else "no_tools"),
+        input_chars=len(prompt) + len(system_prompt or ""),
+        output_chars=len(output),
+        duration_ms=duration_ms,
+        success=success,
     )
 
     if not success:

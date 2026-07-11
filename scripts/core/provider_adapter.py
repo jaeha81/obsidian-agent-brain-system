@@ -149,9 +149,11 @@ class ProviderAdapter:
         if not isinstance(instruction, str) or not instruction.strip():
             return self._failed("instruction 없음 — oracle payload의 instruction 키 필요")
         try:
-            return self._execute(task_spec, instruction)
+            result = self._execute(task_spec, instruction)
         except Exception as e:
-            return self._failed(f"실행 예외: {type(e).__name__}: {e}")
+            result = self._failed(f"실행 예외: {type(e).__name__}: {e}")
+        self._record_usage(task_spec, instruction, result)
+        return result
 
     # ── provider별 오버라이드 지점 ───────────────────────────
 
@@ -168,6 +170,27 @@ class ProviderAdapter:
         return self._failed("Stage 6 stub — 실연동 미구현")
 
     # ── 헬퍼 ─────────────────────────────────────────────────
+
+    def _record_usage(self, task_spec: TaskSpec, instruction: str, result: AgentResult) -> None:
+        """usage_ledger 계측 (Stage 10). 실패해도 실행 비차단 — record()는 예외를 전파하지 않음.
+
+        claude_code는 bucky_client(layer="cli")에서도 기록되므로 layer="adapter"로 구분
+        (합산 시 이중 계산 방지는 usage_ledger.month_summary(dedup=True)가 담당).
+        """
+        try:
+            from core.usage_ledger import record
+        except Exception:
+            return
+        record(
+            provider=self.name or type(self).__name__,
+            model=self.default_model(),
+            layer="adapter",
+            task_id=getattr(task_spec, "task_id", ""),
+            task_type=getattr(task_spec, "task_type", ""),
+            input_chars=len(instruction),
+            output_chars=len(result.summary or ""),
+            success=result.status == "completed",
+        )
 
     def _spec_errors(self, task_spec: object) -> list[str]:
         if not isinstance(task_spec, TaskSpec):
