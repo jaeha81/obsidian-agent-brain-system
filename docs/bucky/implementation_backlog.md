@@ -18,7 +18,7 @@
 | 3 | 10 | B | usage_ledger (V3 Stage 10 축소판) + gbrain 토큰 하드코딩 핫픽스 | 신규 위주 | P0-7 | ✅ 완료 (07-11, 0455040 — 셀프테스트 6항목 + oracle 회귀 80 PASS) |
 | 4 | 15 | B | 이벤트 엔벨로프(event_log.py) + model_decision 방출 준비 | 신규 위주 | P0-2,8 | ✅ 완료 (07-11, 8a88256 — 테스트 14 + 셀프테스트 7 + 회귀 92·oracle 80 무손상, 실경로 E2E 확인) |
 | 5 | 16 | B | Task/Goal/Project 레지스트리 최소판 | 신규 위주 | P0-3 | ✅ 완료 (07-12, f70c430 — 테스트 128건·oracle 80 무손상, 3-lens 검수 통과, projects.yaml 추적 확인) |
-| 6 | 17 | B | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | P0-5,11 | 대기 |
+| 6 | 17 | B | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | P0-5,11 | ✅ 완료 (07-12, a79994d — worker 14건·oracle 84 PASS·unittest 128건 OK·격리 실경로 E2E, 실동작은 claude_code뿐) |
 | — | G4 | 게이트 | Codex 검수 #3 (Phase B 일괄) | — | — | 대기 |
 | 7 | 18 | C | policy_rules.yaml + policy_engine.py (순수 함수, 미배선) | 신규만 | P0-6 | 대기 |
 | 8 | 19 | C | 정책 배선 shadow 모드 + 예산 경고 (기존 승인 3종 재사용) | 기존 수정 | P0-6,7 | 대기 |
