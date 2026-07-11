@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-11 15:51:48",
+  "generated_at": "2026-07-12 08:00:05",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,192 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "8193fa6",
+        "date": "2026-07-12",
+        "subject": "docs: G4 게이트 결과 전사 — Codex 검수 #3 조건부 통과 (Phase B: 10·15·16·17)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "2150ea6",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 17 완료 반영 — 백로그 상태 갱신 (a79994d)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "a79994d",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 17 — worker 어댑터 디스패치 배선 (플래그 기본 off, P0-5·8·11)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "103269f",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 16 완료 반영 — 백로그 상태 갱신 (f70c430)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "f70c430",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 16 — Task/Goal/Project 레지스트리 최소판 (P0-3)",
+        "areas": [
+          "knowledge-vault",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "8abb27c",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 15 완료 반영 — 백로그 상태 갱신 (8a88256)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "8a88256",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 15 — 통합 이벤트 로그 event_log.py (emit + model_decision 스키마 정합)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "d92e2a0",
+        "date": "2026-07-11",
+        "subject": "docs: Stage 10 완료 반영 — 백로그 상태·오픈 퀘스천 2 확정·감사 S1 이행 전사",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "0455040",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 10 — usage_ledger 원장 + gbrain 토큰 하드코딩 핫픽스 (P0-7)",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "270774c",
+        "date": "2026-07-11",
+        "subject": "fix: user_checklist.json 유실 복구 — 마스터 리스트 75건 복원 + 자동감지 2건 병합",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "9ebf604",
+        "date": "2026-07-11",
+        "subject": "fix: claude.ai 수집기 수리 2건 — 상세 API text 폴백 + 자동화 감지 회피 플래그",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "1660548",
+        "date": "2026-07-11",
+        "subject": "docs: G3 문서 이슈 5건 수정 (MED 2·LOW 3) — Stage 13~21 승인순서 플랜 반영 + 미추적 경로 주석",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "fb7c4c0",
+        "date": "2026-07-11",
+        "subject": "docs: 게이트 #2 재검수 결과 §6 전사 — 통과 (필수수정 6건 전부 해소, 62+80 테스트 OK)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "dd48547",
+        "date": "2026-07-11",
+        "subject": "fix: 게이트 #2 필수수정 6건 이행 (Codex 조건부 통과 조건)",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "1e14b7d",
+        "date": "2026-07-11",
+        "subject": "docs: Stage 13+14 산출물 — 현황감사/갭분석/목표아키텍처/백로그 + ADR-0001~0005 + AGENTS_CANONICAL 복구",
+        "areas": [
+          "dashboard",
+          "knowledge-vault"
+        ]
+      },
+      {
+        "commit": "b6c8bd0",
+        "date": "2026-07-11",
+        "subject": "fix: Claude CLI npm 경로 폴백 복원 (61b4120→120267c 회귀 유실분)",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "a7f38eb",
+        "date": "2026-07-11",
+        "subject": "fix: Claude 한도 초과 시 Codex 폴백 복원 (120267c 회귀 유실분)",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "d921185",
+        "date": "2026-07-11",
+        "subject": "docs: 플랜 상태 갱신 — Stage 8 완료 (a245856)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "a245856",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 8 오라클 큐 ↔ TaskSpec 연결 — worker 결과를 AgentResult 규약으로",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "5c28321",
+        "date": "2026-07-11",
+        "subject": "docs: 플랜 상태 갱신 — Stage 7 완료 (8ff3655)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "8ff3655",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 7 Model Router provider 확장 — provider_candidates + stdout 재래핑 수정",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "3abf783",
+        "date": "2026-07-11",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-11 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "376e1fd",
         "date": "2026-07-11",
@@ -302,209 +488,16 @@
           "dashboard",
           "workflow-expansion"
         ]
-      },
-      {
-        "commit": "15bc6fb",
-        "date": "2026-07-07",
-        "subject": "chore: 감시자 3중중복 단일화 — orphan watcher 5종 아카이브",
-        "areas": [
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "632cca2",
-        "date": "2026-07-07",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-07 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "8c1357f",
-        "date": "2026-07-06",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-06 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "102c573",
-        "date": "2026-07-06",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-06 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "2570643",
-        "date": "2026-07-05",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-05 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "d04a3db",
-        "date": "2026-07-05",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-05 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "37737b3",
-        "date": "2026-07-04",
-        "subject": "fix(jp-golf): golf-chat 백엔드를 Gemini 2.5 Flash-Lite 무료 티어로 전환",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "8fbf889",
-        "date": "2026-07-04",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-04 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "2f9a1b6",
-        "date": "2026-07-03",
-        "subject": "feat: jh-local 채널 구현 - 로컬 PC 상태 실시간 대화",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "b3d4ae9",
-        "date": "2026-07-03",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-03 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "f9ce4a7",
-        "date": "2026-07-03",
-        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "de29f49",
-        "date": "2026-07-03",
-        "subject": "fix: restore 264 scripts/tests deleted by 2026-06-28 regression commit",
-        "areas": [
-          "authentication",
-          "bucky-discord-daily-plus",
-          "charlie",
-          "daily-plus",
-          "kmong",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "6d150ae",
-        "date": "2026-07-03",
-        "subject": "fix: raise git log timeout in charlie_audit.py",
-        "areas": [
-          "support-tooling"
-        ]
-      },
-      {
-        "commit": "0ed23cb",
-        "date": "2026-07-03",
-        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "a0bf2fe",
-        "date": "2026-07-03",
-        "subject": "feat: implement Charlie audit system (Tasks 1-3 of 2026-06-15 plan)",
-        "areas": [
-          "charlie",
-          "knowledge-vault",
-          "other",
-          "support-tooling"
-        ]
-      },
-      {
-        "commit": "e03b897",
-        "date": "2026-07-03",
-        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "df55fc5",
-        "date": "2026-07-03",
-        "subject": "fix: add missing rewrite for protected wishket page",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "1e1e422",
-        "date": "2026-07-03",
-        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "be88c20",
-        "date": "2026-07-03",
-        "subject": "chore: reconcile with origin (engine scripts + racy-cache files, content-identical)",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "daily-plus",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "07478af",
-        "date": "2026-07-03",
-        "subject": "feat: bring Bucky engine scripts under version control (Phase 4)",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "daily-plus",
-          "other",
-          "support-tooling",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "9e42fa5",
-        "date": "2026-07-03",
-        "subject": "Merge branch 'master' of https://github.com/jaeha81/obsidian-agent-brain-system",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "1a0f1f4",
-        "date": "2026-07-03",
-        "subject": "chore: normalize line endings to LF (text files only, xlsx excluded)",
-        "areas": [
-          "other"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 235,
-      "other": 127,
-      "workflow-expansion": 113,
-      "bucky-discord-daily-plus": 60,
-      "charlie": 14,
-      "daily-plus": 20,
-      "knowledge-vault": 67,
+      "dashboard": 251,
+      "other": 136,
+      "knowledge-vault": 69,
+      "workflow-expansion": 121,
+      "bucky-discord-daily-plus": 67,
+      "charlie": 15,
+      "daily-plus": 21,
       "instruction-authority": 14,
       "authentication": 13,
       "kmong": 8,
@@ -514,12 +507,12 @@
     }
   },
   "git_status": {
-    "changed_count": 16,
+    "changed_count": 18,
     "by_area": {
-      "dashboard": 1,
-      "workflow-expansion": 6,
-      "other": 5,
+      "dashboard": 2,
+      "other": 6,
       "knowledge-vault": 3,
+      "workflow-expansion": 6,
       "bucky-discord-daily-plus": 1
     }
   },
@@ -549,7 +542,7 @@
     },
     "daily_plus_bridge": {
       "latest_outbox": "20260711_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-11 15:49"
+      "latest_sent": "2026-07-12 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-06-30",
