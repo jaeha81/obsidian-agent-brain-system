@@ -23,20 +23,18 @@ Usage (CLI):
 from __future__ import annotations
 
 import argparse
-import io
 import os
 import sys
 from typing import Iterable
 
 if sys.platform == "win32":
     try:
-        # 이미 utf-8이면 재래핑 금지, 재래핑 전 flush 필수 — import 시점 무조건 재래핑은
-        # 호출자의 미flush 버퍼를 유실시킨다 (Stage 6 셀프테스트에서 실측, Stage 7 수정)
+        # 이미 utf-8이면 손대지 않는다. wrapper 교체는 기존 wrapper GC가 공유 buffer를
+        # 닫아 stdout이 죽을 수 있으므로 reconfigure로 인코딩만 바꾼다(내부 flush 포함).
         for _name in ("stdout", "stderr"):
             _stream = getattr(sys, _name)
             if (_stream.encoding or "").lower().replace("-", "") != "utf8":
-                _stream.flush()
-                setattr(sys, _name, io.TextIOWrapper(_stream.buffer, encoding="utf-8", errors="replace"))
+                _stream.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 

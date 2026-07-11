@@ -195,6 +195,23 @@ class EstimateTests(unittest.TestCase):
         self.assertTrue(est.ok)
         self.assertTrue(est.model, "task_type=code 라우팅 모델이 비어 있음")
 
+    def test_base_stub_estimate_not_ok(self):
+        """실행이 stub인 어댑터는 healthy여도 estimate ok=False (run과 모순 금지)."""
+        est = ProviderAdapter(_entry()).estimate(VALID_SPEC)
+        self.assertFalse(est.ok)
+        self.assertIn("실행 미지원", est.detail)
+
+    def test_codex_stub_estimate_not_ok_even_when_healthy(self):
+        with mock.patch("bucky_client.is_codex_available", return_value=True):
+            est = CodexCliAdapter(_entry()).estimate(VALID_SPEC)
+        self.assertFalse(est.ok)
+
+    def test_gemini_stub_estimate_not_ok_even_when_healthy(self):
+        ok = Health("gemini", HEALTH_OK)
+        with mock.patch.object(GeminiAdapter, "_probe", return_value=ok):
+            est = GeminiAdapter(_entry()).estimate(VALID_SPEC)
+        self.assertFalse(est.ok)
+
 
 class ClaudeRunWiringTests(unittest.TestCase):
     """claude_cli_adapter가 bucky_client를 호환 래핑하는지 (실호출 없이 mock)."""

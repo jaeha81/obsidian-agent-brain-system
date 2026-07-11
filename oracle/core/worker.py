@@ -30,11 +30,12 @@ from pathlib import Path
 
 from client import OracleClientError, claim_task, update_status
 
-# TaskSpec/AgentResult 계약(Stage 4)은 scripts/core에 있다 — 뒤에 덧붙여(append)
-# client 등 기존 oracle/core 모듈을 가리지 않게 한다.
-sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts" / "core"))
-from agent_result import AgentResult  # noqa: E402
-from task_spec import TaskSpec  # noqa: E402
+# TaskSpec/AgentResult 계약(Stage 4)은 scripts/core 패키지에 있다. ProviderAdapter와
+# 같은 core.task_spec 경로로 import해야 isinstance 판정이 통한다(클래스 정체성 단일화).
+# 뒤에 덧붙여(append) client 등 기존 oracle/core 모듈을 가리지 않게 한다.
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))
+from core.agent_result import AgentResult  # noqa: E402
+from core.task_spec import TaskSpec  # noqa: E402
 
 DEFAULT_AGENT_ID = "home-pc-agent"
 DEFAULT_POLL_INTERVAL = 5.0
@@ -46,17 +47,27 @@ def handle_task(task: dict) -> dict:
     """태스크를 실행하고 AgentResult 형식의 result(dict)를 반환한다 (Stage 8 규약).
 
     payload에 실린 TaskSpec 필드를 큐 레코드 상단 필드와 합쳐 TaskSpec으로 복원한다.
+    큐 레코드가 정본이므로 레코드 필드를 마지막에 병합한다 — payload가 task_id·priority
+    등 정본 필드를 덮어쓸 수 없다. 복원 후 validate() 위반은 AgentResult(failed)로 보고한다.
     payload에 TaskSpec이 없어도 동작한다(from_dict가 결손 키를 허용 — 생산자 무수정 호환).
 
     TODO(후속 Phase): task["task_type"]별로 실제 로컬 에이전트/Claude Code를 호출한다.
     지금은 파이프라인을 종단까지 돌리기 위한 echo 스텁 — payload를 summary에 되돌려준다.
     """
+    agent = task.get("target_agent") or DEFAULT_AGENT_ID
     payload = task.get("payload")
     if not isinstance(payload, dict):
         payload = {}
-    spec = TaskSpec.from_dict({**task, **payload})
+    spec = TaskSpec.from_dict({**payload, **task})
+    errors = spec.validate()
+    if errors:
+        return AgentResult(
+            agent=agent,
+            status="failed",
+            summary="TaskSpec 위반: " + "; ".join(errors),
+        ).to_dict()
     return AgentResult(
-        agent=task.get("target_agent") or DEFAULT_AGENT_ID,
+        agent=agent,
         status="completed",
         summary=f"echo({spec.task_type}): {json.dumps(payload, ensure_ascii=False)}",
     ).to_dict()
@@ -82,7 +93,9 @@ def run_once(agent_id, *, base_url=None, token=None):
         update_status(task_id, "failed", result=failure.to_dict(),
                       base_url=base_url, token=token)
         return task_id
-    update_status(task_id, "completed", result=result, base_url=base_url, token=token)
+    # handle_task가 검증 실패 등을 AgentResult(failed)로 반환하면 서버 상태도 failed로 맞춘다.
+    status = "failed" if result.get("status") == "failed" else "completed"
+    update_status(task_id, status, result=result, base_url=base_url, token=token)
     return task_id
 
 

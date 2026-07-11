@@ -135,6 +135,30 @@ class StdoutPreservationTests(unittest.TestCase):
         self.assertIn("before-import", result.stdout)
         self.assertIn("after-import", result.stdout)
 
+    def test_custom_wrapper_survives_import_not_closed(self):
+        """비utf8 custom TextIOWrapper가 있어도 import 후 stdout이 닫히지 않는다.
+
+        wrapper 교체 방식에서는 기존 wrapper GC가 공유 buffer를 닫아
+        sys.stdout.closed=True가 되던 시나리오 — reconfigure 전환으로 고정.
+        """
+        code = (
+            "import sys, io; "
+            f"sys.path.insert(0, {str(SCRIPTS)!r}); "
+            "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='cp949', errors='replace'); "
+            "import gc; import model_router; gc.collect(); "
+            "assert not sys.stdout.closed, 'stdout closed after import'; "
+            "print('still-open', flush=True)"
+        )
+        env = os.environ.copy()
+        env.pop("PYTHONUTF8", None)
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=60, env=env,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("still-open", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

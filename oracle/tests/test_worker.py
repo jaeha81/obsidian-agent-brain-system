@@ -122,9 +122,49 @@ try:
           and result3.get("status") == "failed"
           and "boom" in result3.get("summary", ""),
           f"got {task3}")
+
+    # W7 handle_task가 failed AgentResult를 반환하면 서버 상태도 failed로 보고
+    res4 = submit_task("chat", payload={"instruction": "x"}, target_agent=AGENT,
+                       base_url=BASE, token=TOKEN)
+    tid4 = res4["task_id"]
+    orig = worker.handle_task
+    worker.handle_task = lambda task: worker.AgentResult(
+        agent=AGENT, status="failed", summary="검증 실패 스텁").to_dict()
+    try:
+        done4 = worker.run_once(AGENT, base_url=BASE, token=TOKEN)
+    finally:
+        worker.handle_task = orig
+    task4 = get_task(tid4, base_url=BASE, token=TOKEN)
+    check("W7 failed AgentResult 반환 → 서버 status failed",
+          done4 == tid4 and task4["status"] == "failed"
+          and (task4.get("result") or {}).get("status") == "failed",
+          f"got {task4}")
 finally:
     server.kill()
     server.wait()
+
+# W8~W10은 서버 불필요 — handle_task 계약을 직접 검증한다.
+# W8 정본 병합 — payload가 큐 레코드의 task_id/task_type/priority를 덮어쓸 수 없다
+r8 = worker.handle_task({
+    "task_id": "task_20260711_120000_abcd", "task_type": "chat",
+    "priority": "normal", "target_agent": AGENT,
+    "payload": {"task_id": "evil", "task_type": "hack", "priority": "urgent",
+                "instruction": "x"},
+})
+check("W8 큐 레코드 정본 필드가 payload를 이긴다",
+      r8["status"] == "completed" and "echo(chat)" in r8["summary"], f"got {r8}")
+
+# W9 invalid 레코드(task_id 형식 위반) → 예외 없이 AgentResult(failed)
+r9 = worker.handle_task({"task_id": "not-oracle-format", "task_type": "chat",
+                         "payload": {}})
+check("W9 TaskSpec 검증 실패 → AgentResult(failed)",
+      r9["status"] == "failed" and "TaskSpec" in r9["summary"], f"got {r9}")
+
+# W10 클래스 정체성 — worker와 ProviderAdapter가 같은 core.task_spec.TaskSpec을 쓴다
+import importlib  # noqa: E402
+_canon = importlib.import_module("core.task_spec")
+check("W10 worker.TaskSpec is core.task_spec.TaskSpec",
+      worker.TaskSpec is _canon.TaskSpec)
 
 print(f"\n결과: {PASS} PASS / {FAIL} FAIL (총 {PASS + FAIL})")
 sys.exit(1 if FAIL else 0)

@@ -76,6 +76,10 @@ class ProviderAdapter:
     """provider 공통 베이스. 구체 어댑터는 name 지정 + _probe/_select_model/_execute만 오버라이드."""
 
     name: str = ""
+    # _execute가 실제 실행을 지원하는지. 기본 False — 베이스 _execute는 stub이므로
+    # 실연동 어댑터만 True로 올린다. estimate()가 이 값으로 ok를 판정해
+    # "estimate ok인데 run은 항상 failed"인 모순을 막는다.
+    execution_supported: bool = False
 
     def __init__(self, entry: dict | None = None):
         """entry: config/model_registry.yaml providers.<name> 항목. 미지정 시 레지스트리에서 로드."""
@@ -127,6 +131,8 @@ class ProviderAdapter:
         errors = self._spec_errors(task_spec)
         if errors:
             return Estimate(self.name, False, "", "; ".join(errors))
+        if not self.execution_supported:
+            return Estimate(self.name, False, "", "실행 미지원 — run()은 stub (execution_supported=False)")
         try:
             return Estimate(self.name, True, self._select_model(task_spec))
         except Exception as e:

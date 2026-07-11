@@ -22,7 +22,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
-load_dotenv(ROOT / ".env", encoding="utf-8", override=True)
+
+
+def _load_project_env(path: Path | None = None) -> None:
+    """.env 로드. override=False — 호출측이 이미 설정한 환경변수가 .env보다 우선한다
+    (provider_adapter.py와 동일 정책)."""
+    load_dotenv(path or (ROOT / ".env"), encoding="utf-8", override=False)
+
+
+_load_project_env()
 
 # 모델 라우터 통합 (작업 유형 → sonnet/haiku/opus)
 SCRIPTS_DIR = Path(__file__).parent
@@ -45,11 +53,15 @@ except ImportError:
     _CLI_LOG_ENABLED = False
 
 
-# Sonnet/Haiku/Opus 한도 초과 패턴 (Claude CLI stderr/stdout)
+# Sonnet/Haiku/Opus 한도 초과 패턴 (Claude CLI stderr+stdout 결합 텍스트에 적용).
+# 오탐 방지: 429는 오류 문맥+단어 경계에서만("port 4290" 제외), resets am/pm은
+# limit/usage/quota 문맥에서만("cache resets at 10am" 제외) 매치한다.
 LIMIT_PATTERNS = re.compile(
     r"(usage limit|rate limit|hit your .* limit|quota exceeded|subscription limit|"
-    r"claude ai usage limit|exceeded .*usage|out of .*usage|resets .*(am|pm)|"
-    r"too many requests|429|"
+    r"claude ai usage limit|exceeded .*usage|out of .*usage|"
+    r"(?:limit|usage|quota)[^\n]{0,80}\bresets?\b[^\n]{0,40}\d\s*(?:am|pm)\b|"
+    r"too many requests|"
+    r"(?:\berror\b|\bstatus(?: code)?\b|\bhttp\b|\bcode\b)[^\n]{0,20}\b429\b|"
     r"사용\s*한도|구독\s*한도|한도\s*초과|한도에\s*도달|할당량\s*초과)",
     re.IGNORECASE,
 )
@@ -273,7 +285,10 @@ def _invoke_bucky(
     )
 
     if not success:
-        detail = (result.stderr or result.stdout or "").strip()
+        # 한도 메시지가 stderr·stdout 어느 쪽에 실려도 놓치지 않도록 결합해 판정한다.
+        detail = "\n".join(
+            t for t in ((result.stderr or "").strip(), (result.stdout or "").strip()) if t
+        )
         if LIMIT_PATTERNS.search(detail):
             raise BuckyLimitError(f"{model} usage limit hit: {detail[:200]}")
         raise BuckyError(f"Bucky runtime failed with code {result.returncode}: {detail}")

@@ -14,6 +14,7 @@ from core.task_spec import TaskSpec
 
 class ClaudeCliAdapter(ProviderAdapter):
     name = "claude_code"
+    execution_supported = True  # 유일한 실연동 어댑터 — run()이 bucky_client를 실제 호출
 
     def _probe(self) -> Health:
         import bucky_client
