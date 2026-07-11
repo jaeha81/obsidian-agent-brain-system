@@ -61,7 +61,7 @@
 
 | # | 발견 | 위치 | 조치 계획 |
 |---|---|---|---|
-| S1 | **gbrain MCP 프록시 토큰 하드코딩** — Bearer 토큰이 소스에 리터럴로 존재 (값은 본 문서에 전재하지 않음) | `scripts/gbrain_mcp_proxy.py:14` (`GBRAIN_TOKEN`) | Stage 10 동반 핫픽스로 env 이관 확정. Codex 게이트 #2 필수수정 3번(`.env` override 일관화)과 같은 파일군 — 함께 처리 후보 |
+| S1 | **gbrain MCP 프록시 토큰 하드코딩** — Bearer 토큰이 소스에 리터럴로 존재 (값은 본 문서에 전재하지 않음) | `scripts/gbrain_mcp_proxy.py:14` (`GBRAIN_TOKEN`) | ✅ 이행 (07-11, 0455040): `.env` `GBRAIN_TOKEN` 이관 + 소스 리터럴 제거 (override=False 정책 일치). 주의: 과거 커밋 히스토리에는 토큰이 남아 있으므로 gbrain 토큰 재발급 권고 (DB 내장 — 재발급 절차는 gbrain 운영 메모 참조) |
 
 참고: git 추적 중인 비밀정보 파일은 없음(V3 AUDIT §3.9, 07-10 점검). 위 건은 git 추적 소스 내 하드코딩이므로 별개 사안이다.
 

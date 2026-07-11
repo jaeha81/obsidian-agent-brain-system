@@ -14,8 +14,8 @@
 | 0 | 9 | 기존 | Codex 검수 게이트 #2 — 선행 필수 | 없음 | — | ✅ 통과 (07-11 재검수, 필수수정 6건 이행 dd48547) |
 | 1 | 13 | A | 문서 1차: current_state_audit + gap_analysis + assumptions(§26) | 없음 | P0-1 | ✅ 완료 (07-11, 1e14b7d) |
 | 2 | 14 | A | 문서 2차: target_architecture + backlog + ADR-0001~4 + AGENTS_CANONICAL 복구 | 없음 | P0-1 | 본 문서 |
-| — | G3 | 게이트 | Codex 문서 검수 (경량) | — | — | 대기 |
-| 3 | 10 | B | usage_ledger (V3 Stage 10 축소판) + gbrain 토큰 하드코딩 핫픽스 | 신규 위주 | P0-7 | 대기 |
+| — | G3 | 게이트 | Codex 문서 검수 (경량) | — | — | ✅ 통과 (07-11 — 지적 5건 수정 1660548, 수정분 재확인은 사용자 결정으로 생략) |
+| 3 | 10 | B | usage_ledger (V3 Stage 10 축소판) + gbrain 토큰 하드코딩 핫픽스 | 신규 위주 | P0-7 | ✅ 완료 (07-11, 0455040 — 셀프테스트 6항목 + oracle 회귀 80 PASS) |
 | 4 | 15 | B | 이벤트 엔벨로프(event_log.py) + model_decision 방출 준비 | 신규 위주 | P0-2,8 | 대기 |
 | 5 | 16 | B | Task/Goal/Project 레지스트리 최소판 | 신규 위주 | P0-3 | 대기 |
 | 6 | 17 | B | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | P0-5,11 | 대기 |
@@ -65,5 +65,5 @@
 ## 5. 오픈 퀘스천 (해당 Stage 착수 전 사용자 확정 — 플랜 정본 상속)
 
 1. 정책 enforce 전환 시점 — 권고: 이번 범위는 shadow까지 (Stage 19 착수 전 재확인)
-2. 데이터 위치·git 추적 — 권고: 원장류는 repo `data/`+`05_Logs/`, `data/usage/`는 .gitignore (Stage 10 착수 전 확정)
+2. 데이터 위치·git 추적 — ✅ 확정 (07-11 사용자 A안): 원장류는 repo `data/`+`05_Logs/`, `data/usage/`는 .gitignore (0455040 반영)
 3. 01_RAW #processed 방식 — 권고: sidecar 인덱스 + LIBRARIAN_RULES 개정 승인 (Stage 20 착수 전 확정)
