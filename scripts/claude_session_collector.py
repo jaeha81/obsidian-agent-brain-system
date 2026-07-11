@@ -170,8 +170,9 @@ async def fetch_conversation_messages(page_ctx, org_id: str, conv_id: str) -> li
     messages = []
     for msg in chat_messages:
         role = msg.get("sender", msg.get("role", "unknown"))
-        # content는 문자열이거나 리스트(블록)일 수 있음
-        content_raw = msg.get("content", "")
+        # content는 문자열이거나 리스트(블록)일 수 있음. 파라미터 없는 상세 API는
+        # content 없이 top-level text만 반환한다 (2026-07 API 변경 실측)
+        content_raw = msg.get("content") or msg.get("text", "")
         if isinstance(content_raw, list):
             parts = []
             for block in content_raw:
@@ -222,7 +223,10 @@ async def login_mode():
 
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
-            user_data_dir=str(PROFILE_DIR), headless=False, channel="chrome"
+            user_data_dir=str(PROFILE_DIR),
+            headless=False,
+            channel="chrome",
+            args=["--disable-blink-features=AutomationControlled"],
         )
         page = await context.new_page()
         await page.goto("https://claude.ai/", wait_until="domcontentloaded")
