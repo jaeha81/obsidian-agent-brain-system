@@ -11,8 +11,8 @@
 
 | 순서 | Stage | Phase | 이름 | 코드 변경 | 스펙 P0 | 상태 |
 |---|---|---|---|---|---|---|
-| 0 | 9 | 기존 | Codex 검수 게이트 #2 — 선행 필수 | 없음 | — | 조건부 통과 (필수수정 6건 승인 대기) |
-| 1 | 13 | A | 문서 1차: current_state_audit + gap_analysis + assumptions(§26) | 없음 | P0-1 | ✅ 완료 (07-11, 미커밋) |
+| 0 | 9 | 기존 | Codex 검수 게이트 #2 — 선행 필수 | 없음 | — | ✅ 통과 (07-11 재검수, 필수수정 6건 이행 dd48547) |
+| 1 | 13 | A | 문서 1차: current_state_audit + gap_analysis + assumptions(§26) | 없음 | P0-1 | ✅ 완료 (07-11, 1e14b7d) |
 | 2 | 14 | A | 문서 2차: target_architecture + backlog + ADR-0001~4 + AGENTS_CANONICAL 복구 | 없음 | P0-1 | 본 문서 |
 | — | G3 | 게이트 | Codex 문서 검수 (경량) | — | — | 대기 |
 | 3 | 10 | B | usage_ledger (V3 Stage 10 축소판) + gbrain 토큰 하드코딩 핫픽스 | 신규 위주 | P0-7 | 대기 |

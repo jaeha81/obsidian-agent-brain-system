@@ -41,7 +41,7 @@
   docs/ 대시보드(정적 JSON 패턴) + generate_brain_status.py               [Stage 21 신설]
 ```
 
-승인 경로는 신설하지 않는다: policy가 `require_approval` 판정 시 **기존 `pending_approval/` 파일큐 + `approve_task.py` + Discord `!approve`** 를 그대로 사용한다 (두 경로의 통합 접점 = Stage 19).
+승인 경로는 신설하지 않는다: policy가 `require_approval` 판정 시 **기존 `ObsidianVault/10_AgentBus/pending_approval/` 파일큐(운영 경로 — git 미추적) + `approve_task.py` + Discord `!approve`** 를 그대로 사용한다 (두 경로의 통합 접점 = Stage 19).
 
 ---
 

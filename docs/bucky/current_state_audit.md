@@ -1,7 +1,7 @@
 # Bucky 세컨드 브레인 — 현재 상태 감사 (current_state_audit)
 
 - 작성일: 2026-07-11 (Stage 13, 문서 전용 — 코드 무변경)
-- 스펙 근거: `ObsidianVault/00_UPGRADE/BUCKY_SECOND_BRAIN_EVOLUTION_SPEC_v0.1_KR.md` §0.2
+- 스펙 근거: `ObsidianVault/00_UPGRADE/BUCKY_SECOND_BRAIN_EVOLUTION_SPEC_v0.1_KR.md` §0.2 (볼트 로컬 문서 — git 미추적이므로 저장소 clone에는 없음)
 - 조사 방법: 탐색 에이전트 3개 실측 (2026-07-11) + V3 AUDIT(07-10) 대조
 - 브랜치: `bucky-os-v3-core`
 
@@ -71,4 +71,4 @@
 
 - 갭 3분류: [`gap_analysis.md`](gap_analysis.md)
 - 스펙 §26 미확인 항목의 실측치: [`assumptions.md`](assumptions.md)
-- 목표 아키텍처·백로그·ADR: Stage 14 산출 예정 (`target_architecture.md`, `implementation_backlog.md`, `docs/adr/ADR-0001~4`)
+- 목표 아키텍처·백로그·ADR: Stage 14 산출 (`target_architecture.md`, `implementation_backlog.md`, `docs/adr/ADR-0001~0005`)

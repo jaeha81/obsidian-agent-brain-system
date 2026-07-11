@@ -29,10 +29,32 @@
 | 6 | Provider Adapter Layer | 신규 파일만 | 낮음~중간 | ✅ 완료 07-11 (35dadd6, 테스트 31) |
 | 7 | Model Router provider 확장 | 기존 1파일 수정 | 중간 | ✅ 완료 07-11 (8ff3655, 테스트 17, 택1=직접 수정) |
 | 8 | 오라클 큐 ↔ TaskSpec 연결 | 기존 수정 | 중간 | ✅ 완료 07-11 (worker.py+test_worker.py, oracle 4종 76 PASS) |
-| 9 | Codex 독립 검수 게이트 #2 | 없음 | — | 대기 |
+| 9 | Codex 독립 검수 게이트 #2 | 없음 | — | ✅ 통과 07-11 (조건부 통과 → 필수수정 6건 이행 dd48547 → 재검수 통과) |
 | 10 | usage_ledger + 대시보드 | 신규 위주 | 낮음 | 대기 |
 | 11 | Discord pipeline 분해 | 대형 수정 | **높음** | **홀드 (별도 승인)** |
 | 12 | Memory Engine | 신규 위주 | 중간 | 후순위 |
+
+### 1.1 Stage 13~21 확장 (세컨드 브레인 스펙 흡수 — ADR-0002)
+
+세컨드 브레인 스펙 v0.1은 별도 트랙이 아니라 본 플랜의 Stage 13~21로 흡수한다 (`docs/adr/ADR-0002-v3-single-track.md`).
+**승인 순서: `13 → 14 → G3 → 10 → 15 → 16 → 17 → G4 → 18 → 19 → G5 → 20 → 21 → G6`** (Stage 10은 Phase B 선두로 이동).
+단계별 상세·스펙 P0 매핑 정본은 [`docs/bucky/implementation_backlog.md`](bucky/implementation_backlog.md) §1.
+
+| Stage | 이름 | 코드 변경 | 위험도 | 상태 |
+|---|---|---|---|---|
+| 13 | 문서 1차: current_state_audit + gap_analysis + assumptions | 없음 | 없음 | ✅ 완료 07-11 (1e14b7d) |
+| 14 | 문서 2차: target_architecture + backlog + ADR-0001~0005 + AGENTS_CANONICAL 복구 | 없음 | 없음 | ✅ 완료 07-11 (1e14b7d) |
+| G3 | Codex 문서 검수 (경량) | 없음 | — | 조건부 통과 07-11 (MED 2·LOW 3 — 문서 수정으로 해소) |
+| 15 | 이벤트 엔벨로프(event_log.py) + model_decision 방출 준비 | 신규 위주 | 낮음 | 대기 |
+| 16 | Task/Goal/Project 레지스트리 최소판 | 신규 위주 | 낮음 | 대기 |
+| 17 | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | 중간 | 대기 |
+| G4 | Codex 검수 #3 (Phase B 일괄) | 없음 | — | 대기 |
+| 18 | policy_rules.yaml + policy_engine.py (순수 함수, 미배선) | 신규만 | 낮음 | 대기 |
+| 19 | 정책 배선 shadow 모드 + 예산 경고 (기존 승인 3종 재사용) | 기존 수정 | 중간 | 대기 |
+| G5 | Codex 검수 #4 (Phase C) | 없음 | — | 대기 |
+| 20 | 메모리 출처 전파 (Stage 12 선행 축소판) | 기존 2파일 | 중간 | 대기 |
+| 21 | 최소 대시보드 (static-JSON 패턴 확장) | 신규 위주 | 낮음 | 대기 |
+| G6 | Codex 검수 #5 + P0 완료 판정 (스펙 §20 Story 5/6/7 대조) | 없음 | — | 대기 |
 
 각 Stage는 완료 시 "변경 파일 / 실행 명령과 출력 / 위험 / 미완료" 형식으로 보고하고,
 사용자 확인 후 다음 Stage로 넘어간다 (큰 작업 분할 프로토콜).

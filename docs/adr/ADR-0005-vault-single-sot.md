@@ -2,7 +2,7 @@
 
 - 상태: 승인됨 (사용자 확정, 2026-07-11) — 본 문서는 소급 기록 (작성 2026-07-11, Stage 14)
 - 주: 플랜의 ADR 목록(0001~4) 외 추가분 — 사용자 확정 결정의 기록 의무(스펙 §0.2 "주요 선택은 ADR로")에 따름
-- 관련: `docs/bucky/current_state_audit.md` §2 · `docs/bucky/assumptions.md` A1 · `ObsidianVault/00_System/LIBRARIAN_RULES.md`
+- 관련: `docs/bucky/current_state_audit.md` §2 · `docs/bucky/assumptions.md` A1 · `ObsidianVault/00_System/LIBRARIAN_RULES.md` (볼트 로컬 문서 — git 미추적이므로 저장소 clone에는 없음)
 
 ## 맥락
 
