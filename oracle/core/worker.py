@@ -51,8 +51,9 @@ def handle_task(task: dict) -> dict:
     등 정본 필드를 덮어쓸 수 없다. 복원 후 validate() 위반은 AgentResult(failed)로 보고한다.
     payload에 TaskSpec이 없어도 동작한다(from_dict가 결손 키를 허용 — 생산자 무수정 호환).
 
-    TODO(후속 Phase): task["task_type"]별로 실제 로컬 에이전트/Claude Code를 호출한다.
-    지금은 파이프라인을 종단까지 돌리기 위한 echo 스텁 — payload를 summary에 되돌려준다.
+    Stage 17: config/bucky.yaml `features.worker_adapter_dispatch: true`면 provider
+    어댑터로 디스패치한다(_dispatch). 기본 false = echo 스텁 유지 — 회귀 보증이자
+    즉시 롤백 스위치. 어댑터 지시문은 payload["instruction"]에서 온다 (Stage 8 규약).
     """
     agent = task.get("target_agent") or DEFAULT_AGENT_ID
     payload = task.get("payload")
@@ -66,11 +67,58 @@ def handle_task(task: dict) -> dict:
             status="failed",
             summary="TaskSpec 위반: " + "; ".join(errors),
         ).to_dict()
+    if _dispatch_enabled():
+        return _dispatch(spec, payload, agent)
     return AgentResult(
         agent=agent,
         status="completed",
         summary=f"echo({spec.task_type}): {json.dumps(payload, ensure_ascii=False)}",
     ).to_dict()
+
+
+def _dispatch_enabled() -> bool:
+    """config/bucky.yaml features.worker_adapter_dispatch (Stage 17). 로드 실패·부재 → False(echo)."""
+    try:
+        from core.config import load_bucky
+
+        features = load_bucky().get("features")
+        return bool(features.get("worker_adapter_dispatch")) if isinstance(features, dict) else False
+    except Exception:
+        return False
+
+
+def _dispatch(spec: TaskSpec, payload: dict, agent: str) -> dict:
+    """provider_candidates 순서로 첫 실행 가능(estimate ok) 어댑터에 위임한다 (Stage 17).
+
+    - model_decision 이벤트를 실행 전에 남긴다 — emit 계열은 실패해도 예외를 전파하지
+      않으므로(ADR-0003) 관측이 실행을 막지 않는다.
+    - usage 기록은 adapter.run() 내부(Stage 10 단일 관문)가 담당 — 여기서 중복 기록 금지.
+    - 전 provider 실행 불가면 명시적 AgentResult(failed) + worker_dispatch_failed 이벤트.
+      실동작 provider는 현재 claude_code뿐(나머지는 스텁) — 인터페이스 완성이지
+      멀티 provider 실전이 아니다 (플랜 리스크 2).
+    """
+    from core.event_log import emit, emit_model_decision
+    from model_router import explain, provider_candidates
+    from providers import get_adapter
+
+    chain = provider_candidates(spec.task_type)
+    emit_model_decision(explain(spec.task_type), task_id=spec.task_id,
+                        agent=agent, provider_chain=chain)
+    skipped: list[str] = []
+    for name in chain:
+        adapter = get_adapter(name)
+        if adapter is None:
+            skipped.append(f"{name}: 미등록 어댑터")
+            continue
+        estimate = adapter.estimate(spec)
+        if not estimate.ok:
+            skipped.append(f"{name}: {estimate.detail or 'estimate 불가'}")
+            continue
+        return adapter.run(spec, instruction=str(payload.get("instruction") or "")).to_dict()
+    summary = "디스패치 실패 — 실행 가능 provider 없음: " + "; ".join(skipped)
+    emit("worker_dispatch_failed", task_id=spec.task_id, agent=agent,
+         payload={"provider_chain": chain, "skipped": skipped})
+    return AgentResult(agent=agent, status="failed", summary=summary).to_dict()
 
 
 def run_once(agent_id, *, base_url=None, token=None):

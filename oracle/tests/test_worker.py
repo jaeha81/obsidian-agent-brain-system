@@ -8,6 +8,7 @@ test_client.py와 동일한 러너 스타일.
 Usage:
     python -X utf8 oracle/tests/test_worker.py
 """
+import json
 import os
 import socket
 import subprocess
@@ -165,6 +166,87 @@ import importlib  # noqa: E402
 _canon = importlib.import_module("core.task_spec")
 check("W10 worker.TaskSpec is core.task_spec.TaskSpec",
       worker.TaskSpec is _canon.TaskSpec)
+
+# ── W11~W14 — Stage 17 어댑터 디스패치 (서버 불필요, 이벤트는 임시 경로로 격리) ──
+# worker import가 scripts를 sys.path에 올린 뒤라 core.*/model_router/providers 접근 가능.
+import model_router  # noqa: E402
+import providers  # noqa: E402
+from core import event_log  # noqa: E402
+from core.provider_adapter import Estimate  # noqa: E402
+
+# W11 리포 기본 config → 플래그 off (off일 때 echo 동작 자체는 W2~W3·W8이 회귀 보증)
+check("W11 기본 features.worker_adapter_dispatch=false → 디스패치 비활성",
+      worker._dispatch_enabled() is False)
+
+DISPATCH_TASK = {
+    "task_id": "task_20260712_090000_ab12", "task_type": "chat",
+    "target_agent": AGENT, "payload": {"instruction": "hello"},
+}
+
+
+class _FakeAdapter:
+    """estimate/run 계약만 흉내내는 스텁 — ok=False면 실행 불가 provider."""
+
+    def __init__(self, name, ok=True):
+        self.name, self._ok = name, ok
+
+    def estimate(self, spec):
+        return Estimate(self.name, self._ok, "sonnet" if self._ok else "",
+                        "" if self._ok else "disabled 스텁")
+
+    def run(self, spec, instruction=""):
+        return worker.AgentResult(agent=self.name, status="completed",
+                                  summary=f"adapter({self.name}): {instruction}")
+
+
+def dispatch_case(chain, factory):
+    """플래그 on + 가짜 체인/어댑터로 handle_task 실행 → (result, 기록된 이벤트 목록)."""
+    tmp_log = Path(tempfile.mkdtemp(prefix="bucky_ev_")) / "events.jsonl"
+    orig = (worker._dispatch_enabled, model_router.provider_candidates,
+            providers.get_adapter, event_log.EVENTS_PATH)
+    worker._dispatch_enabled = lambda: True
+    model_router.provider_candidates = lambda task_type, policy=None: list(chain)
+    providers.get_adapter = lambda name, registry=None: factory(name)
+    event_log.EVENTS_PATH = tmp_log
+    try:
+        result = worker.handle_task(dict(DISPATCH_TASK))
+    finally:
+        (worker._dispatch_enabled, model_router.provider_candidates,
+         providers.get_adapter, event_log.EVENTS_PATH) = orig
+    events = []
+    if tmp_log.is_file():
+        events = [json.loads(ln) for ln in
+                  tmp_log.read_text(encoding="utf-8").splitlines()]
+    return result, events
+
+
+# W12 on 디스패치 — 어댑터 결과 반환 + model_decision 이벤트(스키마 payload) 기록
+r12, ev12 = dispatch_case(["fake_ok"], lambda name: _FakeAdapter(name))
+md12 = [e for e in ev12 if e["kind"] == "model_decision"]
+check("W12 플래그 on → 어댑터 결과 + model_decision 이벤트",
+      r12["status"] == "completed" and r12["summary"] == "adapter(fake_ok): hello"
+      and len(md12) == 1
+      and md12[0]["task_id"] == DISPATCH_TASK["task_id"]
+      and md12[0]["payload"]["selected_provider"] == "fake_ok"
+      and md12[0]["payload"]["provider_chain"] == ["fake_ok"],
+      f"got {r12} / events {ev12}")
+
+# W13 disabled 폴백 — 1순위 실행 불가면 다음 provider가 실행
+r13, ev13 = dispatch_case(["dead", "live"],
+                          lambda name: _FakeAdapter(name, ok=(name == "live")))
+check("W13 1순위 disabled → 2순위 폴백 실행",
+      r13["status"] == "completed" and r13["summary"] == "adapter(live): hello",
+      f"got {r13}")
+
+# W14 전 provider 실행 불가 → 명시적 failed + worker_dispatch_failed 이벤트
+r14, ev14 = dispatch_case(["dead"], lambda name: _FakeAdapter(name, ok=False))
+df14 = [e for e in ev14 if e["kind"] == "worker_dispatch_failed"]
+check("W14 실행 가능 provider 없음 → 명시적 failed + 이벤트",
+      r14["status"] == "failed" and "디스패치 실패" in r14["summary"]
+      and "dead" in r14["summary"]
+      and len(df14) == 1 and df14[0]["payload"]["provider_chain"] == ["dead"]
+      and df14[0]["payload"]["skipped"],
+      f"got {r14} / events {ev14}")
 
 print(f"\n결과: {PASS} PASS / {FAIL} FAIL (총 {PASS + FAIL})")
 sys.exit(1 if FAIL else 0)

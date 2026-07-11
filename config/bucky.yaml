@@ -25,3 +25,7 @@ oracle:
   queue_of_record: true
   api_url_env: ORACLE_API_URL
   token_env: BUCKY_API_TOKEN
+
+features:
+  # Stage 17: worker 어댑터 디스패치. false = 기존 echo 스텁 유지 (회귀 보증 + 즉시 롤백 스위치)
+  worker_adapter_dispatch: false
