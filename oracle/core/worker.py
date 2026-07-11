@@ -22,10 +22,19 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import sys
 import time
+from pathlib import Path
 
 from client import OracleClientError, claim_task, update_status
+
+# TaskSpec/AgentResult 계약(Stage 4)은 scripts/core에 있다 — 뒤에 덧붙여(append)
+# client 등 기존 oracle/core 모듈을 가리지 않게 한다.
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts" / "core"))
+from agent_result import AgentResult  # noqa: E402
+from task_spec import TaskSpec  # noqa: E402
 
 DEFAULT_AGENT_ID = "home-pc-agent"
 DEFAULT_POLL_INTERVAL = 5.0
@@ -34,12 +43,23 @@ ERROR_BACKOFF_MAX = 60.0
 
 
 def handle_task(task: dict) -> dict:
-    """태스크를 실행하고 result(dict)를 반환한다.
+    """태스크를 실행하고 AgentResult 형식의 result(dict)를 반환한다 (Stage 8 규약).
+
+    payload에 실린 TaskSpec 필드를 큐 레코드 상단 필드와 합쳐 TaskSpec으로 복원한다.
+    payload에 TaskSpec이 없어도 동작한다(from_dict가 결손 키를 허용 — 생산자 무수정 호환).
 
     TODO(후속 Phase): task["task_type"]별로 실제 로컬 에이전트/Claude Code를 호출한다.
-    지금은 파이프라인을 종단까지 돌리기 위한 echo 스텁 — payload를 그대로 되돌려준다.
+    지금은 파이프라인을 종단까지 돌리기 위한 echo 스텁 — payload를 summary에 되돌려준다.
     """
-    return {"echo": task.get("payload", {}), "handled_by": "worker-stub"}
+    payload = task.get("payload")
+    if not isinstance(payload, dict):
+        payload = {}
+    spec = TaskSpec.from_dict({**task, **payload})
+    return AgentResult(
+        agent=task.get("target_agent") or DEFAULT_AGENT_ID,
+        status="completed",
+        summary=f"echo({spec.task_type}): {json.dumps(payload, ensure_ascii=False)}",
+    ).to_dict()
 
 
 def run_once(agent_id, *, base_url=None, token=None):
@@ -58,7 +78,8 @@ def run_once(agent_id, *, base_url=None, token=None):
         result = handle_task(task)
     except Exception as exc:
         # 태스크 실패는 워커를 죽이지 않는다 — 서버에 보고하고 다음 태스크로 넘어간다.
-        update_status(task_id, "failed", result={"error": repr(exc)},
+        failure = AgentResult(agent=agent_id, status="failed", summary=repr(exc))
+        update_status(task_id, "failed", result=failure.to_dict(),
                       base_url=base_url, token=token)
         return task_id
     update_status(task_id, "completed", result=result, base_url=base_url, token=token)

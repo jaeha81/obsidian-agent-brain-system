@@ -79,16 +79,22 @@ try:
     check("W1 빈 큐 → run_once None",
           worker.run_once(AGENT, base_url=BASE, token=TOKEN) is None)
 
-    # W2~W3 submit → run_once가 선점·실행·완료 보고 (echo result 무결)
+    # W2~W3 submit → run_once가 선점·실행·완료 보고 (result = AgentResult 규약, Stage 8)
+    AGENT_RESULT_FIELDS = {"agent", "status", "summary", "files_changed",
+                           "commands_run", "test_result", "risks", "next_actions"}
     res = submit_task("chat", payload={"instruction": "안녕"}, target_agent=AGENT,
                       base_url=BASE, token=TOKEN)
     tid = res["task_id"]
     done = worker.run_once(AGENT, base_url=BASE, token=TOKEN)
     check("W2 run_once가 해당 태스크 처리", done == tid, f"got {done}")
     task = get_task(tid, base_url=BASE, token=TOKEN)
-    check("W3 completed + echo result 보존",
+    result = task.get("result") or {}
+    check("W3 completed + AgentResult 형식 result (echo 보존)",
           task["status"] == "completed"
-          and task["result"] == {"echo": {"instruction": "안녕"}, "handled_by": "worker-stub"},
+          and set(result) == AGENT_RESULT_FIELDS
+          and result["agent"] == AGENT
+          and result["status"] == "completed"
+          and "안녕" in result["summary"],
           f"got {task}")
 
     # W4 타깃 격리 — office-pc-agent는 home-pc 태스크를 못 가져감
@@ -109,8 +115,12 @@ try:
         worker.handle_task = orig
     check("W5 예외 태스크도 처리 후 task_id 반환", done3 == tid3, f"got {done3}")
     task3 = get_task(tid3, base_url=BASE, token=TOKEN)
-    check("W6 handle_task 예외 → status failed + error 기록",
-          task3["status"] == "failed" and "boom" in (task3.get("result") or {}).get("error", ""),
+    result3 = task3.get("result") or {}
+    check("W6 handle_task 예외 → status failed + AgentResult(failed) 기록",
+          task3["status"] == "failed"
+          and result3.get("agent") == AGENT
+          and result3.get("status") == "failed"
+          and "boom" in result3.get("summary", ""),
           f"got {task3}")
 finally:
     server.kill()
