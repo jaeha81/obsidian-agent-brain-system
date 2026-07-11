@@ -2,7 +2,7 @@
   "meta": {
     "version": "2.0",
     "description": "User-Bucky 미완료 태스크 마스터 리스트. Discord 봇 자동 감지 + Claude Code 관리.",
-    "last_updated": "2026-06-28",
+    "last_updated": "2026-07-11",
     "last_completed": "CL-053"
   },
   "tasks": [
@@ -964,6 +964,28 @@
       "category": "자동감지",
       "status": "pending",
       "added": "2026-06-28",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-073",
+      "title": "6/29~6/30 backfill (수동 실행 필요), ChatGPT Pulse 7/1 종료 대응",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-06-30",
+      "source": "discord-auto",
+      "refs": []
+    },
+    {
+      "id": "CL-074",
+      "title": "오라클 서버 확인·중지는 사용자가 직접 SSH로 실행 필요 (이 환경엔 키 없음)",
+      "description": "",
+      "priority": "대기",
+      "category": "자동감지",
+      "status": "pending",
+      "added": "2026-07-11",
       "source": "discord-auto",
       "refs": []
     }
