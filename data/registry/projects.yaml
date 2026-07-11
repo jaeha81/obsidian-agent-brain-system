@@ -1,0 +1,24 @@
+# Bucky OS — Task/Goal/Project 분류 축 (Stage 16, 사람 편집)
+# 작업 정본은 오라클 큐 — 이 파일은 분류 축만 담당한다 (P0-3, implementation_backlog.md).
+# 필드: id(고유 슬러그) / title / status(active|paused|done) / parent_goal(자유 문자열)
+# 검증: python -X utf8 scripts/core/registry.py
+projects:
+  - id: bucky-os-v3
+    title: Bucky OS V3 코어 마이그레이션 (세컨드브레인 Stage 13~21)
+    status: active
+    parent_goal: second-brain
+
+  - id: estimation-system
+    title: 건설/인테리어 견적 시스템 (jh-estimate + Python 엔진)
+    status: active
+    parent_goal: revenue
+
+  - id: jp-golf
+    title: JP Golf 예약 MVP
+    status: active
+    parent_goal: revenue
+
+  - id: interior-dashboard
+    title: 인테리어 대시보드 (오라클 오케스트레이터 + 로컬 실행)
+    status: paused
+    parent_goal: revenue

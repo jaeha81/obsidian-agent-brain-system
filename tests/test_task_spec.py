@@ -91,6 +91,20 @@ class ValidateTests(unittest.TestCase):
     def test_created_at_autofilled(self):
         self.assertTrue(TaskSpec(task_id=new_task_id(), task_type="code").created_at)
 
+    def test_project_id_optional_default_empty(self):
+        spec = TaskSpec(task_id=new_task_id(), task_type="code")
+        self.assertEqual(spec.project_id, "")
+        self.assertEqual(spec.validate(), [])
+
+    def test_project_id_string_accepted_without_registry_check(self):
+        # 분류 축은 태스크를 막지 않는다 — 미등록 id도 유효 (Stage 16)
+        spec = TaskSpec(task_id=new_task_id(), task_type="code", project_id="not-registered")
+        self.assertEqual(spec.validate(), [])
+
+    def test_non_string_project_id_reports_error(self):
+        errors = TaskSpec(task_id=new_task_id(), task_type="code", project_id=123).validate()
+        self.assertTrue(any("project_id" in e for e in errors))
+
 
 class InvalidInputTests(unittest.TestCase):
     """비정상 타입 입력 — 검증 경계에서 예외 없이 오류 목록으로 보고 (Codex 필수 수정 2)."""

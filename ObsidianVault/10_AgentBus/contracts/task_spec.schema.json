@@ -27,6 +27,11 @@
     },
     "constraints": { "type": "object", "default": {} },
     "expected_output": { "type": "string", "default": "" },
+    "project_id": {
+      "type": "string",
+      "default": "",
+      "description": "data/registry/projects.yaml 분류 축 (Stage 16, optional — 미등록 id도 태스크를 막지 않음)"
+    },
     "created_at": { "type": "string", "description": "ISO8601 UTC 초 단위" }
   }
 }

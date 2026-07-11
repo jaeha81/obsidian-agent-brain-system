@@ -45,6 +45,8 @@ class TaskSpec:
     required_capabilities: list[str] = field(default_factory=list)
     constraints: dict = field(default_factory=dict)
     expected_output: str = ""
+    # Stage 16: data/registry/projects.yaml 분류 축 — optional, 미등록 id도 태스크를 막지 않음
+    project_id: str = ""
     created_at: str = ""
 
     def __post_init__(self) -> None:
@@ -64,6 +66,8 @@ class TaskSpec:
             errors.append("required_capabilities must be a list")
         if not isinstance(self.constraints, dict):
             errors.append("constraints must be an object")
+        if not isinstance(self.project_id, str):
+            errors.append("project_id must be a string")
         return errors
 
     def to_dict(self) -> dict:
