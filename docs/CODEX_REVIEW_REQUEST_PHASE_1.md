@@ -98,9 +98,70 @@ $ git add --dry-run ObsidianVault/10_AgentBus/
 
 ## 5. Codex 검수 결과 기입란 (Codex가 채움)
 
-- 판정: ☐ 통과 / ☐ 조건부 통과 / ☐ 반려
+- 검수일: 2026-07-11 (Codex CLI 0.144.0, 3차 시도에서 완료 — 1·2차는 Windows 샌드박스 `deny-read ACLs` 헬퍼 고장으로 불발. 로컬 일회용 clone(25fdc7d 체크아웃)에서 샌드박스 비활성으로 실행. Codex 최종 메시지를 Claude가 그대로 전사)
+- 판정: ☑ 조건부 통과 / ☐ 통과 / ☐ 반려
 - 발견 이슈:
+  - [MED] `tests/test_config.py:26` — 깨끗한 clone에는 ignore된 `data/` 디렉터리가 없어 `test_all_paths_exist`·`test_self_test_passes` 2건 실패 (51개 중 49 통과)
+  - [MED] `scripts/core/task_spec.py:57`, `scripts/core/agent_result.py:49` — 잘못된 타입 입력 시 `validate()`가 오류 목록 대신 `TypeError`/`AttributeError`로 중단, `from_dict(None)`도 예외
+  - [LOW] `model_decision.schema.json:16` — `selected_provider`가 단순 문자열이라 레지스트리에 없는 provider도 스키마 통과
 - 필수 수정:
+  1. 깨끗한 clone에서도 51개 테스트 전부 통과하도록 경로 존재성 테스트 수정
+  2. TaskSpec·AgentResult의 잘못된 타입/비-dict 입력이 검증 경계에서 예외를 내지 않도록 보강
 - 권고 사항:
+  - `model_decision.schema.json`을 Python 클래스 없이 둔 결정은 현 단계에서 타당 (소비자 생기기 전 클래스는 불필요한 추상화)
+  - PRIORITIES/TASK_ID_RE/VALID_STATUSES는 하드코딩 복제이나 테스트가 oracle을 직접 import해 드리프트를 감지하므로 현 단계 수용 가능
+  - 과도한 추상화·AI-Slop 미발견
+
+<details>
+<summary>Codex 원문 보고 전문 (2026-07-11)</summary>
+
+```
+[Codex 검수 결과 — V3 Phase 1 (Stage 3~4)]
+─────────────────
+판정: 조건부 통과
+
+발견 이슈:
+• [심각도: MED] tests/test_config.py:26 — 깨끗한 clone에는 ignore된 `data/` 디렉터리가 없으므로 `test_all_paths_exist`와 `test_self_test_passes`가 실패합니다. 요구된 51개 테스트 중 2개가 실패했습니다.
+  → 런타임 디렉터리의 존재를 필수화하지 않거나, 테스트 fixture에서 임시 경로를 구성해 clone 상태와 무관하게 검증하세요.
+
+• [심각도: MED] scripts/core/task_spec.py:57, scripts/core/agent_result.py:49 — 잘못된 타입이 들어오면 `validate()`가 오류 목록을 반환하지 않고 `TypeError`/`AttributeError`로 중단됩니다. `from_dict(None)`도 양쪽 모두 예외를 냅니다.
+  → 문자열·mapping 타입을 먼저 검사하고, 비정상 입력 테스트를 추가하세요.
+
+• [심각도: LOW] ObsidianVault/10_AgentBus/contracts/model_decision.schema.json:16 — `selected_provider`가 단순 문자열이라 레지스트리에 없는 provider도 스키마를 통과합니다. 현재 테스트도 필드 존재 여부만 확인합니다.
+  → 스키마 중복 enum보다는 실제 소비 단계에서 `model_registry.yaml` 키와 대조하고 그 테스트를 추가하세요.
+
+필수 수정:
+1. 깨끗한 clone에서도 지정된 51개 테스트가 모두 통과하도록 경로 존재성 테스트를 수정할 것.
+2. `TaskSpec`·`AgentResult`의 잘못된 타입 및 비-dict 입력이 검증 경계에서 예외를 발생시키지 않도록 보강할 것.
+
+권고 사항:
+- `model_decision.schema.json`만 두고 Python 클래스를 만들지 않은 결정은 현 단계에서 타당합니다. 실제 소비자가 생기기 전 클래스 추가는 불필요한 추상화입니다.
+- `PRIORITIES`, `TASK_ID_RE`, `VALID_STATUSES`는 런타임에 oracle을 참조하는 구조가 아니라 하드코딩 복제입니다. 다만 테스트가 oracle을 직접 import하여 드리프트를 감지하므로 현재 단계에서는 수용 가능합니다.
+- 요청 범위에서 과도한 추상화, 사용하지 않는 클래스·인터페이스 등 뚜렷한 AI-Slop은 발견하지 못했습니다.
+
+독립 재검증 수행 내역:
+- `git diff df7c827..25fdc7d`: 14개 파일, +873줄 확인 및 전체 변경 검토.
+- `git diff --check df7c827..25fdc7d`: 공백 오류 없음.
+- `.gitignore` 전문 및 `git check-ignore --no-index` 검증:
+  - inbox/claims/outbox 대표 경로: ignore됨.
+  - contracts의 추적 파일·신규 대표 경로: ignore되지 않음.
+  - 다른 Vault allowlist와의 유해한 상호작용 없음.
+- oracle 직접 대조:
+  - priority `low/normal/high` 일치.
+  - task ID 생성 형식 일치.
+  - 상태 7종이 `TRANSITIONS.keys() ∪ STATUS_TARGETS`와 일치.
+- provider 대조: routing policy의 provider 값은 registry 키와 일치. 단, ModelDecision 스키마는 이를 강제하지 않음.
+- `config/*.yaml`: 실제 시크릿 및 신규 절대경로 하드코딩 없음. env 변수 이름만 확인.
+- 테스트 명령: `Ran 51 tests`, 결과 `FAILED (failures=2)`.
+- 비정상 타입 직접 주입: `task_id=int`, `task_type=int`, `agent=int`, `from_dict(None)`에서 예외 재현.
+
+미검증 항목:
+- `git add --dry-run`은 안내된 clone 특성상 재현하지 않았습니다.
+- CWD 밖 `error-patterns.md`는 CWD 외부 읽기 금지 지시 때문에 확인하지 않았습니다.
+─────────────────
+```
+
+</details>
 
 > 검수 완료 후 사용자에게 직접 보고. 사용자 승인 시 Claude가 Stage 6(Provider Adapter Layer) 착수.
+> **현 상태: 조건부 통과 — 필수 수정 2건 이행 + 사용자 승인 전 Stage 6 금지 유지.**
