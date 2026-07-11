@@ -9,13 +9,15 @@ Sonnet 한도 초과 시 자동 폴백 체인 지원.
   ObsidianVault/05_Frameworks/guides/model-routing.md
 
 Usage (Python):
-    from model_router import select_model, fallback_chain
+    from model_router import select_model, fallback_chain, provider_candidates
     model = select_model("classify")          # → "haiku"
     chain = fallback_chain("sonnet")          # → ["sonnet", "haiku", "opus"]
+    provs = provider_candidates("review")     # → ["codex_pro", "claude_code"] (V3 Stage 7)
 
 Usage (CLI):
     python model_router.py classify           # prints: haiku
     python model_router.py --chain sonnet     # prints: sonnet,haiku,opus
+    python model_router.py --providers review # prints: codex_pro,claude_code
 """
 
 from __future__ import annotations
@@ -28,8 +30,13 @@ from typing import Iterable
 
 if sys.platform == "win32":
     try:
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+        # 이미 utf-8이면 재래핑 금지, 재래핑 전 flush 필수 — import 시점 무조건 재래핑은
+        # 호출자의 미flush 버퍼를 유실시킨다 (Stage 6 셀프테스트에서 실측, Stage 7 수정)
+        for _name in ("stdout", "stderr"):
+            _stream = getattr(sys, _name)
+            if (_stream.encoding or "").lower().replace("-", "") != "utf8":
+                _stream.flush()
+                setattr(sys, _name, io.TextIOWrapper(_stream.buffer, encoding="utf-8", errors="replace"))
     except Exception:
         pass
 
@@ -110,6 +117,55 @@ def model_for_command(task_type: str) -> str:
     return select_model(task_type)
 
 
+# ─────────────────────────────────────────────────────────────
+# Provider 라우팅 (V3 Stage 7) — task_type → provider 후보열
+# ─────────────────────────────────────────────────────────────
+
+# routing_policy.yaml 로드 실패 시 최소 안전 기본값 (실연동 어댑터 보유 provider만)
+DEFAULT_PROVIDER_CHAIN: list[str] = ["claude_code"]
+
+
+def provider_candidates(task_type: str, policy: dict | None = None) -> list[str]:
+    """task_type → provider 후보열 (이름은 config/model_registry.yaml 키와 일치).
+
+    정본은 config/routing_policy.yaml: overrides.<task_type> → defaults.provider_chain.
+    로드 실패·형식 불량 시 DEFAULT_PROVIDER_CHAIN — crash 금지.
+    claude 티어 선택(select_model)과는 독립: 후보열에 claude_code가 있으면
+    그 내부 모델(haiku/sonnet/opus)은 기존 TASK_TO_MODEL이 정한다.
+    """
+    if policy is None:
+        try:
+            from core.config import load_routing_policy
+            policy = load_routing_policy()
+        except Exception:
+            policy = {}
+    if not isinstance(policy, dict):
+        policy = {}
+    key = (task_type or "").lower().strip()
+
+    overrides = policy.get("overrides")
+    if isinstance(overrides, dict):
+        chain = overrides.get(key)
+        if _valid_provider_chain(chain):
+            return list(chain)
+
+    defaults = policy.get("defaults")
+    if isinstance(defaults, dict):
+        chain = defaults.get("provider_chain")
+        if _valid_provider_chain(chain):
+            return list(chain)
+
+    return list(DEFAULT_PROVIDER_CHAIN)
+
+
+def _valid_provider_chain(chain: object) -> bool:
+    return (
+        isinstance(chain, list)
+        and len(chain) > 0
+        and all(isinstance(p, str) and p.strip() for p in chain)
+    )
+
+
 def explain(task_type: str) -> dict:
     """라우팅 의사결정 설명 (디버깅·로깅용)."""
     selected = select_model(task_type)
@@ -174,6 +230,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Model Router — task → sonnet/haiku/opus")
     ap.add_argument("task_type", nargs="?", default="default", help="작업 유형")
     ap.add_argument("--chain", metavar="MODEL", help="해당 모델의 폴백 체인 출력")
+    ap.add_argument("--providers", action="store_true", help="task_type → provider 후보열 출력 (V3)")
     ap.add_argument("--explain", action="store_true", help="라우팅 의사결정 설명")
     ap.add_argument("--table", action="store_true", help="전체 라우팅 테이블 출력")
     args = ap.parse_args()
@@ -184,6 +241,10 @@ def main() -> int:
 
     if args.chain:
         print(",".join(fallback_chain(args.chain)))
+        return 0
+
+    if args.providers:
+        print(",".join(provider_candidates(args.task_type)))
         return 0
 
     if args.explain:
