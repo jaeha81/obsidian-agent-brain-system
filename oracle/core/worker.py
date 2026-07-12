@@ -54,6 +54,9 @@ def handle_task(task: dict) -> dict:
     Stage 17: config/bucky.yaml `features.worker_adapter_dispatch: true`면 provider
     어댑터로 디스패치한다(_dispatch). 기본 false = echo 스텁 유지 — 회귀 보증이자
     즉시 롤백 스위치. 어댑터 지시문은 payload["instruction"]에서 온다 (Stage 8 규약).
+
+    Stage 19: 실행 경로 선택(echo/디스패치) 직전에 정책을 상담한다(_policy_consult).
+    shadow 규약(ADR-0004) — 판정은 이벤트로만, 입출력·차단에 어떤 영향도 없다.
     """
     agent = task.get("target_agent") or DEFAULT_AGENT_ID
     payload = task.get("payload")
@@ -67,6 +70,7 @@ def handle_task(task: dict) -> dict:
             status="failed",
             summary="TaskSpec 위반: " + "; ".join(errors),
         ).to_dict()
+    _policy_consult(spec, agent)
     if _dispatch_enabled():
         return _dispatch(spec, payload, agent)
     return AgentResult(
@@ -85,6 +89,62 @@ def _dispatch_enabled() -> bool:
         return bool(features.get("worker_adapter_dispatch")) if isinstance(features, dict) else False
     except Exception:
         return False
+
+
+def _policy_mode() -> str:
+    """config/bucky.yaml features.policy_enforcement (Stage 19). 로드 실패·부재·off → ""(상담 안 함).
+
+    off/false/none/빈값 외의 모든 값(shadow, 조기 설정된 enforce 포함)에서 상담한다 —
+    단 어떤 모드에서도 차단은 없다(enforce 전환은 플랜 범위 밖, ADR-0004 §3).
+    조기 enforce 설정은 이벤트 payload의 mode로 관측된다.
+    """
+    try:
+        from core.config import load_bucky
+
+        features = load_bucky().get("features")
+        mode = features.get("policy_enforcement") if isinstance(features, dict) else ""
+        mode = str(mode or "").strip().lower()
+        return "" if mode in ("off", "false", "none") else mode
+    except Exception:
+        return ""
+
+
+def _policy_consult(spec: TaskSpec, agent: str) -> None:
+    """디스패치 전 정책 상담 — 판정을 policy_decision 이벤트로만 방출한다 (Stage 19, ADR-0004).
+
+    shadow 규약: 이 함수는 handle_task의 입출력에 어떤 영향도 주지 않는다 — 기존 동작
+    바이트 동일 회귀(W17)가 이를 고정한다. require_approval 판정도 이벤트로만 남는다.
+    enforce 시의 승인은 기존 pending_approval 파일큐+approve_task.py+Discord !approve
+    재사용이 확정(신설 금지)이나 이번 범위 밖. 예산: usage 월 합계 추정 비용이
+    budget.monthly_warn_usd 초과면 budget_warning(0·결손 = 비활성). 관측의 어떤 실패도
+    예외를 전파하지 않는다 — 관측이 실행을 막지 않는다(ADR-0003).
+    """
+    try:
+        mode = _policy_mode()
+        if not mode:
+            return
+        from core.event_log import emit
+        from core.policy_engine import evaluate
+
+        verdict = evaluate(spec)
+        emit("policy_decision", task_id=spec.task_id, agent=agent,
+             payload={**verdict, "mode": mode, "task_type": spec.task_type})
+
+        from core.config import load_bucky
+
+        budget = load_bucky().get("budget")
+        threshold = float(budget.get("monthly_warn_usd") or 0) if isinstance(budget, dict) else 0.0
+        if threshold > 0:
+            from core.usage_ledger import month_summary
+
+            s = month_summary()
+            cost = float(s.get("cost_usd") or 0.0)
+            if cost > threshold:
+                emit("budget_warning", task_id=spec.task_id, agent=agent,
+                     payload={"month": s.get("month", ""), "cost_usd": cost,
+                              "threshold_usd": threshold, "records": s.get("records", 0)})
+    except Exception:
+        return
 
 
 def _dispatch(spec: TaskSpec, payload: dict, agent: str) -> dict:

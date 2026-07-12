@@ -29,3 +29,14 @@ oracle:
 features:
   # Stage 17: worker 어댑터 디스패치. false = 기존 echo 스텁 유지 (회귀 보증 + 즉시 롤백 스위치)
   worker_adapter_dispatch: false
+  # Stage 19: 디스패치 전 정책 상담 (ADR-0004 shadow 우선). shadow = 판정을
+  # policy_decision 이벤트로만 방출, 차단 없음. off = 상담 안 함 (즉시 롤백 스위치).
+  # enforce 전환은 이번 플랜 범위 밖 — 어떤 값에서도 worker는 차단하지 않는다 (관측만).
+  policy_enforcement: shadow
+
+budget:
+  # Stage 19 (P0-7): usage 월 합계 "추정" 비용(usage_ledger.month_summary().cost_usd)이
+  # 임계 초과면 budget_warning 이벤트만 방출 — 차단 없음. 0 = 비활성.
+  # policy_enforcement: off면 상담 자체가 꺼지므로 예산 경고도 함께 꺼진다 (단일 스위치).
+  # cost_usd는 추정 전용 — 구독(CLI) 실행은 토큰 과금이 아니라 실청구와 다르다.
+  monthly_warn_usd: 50

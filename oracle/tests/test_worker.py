@@ -29,6 +29,12 @@ import worker  # noqa: E402
 from client import submit_task, get_task  # noqa: E402
 
 TMP = Path(tempfile.mkdtemp(prefix="bucky_worker_test_"))
+
+# Stage 19: 기본 config가 policy shadow라 handle_task가 policy_decision을 방출한다.
+# 이 러너의 모든 in-process emit을 임시 경로로 격리 — 실로그(05_Logs) 오염 방지.
+from core import event_log  # noqa: E402  (worker import가 scripts를 sys.path에 올린 뒤)
+
+event_log.EVENTS_PATH = TMP / "events.jsonl"
 with socket.socket() as _s:  # 빈 포트 확보 — 고정 포트 충돌 방지
     _s.bind(("127.0.0.1", 0))
     PORT = _s.getsockname()[1]
@@ -171,7 +177,6 @@ check("W10 worker.TaskSpec is core.task_spec.TaskSpec",
 # worker import가 scripts를 sys.path에 올린 뒤라 core.*/model_router/providers 접근 가능.
 import model_router  # noqa: E402
 import providers  # noqa: E402
-from core import event_log  # noqa: E402
 from core.provider_adapter import Estimate  # noqa: E402
 
 # W11 리포 기본 config → 플래그 off (off일 때 echo 동작 자체는 W2~W3·W8이 회귀 보증)
@@ -257,6 +262,102 @@ check("W14 실행 가능 provider 없음 → 명시적 failed + 이벤트 (model
       and df14[0]["payload"]["skipped"]
       and not [e for e in ev14 if e["kind"] == "model_decision"],
       f"got {r14} / events {ev14}")
+
+# ── W16~W21 — Stage 19 정책 shadow 상담 (서버 불필요, 이벤트는 임시 경로로 격리) ──
+from core import config as core_config  # noqa: E402
+from core import policy_engine  # noqa: E402
+from core import usage_ledger  # noqa: E402
+
+# W16 리포 기본 config → shadow 모드 (배선 기본값 = 관측 on, 차단 없음)
+check("W16 기본 features.policy_enforcement=shadow → 상담 활성",
+      worker._policy_mode() == "shadow", f"got {worker._policy_mode()!r}")
+
+ECHO_TASK = {
+    "task_id": "task_20260712_100000_cd34", "task_type": "chat",
+    "target_agent": AGENT, "payload": {"instruction": "hello"},
+}
+
+
+def policy_case(mode, *, monthly=None, summary=None, eval_fn=None):
+    """echo 경로(dispatch off) + 지정 policy 모드로 handle_task 실행 → (result, 이벤트 목록)."""
+    tmp_log = Path(tempfile.mkdtemp(prefix="bucky_pol_")) / "events.jsonl"
+    fake_cfg = {"features": {"worker_adapter_dispatch": False,
+                             "policy_enforcement": mode}}
+    if monthly is not None:
+        fake_cfg["budget"] = {"monthly_warn_usd": monthly}
+    orig = (core_config.load_bucky, policy_engine.evaluate,
+            usage_ledger.month_summary, event_log.EVENTS_PATH)
+    core_config.load_bucky = lambda: fake_cfg
+    if eval_fn is not None:
+        policy_engine.evaluate = eval_fn
+    if summary is not None:
+        usage_ledger.month_summary = lambda month=None, **kw: summary
+    event_log.EVENTS_PATH = tmp_log
+    try:
+        result = worker.handle_task(dict(ECHO_TASK))
+    finally:
+        (core_config.load_bucky, policy_engine.evaluate,
+         usage_ledger.month_summary, event_log.EVENTS_PATH) = orig
+    events = []
+    if tmp_log.is_file():
+        events = [json.loads(ln) for ln in
+                  tmp_log.read_text(encoding="utf-8").splitlines()]
+    return result, events
+
+
+def _dumps(d):
+    return json.dumps(d, sort_keys=True, ensure_ascii=False)
+
+
+# W17 필수 회귀 — shadow에서 기존 동작 바이트 동일 + policy_decision 이벤트만 추가
+r_off, ev_off = policy_case("off")
+r_sh, ev_sh = policy_case("shadow")
+pd17 = [e for e in ev_sh if e["kind"] == "policy_decision"]
+check("W17 shadow: echo 결과 off와 바이트 동일 + policy_decision 1건 (chat→T0/auto)",
+      _dumps(r_off) == _dumps(r_sh)
+      and not ev_off
+      and len(pd17) == 1
+      and pd17[0]["task_id"] == ECHO_TASK["task_id"]
+      and pd17[0]["payload"]["tier"] == "T0"
+      and pd17[0]["payload"]["decision"] == "auto"
+      and pd17[0]["payload"]["mode"] == "shadow",
+      f"got {r_sh} / off_ev {ev_off} / sh_ev {ev_sh}")
+
+
+# W18 상담 내부 예외 → 실행 불간섭 (관측이 실행을 막지 않는다, ADR-0003)
+def _eval_boom(spec, rules=None):
+    raise RuntimeError("policy boom")
+
+
+r18, ev18 = policy_case("shadow", eval_fn=_eval_boom)
+check("W18 정책 상담 내부 예외 → echo 결과 불변·예외 미전파",
+      _dumps(r18) == _dumps(r_off)
+      and not [e for e in ev18 if e["kind"] == "policy_decision"],
+      f"got {r18} / events {ev18}")
+
+# W19~W20 예산 경고 — 월 합계 추정 비용 임계 초과 시에만 budget_warning
+S_OVER = {"month": "2026-07", "records": 3, "tokens_in": 1, "tokens_out": 1,
+          "cost_usd": 51.5, "by_model": {}}
+r19, ev19 = policy_case("shadow", monthly=50, summary=S_OVER)
+bw19 = [e for e in ev19 if e["kind"] == "budget_warning"]
+check("W19 월 합계 임계 초과 → budget_warning 이벤트 (실행은 정상 완료)",
+      r19["status"] == "completed" and len(bw19) == 1
+      and bw19[0]["payload"]["cost_usd"] == 51.5
+      and bw19[0]["payload"]["threshold_usd"] == 50.0
+      and bw19[0]["payload"]["month"] == "2026-07",
+      f"got {ev19}")
+
+r20, ev20 = policy_case("shadow", monthly=50, summary=dict(S_OVER, cost_usd=49.0))
+check("W20 임계 이하 → budget_warning 없음 (policy_decision만)",
+      not [e for e in ev20 if e["kind"] == "budget_warning"]
+      and len([e for e in ev20 if e["kind"] == "policy_decision"]) == 1,
+      f"got {ev20}")
+
+# W21 디스패치 경로에서도 상담 — W12 이벤트에 policy_decision이 model_decision보다 앞
+check("W21 디스패치 경로 상담 — policy_decision이 model_decision보다 먼저 방출",
+      ev12 and ev12[0]["kind"] == "policy_decision"
+      and [e for e in ev12 if e["kind"] == "model_decision"],
+      f"got {ev12}")
 
 print(f"\n결과: {PASS} PASS / {FAIL} FAIL (총 {PASS + FAIL})")
 sys.exit(1 if FAIL else 0)
