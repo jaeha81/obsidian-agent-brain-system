@@ -19,7 +19,7 @@
 | 4 | 15 | B | 이벤트 엔벨로프(event_log.py) + model_decision 방출 준비 | 신규 위주 | P0-2,8 | ✅ 완료 (07-11, 8a88256 — 테스트 14 + 셀프테스트 7 + 회귀 92·oracle 80 무손상, 실경로 E2E 확인) |
 | 5 | 16 | B | Task/Goal/Project 레지스트리 최소판 | 신규 위주 | P0-3 | ✅ 완료 (07-12, f70c430 — 테스트 128건·oracle 80 무손상, 3-lens 검수 통과, projects.yaml 추적 확인) |
 | 6 | 17 | B | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | P0-5,11 | ✅ 완료 (07-12, a79994d — worker 14건·oracle 84 PASS·unittest 128건 OK·격리 실경로 E2E, 실동작은 claude_code뿐) |
-| — | G4 | 게이트 | Codex 검수 #3 (Phase B 일괄) | — | — | 🟡 조건부 통과 (07-12 — MED 1·필수수정 2, 결과: `docs/CODEX_REVIEW_REQUEST_G4.md` §5, 이행은 사용자 지시 대기) |
+| — | G4 | 게이트 | Codex 검수 #3 (Phase B 일괄) | — | — | ✅ 통과 (07-12 — 조건부 통과 후 필수수정 2건 이행 `0c43835`: model_decision 방출 시점 수정 + W15 회귀, worker 15·oracle 85·unittest 128 OK, 재검수는 사용자 결정으로 생략. 결과: `docs/CODEX_REVIEW_REQUEST_G4.md` §5) |
 | 7 | 18 | C | policy_rules.yaml + policy_engine.py (순수 함수, 미배선) | 신규만 | P0-6 | 대기 |
 | 8 | 19 | C | 정책 배선 shadow 모드 + 예산 경고 (기존 승인 3종 재사용) | 기존 수정 | P0-6,7 | 대기 |
 | — | G5 | 게이트 | Codex 검수 #4 (Phase C) | — | — | 대기 |
