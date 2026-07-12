@@ -100,10 +100,12 @@ def build_model_decision(
     *,
     provider_chain: list[str] | None = None,
     task_id: str = "",
+    selected_provider: str = "",
 ) -> dict:
     """model_router.explain() dict → model_decision.schema.json 정합 payload.
 
-    - selected_provider = provider_chain 1순위 (미지정 시 provider_candidates() 조회)
+    - selected_provider = 인자로 받은 실제 실행 provider. 미지정 시 provider_chain
+      1순위 폴백 — 폴백 실행 시 불일치 가능하므로 실행측(worker)은 반드시 넘긴다 (G4)
     - env_override는 스키마에 없는 키라 reason 끝에 접어넣는다
     - task_id는 비었으면 키 자체를 넣지 않는다 (스키마 패턴 위반 방지)
     """
@@ -123,7 +125,7 @@ def build_model_decision(
 
     decision = {
         "task_type": str(explain.get("task_type") or "default"),
-        "selected_provider": chain[0] if chain else "claude_code",
+        "selected_provider": selected_provider or (chain[0] if chain else "claude_code"),
         "selected_model": str(explain.get("selected_model") or ""),
         "provider_chain": chain,
         "fallback_chain": [str(m) for m in explain.get("fallback_chain") or []],
@@ -142,11 +144,13 @@ def emit_model_decision(
     conversation_id: str = "",
     agent: str = "",
     provider_chain: list[str] | None = None,
+    selected_provider: str = "",
     log_path: Path | str | None = None,
 ) -> Path | None:
     """explain() dict를 model_decision 이벤트로 기록. 실패 시 None (예외 전파 금지)."""
     try:
-        decision = build_model_decision(explain, provider_chain=provider_chain, task_id=task_id)
+        decision = build_model_decision(explain, provider_chain=provider_chain,
+                                        task_id=task_id, selected_provider=selected_provider)
         return emit(
             "model_decision",
             task_id=task_id,

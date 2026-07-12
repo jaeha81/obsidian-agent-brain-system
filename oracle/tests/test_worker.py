@@ -238,14 +238,24 @@ check("W13 1순위 disabled → 2순위 폴백 실행",
       r13["status"] == "completed" and r13["summary"] == "adapter(live): hello",
       f"got {r13}")
 
+# W15 (G4 필수수정 ②) — 폴백 실행 시 model_decision.selected_provider == 실제 실행 provider
+md15 = [e for e in ev13 if e["kind"] == "model_decision"]
+check("W15 폴백 시 selected_provider == 실제 실행 provider",
+      len(md15) == 1
+      and md15[0]["payload"]["selected_provider"] == r13["agent"] == "live"
+      and md15[0]["payload"]["provider_chain"] == ["dead", "live"],
+      f"got {r13} / events {ev13}")
+
 # W14 전 provider 실행 불가 → 명시적 failed + worker_dispatch_failed 이벤트
+#     결정된 provider가 없으므로 model_decision은 방출하지 않는다 (G4 필수수정 ①)
 r14, ev14 = dispatch_case(["dead"], lambda name: _FakeAdapter(name, ok=False))
 df14 = [e for e in ev14 if e["kind"] == "worker_dispatch_failed"]
-check("W14 실행 가능 provider 없음 → 명시적 failed + 이벤트",
+check("W14 실행 가능 provider 없음 → 명시적 failed + 이벤트 (model_decision 없음)",
       r14["status"] == "failed" and "디스패치 실패" in r14["summary"]
       and "dead" in r14["summary"]
       and len(df14) == 1 and df14[0]["payload"]["provider_chain"] == ["dead"]
-      and df14[0]["payload"]["skipped"],
+      and df14[0]["payload"]["skipped"]
+      and not [e for e in ev14 if e["kind"] == "model_decision"],
       f"got {r14} / events {ev14}")
 
 print(f"\n결과: {PASS} PASS / {FAIL} FAIL (총 {PASS + FAIL})")

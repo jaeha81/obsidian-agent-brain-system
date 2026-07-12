@@ -90,8 +90,10 @@ def _dispatch_enabled() -> bool:
 def _dispatch(spec: TaskSpec, payload: dict, agent: str) -> dict:
     """provider_candidates 순서로 첫 실행 가능(estimate ok) 어댑터에 위임한다 (Stage 17).
 
-    - model_decision 이벤트를 실행 전에 남긴다 — emit 계열은 실패해도 예외를 전파하지
-      않으므로(ADR-0003) 관측이 실행을 막지 않는다.
+    - model_decision 이벤트는 실행 provider 확정 직후·run() 직전에 남긴다 — 폴백으로
+      2순위가 실행돼도 selected_provider가 실제 실행 provider와 일치한다 (G4 필수수정).
+      전 provider 실행 불가면 결정이 없으므로 model_decision 없이 worker_dispatch_failed만
+      남는다. emit 계열은 실패해도 예외를 전파하지 않으므로(ADR-0003) 관측이 실행을 막지 않는다.
     - usage 기록은 adapter.run() 내부(Stage 10 단일 관문)가 담당 — 여기서 중복 기록 금지.
     - 전 provider 실행 불가면 명시적 AgentResult(failed) + worker_dispatch_failed 이벤트.
       실동작 provider는 현재 claude_code뿐(나머지는 스텁) — 인터페이스 완성이지
@@ -102,8 +104,6 @@ def _dispatch(spec: TaskSpec, payload: dict, agent: str) -> dict:
     from providers import get_adapter
 
     chain = provider_candidates(spec.task_type)
-    emit_model_decision(explain(spec.task_type), task_id=spec.task_id,
-                        agent=agent, provider_chain=chain)
     skipped: list[str] = []
     for name in chain:
         adapter = get_adapter(name)
@@ -114,6 +114,8 @@ def _dispatch(spec: TaskSpec, payload: dict, agent: str) -> dict:
         if not estimate.ok:
             skipped.append(f"{name}: {estimate.detail or 'estimate 불가'}")
             continue
+        emit_model_decision(explain(spec.task_type), task_id=spec.task_id,
+                            agent=agent, provider_chain=chain, selected_provider=name)
         return adapter.run(spec, instruction=str(payload.get("instruction") or "")).to_dict()
     summary = "디스패치 실패 — 실행 가능 provider 없음: " + "; ".join(skipped)
     emit("worker_dispatch_failed", task_id=spec.task_id, agent=agent,
