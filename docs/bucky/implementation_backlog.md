@@ -22,7 +22,7 @@
 | — | G4 | 게이트 | Codex 검수 #3 (Phase B 일괄) | — | — | ✅ 통과 (07-12 — 조건부 통과 후 필수수정 2건 이행 `0c43835`: model_decision 방출 시점 수정 + W15 회귀, worker 15·oracle 85·unittest 128 OK, 재검수는 사용자 결정으로 생략. 결과: `docs/CODEX_REVIEW_REQUEST_G4.md` §5) |
 | 7 | 18 | C | policy_rules.yaml + policy_engine.py (순수 함수, 미배선) | 신규만 | P0-6 | ✅ 완료 (07-12, 72242a6 — 신규 테스트 18건·unittest 146 OK·oracle 85 무손상, dispatch 폴백 정책 A안 명문화 포함) |
 | 8 | 19 | C | 정책 배선 shadow 모드 + 예산 경고 (기존 승인 3종 재사용) | 기존 수정 | P0-6,7 | ✅ 완료 (07-12, ab68c09 — worker 21건(W17 off-shadow 바이트 동일 회귀 포함)·oracle 91 PASS·unittest 146 무손상. shadow 기본, 차단 없음. enforce는 별도 결정, 승인 신설 없음) |
-| — | G5 | 게이트 | Codex 검수 #4 (Phase C) | — | — | 대기 |
+| — | G5 | 게이트 | Codex 검수 #4 (Phase C) | — | — | ✅ 통과 (07-12 — 조건부 통과 후 필수수정 2건 이행 `248eb47`: task_tiers에 default 명시 등록(T3, 사용자 A안) + 포함관계 회귀 테스트, unittest 147 OK·oracle 91 PASS. Codex 재검증 PASS로 완전 통과 성립. 결과: `docs/CODEX_REVIEW_REQUEST_G5.md` §5·§6. 비차단 권고 4건은 §5.3 백로그) |
 | 9 | 20 | D | 메모리 출처 전파 (Stage 12 선행 축소판) | 기존 2파일 | P0-4 | 대기 |
 | 10 | 21 | E | 최소 대시보드 (static-JSON 패턴 확장 + org-structure 동적화) | 신규 위주 | P0-10 | 대기 |
 | — | G6 | 게이트 | Codex 검수 #5 + P0 완료 판정 (스펙 §20 Story 5/6/7 대조) | — | — | 대기 |
