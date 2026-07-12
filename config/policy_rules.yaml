@@ -1,0 +1,76 @@
+# Bucky OS V3 — 승인 정책 규칙 (Stage 18, P0-6)
+#
+# 원천: 스펙 §11.1 위험 등급(T0~T3) + ROUTING_RULES.md Approval Gates 산문의 데이터화.
+# 범위: task_type → 위험 티어와 티어별 판정만 다룬다.
+#   provider 후보열은 routing_policy.yaml, claude 티어는 model_router.TASK_TO_MODEL이
+#   정본 — top-level 키를 중복하지 않는다 (policy_engine.validate_rules가 검증).
+# 효력: Stage 19 배선 전까지 미배선 — scripts/core/policy_engine.py evaluate()가 읽는
+#   순수 데이터. 판정은 shadow 우선(ADR-0004). 스펙 T4(자동 실행 금지)는 enforce
+#   설계 시 별도 — 이번 범위(T0~T3) 밖.
+
+tiers:
+  T0:
+    decision: auto
+    description: 자동 실행 — 읽기·검색·분류·요약·내부 메모리 조회·초안·비용 없는 계산
+  T1:
+    decision: auto_log
+    description: 자동 실행 + 로그 — 가역적 내부 파일 생성·백로그 추가·태그 수정·테스트 실행
+  T2:
+    decision: auto_within_policy
+    description: 정책 한도 내 자동 또는 묶음 승인 — 비파괴적 수정·한도 내 유료 호출·예약 자동화
+  T3:
+    decision: require_approval
+    description: 명시적 승인 필요 — 외부 발송·결제·배포·삭제·권한 변경·비밀정보·커밋/푸시
+
+# task_type → tier. 어휘 = model_router.TASK_TO_MODEL + ROUTING_RULES Approval Gates
+# 예약어. evaluate()가 소문자 정규화 후 조회한다.
+task_tiers:
+  # T0 — 산출물이 텍스트 응답뿐 (분석·분류·요약·초안)
+  status: T0
+  classify: T0
+  extract: T0
+  format: T0
+  short_summary: T0
+  long_summary: T0
+  nlp_preprocess: T0
+  intent: T0
+  transcribe_postprocess: T0
+  chat: T0
+  research: T0
+  review: T0
+  vision: T0
+  reasoning: T0
+  self_reflection: T0
+  strategy: T0
+  architecture: T0
+  # T1 — 가역적 내부 파일 생성·수정 (git 되돌림 가능) + 태그 수정(스펙 §11.1 T1 명시)
+  code: T1
+  edit: T1
+  doc: T1
+  implementation: T1
+  debug: T1
+  security: T1
+  tag: T1
+  knowledge_distill: T1
+  # T2 — 현 큐 어휘에 대응 항목 없음 (예약: 한도 내 유료 외부 API 호출·예약 자동화류)
+  # T3 — ROUTING_RULES Approval Gates (현 큐 어휘엔 없음 — 등장 즉시 승인 요구)
+  commit: T3
+  push: T3
+  delete: T3
+  migrate: T3
+  deploy: T3
+  publish: T3
+  payment: T3
+  auth_change: T3
+  secrets_access: T3
+
+# 미분류 task_type의 기본 티어 — 보수 기본값. 새 task_type은 여기 등록 전까지 T3
+# (shadow에서는 이벤트만 남으므로 무해, 미분류 유형의 관측 신호가 된다).
+default_tier: T3
+
+# 디스패치 폴백 정책 (G4 권고 1 — 2026-07-12 사용자 A안 확정):
+# adapter.run() 실패 시 다음 후보 provider를 재시도하지 않는다 — run 실패 = 태스크 실패.
+# 폴백은 estimate(사전 가용성) 단계에서만. 부분 실행 중복(파일 변경·비용) 방지.
+# worker._dispatch 현행 동작의 명문화 — oracle/tests/test_worker.py W13·W14가 동작을 고정.
+dispatch:
+  fallback_on_run_failure: false
