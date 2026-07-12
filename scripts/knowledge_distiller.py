@@ -53,6 +53,8 @@ CODEX_SESSIONS_DIR  = RAW_DIR / "codex-sessions"
 SCRIPTS_DIR  = Path(__file__).parent
 STATE_FILE   = SCRIPTS_DIR / ".distiller_cache.json"
 RETRY_QUEUE  = SCRIPTS_DIR / ".distiller_retry_queue.json"
+# Stage 20: 01_RAW 불변 유지 — 처리 완료 여부는 이 사이드카 인덱스에만 기록한다.
+PROCESSED_INDEX_FILE = SCRIPTS_DIR.parent / "data" / "memory" / "processed_index.jsonl"
 
 MODEL        = "claude-sonnet-4-6"
 MAX_TOKENS   = 2048
@@ -1031,6 +1033,10 @@ def build_output_note(
     category_tags: list[str] | None = None,
     graph_wikilinks: list[str] | None = None,
     p3_priority: float | None = None,
+    source_conversation_id: str | None = None,
+    supersedes: str | None = None,
+    valid_until: str | None = None,
+    last_verified: str | None = None,
 ) -> str:
     """
     추출 결과를 Obsidian Markdown 노트로 변환한다.
@@ -1039,6 +1045,10 @@ def build_output_note(
         category_tags   : auto_tag() 반환값 (카테고리 태그 목록)
         graph_wikilinks : generate_wikilinks() 반환값 (그래프 기반 wikilink)
         p3_priority     : priority_score() 반환값 (0.0~10.0 우선순위 점수)
+
+    Stage 20 추가 파라미터 (01_RAW provenance, 모두 선택):
+        source_conversation_id : 01_RAW frontmatter의 conversation_id 전파값
+        supersedes/valid_until/last_verified : 향후 단계에서 채울 예약 필드 (현재는 배관만)
     """
     topics     = result.get("topics", [])
     confidence = result.get("confidence", 0.8)
@@ -1094,12 +1104,17 @@ def build_output_note(
         source_type: {source_type}
         date: {file_date}
         original_file: "{source_path}"
+        source_conversation_id: {f'"{source_conversation_id}"' if source_conversation_id else ""}
+        source_file: "{source_path}"
         topics: {topics_yaml}
         related: {related_yaml}
         confidence: {confidence}
         priority: {p3_priority if p3_priority is not None else ""}
         category_tags: [{", ".join(cat_tags)}]
         distilled_at: {now_str}
+        supersedes: {supersedes if supersedes else ""}
+        valid_until: {valid_until if valid_until else ""}
+        last_verified: {last_verified if last_verified else ""}
         tags: {tags_yaml}
         ---
 
@@ -1152,6 +1167,28 @@ def determine_output_path(file_date: str, source_path: Path) -> Path:
 
     filename = f"{file_date}-{slug}.md"
     return output_dir / filename
+
+
+# ── Stage 20: 원본 provenance 추출 ──────────────────────────────────────────
+
+def extract_conversation_id(text: str) -> str | None:
+    """
+    01_RAW frontmatter에서 conversation_id 값을 추출한다. 없으면 None.
+    """
+    # 일부 볼트 md 파일은 선두에 UTF-8 BOM이 붙어 있어 frontmatter 시작(---) 매칭이 깨진다.
+    text = text.lstrip("﻿")
+
+    fm_match = re.match(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
+    if not fm_match:
+        return None
+
+    fm_text = fm_match.group(1)
+    cid_match = re.search(r"^conversation_id:\s*(.*)$", fm_text, re.MULTILINE)
+    if not cid_match:
+        return None
+
+    value = cid_match.group(1).strip().strip('"').strip("'").strip()
+    return value or None
 
 
 # ── Phase 2: 주제 기반 중복 감지 및 병합 ──────────────────────────────────────
@@ -1255,6 +1292,24 @@ def merge_into_existing_note(existing_path: Path, result: dict, source_path: Pat
             flags=re.MULTILINE,
         )
         existing_path.write_text(updated_text, encoding="utf-8")
+
+
+# ── Stage 20: 처리 완료 사이드카 인덱스 ─────────────────────────────────────────
+
+def append_processed_index(raw_file: Path, conversation_id: str | None, output_path: Path) -> None:
+    """
+    01_RAW 파일의 정제 완료 여부를 sidecar 인덱스에 append-only로 기록한다.
+    01_RAW 원본은 절대 수정하지 않는다.
+    """
+    PROCESSED_INDEX_FILE.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "file": str(raw_file),
+        "conversation_id": conversation_id,
+        "output_path": str(output_path),
+        "processed_at": datetime.now().isoformat(),
+    }
+    with PROCESSED_INDEX_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
 # ── 에러 리포트 ────────────────────────────────────────────────────────────────
@@ -1373,6 +1428,8 @@ def process_batch(
                 stats["skipped"] += 1
                 continue
 
+        conversation_id = extract_conversation_id(content)
+
         try:
             result = distill_file(client, raw_file, content, file_date, stats, source_type)
 
@@ -1402,9 +1459,11 @@ def process_batch(
             print(f"    [P3-PRIORITY] 점수: {p3_score} ({priority_label})")
 
             # Phase 2: 같은 주제 노트가 이미 존재하는지 확인 (overwrite 금지)
+            actual_output_path = output_path
             existing_by_topic = find_existing_note_by_topic(result, output_path.parent)
             if existing_by_topic and existing_by_topic != output_path:
                 # 동일 주제 노트에 병합 (append)
+                actual_output_path = existing_by_topic
                 merge_into_existing_note(existing_by_topic, result, raw_file)
                 print(f"    [MERGE] → {existing_by_topic.relative_to(VAULT_BASE)} (주제 병합)")
                 print(f"             신규 인사이트: {len(result.get('insights', []))}개  "
@@ -1423,6 +1482,7 @@ def process_batch(
                     category_tags=cat_tags,
                     graph_wikilinks=graph_links,
                     p3_priority=p3_score,
+                    source_conversation_id=conversation_id,
                 )
                 output_path.write_text(note_text, encoding="utf-8")
                 print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
@@ -1437,6 +1497,7 @@ def process_batch(
 
             state[str(raw_file)] = file_hash(raw_file)
             save_state(state)
+            append_processed_index(raw_file, conversation_id, actual_output_path)
             remove_from_retry_queue(raw_file)
             success += 1
             stats["processed"] += 1
