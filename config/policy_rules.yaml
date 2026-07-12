@@ -63,6 +63,9 @@ task_tiers:
   payment: T3
   auth_change: T3
   secrets_access: T3
+  # model_router.TASK_TO_MODEL의 미분류 폴백 sentinel — 실제 큐 유형 아님, 보수 T3 고정
+  # (G5 필수수정 ① — 07-12 사용자 A안: 명시 등록 채택)
+  default: T3
 
 # 미분류 task_type의 기본 티어 — 보수 기본값. 새 task_type은 여기 등록 전까지 T3
 # (shadow에서는 이벤트만 남으므로 무해, 미분류 유형의 관측 신호가 된다).

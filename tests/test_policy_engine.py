@@ -16,6 +16,7 @@ if str(SCRIPTS) not in sys.path:
 from core.config import load_routing_policy, load_yaml  # noqa: E402
 from core.policy_engine import evaluate, load_rules, validate_rules  # noqa: E402
 from core.task_spec import TaskSpec  # noqa: E402
+from model_router import TASK_TO_MODEL  # noqa: E402
 
 RULES = load_rules()  # repo 실데이터 — 대부분의 판정 테스트는 이걸로 검증
 
@@ -82,6 +83,11 @@ class RulesFileTests(unittest.TestCase):
     def test_dispatch_fallback_policy_pinned(self):
         # G4 권고 1 확정(07-12 사용자 A안): run 실패 시 다음 후보 재시도 금지
         self.assertIs(RULES["dispatch"]["fallback_on_run_failure"], False)
+
+    def test_task_tiers_cover_router_vocabulary(self):
+        # G5 필수수정 ② 확정(07-12 사용자 A안): 라우터 어휘 전체가 task_tiers에 명시 등록
+        missing = set(TASK_TO_MODEL) - set(RULES["task_tiers"])
+        self.assertEqual(missing, set(), f"task_tiers 미등록 라우터 어휘: {missing}")
 
 
 class ValidateRulesTests(unittest.TestCase):
