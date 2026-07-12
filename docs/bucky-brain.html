@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#58a6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bucky">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<title>Bucky Brain Status</title>
+<script>
+(function(){
+  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
+  document.documentElement.style.visibility='hidden';
+  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
+  else{document.documentElement.style.visibility='';}
+})();
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1a1030 0%, #0d1117 100%);
+    border-bottom: 1px solid rgba(188,140,255,0.3);
+    padding: 20px 32px 16px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .header-left h1 { font-size: 1.35rem; font-weight: 700; color: var(--purple); }
+  .header-left p { color: var(--muted); font-size: 0.80rem; margin-top: 3px; }
+  .header-right { display: flex; gap: 8px; align-items: center; }
+  .nav-btn {
+    background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.25);
+    color: var(--accent); padding: 5px 12px; border-radius: 6px;
+    text-decoration: none; font-size: 0.78rem; cursor: pointer; transition: all 0.2s;
+  }
+  .nav-btn:hover { background: rgba(88,166,255,0.18); }
+
+  .stats-bar {
+    display: flex; gap: 10px; padding: 14px 32px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 16px; text-align: center; min-width: 96px;
+  }
+  .stat-box .num { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+  .stat-box .label { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
+
+  main { padding: 8px 32px 48px; display: flex; flex-direction: column; gap: 22px; }
+
+  .section-title {
+    font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; margin: 18px 0 10px;
+  }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 6px 12px; font-size: 0.78rem; background: var(--card);
+  }
+  .chip .n { font-weight: 700; }
+  .chip .k { color: var(--muted); }
+  .chip.c-green  { border-color: rgba(63,185,80,0.4); }  .chip.c-green .n  { color: var(--green); }
+  .chip.c-accent { border-color: rgba(88,166,255,0.4); } .chip.c-accent .n { color: var(--accent); }
+  .chip.c-yellow { border-color: rgba(210,153,34,0.4); } .chip.c-yellow .n { color: var(--yellow); }
+  .chip.c-orange { border-color: rgba(255,166,87,0.4); } .chip.c-orange .n { color: var(--orange); }
+  .chip.c-red    { border-color: rgba(248,81,73,0.4); }  .chip.c-red .n    { color: var(--red); }
+  .chip.c-muted  { border-color: var(--border); }        .chip.c-muted .n  { color: var(--muted); }
+
+  .empty-note {
+    color: var(--muted); font-size: 0.8rem; padding: 10px 2px;
+  }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  table.data-table th, table.data-table td {
+    text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border);
+  }
+  table.data-table th { color: var(--muted); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  table.data-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .agent-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px;
+  }
+  .agent-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px;
+  }
+  .agent-card .a-id { font-weight: 700; font-size: 0.9rem; }
+  .agent-card .a-role { color: var(--muted); font-size: 0.76rem; margin-top: 3px; }
+  .agent-card .a-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .a-status {
+    font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .a-status.s-active      { border-color: rgba(63,185,80,0.4); color: var(--green); }
+  .a-status.s-standby     { border-color: rgba(88,166,255,0.35); color: var(--accent); }
+  .a-status.s-development { border-color: rgba(255,166,87,0.4); color: var(--orange); }
+  .a-tag { font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.04); color: var(--muted); }
+
+  .fetch-error {
+    margin: 20px 32px; padding: 14px 16px; border: 1px solid rgba(248,81,73,0.35);
+    background: rgba(248,81,73,0.06); border-radius: 8px; color: var(--red); font-size: 0.82rem;
+    display: none;
+  }
+  .fetch-error.show { display: block; }
+
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    .stats-bar, main { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+<script src="/shared/auth.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Bucky Brain Status</h1>
+    <p id="last-updated">오라클 태스크 큐 · 사용량 · 정책 shadow 판정 · 실행 인프라 — 읽기전용 관측</p>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="nav-btn">← 대시보드</a>
+    <a href="org-structure.html" class="nav-btn">조직 구조도</a>
+    <a href="checklist.html" class="nav-btn">체크리스트</a>
+  </div>
+</header>
+
+<div class="stats-bar" id="stats-bar">
+  <div class="stat-box"><div class="num" id="kpi-tasks">—</div><div class="label">큐 태스크</div></div>
+  <div class="stat-box"><div class="num" id="kpi-cost">—</div><div class="label">이번달 비용(USD)</div></div>
+  <div class="stat-box"><div class="num" id="kpi-policy">—</div><div class="label">정책 판정(shadow)</div></div>
+  <div class="stat-box"><div class="num" id="kpi-agents">—</div><div class="label">실행 노드</div></div>
+</div>
+
+<div class="fetch-error" id="fetch-error">데이터 로드 실패 — docs/data/bucky_brain_status.json 또는 agents_org.json을 가져오지 못했습니다. 08:00 파이프라인이 아직 실행되지 않았을 수 있습니다.</div>
+
+<main>
+  <section>
+    <div class="section-title">태스크 큐 상태</div>
+    <div class="chip-row" id="queue-chips"></div>
+  </section>
+
+  <section>
+    <div class="section-title">정책 Shadow 판정 분포</div>
+    <div class="chip-row" id="policy-chips"></div>
+  </section>
+
+  <section>
+    <div class="section-title">이번 달 사용량 — provider/model</div>
+    <div id="usage-table-wrap"></div>
+  </section>
+
+  <section>
+    <div class="section-title">실행 인프라 노드</div>
+    <div class="agent-grid" id="agent-grid"></div>
+  </section>
+</main>
+
+<script>
+const TIER_COLOR = { T0: "c-green", T1: "c-accent", T2: "c-yellow", T3: "c-red" };
+const STATUS_COLOR = {
+  pending: "c-muted", assigned: "c-accent", running: "c-orange", waiting: "c-yellow",
+  completed: "c-green", failed: "c-red", cancelled: "c-muted",
+};
+const STATUS_LABEL = {
+  pending: "대기", assigned: "할당됨", running: "실행중", waiting: "대기(중단)",
+  completed: "완료", failed: "실패", cancelled: "취소",
+};
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function chip(cls, n, label) {
+  return `<span class="chip ${cls}"><span class="n">${n}</span><span class="k">${escHtml(label)}</span></span>`;
+}
+
+function renderQueueChips(taskQueue) {
+  const wrap = document.getElementById("queue-chips");
+  const entries = Object.entries(taskQueue.by_status || {});
+  if (!taskQueue.total) {
+    wrap.innerHTML = `<div class="empty-note">현재 오라클 큐에 태스크가 없습니다.</div>`;
+    return;
+  }
+  wrap.innerHTML = entries
+    .filter(([, n]) => n > 0)
+    .map(([status, n]) => chip(STATUS_COLOR[status] || "c-muted", n, STATUS_LABEL[status] || status))
+    .join("");
+}
+
+function renderPolicyChips(policy) {
+  const wrap = document.getElementById("policy-chips");
+  const tiers = Object.entries(policy.by_tier || {});
+  if (!policy.total) {
+    wrap.innerHTML = `<div class="empty-note">shadow 모드에서 아직 관측된 정책 판정이 없습니다.</div>`;
+    return;
+  }
+  let html = tiers
+    .map(([tier, n]) => chip(TIER_COLOR[tier] || "c-muted", n, tier))
+    .join("");
+  if (policy.budget_warnings) {
+    html += chip("c-red", policy.budget_warnings, "예산 경고");
+  }
+  wrap.innerHTML = html;
+}
+
+function renderUsageTable(usage) {
+  const wrap = document.getElementById("usage-table-wrap");
+  const rows = Object.entries(usage.by_model || {});
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty-note">${escHtml(usage.month || "")} 사용량 기록이 없습니다.</div>`;
+    return;
+  }
+  const body = rows.map(([key, s]) => `
+    <tr>
+      <td>${escHtml(key)}</td>
+      <td class="num">${s.records}</td>
+      <td class="num">${s.tokens_in.toLocaleString()}</td>
+      <td class="num">${s.tokens_out.toLocaleString()}</td>
+      <td class="num">$${Number(s.cost_usd || 0).toFixed(4)}</td>
+    </tr>`).join("");
+  wrap.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>provider/model</th><th class="num">건수</th><th class="num">입력토큰</th><th class="num">출력토큰</th><th class="num">비용</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function renderAgents(agents) {
+  const grid = document.getElementById("agent-grid");
+  if (!agents.length) {
+    grid.innerHTML = `<div class="empty-note">agents.yaml에서 로드된 노드가 없습니다.</div>`;
+    return;
+  }
+  grid.innerHTML = agents.map(a => `
+    <div class="agent-card">
+      <div class="a-id">${escHtml(a.id)}</div>
+      <div class="a-role">${escHtml(a.role || "-")} · ${escHtml(a.location || "-")}</div>
+      <div class="a-meta">
+        <span class="a-status s-${escHtml(a.status)}">${escHtml(a.status)}</span>
+        <span class="a-tag">${escHtml(a.type || "-")}</span>
+      </div>
+    </div>`).join("");
+}
+
+async function loadStatus() {
+  try {
+    const [statusRes, agentsRes] = await Promise.all([
+      fetch('./data/bucky_brain_status.json?t=' + Date.now()),
+      fetch('./data/agents_org.json?t=' + Date.now()),
+    ]);
+    if (!statusRes.ok || !agentsRes.ok) throw new Error("fetch not ok");
+    const status = await statusRes.json();
+    const org = await agentsRes.json();
+
+    document.getElementById("kpi-tasks").textContent = status.task_queue.total;
+    document.getElementById("kpi-cost").textContent = "$" + Number(status.usage.cost_usd || 0).toFixed(4);
+    document.getElementById("kpi-policy").textContent = status.policy_shadow.total;
+    document.getElementById("kpi-agents").textContent = org.agents.length;
+    document.getElementById("last-updated").textContent =
+      `오라클 태스크 큐 · 사용량 · 정책 shadow 판정 · 실행 인프라 — 읽기전용 관측 · 마지막 갱신: ${status.meta.last_updated || "-"}`;
+
+    renderQueueChips(status.task_queue);
+    renderPolicyChips(status.policy_shadow);
+    renderUsageTable(status.usage);
+    renderAgents(org.agents);
+  } catch (err) {
+    document.getElementById("fetch-error").classList.add("show");
+  }
+}
+
+loadStatus();
+</script>
+</body>
+</html>

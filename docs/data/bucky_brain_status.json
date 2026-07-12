@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "last_updated": "2026-07-13T08:00:09+0900",
+    "generator": "generate_brain_status.py"
+  },
+  "task_queue": {
+    "total": 0,
+    "by_status": {
+      "pending": 0,
+      "assigned": 0,
+      "running": 0,
+      "waiting": 0,
+      "completed": 0,
+      "failed": 0,
+      "cancelled": 0
+    }
+  },
+  "usage": {
+    "month": "2026-07",
+    "records": 144,
+    "tokens_in": 20,
+    "tokens_out": 1054,
+    "cost_usd": 6e-05,
+    "by_model": {
+      "ProviderAdapter/": {
+        "records": 31,
+        "tokens_in": 0,
+        "tokens_out": 155,
+        "cost_usd": 0.0
+      },
+      "boom/": {
+        "records": 31,
+        "tokens_in": 0,
+        "tokens_out": 217,
+        "cost_usd": 0.0
+      },
+      "codex_pro/": {
+        "records": 31,
+        "tokens_in": 0,
+        "tokens_out": 341,
+        "cost_usd": 0.0
+      },
+      "gemini/": {
+        "records": 31,
+        "tokens_in": 0,
+        "tokens_out": 341,
+        "cost_usd": 0.0
+      },
+      "claude_code/sonnet": {
+        "records": 20,
+        "tokens_in": 20,
+        "tokens_out": 0,
+        "cost_usd": 6e-05
+      }
+    }
+  },
+  "policy_shadow": {
+    "total": 0,
+    "by_tier": {},
+    "by_decision": {},
+    "budget_warnings": 0
+  }
+}

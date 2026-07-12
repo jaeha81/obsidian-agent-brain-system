@@ -269,6 +269,30 @@
     border: 1px solid var(--border);
   }
 
+  /* ── 실행 인프라 현황 (agents_org.json 라이브 로드, Stage 21) ── */
+  .node-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .node-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .node-id { font-size: 13px; font-weight: 700; color: var(--text); }
+  .node-role { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+  .node-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .node-status {
+    font-size: 10px; padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--border); color: var(--text-muted);
+  }
+  .node-status.active      { border-color: rgba(67,233,123,.4); color: var(--green); }
+  .node-status.standby     { border-color: rgba(79,172,254,.35); color: var(--blue); }
+  .node-status.development { border-color: rgba(247,151,30,.4); color: var(--orange); }
+  .node-empty { font-size: 12px; color: var(--text-muted); padding: 8px 2px; }
+
   /* ── Business Domains ── */
   .domain-grid {
     display: grid;
@@ -574,6 +598,14 @@
     </div>
   </section>
 
+  <!-- ── 실행 인프라 현황 (오라클 agents.yaml 라이브 로드) ── -->
+  <section>
+    <div class="section-label">실행 인프라 현황</div>
+    <div class="node-grid" id="node-grid">
+      <div class="node-empty">불러오는 중…</div>
+    </div>
+  </section>
+
   <!-- ── 요청 라우팅 규칙 ── -->
   <section>
     <div class="section-label">요청 라우팅 규칙</div>
@@ -807,5 +839,36 @@
   <span>JH Agent OS · 재하 (Jaeha)</span>
 </footer>
 
+<script>
+(function () {
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function renderNodes(agents) {
+    const grid = document.getElementById('node-grid');
+    if (!agents || !agents.length) {
+      grid.innerHTML = '<div class="node-empty">실행 인프라 데이터가 없습니다.</div>';
+      return;
+    }
+    grid.innerHTML = agents.map(function (a) {
+      return '<div class="node-card">' +
+        '<div class="node-id">' + escHtml(a.id) + '</div>' +
+        '<div class="node-role">' + escHtml(a.role || '-') + ' · ' + escHtml(a.location || '-') + '</div>' +
+        '<div class="node-meta">' +
+          '<span class="node-status ' + escHtml(a.status) + '">' + escHtml(a.status) + '</span>' +
+          '<span class="agent-tag">' + escHtml(a.type || '-') + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  fetch('./data/agents_org.json?t=' + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) { renderNodes(d.agents); })
+    .catch(function () {
+      document.getElementById('node-grid').innerHTML =
+        '<div class="node-empty">데이터 로드 실패 — agents_org.json을 가져오지 못했습니다.</div>';
+    });
+})();
+</script>
 </body>
 </html>

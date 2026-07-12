@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-12 08:00:05",
+  "generated_at": "2026-07-13 08:00:08",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -43,7 +43,7 @@
     {
       "path": "CLAUDE.md",
       "exists": true,
-      "updated": "2026-07-09 17:05"
+      "updated": "2026-07-12 22:42"
     },
     {
       "path": "OPERATING_INTENT.md",
@@ -63,6 +63,99 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "ad78af5",
+        "date": "2026-07-13",
+        "subject": "feat: Stage 20 — 01_RAW provenance 필드 + sidecar 처리 인덱스",
+        "areas": [
+          "instruction-authority",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "7490302",
+        "date": "2026-07-12",
+        "subject": "docs: G5 재검증 PASS 전사(§6) + 백로그 G5 완전 통과 반영",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "248eb47",
+        "date": "2026-07-12",
+        "subject": "fix: G5 필수수정 이행 — task_tiers에 default 명시 등록(T3) + 라우터 어휘 포함 회귀 테스트",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "8d98121",
+        "date": "2026-07-12",
+        "subject": "docs: G5 Codex 검수 결과 전사 — 조건부 통과 (필수수정 2건, P2)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "a68f945",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 19 완료 반영 — 백로그 상태 갱신 (ab68c09)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "ab68c09",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 19 — worker 정책 shadow 상담 배선 + 예산 경고 (P0-6,7)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "b41057d",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 18 완료 반영 — 백로그 상태 갱신 (72242a6)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "72242a6",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 18 — policy_rules.yaml + policy_engine 순수 함수 (P0-6, 미배선)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "04d3b7f",
+        "date": "2026-07-12",
+        "subject": "docs: G4 필수수정 이행 반영 — 백로그 G4 행 통과로 갱신 (0c43835)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "0c43835",
+        "date": "2026-07-12",
+        "subject": "fix: G4 필수수정 — model_decision 방출을 실행 provider 확정 직후로 이동 (selected_provider 실일치)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "86e5e92",
+        "date": "2026-07-12",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-12 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "8193fa6",
         "date": "2026-07-12",
@@ -396,109 +489,17 @@
         "areas": [
           "other"
         ]
-      },
-      {
-        "commit": "fe97ecb",
-        "date": "2026-07-09",
-        "subject": "feat: Phase 3-④ Discord Bot 연결 — 오라클 API submit 클라이언트 + /oracle 명령",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "other"
-        ]
-      },
-      {
-        "commit": "fd0dcce",
-        "date": "2026-07-09",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-09 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "648a182",
-        "date": "2026-07-09",
-        "subject": "feat: Phase 3-③ Agent Registry — oracle API 에이전트 레지스트리 + 검증 스위트",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "bbda732",
-        "date": "2026-07-09",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-09 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "4bbce6e",
-        "date": "2026-07-08",
-        "subject": "docs: Bucky OS 오라클 하이브리드 확정 플랜 문서 추가 (07-08 배너 정정 포함)",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "d4a8b91",
-        "date": "2026-07-08",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-08 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "19ae095",
-        "date": "2026-07-08",
-        "subject": "chore: OCI A1 프로비저닝 스크립트 추가 (미실행·런타임만)",
-        "areas": [
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "a2d17e5",
-        "date": "2026-07-07",
-        "subject": "fix: canonical 지침 로더 파일 3종 추가 복구 — P0-B 완결",
-        "areas": [
-          "knowledge-vault"
-        ]
-      },
-      {
-        "commit": "ff99cfb",
-        "date": "2026-07-07",
-        "subject": "fix: canonical 지침파일 복구 — ROUTING_RULES.md + agents/bucky.md",
-        "areas": [
-          "knowledge-vault"
-        ]
-      },
-      {
-        "commit": "a29806d",
-        "date": "2026-07-07",
-        "subject": "feat: Discord 봇 채널별 역할 컨텍스트 주입(rolewire) + GUILD_ID 서버선택 수정",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "knowledge-vault"
-        ]
-      },
-      {
-        "commit": "c84cb85",
-        "date": "2026-07-07",
-        "subject": "feat: 시스템 진화 대시보드 — 성장 지표·타임라인·로드맵",
-        "areas": [
-          "daily-plus",
-          "dashboard",
-          "workflow-expansion"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 251,
-      "other": 136,
+      "instruction-authority": 15,
+      "other": 141,
+      "workflow-expansion": 124,
+      "dashboard": 257,
+      "charlie": 16,
       "knowledge-vault": 69,
-      "workflow-expansion": 121,
       "bucky-discord-daily-plus": 67,
-      "charlie": 15,
       "daily-plus": 21,
-      "instruction-authority": 14,
       "authentication": 13,
       "kmong": 8,
       "support-tooling": 8,
@@ -507,12 +508,13 @@
     }
   },
   "git_status": {
-    "changed_count": 18,
+    "changed_count": 27,
     "by_area": {
-      "dashboard": 2,
-      "other": 6,
+      "dashboard": 7,
+      "workflow-expansion": 8,
+      "daily-plus": 1,
+      "other": 7,
       "knowledge-vault": 3,
-      "workflow-expansion": 6,
       "bucky-discord-daily-plus": 1
     }
   },
@@ -541,8 +543,8 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260711_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-12 08:00"
+      "latest_outbox": "20260712_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-13 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-06-30",
