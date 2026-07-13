@@ -10,10 +10,28 @@ import json
 import re
 import sys
 import tempfile
+import types
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+# knowledge_distiller는 최상위에서 anthropic SDK를 임포트하지만, 여기서 검증하는
+# provenance 헬퍼는 SDK를 쓰지 않는다. SDK 미설치 환경(클린 clone·Task Scheduler)에서도
+# 테스트가 실행되도록 부재 시에만 스텁을 끼운다. 생성자는 호출 시 즉시 실패시켜
+# 테스트가 실제 API를 부르는 경로로 새면 조용히 통과하지 않고 드러나게 한다.
+if "anthropic" not in sys.modules:
+    try:
+        import anthropic  # noqa: F401
+    except ModuleNotFoundError:
+        _stub = types.ModuleType("anthropic")
+
+        class _StubAnthropic:
+            def __init__(self, *args, **kwargs):
+                raise RuntimeError("anthropic SDK 미설치 — 이 테스트는 API를 호출하지 않아야 한다")
+
+        _stub.Anthropic = _StubAnthropic
+        sys.modules["anthropic"] = _stub
 
 from scripts import knowledge_distiller as kd
 
