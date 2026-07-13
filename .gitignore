@@ -124,6 +124,10 @@ data/intake_queue/failed/
 data/wishket_loop_history.json
 data/charlie/
 data/channel_tasks.db
+# 체크리스트 정본 — 봇이 수시로 갱신하므로 추적하지 않는다.
+# 복구원은 git에 추적되는 미러 docs/data/user_checklist.json 이며,
+# scripts/checklist_store.py 가 정본 손상 시 미러에서 자동 복원한다.
+data/user_checklist.json
 
 # Graphify output/cache
 graphify-out/cache/

@@ -83,6 +83,9 @@ from dotenv import load_dotenv
 import json as _json_mod
 import subprocess as _subprocess_mod
 
+import checklist_store as _checklist_store
+from checklist_store import ChecklistUnavailable
+
 from bucky_client import BuckyError, run_bucky
 from bucky_briefing import generate_briefing
 from task_tracker import add_task, format_task_list, get_today_tasks
@@ -284,27 +287,19 @@ _context_cache: dict = {"text": "", "loaded_at": 0.0}
 _CONTEXT_TTL = 300  # 5분
 
 # ── Checklist 헬퍼 ─────────────────────────────────────────────────────────
-_CHECKLIST_JSON = _ROOT / "data" / "user_checklist.json"
-_CHECKLIST_DOCS_JSON = _ROOT / "docs" / "data" / "user_checklist.json"
+# 읽기/쓰기 규칙은 checklist_store가 단독으로 소유한다 — 정본·미러 동시 갱신,
+# 정본 손상 시 미러에서 복구, 읽기 실패 시 ChecklistUnavailable.
+# 예전엔 여기서 읽기 실패를 빈 목록으로 삼켜, 뒤이은 저장이 양쪽을 함께 날렸다(2026-07-11).
+_cl_load = _checklist_store.load
+_cl_save = _checklist_store.save
 
-
-def _cl_load() -> dict:
-    try:
-        return _json_mod.loads(_CHECKLIST_JSON.read_text(encoding="utf-8"))
-    except Exception:
-        return {"meta": {"version": "2.0", "last_updated": ""}, "tasks": []}
-
-
-def _cl_save(data: dict) -> None:
-    from datetime import date
-    data.setdefault("meta", {})["last_updated"] = str(date.today())
-    text = _json_mod.dumps(data, ensure_ascii=False, indent=2)
-    _CHECKLIST_JSON.write_text(text, encoding="utf-8")
-    try:
-        _CHECKLIST_DOCS_JSON.parent.mkdir(parents=True, exist_ok=True)
-        _CHECKLIST_DOCS_JSON.write_text(text, encoding="utf-8")
-    except Exception as e:
-        print(f"[Checklist] docs/ 동기화 실패: {e}", flush=True)
+# 체크리스트를 읽지 못하면 아무것도 저장하지 않고 이 문구로 알린다.
+# 조용히 넘어가면 "할 일 0개"로 오인해 데이터를 덮어쓰게 된다.
+_CL_UNAVAILABLE_MSG = (
+    "⚠️ 체크리스트를 읽을 수 없어 작업을 중단했습니다.\n"
+    "기존 데이터는 **덮어쓰지 않았습니다**. 원본과 백업본이 모두 손상된 상태입니다.\n"
+    "> {err}"
+)
 
 
 def _cl_next_id(tasks: list) -> str:
@@ -394,7 +389,11 @@ async def _auto_detect_checklist(reply: str, channel) -> None:
 
         added = []
         for title in detected[:3]:
-            task = await asyncio.to_thread(_cl_add, title, "", "대기", "자동감지", "discord-auto")
+            try:
+                task = await asyncio.to_thread(_cl_add, title, "", "대기", "자동감지", "discord-auto")
+            except ChecklistUnavailable as e:
+                await channel.send(_CL_UNAVAILABLE_MSG.format(err=e))
+                return
             if task:
                 added.append(task["id"])
 
@@ -4590,7 +4589,11 @@ class BuckyDiscordBot(discord.Client):
 
         # ── 체크리스트 명령어 ─────────────────────────────────────────────────────
         if content in ("!체크", "!체크리스트", "!cl", "!checklist", "!task-board"):
-            tasks = await asyncio.to_thread(_cl_list)
+            try:
+                tasks = await asyncio.to_thread(_cl_list)
+            except ChecklistUnavailable as e:
+                await message.channel.send(_CL_UNAVAILABLE_MSG.format(err=e))
+                return
             pending = [t for t in tasks if t.get("status", "pending") == "pending"]
             in_prog = [t for t in tasks if t.get("status") == "in_progress"]
             done = [t for t in tasks if t.get("status") == "done"]
@@ -4615,7 +4618,11 @@ class BuckyDiscordBot(discord.Client):
             if not body:
                 await message.channel.send("사용법: `!체크추가 <제목>`")
                 return
-            task = await asyncio.to_thread(_cl_add, body, "", "대기", "기타", "discord")
+            try:
+                task = await asyncio.to_thread(_cl_add, body, "", "대기", "기타", "discord")
+            except ChecklistUnavailable as e:
+                await message.channel.send(_CL_UNAVAILABLE_MSG.format(err=e))
+                return
             if task:
                 await message.channel.send(f"✅ `{task['id']}` 체크리스트 추가됨\n> {body}")
             else:
@@ -4625,7 +4632,11 @@ class BuckyDiscordBot(discord.Client):
         if content.startswith(("!체크완료 ", "!cl완료 ", "!cl-done ")):
             prefix = next(p for p in ("!체크완료 ", "!cl완료 ", "!cl-done ") if content.startswith(p))
             cl_id = content[len(prefix):].strip().upper()
-            task = await asyncio.to_thread(_cl_set_status, cl_id, "done")
+            try:
+                task = await asyncio.to_thread(_cl_set_status, cl_id, "done")
+            except ChecklistUnavailable as e:
+                await message.channel.send(_CL_UNAVAILABLE_MSG.format(err=e))
+                return
             if task:
                 await message.channel.send(f"✅ `{cl_id}` 완료 처리됨\n> {task['title']}")
             else:
@@ -4635,7 +4646,11 @@ class BuckyDiscordBot(discord.Client):
         if content.startswith(("!체크진행 ", "!cl진행 ", "!cl-start ")):
             prefix = next(p for p in ("!체크진행 ", "!cl진행 ", "!cl-start ") if content.startswith(p))
             cl_id = content[len(prefix):].strip().upper()
-            task = await asyncio.to_thread(_cl_set_status, cl_id, "in_progress")
+            try:
+                task = await asyncio.to_thread(_cl_set_status, cl_id, "in_progress")
+            except ChecklistUnavailable as e:
+                await message.channel.send(_CL_UNAVAILABLE_MSG.format(err=e))
+                return
             if task:
                 await message.channel.send(f"🔄 `{cl_id}` 진행중으로 변경됨\n> {task['title']}")
             else:
@@ -4645,7 +4660,11 @@ class BuckyDiscordBot(discord.Client):
         if content.startswith(("!체크삭제 ", "!cl삭제 ", "!cl-reject ")):
             prefix = next(p for p in ("!체크삭제 ", "!cl삭제 ", "!cl-reject ") if content.startswith(p))
             cl_id = content[len(prefix):].strip().upper()
-            task = await asyncio.to_thread(_cl_set_status, cl_id, "rejected")
+            try:
+                task = await asyncio.to_thread(_cl_set_status, cl_id, "rejected")
+            except ChecklistUnavailable as e:
+                await message.channel.send(_CL_UNAVAILABLE_MSG.format(err=e))
+                return
             if task:
                 await message.channel.send(f"❌ `{cl_id}` 거절 처리됨\n> {task['title']}")
             else:

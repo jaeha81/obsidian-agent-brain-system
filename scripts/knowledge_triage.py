@@ -20,18 +20,18 @@ Usage:
 """
 
 import argparse
-import json
 import re
 import sys
 from datetime import datetime, date
 from pathlib import Path
 from typing import Optional
 
+import checklist_store
+
 # ── 경로 설정 ──────────────────────────────────────────────────────────────────
 ROOT       = Path(__file__).parent.parent
 VAULT      = ROOT / "ObsidianVault"
 TRIAGE_DIR = VAULT / "00_Inbox" / "daily-plus-triage"
-CHECKLIST  = ROOT / "data" / "user_checklist.json"
 AUDIT_LOG  = VAULT / "00_System" / "triage-audit-log.md"
 
 VALID_DECISIONS = {"approve", "implement", "queue", "archive", "skip"}
@@ -233,12 +233,17 @@ def create_cl_task(item: dict, triage_file: Path) -> dict:
 
 
 def append_cl_tasks(new_tasks: list[dict]) -> list[str]:
-    """user_checklist.json에 새 태스크를 추가한다. 생성된 ID 목록 반환."""
-    if not CHECKLIST.exists():
-        print(f"  [WARN] {CHECKLIST} 없음 — 태스크 생성 건너뜀")
+    """체크리스트에 새 태스크를 추가한다. 생성된 ID 목록 반환.
+
+    checklist_store가 정본과 미러를 함께 갱신한다 — 예전엔 정본만 써서 대시보드가
+    보는 미러가 점점 어긋났다. 체크리스트를 읽지 못하면 아무것도 쓰지 않고 건너뛴다.
+    """
+    try:
+        data = checklist_store.load()
+    except checklist_store.ChecklistUnavailable as exc:
+        print(f"  [WARN] 체크리스트를 읽을 수 없음 — 태스크 생성 건너뜀: {exc}")
         return []
 
-    data   = json.loads(CHECKLIST.read_text(encoding="utf-8"))
     tasks  = data.get("tasks", [])
     created: list[str] = []
 
@@ -250,12 +255,8 @@ def append_cl_tasks(new_tasks: list[dict]) -> list[str]:
 
     data["tasks"] = tasks
     meta = data.setdefault("meta", {})
-    meta["last_updated"]   = date.today().isoformat()
     meta["last_completed"] = meta.get("last_completed", "")
-    CHECKLIST.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    checklist_store.save(data)  # last_updated는 store가 찍는다
     return created
 
 
