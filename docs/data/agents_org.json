@@ -1,7 +1,43 @@
 {
   "meta": {
-    "last_updated": "2026-07-13T08:00:10+0900",
+    "last_updated": "2026-07-13T08:20:19+0900",
     "source": "oracle/core/agents.yaml"
   },
-  "agents": []
+  "agents": [
+    {
+      "id": "bucky-main",
+      "type": "core",
+      "location": "oracle",
+      "role": "central-brain",
+      "status": "active"
+    },
+    {
+      "id": "home-pc-agent",
+      "type": "local",
+      "location": "home-pc",
+      "role": "main-workstation",
+      "status": "active"
+    },
+    {
+      "id": "office-pc-agent",
+      "type": "local",
+      "location": "office-pc",
+      "role": "office-client",
+      "status": "standby"
+    },
+    {
+      "id": "laptop-agent",
+      "type": "local",
+      "location": "laptop",
+      "role": "mobile-client",
+      "status": "standby"
+    },
+    {
+      "id": "interior-estimate-ai",
+      "type": "commercial",
+      "location": "oracle",
+      "role": "estimate-generator",
+      "status": "development"
+    }
+  ]
 }

@@ -62,6 +62,9 @@ RunPython "build_system_evolution.py" @() "System Evolution 생성"
 # 3c. Charlie 시스템 감사 (읽기 전용 점검 — 결과 JSON 생성, 커밋은 아래 4단계가 수행)
 RunPython "charlie_audit.py" @() "Charlie 감사"
 
+# 3d. Brain Status 생성 (오라클 읽기전용 + usage + policy shadow + agents.yaml, Stage 21)
+RunPython "generate_brain_status.py" @() "Brain Status 생성"
+
 # 4. git push (대시보드 생성 성공 시)
 if ($reportOk -and -not $SkipGitPush) {
     Log "START: git push"
@@ -74,6 +77,10 @@ if ($reportOk -and -not $SkipGitPush) {
                 "docs/system-evolution.html" `
                 "docs/data/system_evolution.json" `
                 "docs/data/charlie_status.json" `
+                "docs/bucky-brain.html" `
+                "docs/org-structure.html" `
+                "docs/data/bucky_brain_status.json" `
+                "docs/data/agents_org.json" `
                 "ObsidianVault/04_Wiki/daily-plus/" `
                 "ObsidianVault/00_UPGRADE/pulse-evolution/" `
                 "ObsidianVault/01_RAW/gpt-sessions/" `

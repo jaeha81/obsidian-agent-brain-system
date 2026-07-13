@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-07-13T08:00:09+0900",
+    "last_updated": "2026-07-13T08:20:19+0900",
     "generator": "generate_brain_status.py"
   },
   "task_queue": {
@@ -17,10 +17,10 @@
   },
   "usage": {
     "month": "2026-07",
-    "records": 144,
-    "tokens_in": 20,
+    "records": 164,
+    "tokens_in": 40,
     "tokens_out": 1054,
-    "cost_usd": 6e-05,
+    "cost_usd": 0.00012,
     "by_model": {
       "ProviderAdapter/": {
         "records": 31,
@@ -47,10 +47,10 @@
         "cost_usd": 0.0
       },
       "claude_code/sonnet": {
-        "records": 20,
-        "tokens_in": 20,
+        "records": 40,
+        "tokens_in": 40,
         "tokens_out": 0,
-        "cost_usd": 6e-05
+        "cost_usd": 0.00012
       }
     }
   },
