@@ -305,3 +305,105 @@ OK
 - 커밋: 아래 커밋 1건 (`docs/CODEX_REVIEW_REQUEST_G6.md` 포함)
 - 판정 요청: (a) §7.1 범위 축소의 기록 정직성 및 P0 완료 선언 성립 여부, (b) 필수수정 ②③④가 §6 지적을 실제로 해소했는지, (c) 신규 회귀 없음 재현
 - **스펙 원문 대조 가능**: `ObsidianVault/00_UPGRADE/BUCKY_SECOND_BRAIN_EVOLUTION_SPEC_v0.1_KR.md` (2015줄)은 `.gitignore`의 `ObsidianVault/*`로 여전히 git 미추적이다. 재검수 전 clone에 **수동 복사**해 §20 Story 5/6/7 및 P0 목록을 직접 대조할 것.
+
+---
+
+## 8. Codex 재검수 결과 #1 (2026-07-13) — **미통과(FAIL)**
+
+`ec6a0d1` 대상. 스펙 원문을 clone에 복사해 §4 전사 충실성까지 직접 대조했다.
+
+**판정: 미통과 — 현재 상태로 G6를 닫으면 안 된다.**
+
+| 필수수정 | 판정 | 요지 |
+|---|---|---|
+| ① P0 범위 축소(A안) | **부분 해소** | 축소 결정·경위 기록은 정직하다. 그러나 **이월표에서 미충족 조건 2건 누락** |
+| ② 병합 provenance | **해소됨** | 두 병합 경로 모두 전달. 신규 노트 계약과 동등한 추적 강도 확보 |
+| ③ sidecar 실패 격리 | **부분 해소** | 실패 집계 분리·state 순서는 맞다. 그러나 **"자기치유" 주장이 성립하지 않는다** |
+| ④ process_batch 통합 테스트 | **부분 해소** | 실제 배치를 돌리고 격리도 적절. 그러나 **2차 실행을 안 해 ③의 결함을 놓쳤다** |
+
+### 8.1 새로 발견된 결함 — **[P1 필수] 재실행이 기존 노트를 덮어쓴다**
+
+`knowledge_distiller.py` 파일명 일치 병합 조건이 `output_path.exists() and state.get(raw_file)`이었다.
+sidecar 실패 후 재실행하면 **출력 노트는 있지만 state는 없다** → 조건이 거짓 → 신규 노트 분기로 내려가
+`write_text()`로 **기존 노트를 덮어쓴다**. 1차 실행 후 사용자가 노트를 수정했거나 다른 소스가 병합됐다면 **유실**된다.
+
+→ Claude가 §7.3에서 주장한 "자기치유"는 **재진입 가능성만 확인하고 덮어쓰기 부작용을 추적하지 않은 것**이었다.
+Codex의 AI-Slop 지적: "불완전한 자기치유 주장", "테스트 이름(`stays_retryable`)과 검증 범위 불일치".
+
+### 8.2 이월표 누락 2건
+
+- **Story 5**: `last_verified`를 실제로 **채우고 갱신하는 경로** (현재 필드만 존재)
+- **Story 7**: **실동작하는 저비용·로컬 대체 경로** (어댑터 인터페이스만 존재, claude_code만 실동작)
+
+### 8.3 확인된 사항 (이의 없음)
+
+- **스펙 전사 충실성**: §4의 Story 5/6/7 전사는 원문(스펙 1566행~)과 **일치**. 왜곡·조건 삭제·유리한 편집 없음.
+- **P0 매핑 완전성**: 백로그 §2의 P0-1~11이 스펙 원문 P0 1~11과 순서·의미 모두 대응. **누락 없음**. P0-9=테스트 하네스 확인 및 "부분 충족" 기재는 **사실에 부합**.
+- **회귀 독립 재현**: `discover` 426건 19F/13E — Claude 보고와 일치. provenance 11건 OK. 신규 실패 없음.
+- **범위 축소 정직성**: "대체로 정직 — 기각 사실·shadow 한정·미구현을 숨기지 않았다".
+
+---
+
+## 9. 2차 이행 (2026-07-13) — 재검수 #2 요청
+
+### 9.1 [P1 필수] 덮어쓰기 결함 수정 — **never-overwrite 불변식**
+
+파일명 일치 병합 조건에서 `and state.get(str(raw_file))`를 **제거**했다.
+
+```python
+elif output_path.exists():   # state 유무와 무관하게 병합 — 덮어쓰기 경로 자체를 없앤다
+```
+
+- 이는 같은 블록의 기존 주석(`# Phase 2: 같은 주제 노트가 이미 존재하는지 확인 (overwrite 금지)`)과
+  `merge_into_existing_note()` docstring(「overwrite 하지 않고 병합」)이 **이미 선언한 원칙**이다. state 조건이 그 원칙을 깨는 예외였다.
+- 영향 범위: sidecar 실패 복구 재실행 **및 `--reset` 후 재실행**. 두 경우 모두 이제 덮어쓰지 않고 병합한다(insights 중복 제거로 멱등).
+- sidecar 실패 시 `add_to_retry_queue()`도 호출한다 → `--retry` 경로로도 복구 가능(§8 Codex 지적).
+
+### 9.2 회귀 가드 2건 추가 (총 13건)
+
+| 테스트 | 고정하는 계약 |
+|---|---|
+| `test_existing_note_with_same_filename_is_merged_never_overwritten` | state가 **비어 있어도** 기존 노트를 병합만 하고 덮어쓰지 않는다 (사용자가 손으로 쓴 문장 보존) |
+| `test_second_run_after_sidecar_failure_recovers_index_without_destroying_note` | 1차 sidecar 실패 → 사용자 노트 수정 → 2차 실행이 **인덱스를 복구하면서 그 수정을 보존**한다. state 저장·conversation_id 기록도 확인 |
+
+기존 `..._and_stays_retryable`는 이름이 검증 범위를 넘어선다는 지적(AI-Slop)을 받아
+`test_sidecar_failure_is_not_counted_as_distill_failure`로 **개명**하고, retry queue 등록을 실제로 단언하게 했다.
+
+**이 두 테스트가 진짜 가드임을 증명**: 버그 조건(`and state.get(...)`)을 일시 복원하면 **정확히 이 2건만 FAIL**한다.
+
+```
+### 버그 조건 복원 상태에서 실행 (실패해야 정상) ###
+FAIL: test_existing_note_with_same_filename_is_merged_never_overwritten
+FAIL: test_second_run_after_sidecar_failure_recovers_index_without_destroying_note
+Ran 13 tests → FAILED (failures=2)
+```
+
+### 9.3 이월표 누락 2건 보강
+
+`docs/bucky/implementation_backlog.md` §2.1 이월표 + §3에 추가:
+
+- **P1-13** — `last_verified` 갱신 주체·경로 (Story 5)
+- **P1-14** — 저비용·로컬 대체 경로 실동작 (Story 7. 스펙 P3-1 Ollama 로컬 어댑터와 중복 → 함께 설계)
+
+### 9.4 검증 증거
+
+```
+$ python -X utf8 -m unittest tests.test_knowledge_distiller_provenance
+Ran 13 tests in 0.104s
+OK
+```
+
+| | 테스트 수 | failures | errors |
+|---|---|---|---|
+| 베이스라인(`c47d294`) | 423 | 19 | 13 |
+| `ec6a0d1` (1차 이행) | 426 | 19 | 13 |
+| **2차 이행 (현재)** | **428** | **19** | **13** |
+
+→ 신규 회귀 0건 유지.
+
+### 9.5 재검수 #2 판정 요청
+
+1. §9.1의 never-overwrite 불변식이 §8.1 결함을 **실제로** 해소하는가? `--reset` 의미 변화(재생성→병합)가 수용 가능한가, 아니면 부작용인가?
+2. §9.2 테스트가 이번엔 **2차 실행까지 실제로** 검증하는가?
+3. §9.3으로 이월표가 이제 **빠짐없는가**? (스펙 Story 5·6·7 완료 조건 전수 대조 요청)
+4. 이제 **G6를 닫을 수 있는가**?

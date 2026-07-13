@@ -1484,8 +1484,11 @@ def process_batch(
                 print(f"    [MERGE] → {existing_by_topic.relative_to(VAULT_BASE)} (주제 병합)")
                 print(f"             신규 인사이트: {len(result.get('insights', []))}개  "
                       f"토픽 겹침: {set(result.get('topics', [])) & set(_extract_frontmatter_topics(existing_by_topic))}")
-            elif output_path.exists() and state.get(str(raw_file)):
-                # 동일 파일명 이미 존재하고 state 기록 있음 → 병합
+            elif output_path.exists():
+                # 동일 파일명 노트가 이미 있으면 **state 유무와 무관하게** 병합한다.
+                # 과거에는 `and state.get(str(raw_file))` 조건이 붙어 있었다. 그 탓에 state가
+                # 없는 재실행(sidecar 실패 복구, --reset)이 아래 신규 분기로 내려가 기존 노트를
+                # write_text로 덮어썼고, 사용자 수정·이전 병합 내용이 유실될 수 있었다.
                 merge_into_existing_note(
                     output_path, result, raw_file,
                     source_conversation_id=conversation_id,
@@ -1521,12 +1524,13 @@ def process_batch(
                 append_processed_index(raw_file, conversation_id, actual_output_path)
             except OSError as e:
                 # 증류 자체는 성공했다(노트는 디스크에 있다). 실패로 집계하지 않는다.
-                # state를 저장하지 않아 다음 실행이 인덱스를 다시 기록하게 둔다.
-                print(f"    [WARN] sidecar 인덱스 기록 실패 — 증류는 성공, 다음 실행에서 재시도: {e}")
-                error_entries.append({
-                    "file": str(raw_file),
-                    "error": f"sidecar 인덱스 기록 실패 (증류 성공): {e}",
-                })
+                # state를 저장하지 않아 다음 실행이 인덱스를 다시 기록하게 둔다. 재실행은
+                # 위 병합 분기를 타므로 기존 노트를 덮어쓰지 않는다.
+                # retry queue에도 넣어 --retry 경로로도 복구할 수 있게 한다.
+                err_msg = f"sidecar 인덱스 기록 실패 (증류 성공): {e}"
+                print(f"    [WARN] {err_msg} — 다음 실행에서 재시도")
+                add_to_retry_queue(raw_file, err_msg)
+                error_entries.append({"file": str(raw_file), "error": err_msg})
             else:
                 state[str(raw_file)] = file_hash(raw_file)
                 save_state(state)

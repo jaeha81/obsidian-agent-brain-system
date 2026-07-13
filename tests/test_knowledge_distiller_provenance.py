@@ -219,9 +219,11 @@ class ProcessBatchIntegrationTests(unittest.TestCase):
             setattr(kd, name, value)
         self._tmpdir.cleanup()
 
-    def _run_batch(self):
+    def _run_batch(self, state=None):
+        """state를 넘기면 이어서 실행한다(2차 실행 시뮬레이션)."""
         stats = {"processed": 0, "failed": 0, "skipped": 0}
-        state: dict = {}
+        if state is None:
+            state = {}
         success, fail = kd.process_batch(
             None, [self.raw_file], state, stats,
             batch_num=1, total_batches=1, content_hash_registry={},
@@ -286,7 +288,32 @@ class ProcessBatchIntegrationTests(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["output_path"], str(existing))
 
-    def test_sidecar_failure_is_not_counted_as_distill_failure_and_stays_retryable(self):
+    def test_existing_note_with_same_filename_is_merged_never_overwritten(self):
+        """파일명 일치 경로: state가 없어도 기존 노트를 덮어쓰지 않는다.
+
+        과거 조건은 `output_path.exists() and state.get(raw_file)`이어서, state가 없으면
+        신규 분기로 내려가 기존 노트를 write_text로 **덮어썼다**.
+        """
+        out_dir = kd.OUTPUT_BASE / "2026-04"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        # determine_output_path가 고를 바로 그 경로에 노트를 미리 심는다.
+        target = kd.determine_output_path("2026-04-18", self.raw_file)
+        target.write_text(
+            "---\ntopics: [무관토픽]\n---\n\n- 기존 인사이트\n\n사용자가 손으로 쓴 문장.\n",
+            encoding="utf-8",
+        )
+
+        # state는 비어 있다 — 과거엔 이 조건에서 덮어쓰기가 났다.
+        success, fail, _, _ = self._run_batch(state={})
+
+        self.assertEqual((success, fail), (1, 0))
+        merged = target.read_text(encoding="utf-8")
+        self.assertIn("사용자가 손으로 쓴 문장.", merged, "기존 노트가 덮어써졌다")
+        self.assertIn("## 병합 추가", merged)
+        self.assertIn("**source_conversation_id**: `eb129928-3609-46d4-9dd6-406bd7af3b8d`", merged)
+        self._assert_raw_unchanged()
+
+    def test_sidecar_failure_is_not_counted_as_distill_failure(self):
         def _boom(*args, **kwargs):
             raise OSError("sidecar 쓰기 실패 (테스트)")
 
@@ -305,6 +332,54 @@ class ProcessBatchIntegrationTests(unittest.TestCase):
 
         # state는 저장되지 않아야 다음 실행이 sidecar를 복구할 수 있다.
         self.assertNotIn(str(self.raw_file), state)
+        # --retry 경로로도 복구 가능해야 한다.
+        queued = json.loads(kd.RETRY_QUEUE.read_text(encoding="utf-8"))
+        self.assertEqual([e["file"] for e in queued], [str(self.raw_file)])
+        self._assert_raw_unchanged()
+
+    def test_second_run_after_sidecar_failure_recovers_index_without_destroying_note(self):
+        """sidecar 실패 → 재실행이 인덱스를 복구하되 기존 노트를 파괴하지 않는다.
+
+        1차 실행에서 sidecar를 실패시키고, 사용자가 노트를 손으로 고친 뒤, 2차 실행이
+        인덱스를 복구하면서 그 수정을 보존하는지 확인한다.
+        """
+        def _boom(*args, **kwargs):
+            raise OSError("sidecar 쓰기 실패 (테스트)")
+
+        real_append = kd.append_processed_index
+        self.addCleanup(setattr, kd, "append_processed_index", real_append)
+
+        # ── 1차 실행: sidecar 실패 ──
+        kd.append_processed_index = _boom
+        _, _, state, _ = self._run_batch()
+        self.assertNotIn(str(self.raw_file), state)
+        self.assertFalse(kd.PROCESSED_INDEX_FILE.exists())
+
+        note = kd.determine_output_path("2026-04-18", self.raw_file)
+        # 사용자가 노트를 손으로 고쳤다.
+        with note.open("a", encoding="utf-8") as f:
+            f.write("\n\n사용자가 1차 실행 후 손으로 추가한 문장.\n")
+
+        # ── 2차 실행: sidecar 정상, 같은 state를 이어받는다 ──
+        kd.append_processed_index = real_append
+        success, fail, state, _ = self._run_batch(state=state)
+
+        self.assertEqual((success, fail), (1, 0))
+
+        # sidecar 인덱스가 복구됐다.
+        entries = self._sidecar_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["conversation_id"], "eb129928-3609-46d4-9dd6-406bd7af3b8d")
+
+        # state도 이제 저장됐다 → 3차 실행은 스킵된다.
+        self.assertEqual(state[str(self.raw_file)], kd.file_hash(self.raw_file))
+
+        # 핵심: 사용자의 수정이 살아 있어야 한다 (덮어쓰기 금지).
+        self.assertIn(
+            "사용자가 1차 실행 후 손으로 추가한 문장.",
+            note.read_text(encoding="utf-8"),
+            "2차 실행이 기존 노트를 덮어써 사용자 수정을 파괴했다",
+        )
         self._assert_raw_unchanged()
 
 
