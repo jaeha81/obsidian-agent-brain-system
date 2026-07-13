@@ -20,6 +20,24 @@ ROOT = Path(__file__).resolve().parents[1]
 VAULT = ROOT / "ObsidianVault"
 DOCS = ROOT / "docs"
 SESSION_LOG_PATH = VAULT / "00_UPGRADE" / "daily-plus-session-log.md"
+PIPELINE_LOG_DIR = ROOT / "logs"
+PIPELINE_STAGE_MARKERS = [
+    ("Pulse", "ChatGPT Pulse 수집"),
+    ("Daily Plus", "Daily Plus 리포트 생성"),
+    ("System Evolution", "System Evolution 생성"),
+    ("Charlie", "Charlie 감사"),
+    ("Brain Status", "Brain Status 생성"),
+    ("git push", "git push"),
+]
+PIPELINE_STAGE_ORDER = [
+    "ChatGPT Pulse 수집",
+    "GPT 세션 수집",
+    "Daily Plus 리포트 생성",
+    "System Evolution 생성",
+    "Charlie 감사",
+    "Brain Status 생성",
+    "git push",
+]
 
 
 @dataclass
@@ -33,6 +51,13 @@ class Candidate:
     action: str
     evidence: str
     status: str = "staged"
+
+
+@dataclass
+class PipelineDay:
+    date: str
+    stages: dict[str, str]
+    overall_ok: bool
 
 
 @dataclass
@@ -620,6 +645,117 @@ def load_history() -> list[DailySnapshot]:
     return snapshots
 
 
+def pipeline_stage_label(raw_name: str) -> str:
+    name = raw_name.strip()
+    if name.startswith("GPT"):
+        return "GPT 세션 수집"
+    for marker, label in PIPELINE_STAGE_MARKERS:
+        if marker in name:
+            return label
+    return short_text(name, 30) or "기타 단계"
+
+
+PIPELINE_LINE_RE = re.compile(r"^\[\d{2}:\d{2}:\d{2}\]\s+(START|OK|WARN|ERROR):\s*(.+)$")
+
+
+def parse_pipeline_log(path: Path) -> PipelineDay | None:
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
+    runs: list[dict[str, str]] = []
+    current: dict[str, str] | None = None
+    pending_label: str | None = None
+    for line in text.splitlines():
+        stripped = line.strip()
+        if "Daily Plus Pipeline START" in stripped:
+            current = {}
+            pending_label = None
+            continue
+        if "Daily Plus Pipeline END" in stripped:
+            if current is not None:
+                runs.append(current)
+            current = None
+            pending_label = None
+            continue
+        if current is None:
+            continue
+        match = PIPELINE_LINE_RE.match(stripped)
+        if not match:
+            continue
+        kind, rest = match.groups()
+        if kind == "START":
+            pending_label = pipeline_stage_label(rest)
+            current.setdefault(pending_label, "unknown")
+            continue
+        label = pipeline_stage_label(rest)
+        if label == "기타 단계":
+            label = pending_label
+        if not label:
+            continue
+        current[label] = "ok" if kind == "OK" else "fail"
+        pending_label = None
+    if current is not None:
+        runs.append(current)
+    if not runs:
+        return None
+    stages = runs[-1]
+    overall_ok = bool(stages) and all(status == "ok" for status in stages.values())
+    date_match = re.search(r"(\d{4})(\d{2})(\d{2})", path.stem)
+    date = f"{date_match.group(1)}-{date_match.group(2)}-{date_match.group(3)}" if date_match else path.stem
+    return PipelineDay(date=date, stages=stages, overall_ok=overall_ok)
+
+
+def load_pipeline_health(limit_days: int = 14) -> list[PipelineDay]:
+    if not PIPELINE_LOG_DIR.exists():
+        return []
+    files = sorted(
+        path
+        for path in PIPELINE_LOG_DIR.glob("daily_plus_pipeline_*.log")
+        if re.fullmatch(r"daily_plus_pipeline_\d{8}", path.stem)
+    )
+    days = [day for day in (parse_pipeline_log(path) for path in files) if day]
+    return days[-limit_days:]
+
+
+def render_pipeline_health(days: list[PipelineDay]) -> str:
+    if not days:
+        return '<p class="muted">파이프라인 로그를 찾을 수 없습니다.</p>'
+
+    ok_days = sum(1 for day in days if day.overall_ok)
+    total = len(days)
+    rate = round(ok_days / total * 100) if total else 0
+    rate_class = "good" if rate >= 80 else "mid" if rate >= 50 else "low"
+
+    stage_labels = PIPELINE_STAGE_ORDER
+    header_cells = "".join(f"<th>{esc(label)}</th>" for label in stage_labels)
+    status_cell = {
+        "ok": ('ph-ok', 'OK', '성공'),
+        "fail": ('ph-fail', 'FAIL', '실패'),
+        "unknown": ('ph-unknown', '-', '미확인'),
+    }
+    rows = []
+    for day in days:
+        cells = []
+        for label in stage_labels:
+            status = day.stages.get(label)
+            css_class, text, title = status_cell.get(status, ('ph-missing', '·', '실행 안 됨'))
+            cells.append(f'<td class="{css_class}" title="{esc(title)}">{esc(text)}</td>')
+        rows.append(f"<tr><td class=\"ph-date\">{esc(day.date)}</td>{''.join(cells)}</tr>")
+
+    return f"""
+      <div class="ph-summary">
+        <span class="ph-badge {rate_class}">{rate}%</span>
+        <span class="muted">최근 {total}일 중 {ok_days}일 전체 단계 성공</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ph-table">
+          <thead><tr><th>날짜</th>{header_cells}</tr></thead>
+          <tbody>
+            {''.join(rows)}
+          </tbody>
+        </table>
+      </div>
+"""
+
+
 def score_class(score: int) -> str:
     if score >= 80:
         return "good"
@@ -782,6 +918,7 @@ def render_dashboard(
     report_path: Path,
     capture_path: Path,
     session_html: str = "",
+    pipeline_days: list[PipelineDay] | None = None,
 ) -> str:
     status_counts = Counter(item.status for item in candidates)
     category_counts = Counter(item.category for item in candidates)
@@ -908,6 +1045,19 @@ def render_dashboard(
   .legend .candidate::before {{ background: #bfdbfe; }}
   .legend .approval::before {{ background: #fdba74; }}
   .legend .applied::before {{ background: #86efac; }}
+  .ph-summary {{ display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }}
+  .ph-badge {{ font-size: 20px; font-weight: 800; border-radius: 999px; padding: 6px 14px; }}
+  .ph-badge.good {{ color: var(--green); background: #f0fdf4; border: 1px solid #bbf7d0; }}
+  .ph-badge.mid {{ color: var(--amber); background: #fff7ed; border: 1px solid #fed7aa; }}
+  .ph-badge.low {{ color: var(--red); background: #fef2f2; border: 1px solid #fecaca; }}
+  .ph-table {{ width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }}
+  .ph-table th {{ background: var(--surface-2); padding: 7px 8px; border: 1px solid var(--line); font-weight: 700; color: var(--ink); white-space: nowrap; }}
+  .ph-table td {{ padding: 7px 8px; border: 1px solid var(--line); }}
+  .ph-date {{ color: var(--muted); text-align: left; white-space: nowrap; }}
+  .ph-ok {{ color: var(--green); background: #f0fdf4; font-weight: 700; }}
+  .ph-fail {{ color: var(--red); background: #fef2f2; font-weight: 700; }}
+  .ph-unknown {{ color: var(--amber); background: #fff7ed; }}
+  .ph-missing {{ color: var(--muted); }}
 {DASHBOARD_INTERACTION_CSS}
   .session-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
   .session-table th {{ background: var(--surface-2); padding: 8px 10px; text-align: left; border: 1px solid var(--line); font-weight: 700; color: var(--ink); }}
@@ -953,6 +1103,7 @@ def render_dashboard(
   <nav class="toc-bar" aria-label="빠른 이동" style="position:sticky;top:0;z-index:20;background:var(--bg);padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)">
     <strong>빠른 이동</strong>
     <a href="#summary" style="color:var(--teal);text-decoration:none">요약</a>
+    <a href="#pipeline-health" style="color:var(--teal);text-decoration:none">파이프라인 상태</a>
     <a href="#daily-plus-results" style="color:var(--teal);text-decoration:none">Bucky 전송</a>
     <a href="#evolution" style="color:var(--teal);text-decoration:none">진화 분석</a>
     <a href="#next-priority" style="color:var(--teal);text-decoration:none">다음 실행</a>
@@ -985,6 +1136,16 @@ def render_dashboard(
         {category_rows}
       </div>
     </aside>
+  </section>
+
+  <section id="pipeline-health">
+    <div class="section-title">
+      <h2>08:00 파이프라인 상태</h2>
+      <span class="muted">최근 14일 · 단계별 성공/실패</span>
+    </div>
+    <div class="panel">
+      {render_pipeline_health(pipeline_days or [])}
+    </div>
   </section>
 
   <section id="daily-plus-results">
@@ -1116,10 +1277,13 @@ def generate(date: str | None) -> Path:
 
     session = parse_session_log(SESSION_LOG_PATH)
     session_html = render_session_section(session)
+    pipeline_days = load_pipeline_health()
 
     DOCS.mkdir(parents=True, exist_ok=True)
     output = DOCS / "daily-plus.html"
-    html_text = render_dashboard(date, capture_meta, report_meta, candidates, history, report_path, capture_path, session_html)
+    html_text = render_dashboard(
+        date, capture_meta, report_meta, candidates, history, report_path, capture_path, session_html, pipeline_days
+    )
     html_text = "\n".join(line.rstrip() for line in html_text.splitlines()) + "\n"
     output.write_text(
         html_text,

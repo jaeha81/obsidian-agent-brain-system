@@ -93,6 +93,19 @@
   .legend .candidate::before { background: #bfdbfe; }
   .legend .approval::before { background: #fdba74; }
   .legend .applied::before { background: #86efac; }
+  .ph-summary { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .ph-badge { font-size: 20px; font-weight: 800; border-radius: 999px; padding: 6px 14px; }
+  .ph-badge.good { color: var(--green); background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .ph-badge.mid { color: var(--amber); background: #fff7ed; border: 1px solid #fed7aa; }
+  .ph-badge.low { color: var(--red); background: #fef2f2; border: 1px solid #fecaca; }
+  .ph-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
+  .ph-table th { background: var(--surface-2); padding: 7px 8px; border: 1px solid var(--line); font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .ph-table td { padding: 7px 8px; border: 1px solid var(--line); }
+  .ph-date { color: var(--muted); text-align: left; white-space: nowrap; }
+  .ph-ok { color: var(--green); background: #f0fdf4; font-weight: 700; }
+  .ph-fail { color: var(--red); background: #fef2f2; font-weight: 700; }
+  .ph-unknown { color: var(--amber); background: #fff7ed; }
+  .ph-missing { color: var(--muted); }
 
   .command-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .command-btn { border: 1px solid var(--line); border-radius: 8px; min-height: 42px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer; }
@@ -172,6 +185,7 @@
   <nav class="toc-bar" aria-label="빠른 이동" style="position:sticky;top:0;z-index:20;background:var(--bg);padding:10px clamp(14px,3vw,42px);display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)">
     <strong>빠른 이동</strong>
     <a href="#summary" style="color:var(--teal);text-decoration:none">요약</a>
+    <a href="#pipeline-health" style="color:var(--teal);text-decoration:none">파이프라인 상태</a>
     <a href="#daily-plus-results" style="color:var(--teal);text-decoration:none">Bucky 전송</a>
     <a href="#evolution" style="color:var(--teal);text-decoration:none">진화 분석</a>
     <a href="#next-priority" style="color:var(--teal);text-decoration:none">다음 실행</a>
@@ -180,9 +194,9 @@
   </nav>
   <section id="summary" class="hero-grid">
     <div class="panel">
-      <h2>2026-07-12 처리 요약</h2>
+      <h2>2026-07-13 처리 요약</h2>
       <div class="status-line">
-        <span class="pill">수집: 2026-07-12T09:02:50+09:00</span>
+        <span class="pill">수집: 2026-07-13T09:03:40+09:00</span>
         <span class="pill">리포트: staged</span>
         <span class="pill">Bucky 관리: AgentBus 기반</span>
       </div>
@@ -206,6 +220,29 @@
 <div class="mini"><strong>검증 자동화</strong><span>1</span></div>
       </div>
     </aside>
+  </section>
+
+  <section id="pipeline-health">
+    <div class="section-title">
+      <h2>08:00 파이프라인 상태</h2>
+      <span class="muted">최근 14일 · 단계별 성공/실패</span>
+    </div>
+    <div class="panel">
+
+      <div class="ph-summary">
+        <span class="ph-badge low">21%</span>
+        <span class="muted">최근 14일 중 3일 전체 단계 성공</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ph-table">
+          <thead><tr><th>날짜</th><th>ChatGPT Pulse 수집</th><th>GPT 세션 수집</th><th>Daily Plus 리포트 생성</th><th>System Evolution 생성</th><th>Charlie 감사</th><th>Brain Status 생성</th><th>git push</th></tr></thead>
+          <tbody>
+            <tr><td class="ph-date">2026-06-26</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-06-27</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-06-28</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-03</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-04</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-05</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-06</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-07</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-08</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-09</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-10</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-11</td><td class="ph-ok" title="성공">OK</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-12</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-missing" title="실행 안 됨">·</td><td class="ph-ok" title="성공">OK</td></tr><tr><td class="ph-date">2026-07-13</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-fail" title="실패">FAIL</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td><td class="ph-ok" title="성공">OK</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
   </section>
 
   <section id="daily-plus-results">
@@ -246,9 +283,9 @@
 
       <div class="compare-grid">
         <div class="compare-card"><span>기준일</span><strong>2026-05-27</strong><p>8 후보 · 효율 81 · 호환 75</p></div>
-        <div class="compare-card"><span>오늘</span><strong>2026-07-12</strong><p>4 후보 · 효율 76 · 호환 85</p></div>
+        <div class="compare-card"><span>오늘</span><strong>2026-07-13</strong><p>4 후보 · 효율 76 · 호환 85</p></div>
         <div class="compare-card"><span>진화 폭</span><strong>-4</strong><p>후보 수 변화 · 효율 -5 · 호환 +10</p></div>
-        <div class="compare-card"><span>누적</span><strong>222</strong><p>32일 동안 수집된 업그레이드 후보</p></div>
+        <div class="compare-card"><span>누적</span><strong>226</strong><p>33일 동안 수집된 업그레이드 후보</p></div>
       </div>
 
       <div class="trend-wrap">
@@ -572,6 +609,16 @@
           </div>
           <div class="trend-num">4 후보 · 0 승인 · 0 구현</div>
         </div>
+
+        <div class="trend-row">
+          <div class="trend-date">2026-07-13</div>
+          <div class="trend-bars">
+            <span class="trend candidate" style="width:33%"></span>
+            <span class="trend approval" style="width:0%"></span>
+            <span class="trend applied" style="width:0%"></span>
+          </div>
+          <div class="trend-num">4 후보 · 0 승인 · 0 구현</div>
+        </div>
       </div>
       <div class="legend">
         <span class="candidate">전체 후보</span>
@@ -741,9 +788,9 @@
       <div>관리자: <code>Bucky Dashboard Bot / BuckyDailyPlus</code></div>
       <div>보고 시간: <code>매일 09:00 KST, BuckyDailyPlusDashboard 작업</code></div>
       <div>공개 산출물: <code>docs/daily-plus.html</code></div>
-      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-07-12.md</code></div>
-      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-07-12.md</code></div>
-      <div>생성 시각: <code>2026-07-12 09:03:22 KST</code></div>
+      <div>원본 수집: <code>ObsidianVault\04_Wiki\daily-plus\2026-07-13.md</code></div>
+      <div>진화 리포트: <code>ObsidianVault\00_UPGRADE\pulse-evolution\2026-07-13.md</code></div>
+      <div>생성 시각: <code>2026-07-13 18:05:50 KST</code></div>
     </div>
   </section>
 </main>

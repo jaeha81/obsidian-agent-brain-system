@@ -11,6 +11,7 @@ credentials/
 
 # Local config (contains real paths — never commit)
 configs/paths.json
+.mcp.json
 .claude/*
 !.claude/commands/
 !.claude/commands/**
@@ -122,6 +123,7 @@ data/intake_queue/processed/
 data/intake_queue/failed/
 data/wishket_loop_history.json
 data/charlie/
+data/channel_tasks.db
 
 # Graphify output/cache
 graphify-out/cache/
@@ -169,7 +171,7 @@ exports/
 
 # Temp
 *.tmp
-*.bak
+*.bak*
 *.swp
 *~
 .watch-*/
@@ -198,6 +200,8 @@ logs/
 runtime/
 .rag/
 scripts/.codex_collector_state.json
+scripts/.claude_collector_state.json
+.sync_system_enhance_ts
 .codex/
 
 # Subtitle/caption files
