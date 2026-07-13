@@ -431,6 +431,26 @@ class ProcessBatchIntegrationTests(unittest.TestCase):
         self.assertIn("## 병합 추가", text)
         self._assert_raw_unchanged()
 
+    def test_publish_failure_leaves_no_temp_file_behind(self):
+        """os.fdopen이 실패해도 fd를 닫고 임시 파일을 지운다.
+
+        fd를 흘리면 Windows에서는 열린 핸들 때문에 임시 파일 삭제까지 실패해 `.tmp`가 남는다.
+        """
+        target = kd.OUTPUT_BASE / "신규노트.md"
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        real_fdopen = os.fdopen
+        self.addCleanup(setattr, os, "fdopen", real_fdopen)
+        os.fdopen = lambda *args, **kwargs: (_ for _ in ()).throw(OSError("fdopen 실패 (테스트)"))
+
+        with self.assertRaises(OSError):
+            kd.publish_new_note(target, "본문")
+
+        os.fdopen = real_fdopen
+        leftovers = list(target.parent.glob("*.tmp"))
+        self.assertEqual(leftovers, [], f"임시 파일이 남았다: {leftovers}")
+        self.assertFalse(target.exists(), "실패했는데 대상 노트가 생겼다")
+
     def test_merge_adds_new_topic_even_when_body_has_nothing_new(self):
         """본문에 새로 추가할 게 없고 새 topic만 있는 병합도 frontmatter에 반영돼야 한다."""
         target = kd.OUTPUT_BASE / "기존노트.md"

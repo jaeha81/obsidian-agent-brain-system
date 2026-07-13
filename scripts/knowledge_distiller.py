@@ -1330,7 +1330,14 @@ def publish_new_note(output_path: Path, note_text: str) -> None:
     )
     tmp_path = Path(tmp_name)
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
+        try:
+            f = os.fdopen(fd, "w", encoding="utf-8")
+        except BaseException:
+            # fdopen이 실패하면 fd 소유권이 넘어가지 않는다 — 직접 닫지 않으면 fd가 새고,
+            # Windows에서는 열린 핸들 때문에 아래 임시 파일 삭제까지 PermissionError로 실패한다.
+            os.close(fd)
+            raise
+        with f:
             f.write(note_text)
         try:
             # POSIX: 하드링크는 원자적이고 대상이 있으면 FileExistsError를 낸다.
