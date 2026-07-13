@@ -1260,14 +1260,18 @@ def merge_into_existing_note(
     new_related  = result.get("related_knowledge", [])
     new_tasks    = result.get("tasks", [])
 
-    # 기존 노트에서 이미 있는 인사이트 추출 (중복 방지)
-    existing_insights: set[str] = set(
+    # 기존 노트에서 이미 있는 항목 추출 (중복 방지).
+    # insights·related_knowledge는 둘 다 "- " 라인으로 기록되므로 같은 집합으로 판정한다.
+    existing_bullets: set[str] = set(
         re.findall(r"^- (.+)$", existing_text, re.MULTILINE)
     )
-    unique_insights = [i for i in new_insights if i not in existing_insights]
+    unique_insights = [i for i in new_insights if i not in existing_bullets]
+    unique_related  = [r for r in new_related if r not in existing_bullets]
+    # 태스크는 원문 그대로 기록되므로 본문 포함 여부로 판정한다.
+    unique_tasks    = [t for t in new_tasks if t.strip() and t.strip() not in existing_text]
 
-    if not unique_insights and not new_tasks:
-        # 추가할 내용이 없으면 병합 불필요
+    if not unique_insights and not unique_tasks and not unique_related:
+        # 추가할 내용이 없으면 병합 불필요 — 재처리(--reset/--retry)를 멱등하게 만든다.
         return
 
     now_str     = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -1282,12 +1286,12 @@ def merge_into_existing_note(
     if unique_insights:
         append_lines.append("### 추가 인사이트\n")
         append_lines.extend(f"- {i}" for i in unique_insights)
-    if new_tasks:
+    if unique_tasks:
         append_lines.append("\n### 추가 태스크\n")
-        append_lines.extend(new_tasks)
-    if new_related:
+        append_lines.extend(unique_tasks)
+    if unique_related:
         append_lines.append("\n### 추가 연결 개념\n")
-        append_lines.extend(f"- {r}" for r in new_related)
+        append_lines.extend(f"- {r}" for r in unique_related)
 
     with existing_path.open("a", encoding="utf-8") as f:
         f.write("\n".join(append_lines))
@@ -1506,8 +1510,18 @@ def process_batch(
                     p3_priority=p3_score,
                     source_conversation_id=conversation_id,
                 )
-                output_path.write_text(note_text, encoding="utf-8")
-                print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
+                # 원자적 생성("x" = O_EXCL). 위 exists() 검사와 이 쓰기 사이에 다른
+                # 프로세스나 사용자가 같은 노트를 만들었다면 덮어쓰지 않고 병합으로 넘긴다.
+                try:
+                    with output_path.open("x", encoding="utf-8") as f:
+                        f.write(note_text)
+                    print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
+                except FileExistsError:
+                    merge_into_existing_note(
+                        output_path, result, raw_file,
+                        source_conversation_id=conversation_id,
+                    )
+                    print(f"    [MERGE] → {output_path.relative_to(VAULT_BASE)} (생성 경합 감지, 병합)")
 
             print(f"         소스: {source_type}  "
                   f"토픽: {result.get('topics', [])}  "

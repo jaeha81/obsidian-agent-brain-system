@@ -407,3 +407,110 @@ OK
 2. §9.2 테스트가 이번엔 **2차 실행까지 실제로** 검증하는가?
 3. §9.3으로 이월표가 이제 **빠짐없는가**? (스펙 Story 5·6·7 완료 조건 전수 대조 요청)
 4. 이제 **G6를 닫을 수 있는가**?
+
+---
+
+## 10. Codex 재검수 #2 결과 (2026-07-13) — **미통과(FAIL)**
+
+`0f2e41d` 대상.
+
+| 항목 | 판정 |
+|---|---|
+| (1) 덮어쓰기 결함(§8.1) | **직접 지적된 경로는 해소**. 단 `exists()`~`write_text()`가 원자적이지 않아 **동시 실행 시 여전히 덮어쓰기 가능** |
+| (2) 회귀 가드 2건 | **실효적** — 이름·검증범위 일치. 버그 조건 복원 시 정확히 2건만 FAIL 재현 확인 |
+| (3) 이월표 | **빠짐없음** — Story 5·6·7 완료 조건 전수 대조 완료 |
+| (4) 회귀 | **재현됨** — 428건 19F/13E, provenance 13건 OK |
+| **G6 종료** | **불가** |
+
+### 10.1 새 [P1 필수] — TOCTOU 경합
+
+`exists()` 검사와 `write_text()` 사이에 잠금·원자적 생성이 없다. 두 프로세스가 같은 신규 경로를 동시에 처리하거나
+검사 직후 사용자가 파일을 만들면 나중 쓰기가 앞선 파일을 덮어쓴다. 병합의 frontmatter 재작성(read→write)도 같은 창을 가진다.
+
+### 10.2 새 [P2] — 멱등성 주장 과장 (AI-Slop)
+
+§9.1의 "insights 중복 제거로 멱등"은 **부정확**하다. `tasks`·`related_knowledge`는 중복 제거되지 않아,
+tasks가 하나라도 있으면 재처리마다 병합 블록·태스크·연결개념이 **다시 쌓인다**.
+
+### 10.3 `--reset` 의미 변화 — 수용 판정
+
+"안전 우선 정책으로는 수용 가능. 도움말도 「모든 파일 재처리」라고 할 뿐 출력 노트의 깨끗한 재생성을 약속하지 않는다.
+사용자가 노트를 명시적으로 삭제하면 재생성할 수 있다." → **이의 없음**
+
+---
+
+## 11. 3차 이행 (2026-07-13) — 재검수 #3 요청
+
+### 11.1 [P2] 멱등성 결함 수정 — tasks·related_knowledge도 중복 제거
+
+`merge_into_existing_note()`에서 insights만 걸러내던 것을 셋 다 걸러내도록 고쳤다.
+insights·related_knowledge는 둘 다 `- ` 라인이므로 같은 집합으로 판정하고, tasks는 원문 그대로 기록되므로 본문 포함 여부로 판정한다.
+셋 다 비면 조기 반환한다 → **재처리가 실제로 멱등**해졌다.
+
+### 11.2 [P1] 신규 노트 생성 경합 — 원자적 생성(O_EXCL)으로 해소
+
+```python
+try:
+    with output_path.open("x", encoding="utf-8") as f:   # "x" = O_EXCL
+        f.write(note_text)
+except FileExistsError:
+    merge_into_existing_note(...)   # 검사~쓰기 사이에 생긴 파일 → 덮어쓰지 않고 병합
+```
+
+새 잠금 메커니즘 없이 검사-쓰기 간극을 닫았다. 경합이 감지되면 never-overwrite 불변식대로 병합으로 넘어간다.
+
+### 11.3 [P1 잔여] 다중 프로세스 완전 안전 — **사용자 B안 승인으로 백로그 이월 (P1-15)**
+
+병합 경로의 frontmatter 재작성(read→write) 창은 **남아 있다**. 이를 완전히 닫으려면 단일 인스턴스 잠금 + 원자적 교체가 필요하다.
+**사용자가 B안(잔여 위험 명시 + 백로그)을 승인**했다 (2026-07-13). 근거:
+
+- 이 경합은 **Stage 20/21이 만든 것이 아니라 스크립트의 기존 속성**이다. 이번 변경은 오히려 덮어쓰기 위험을 줄였다.
+- distiller의 **자동 호출자는 `scripts/collection_pipeline.py` 하나**뿐이고(→ `ObsidianBrain_CollectionScheduler`), 상주 `--watch` 데몬은 없다. 동시 실행 창은 "예약 실행 중 사용자가 수동 실행/Obsidian 편집"으로 좁다.
+- **stale 잠금 파일이 매일 08:00 파이프라인을 조용히 정지시키는 것이 더 큰 운영 위험**이다.
+- 등록: 백로그 §3 **P1-15** (잔여 위험·해소 조건·재평가 트리거 명시).
+
+> 재검수 요청: 이 이월 판단이 타당한가? 아니면 G6 통과 전에 반드시 잠금을 넣어야 하는가?
+> (반드시 넣어야 한다면 그 근거 — 실제로 동시 실행이 발생하는 경로 — 를 제시해 달라.)
+
+### 11.4 회귀 가드 2건 추가 (총 15건)
+
+| 테스트 | 고정하는 계약 |
+|---|---|
+| `MergeIdempotencyTests.test_repeated_merge_with_same_result_adds_nothing_the_second_time` | 같은 result로 두 번 병합 → **두 번째는 아무것도 추가하지 않는다**. tasks·related·insights 각 1회만 등장 |
+| `test_note_created_between_check_and_write_is_merged_not_overwritten` | `build_output_note` 호출 시점(= exists() 직후, 쓰기 직전)에 **경쟁 프로세스가 파일을 만드는 상황을 재현** → 덮어쓰지 않고 병합 |
+
+**진짜 가드임을 실증**: 두 수정을 각각 되돌리면 **정확히 이 2건만 FAIL**한다.
+
+```
+### 버그 조건 복원 상태 ###
+FAIL: test_repeated_merge_with_same_result_adds_nothing_the_second_time
+FAIL: test_note_created_between_check_and_write_is_merged_not_overwritten
+Ran 15 tests → FAILED (failures=2)
+
+### 수정본 복구 후 ###
+Ran 15 tests → OK
+```
+
+### 11.5 검증 증거
+
+```
+$ python -X utf8 -m unittest tests.test_knowledge_distiller_provenance
+Ran 15 tests in 0.141s
+OK
+```
+
+| | 테스트 수 | failures | errors |
+|---|---|---|---|
+| 베이스라인 `c47d294` | 423 | 19 | 13 |
+| `ec6a0d1` | 426 | 19 | 13 |
+| `0f2e41d` | 428 | 19 | 13 |
+| **3차 이행 (현재)** | **430** | **19** | **13** |
+
+→ 신규 회귀 0건 유지.
+
+### 11.6 재검수 #3 판정 요청
+
+1. §11.1 멱등성 수정이 §10.2를 해소하는가?
+2. §11.2 원자적 생성이 §10.1의 **신규 노트 경합**을 해소하는가?
+3. §11.3의 **잔여 위험 이월(사용자 B안 승인)**이 타당한가? G6를 닫을 수 있는가?
+4. 남은 필수 결함이 있으면 명시하라. 없으면 **G6 통과**를 명확히 선언하라.

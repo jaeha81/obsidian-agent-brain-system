@@ -168,6 +168,37 @@ class RawImmutabilityRegressionTests(ProvenanceTestCase):
             self.assertEqual(conversation_id, "eb129928-3609-46d4-9dd6-406bd7af3b8d")
 
 
+class MergeIdempotencyTests(ProvenanceTestCase):
+    """반복 병합(--reset/--retry 재처리)이 태스크·연결개념을 중복 누적하지 않는다.
+
+    과거에는 insights만 중복 제거돼, tasks가 하나라도 있으면 매 재처리마다 병합 블록과
+    태스크·연결개념이 다시 쌓였다.
+    """
+
+    def test_repeated_merge_with_same_result_adds_nothing_the_second_time(self):
+        result = {
+            "topics": ["t1", "t2"],
+            "insights": ["인사이트 하나"],
+            "tasks": ["- [ ] 태스크 하나"],
+            "related_knowledge": ["연결개념 하나"],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            note = Path(tmp) / "note.md"
+            note.write_text("---\ntopics: [t1, t2]\n---\n\n본문.\n", encoding="utf-8")
+            raw = Path(tmp) / "raw.md"
+
+            kd.merge_into_existing_note(note, result, raw, source_conversation_id="conv-1")
+            after_first = note.read_text(encoding="utf-8")
+
+            kd.merge_into_existing_note(note, result, raw, source_conversation_id="conv-1")
+            after_second = note.read_text(encoding="utf-8")
+
+            self.assertEqual(after_first, after_second, "두 번째 병합이 내용을 중복 추가했다")
+            self.assertEqual(after_second.count("태스크 하나"), 1)
+            self.assertEqual(after_second.count("연결개념 하나"), 1)
+            self.assertEqual(after_second.count("인사이트 하나"), 1)
+
+
 class ProcessBatchIntegrationTests(unittest.TestCase):
     """process_batch() 전 경로(신규 생성·주제 병합·sidecar 실패) 통합 테스트.
 
@@ -311,6 +342,34 @@ class ProcessBatchIntegrationTests(unittest.TestCase):
         self.assertIn("사용자가 손으로 쓴 문장.", merged, "기존 노트가 덮어써졌다")
         self.assertIn("## 병합 추가", merged)
         self.assertIn("**source_conversation_id**: `eb129928-3609-46d4-9dd6-406bd7af3b8d`", merged)
+        self._assert_raw_unchanged()
+
+    def test_note_created_between_check_and_write_is_merged_not_overwritten(self):
+        """TOCTOU 경합: exists() 검사 통과 후 다른 프로세스가 노트를 만들어도 덮어쓰지 않는다.
+
+        build_output_note가 호출되는 시점(= exists() 검사 직후, 쓰기 직전)에 파일을 만들어
+        경쟁 쓰기를 재현한다. 원자적 생성(O_EXCL)이 이를 잡아 병합으로 넘겨야 한다.
+        """
+        target = kd.determine_output_path("2026-04-18", self.raw_file)
+        real_build = kd.build_output_note
+
+        def racing_build(*args, **kwargs):
+            if not target.exists():
+                target.write_text(
+                    "---\ntopics: [무관토픽]\n---\n\n경쟁 프로세스가 먼저 쓴 문장.\n",
+                    encoding="utf-8",
+                )
+            return real_build(*args, **kwargs)
+
+        self.addCleanup(setattr, kd, "build_output_note", real_build)
+        kd.build_output_note = racing_build
+
+        success, fail, _, _ = self._run_batch()
+
+        self.assertEqual((success, fail), (1, 0))
+        text = target.read_text(encoding="utf-8")
+        self.assertIn("경쟁 프로세스가 먼저 쓴 문장.", text, "생성 경합에서 기존 파일을 덮어썼다")
+        self.assertIn("## 병합 추가", text)
         self._assert_raw_unchanged()
 
     def test_sidecar_failure_is_not_counted_as_distill_failure(self):
