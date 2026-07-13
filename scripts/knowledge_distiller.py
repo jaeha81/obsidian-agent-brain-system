@@ -1235,12 +1235,20 @@ def find_existing_note_by_topic(result: dict, output_dir: Path) -> Path | None:
     return None
 
 
-def merge_into_existing_note(existing_path: Path, result: dict, source_path: Path) -> None:
+def merge_into_existing_note(
+    existing_path: Path,
+    result: dict,
+    source_path: Path,
+    source_conversation_id: str | None = None,
+) -> None:
     """
     Phase 2: 같은 주제 노트가 이미 존재할 때 overwrite 하지 않고 병합한다.
     - 새로운 insights만 기존 노트 하단에 append
     - 새 topics/related_knowledge도 frontmatter에 병합
     - 기존 내용은 변경하지 않는다
+
+    Stage 20: 병합 블록에도 원본 경로와 source_conversation_id를 기록한다. 기존 노트의
+    frontmatter는 최초 원본만 가리키므로, 병합된 내용의 출처는 병합 블록이 유일한 근거다.
     """
     try:
         existing_text = existing_path.read_text(encoding="utf-8", errors="replace")
@@ -1263,8 +1271,13 @@ def merge_into_existing_note(existing_path: Path, result: dict, source_path: Pat
         return
 
     now_str     = datetime.now().strftime("%Y-%m-%d %H:%M")
+    # provenance 라인은 "- " 로 시작하지 않는다 — 위 existing_insights 정규식이
+    # 다음 병합 때 이 라인들을 인사이트로 오인 수집하는 것을 막는다.
     append_lines = [
         f"\n\n---\n## 병합 추가 — {now_str} (원본: `{source_path.name}`)\n",
+        f"**source_file**: `{source_path}`",
+        f"**source_conversation_id**: `{source_conversation_id}`" if source_conversation_id
+        else "**source_conversation_id**: (없음)",
     ]
     if unique_insights:
         append_lines.append("### 추가 인사이트\n")
@@ -1464,13 +1477,19 @@ def process_batch(
             if existing_by_topic and existing_by_topic != output_path:
                 # 동일 주제 노트에 병합 (append)
                 actual_output_path = existing_by_topic
-                merge_into_existing_note(existing_by_topic, result, raw_file)
+                merge_into_existing_note(
+                    existing_by_topic, result, raw_file,
+                    source_conversation_id=conversation_id,
+                )
                 print(f"    [MERGE] → {existing_by_topic.relative_to(VAULT_BASE)} (주제 병합)")
                 print(f"             신규 인사이트: {len(result.get('insights', []))}개  "
                       f"토픽 겹침: {set(result.get('topics', [])) & set(_extract_frontmatter_topics(existing_by_topic))}")
             elif output_path.exists() and state.get(str(raw_file)):
                 # 동일 파일명 이미 존재하고 state 기록 있음 → 병합
-                merge_into_existing_note(output_path, result, raw_file)
+                merge_into_existing_note(
+                    output_path, result, raw_file,
+                    source_conversation_id=conversation_id,
+                )
                 print(f"    [MERGE] → {output_path.relative_to(VAULT_BASE)} (파일명 일치, 병합)")
             else:
                 # 신규 노트 생성 (Phase 3 데이터 포함)
@@ -1495,10 +1514,24 @@ def process_batch(
             # Phase 3: 콘텐츠 해시 레지스트리 저장 (처리 성공 시)
             _save_content_hash_registry(content_hash_registry)
 
-            state[str(raw_file)] = file_hash(raw_file)
-            save_state(state)
-            append_processed_index(raw_file, conversation_id, actual_output_path)
-            remove_from_retry_queue(raw_file)
+            # Stage 20: sidecar 인덱스를 state보다 **먼저** 기록한다. 순서가 반대면
+            # sidecar 기록이 실패해도 state가 남아 재실행이 이 파일을 스킵하고,
+            # 인덱스 누락이 영구화된다.
+            try:
+                append_processed_index(raw_file, conversation_id, actual_output_path)
+            except OSError as e:
+                # 증류 자체는 성공했다(노트는 디스크에 있다). 실패로 집계하지 않는다.
+                # state를 저장하지 않아 다음 실행이 인덱스를 다시 기록하게 둔다.
+                print(f"    [WARN] sidecar 인덱스 기록 실패 — 증류는 성공, 다음 실행에서 재시도: {e}")
+                error_entries.append({
+                    "file": str(raw_file),
+                    "error": f"sidecar 인덱스 기록 실패 (증류 성공): {e}",
+                })
+            else:
+                state[str(raw_file)] = file_hash(raw_file)
+                save_state(state)
+                remove_from_retry_queue(raw_file)
+
             success += 1
             stats["processed"] += 1
 
