@@ -447,7 +447,7 @@ tasks가 하나라도 있으면 재처리마다 병합 블록·태스크·연결
 insights·related_knowledge는 둘 다 `- ` 라인이므로 같은 집합으로 판정하고, tasks는 원문 그대로 기록되므로 본문 포함 여부로 판정한다.
 셋 다 비면 조기 반환한다 → **재처리가 실제로 멱등**해졌다.
 
-### 11.2 [P1] 신규 노트 생성 경합 — 원자적 생성(O_EXCL)으로 해소
+### 11.2 [P1] 신규 노트 생성 경합 — 원자적 생성(O_EXCL)으로 해소 → ⚠️ **이 주장은 거짓이었다 (재검수 #3에서 반증, §12.2 참조). 4차 이행 §13.1에서 실제로 해소.**
 
 ```python
 try:
@@ -513,4 +513,139 @@ OK
 1. §11.1 멱등성 수정이 §10.2를 해소하는가?
 2. §11.2 원자적 생성이 §10.1의 **신규 노트 경합**을 해소하는가?
 3. §11.3의 **잔여 위험 이월(사용자 B안 승인)**이 타당한가? G6를 닫을 수 있는가?
+4. 남은 필수 결함이 있으면 명시하라. 없으면 **G6 통과**를 명확히 선언하라.
+
+---
+
+## 12. Codex 재검수 #3 결과 (2026-07-13) — **미통과(FAIL)**
+
+멱등성(§11.1)은 **해소 인정**. 그러나 §11.2가 직접 해소했다고 주장한 **신규 생성 경합 자체가 닫히지 않았다**. 이월(§11.3)의 원칙은 수용하되 기재가 부정확하다고 판정.
+
+### 12.1 확인된 사항
+
+- 순차 재처리 멱등성 해소 — 같은 결과를 두 번 병합해도 두 번째는 파일 무변경
+- 기존 TOCTOU 가드 유효 — 두 수정 복원 시 정확히 해당 테스트 2건만 FAIL
+- 회귀 수치 재현 — 430건 / 19F / 13E (베이스라인 동일)
+
+### 12.2 [P1 필수] 신규 노트 생성 경합 — **미해소** (Codex 독립 재현)
+
+`open("x")`(O_EXCL)는 **이름 생성만** 원자적이다. 빈 파일이 먼저 보이고 본문은 그 뒤에 쓰인다:
+
+1. 실행 A가 `open("x")`로 **빈 파일**을 만든다
+2. A가 `f.write(note_text)`를 끝내기 전에, 실행 B가 `open("x")`에서 실패한다
+3. B가 그 **빈 파일에 병합**해 넣는다
+4. A가 offset 0부터 본문을 써서 **B의 병합을 훼손·삭제**한다
+
+Codex 재현 결과: `LOSER_SURVIVED=False`, `MERGE_HEADER_SURVIVED=False`.
+
+→ AI-Slop 판정: 원자적 **"이름 생성"**을 원자적 **"완성 파일 게시"**로 과대해석했다.
+
+### 12.3 [P2 비차단] topics-only 병합 누락
+
+`knowledge_distiller.py:1273` — 기존 insights/tasks/related가 같고 **새 topic만 있는 경우** 조기 반환에 걸려 topics 합집합 갱신이 실행되지 않는다. 재현: `ONLY_NEW_TOPIC_CHANGED=False`.
+
+### 12.4 [P2 비차단] P1-15 기재 부정확
+
+- 잔여 위험 축소 기재 (동시 append 중복 / state·retry·해시 레지스트리 lost update / 오류·실패 파일 생성 경합 누락)
+- **"08:00 파이프라인이 stale 잠금으로 정지한다"는 근거가 코드와 불일치** — `run_daily_plus_pipeline.ps1`은 distiller를 호출하지 않는다
+- 실제 실행 경로 누락 (09:00 예약 / Discord `!수집` / 수동 CLI / `--watch`)
+
+> Codex 종결 조건: **"신규 생성 경합을 제대로 고치고 P1-15를 위 위험까지 보정하면"** 나머지 다중 프로세스 안전성은 사용자 승인대로 P1 이월하고 G6를 닫을 수 있다.
+
+---
+
+## 13. 4차 이행 (2026-07-13) — 재검수 #4 요청
+
+### 13.1 [P1 필수] 신규 노트 생성 경합 — **원자적 게시**로 해소
+
+빈 파일을 대상 경로에 **노출하지 않는다**. 본문을 임시 파일에 끝까지 쓴 뒤 **이름만** 게시한다:
+
+```python
+def publish_new_note(output_path: Path, note_text: str) -> None:
+    """완성된 본문만 노출하는 신규 노트 게시. 대상이 이미 있으면 FileExistsError."""
+    fd, tmp_name = tempfile.mkstemp(dir=output_path.parent, prefix=..., suffix=".tmp")
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(note_text)          # ← 본문을 끝까지 쓴다 (대상 경로엔 아직 아무것도 없다)
+        try:
+            os.link(tmp_path, output_path)     # POSIX: 원자적, 대상 있으면 FileExistsError
+        except FileExistsError:
+            raise
+        except OSError:
+            if os.name != "nt":
+                raise
+            os.rename(tmp_path, output_path)   # Windows: 대상 있으면 FileExistsError (덮어쓰지 않음)
+    finally:
+        tmp_path.unlink(missing_ok=True)
+```
+
+호출부는 그대로 `except FileExistsError` → `merge_into_existing_note()` (never-overwrite 불변식 유지).
+
+**플랫폼 실증** (이 런타임 = Windows + Google Drive 마운트 `G:`):
+
+```
+$ python -c "os.link(tmp, tgt)"   # ObsidianVault/03_Knowledge 안에서
+LINK_FAIL: OSError [WinError 1] 잘못된 기능입니다     ← Google Drive는 하드링크 미지원
+
+$ python -c "os.rename(tmp, tgt)"
+RENAME_NEW_OK: FULL_BODY | tmp gone: True            ← 대상 없음 → 성공, 본문 온전
+RENAME_EXISTING_FileExistsError: OK | 대상 보존=FULL_BODY  ← 대상 있음 → 덮어쓰지 않음
+```
+
+→ `os.link`만 쓰면 이 환경에서 **항상 실패**한다. POSIX의 `rename`은 조용히 덮어쓰므로 `os.name != "nt"`에서는 폴백하지 않고 원래 오류를 올린다. (`os.replace`는 덮어쓰므로 쓰지 않는다.)
+
+### 13.2 [P2] topics-only 병합 누락 수정
+
+`topics_changed`를 조기 반환 판정에 포함한다. 본문 추가가 없어도 topics만 바뀌면 frontmatter를 갱신하고, 그때 **병합 블록은 만들지 않는다**(빈 블록 누적 방지).
+
+```python
+existing_topics = set(_extract_frontmatter_topics(existing_path))
+merged_topics   = sorted(existing_topics | set(new_topics))
+topics_changed  = merged_topics != sorted(existing_topics)
+
+if not unique_insights and not unique_tasks and not unique_related and not topics_changed:
+    return
+if unique_insights or unique_tasks or unique_related:
+    ...append 병합 블록...
+if topics_changed:
+    ...frontmatter 재작성...
+```
+
+### 13.3 [P2] P1-15 기재 보정
+
+`docs/bucky/implementation_backlog.md` P1-15을 다시 썼다: 닫힌 것(생성 경합·순차 멱등성) / 남은 위험 4종(동시 append 중복, frontmatter lost update, state·retry·해시 레지스트리 lost update, 오류·실패 파일 생성 경합) / 실제 실행 경로 4종(09:00 예약·Discord `!수집`·수동 CLI·`--watch`) 명시. **"08:00 파이프라인 정지" 근거는 사실이 아니었음을 명기하고 철회**했으며, 보류 근거를 "상주 데몬·동시 호출 관측 사례 없음 + stale 잠금이 **09:00** 수집 파이프라인을 정지시킬 수 있음"으로 교체했다.
+
+### 13.4 회귀 가드 2건 추가 (총 17건)
+
+- `test_new_note_is_not_published_until_body_is_fully_written` — 구현이 대상 경로를 **처음 건드리는 지점**(구: `target.open("x")` / 현: `os.link`·`os.rename`)에 패자의 완성 노트 쓰기를 주입한다. 미완성 노트를 노출하지 않는 구현만 통과한다.
+- `test_merge_adds_new_topic_even_when_body_has_nothing_new` — 본문 추가 없이 새 topic만 있는 병합이 frontmatter에 반영되는지 고정.
+
+### 13.5 검증 증거
+
+```
+### 두 수정을 되돌린 상태 (실패해야 정상) ###
+$ python -X utf8 -m unittest tests.test_knowledge_distiller_provenance
+FAIL: test_merge_adds_new_topic_even_when_body_has_nothing_new
+FAIL: test_new_note_is_not_published_until_body_is_fully_written
+Ran 17 tests — FAILED (failures=2)
+
+### 수정본 복구 후 ###
+Ran 17 tests in 0.179s
+OK
+```
+
+| | 테스트 수 | failures | errors |
+|---|---|---|---|
+| 베이스라인 `c47d294` | 423 | 19 | 13 |
+| `1e950a3` (3차) | 430 | 19 | 13 |
+| **4차 이행 (현재)** | **432** | **19** | **13** |
+
+→ 신규 회귀 0건 유지. 기존 실패 32건은 Stage 13~21 무관(discord 등 선택적 의존 모듈) → P1-7.
+
+### 13.6 재검수 #4 판정 요청
+
+1. §13.1의 원자적 게시가 §12.2의 **부분 쓰기 노출 경합**을 실제로 닫는가? (`os.link` 미지원 환경의 `os.rename` 폴백 포함)
+2. §13.4의 가드가 그 경합을 실효적으로 고정하는가?
+3. §13.2 / §13.3이 §12.3 / §12.4를 해소하는가?
 4. 남은 필수 결함이 있으면 명시하라. 없으면 **G6 통과**를 명확히 선언하라.

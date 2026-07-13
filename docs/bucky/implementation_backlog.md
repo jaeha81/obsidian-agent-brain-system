@@ -83,7 +83,7 @@
 | P1-12 | 프로젝트별 예산 | §2.1 Story 7 | 현재 월 전역 임계(`budget.monthly_warn_usd`)만 존재 |
 | P1-13 | `last_verified` 갱신 주체·경로 | §2.1 Story 5 | 필드만 있고 채우는 코드가 없다 — 재확인 주기·트리거 설계 필요 |
 | P1-14 | 저비용·로컬 대체 경로 실동작 | §2.1 Story 7 | Stage 17 어댑터 인터페이스는 완성됐으나 실동작은 `claude_code`뿐. Ollama 로컬 어댑터는 스펙 P3-1과 중복 — 함께 설계 |
-| P1-15 | distiller 다중 프로세스 동시성 안전 | G6 재검수 #2 | **잔여 위험(사용자 B안 승인, 07-13)**: `merge_into_existing_note()`의 frontmatter 재작성이 read→write라 그 사이 사용자 편집이 유실될 수 있다. 신규 노트 생성 경합은 `O_EXCL`로 닫았고 병합은 멱등화했다. 완전 해소엔 단일 인스턴스 잠금 + 원자적 교체가 필요하나, stale 잠금이 08:00 파이프라인을 정지시키는 운영 위험이 더 커서 보류. 트리거: distiller 자동 호출자가 2개 이상이 되거나 상주 `--watch` 데몬 도입 시 |
+| P1-15 | distiller 다중 프로세스 동시성 안전 | G6 재검수 #2·#3 | **잔여 위험(사용자 B안 승인, 07-13)**. 닫힌 것: 신규 노트 생성 경합(임시파일에 본문을 다 쓴 뒤 `os.link`/Windows `os.rename`으로 게시 — 미완성 노트가 대상 경로에 노출되지 않음), 순차 재처리 멱등성. **남은 것(전부 다중 프로세스 동시 실행 시)**: ① 동시 append로 같은 병합 블록이 중복 기록 ② `merge_into_existing_note()`의 frontmatter 재작성이 read→write라 그 사이 편집/병합이 유실(lost update) ③ `.distiller_cache.json`·retry queue·content-hash 레지스트리의 lost update ④ 오류 리포트·실패 RAW 노트의 생성 경합. **실제 실행 경로**(코드상 subprocess 직접 호출자는 `collection_pipeline.py` 하나지만, 그 파이프라인 자체는 여러 경로로 뜬다): `setup_scheduler.ps1`의 09:00 `BrainEvolution-CollectionPipeline` 예약(동일 태스크 중복만 `IgnoreNew`로 막힘, 현재 미설치) / `discord_bot.py`의 `!수집` 명령 / 수동 CLI / distiller 자체 `--watch` 무한 폴링. 이들 사이의 중복 실행은 Task Scheduler가 막지 못한다. **정정(재검수 #3)**: B안 승인 당시 근거였던 "stale 잠금이 08:00 파이프라인을 정지시킨다"는 **사실이 아니다** — `run_daily_plus_pipeline.ps1`(08:00)은 distiller를 호출하지 않는다. 보류 근거는 다음으로 대체한다: 현재 상주 `--watch` 데몬이 없고 동시 호출 관측 사례도 없다(잠금이 막을 대상이 아직 없음) / stale 잠금은 09:00 수집 파이프라인을 정지시킬 수 있다. 트리거: 자동 호출자가 2개 이상이 되거나 상주 `--watch` 데몬 도입 시 |
 
 ## 4. 보류 (필요성 재평가 전 착수 금지)
 

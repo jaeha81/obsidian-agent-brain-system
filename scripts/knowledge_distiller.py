@@ -27,6 +27,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import textwrap
 import time
 import urllib.request
@@ -1270,7 +1271,13 @@ def merge_into_existing_note(
     # 태스크는 원문 그대로 기록되므로 본문 포함 여부로 판정한다.
     unique_tasks    = [t for t in new_tasks if t.strip() and t.strip() not in existing_text]
 
-    if not unique_insights and not unique_tasks and not unique_related:
+    # topics는 본문이 아니라 frontmatter에 병합되므로 조기 반환 판정에 함께 넣는다.
+    # 넣지 않으면 "본문은 같고 새 topic만 있는" 결과가 조기 반환에 걸려 topics가 유실된다.
+    existing_topics = set(_extract_frontmatter_topics(existing_path))
+    merged_topics   = sorted(existing_topics | set(new_topics))
+    topics_changed  = merged_topics != sorted(existing_topics)
+
+    if not unique_insights and not unique_tasks and not unique_related and not topics_changed:
         # 추가할 내용이 없으면 병합 불필요 — 재처리(--reset/--retry)를 멱등하게 만든다.
         return
 
@@ -1293,13 +1300,12 @@ def merge_into_existing_note(
         append_lines.append("\n### 추가 연결 개념\n")
         append_lines.extend(f"- {r}" for r in unique_related)
 
-    with existing_path.open("a", encoding="utf-8") as f:
-        f.write("\n".join(append_lines))
+    if unique_insights or unique_tasks or unique_related:
+        with existing_path.open("a", encoding="utf-8") as f:
+            f.write("\n".join(append_lines))
 
     # frontmatter의 topics 업데이트 (기존 + 신규 합집합)
-    existing_topics = set(_extract_frontmatter_topics(existing_path))
-    merged_topics   = sorted(existing_topics | set(new_topics))
-    if merged_topics != sorted(existing_topics):
+    if topics_changed:
         updated_text = existing_path.read_text(encoding="utf-8", errors="replace")
         new_topics_yaml = "[" + ", ".join(merged_topics) + "]"
         updated_text = re.sub(
@@ -1309,6 +1315,37 @@ def merge_into_existing_note(
             flags=re.MULTILINE,
         )
         existing_path.write_text(updated_text, encoding="utf-8")
+
+
+def publish_new_note(output_path: Path, note_text: str) -> None:
+    """완성된 본문만 노출하는 신규 노트 게시. 대상이 이미 있으면 FileExistsError.
+
+    open("x")(O_EXCL)는 이름 생성만 원자적이다. 빈 파일이 먼저 보이고 본문은 그 뒤에
+    쓰이므로, 그 사이에 다른 실행이 빈 파일을 보고 병합해 넣으면 뒤이은 본문 쓰기가
+    그 병합을 지워버린다. 임시 파일에 본문을 끝까지 쓴 뒤 이름만 게시하면 이 창이 없다.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(
+        dir=output_path.parent, prefix=f".{output_path.stem}.", suffix=".tmp"
+    )
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(note_text)
+        try:
+            # POSIX: 하드링크는 원자적이고 대상이 있으면 FileExistsError를 낸다.
+            os.link(tmp_path, output_path)
+        except FileExistsError:
+            raise
+        except OSError:
+            # Google Drive 마운트는 하드링크를 지원하지 않는다(WinError 1, 실측). Windows의
+            # os.rename은 대상이 있으면 덮어쓰지 않고 FileExistsError를 낸다(실측). POSIX의
+            # rename은 조용히 덮어쓰므로 그쪽에서는 폴백하지 않고 원래 오류를 올린다.
+            if os.name != "nt":
+                raise
+            os.rename(tmp_path, output_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
 
 
 # ── Stage 20: 처리 완료 사이드카 인덱스 ─────────────────────────────────────────
@@ -1510,11 +1547,11 @@ def process_batch(
                     p3_priority=p3_score,
                     source_conversation_id=conversation_id,
                 )
-                # 원자적 생성("x" = O_EXCL). 위 exists() 검사와 이 쓰기 사이에 다른
-                # 프로세스나 사용자가 같은 노트를 만들었다면 덮어쓰지 않고 병합으로 넘긴다.
+                # 원자적 게시. 위 exists() 검사와 이 쓰기 사이에 다른 프로세스나 사용자가
+                # 같은 노트를 만들었다면 덮어쓰지 않고 병합으로 넘긴다. 본문을 다 쓴 뒤
+                # 이름을 게시하므로, 미완성 노트가 대상 경로에 노출되는 창도 없다.
                 try:
-                    with output_path.open("x", encoding="utf-8") as f:
-                        f.write(note_text)
+                    publish_new_note(output_path, note_text)
                     print(f"    [OK] → {output_path.relative_to(VAULT_BASE)}")
                 except FileExistsError:
                     merge_into_existing_note(

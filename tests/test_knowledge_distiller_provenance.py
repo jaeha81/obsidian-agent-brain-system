@@ -7,6 +7,7 @@ data/memory/processed_index.jsonl은 절대 건드리지 않는다.
 
 import hashlib
 import json
+import os
 import re
 import sys
 import tempfile
@@ -371,6 +372,88 @@ class ProcessBatchIntegrationTests(unittest.TestCase):
         self.assertIn("경쟁 프로세스가 먼저 쓴 문장.", text, "생성 경합에서 기존 파일을 덮어썼다")
         self.assertIn("## 병합 추가", text)
         self._assert_raw_unchanged()
+
+    def test_new_note_is_not_published_until_body_is_fully_written(self):
+        """생성 경합 잔여분: 승자가 대상 경로를 만든 직후~본문 쓰기 완료 사이에 패자가
+        병합해 넣어도, 승자의 본문 쓰기가 그 병합을 덮어써선 안 된다.
+
+        구현이 대상 경로를 처음 건드리는 지점(구: target.open("x") / 현: os.link·os.rename)에
+        패자의 완성 노트 쓰기를 주입한다. 미완성 노트를 대상 경로에 노출하지 않는 구현만 통과한다.
+        """
+        target = kd.determine_output_path("2026-04-18", self.raw_file)
+        fired = []
+
+        def loser_writes():
+            if fired:
+                return
+            fired.append(True)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(
+                "---\ntopics: [무관토픽]\n---\n\n패자가 먼저 완성해 둔 문장.\n",
+                encoding="utf-8",
+            )
+
+        real_open, real_link, real_rename = Path.open, os.link, os.rename
+
+        def racing_open(self, mode="r", *args, **kwargs):
+            fh = real_open(self, mode, *args, **kwargs)
+            if "x" in mode and Path(self) == target:
+                loser_writes()   # 승자가 만든 빈 파일에 패자가 끼어드는 창
+            return fh
+
+        def racing_link(src, dst, *args, **kwargs):
+            if Path(dst) == target:
+                loser_writes()
+            return real_link(src, dst, *args, **kwargs)
+
+        def racing_rename(src, dst, *args, **kwargs):
+            if Path(dst) == target:
+                loser_writes()
+            return real_rename(src, dst, *args, **kwargs)
+
+        def _restore():
+            Path.open, os.link, os.rename = real_open, real_link, real_rename
+
+        self.addCleanup(_restore)
+        Path.open, os.link, os.rename = racing_open, racing_link, racing_rename
+        try:
+            success, fail, _, _ = self._run_batch()
+        finally:
+            _restore()
+
+        self.assertTrue(fired, "경합 주입이 실행되지 않았다 — 테스트 seam이 깨졌다")
+        self.assertEqual((success, fail), (1, 0))
+        text = target.read_text(encoding="utf-8")
+        self.assertIn(
+            "패자가 먼저 완성해 둔 문장.", text,
+            "미완성 노트가 대상 경로에 노출돼 패자의 병합이 덮어써졌다",
+        )
+        self.assertIn("## 병합 추가", text)
+        self._assert_raw_unchanged()
+
+    def test_merge_adds_new_topic_even_when_body_has_nothing_new(self):
+        """본문에 새로 추가할 게 없고 새 topic만 있는 병합도 frontmatter에 반영돼야 한다."""
+        target = kd.OUTPUT_BASE / "기존노트.md"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
+            "---\ntopics: [t1]\n---\n\n- 이미 있는 인사이트\n", encoding="utf-8"
+        )
+
+        kd.merge_into_existing_note(
+            target,
+            {
+                "topics": ["t1", "t2"],
+                "insights": ["이미 있는 인사이트"],
+                "related_knowledge": [],
+                "tasks": [],
+            },
+            self.raw_file,
+            source_conversation_id="cid",
+        )
+
+        text = target.read_text(encoding="utf-8")
+        self.assertIn("topics: [t1, t2]", text, "새 topic이 frontmatter에 반영되지 않았다")
+        self.assertNotIn("## 병합 추가", text, "본문 추가가 없는데 병합 블록이 생겼다")
 
     def test_sidecar_failure_is_not_counted_as_distill_failure(self):
         def _boom(*args, **kwargs):
