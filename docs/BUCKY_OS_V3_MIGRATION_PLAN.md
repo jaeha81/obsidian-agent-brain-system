@@ -30,7 +30,7 @@
 | 7 | Model Router provider 확장 | 기존 1파일 수정 | 중간 | ✅ 완료 07-11 (8ff3655, 테스트 17, 택1=직접 수정) |
 | 8 | 오라클 큐 ↔ TaskSpec 연결 | 기존 수정 | 중간 | ✅ 완료 07-11 (worker.py+test_worker.py, oracle 4종 76 PASS) |
 | 9 | Codex 독립 검수 게이트 #2 | 없음 | — | ✅ 통과 07-11 (조건부 통과 → 필수수정 6건 이행 dd48547 → 재검수 통과) |
-| 10 | usage_ledger + 대시보드 | 신규 위주 | 낮음 | 대기 |
+| 10 | usage_ledger + 대시보드 | 신규 위주 | 낮음 | ✅ 완료 07-11 (0455040 — 원장은 Stage 10, 대시보드는 Stage 21로 분리 이행) |
 | 11 | Discord pipeline 분해 | 대형 수정 | **높음** | **홀드 (별도 승인)** |
 | 12 | Memory Engine | 신규 위주 | 중간 | 후순위 |
 
@@ -45,16 +45,16 @@
 | 13 | 문서 1차: current_state_audit + gap_analysis + assumptions | 없음 | 없음 | ✅ 완료 07-11 (1e14b7d) |
 | 14 | 문서 2차: target_architecture + backlog + ADR-0001~0005 + AGENTS_CANONICAL 복구 | 없음 | 없음 | ✅ 완료 07-11 (1e14b7d) |
 | G3 | Codex 문서 검수 (경량) | 없음 | — | 조건부 통과 07-11 (MED 2·LOW 3 — 문서 수정으로 해소) |
-| 15 | 이벤트 엔벨로프(event_log.py) + model_decision 방출 준비 | 신규 위주 | 낮음 | 대기 |
-| 16 | Task/Goal/Project 레지스트리 최소판 | 신규 위주 | 낮음 | 대기 |
-| 17 | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | 중간 | 대기 |
-| G4 | Codex 검수 #3 (Phase B 일괄) | 없음 | — | 대기 |
-| 18 | policy_rules.yaml + policy_engine.py (순수 함수, 미배선) | 신규만 | 낮음 | 대기 |
-| 19 | 정책 배선 shadow 모드 + 예산 경고 (기존 승인 3종 재사용) | 기존 수정 | 중간 | 대기 |
-| G5 | Codex 검수 #4 (Phase C) | 없음 | — | 대기 |
-| 20 | 메모리 출처 전파 (Stage 12 선행 축소판) | 기존 2파일 | 중간 | 대기 |
-| 21 | 최소 대시보드 (static-JSON 패턴 확장) | 신규 위주 | 낮음 | 대기 |
-| G6 | Codex 검수 #5 + P0 완료 판정 (스펙 §20 Story 5/6/7 대조) | 없음 | — | 대기 |
+| 15 | 이벤트 엔벨로프(event_log.py) + model_decision 방출 준비 | 신규 위주 | 낮음 | ✅ 완료 07-11 (8a88256) |
+| 16 | Task/Goal/Project 레지스트리 최소판 | 신규 위주 | 낮음 | ✅ 완료 07-12 (f70c430) |
+| 17 | worker 실행 배선 (echo 스텁→어댑터, 플래그 기본 off) | 기존 1파일 | 중간 | ✅ 완료 07-12 (a79994d — 실동작은 claude_code뿐, 나머지 provider는 스텁) |
+| G4 | Codex 검수 #3 (Phase B 일괄) | 없음 | — | ✅ 통과 07-12 (조건부 통과 → 필수수정 2건 이행 0c43835) |
+| 18 | policy_rules.yaml + policy_engine.py (순수 함수, 미배선) | 신규만 | 낮음 | ✅ 완료 07-12 (72242a6) |
+| 19 | 정책 배선 shadow 모드 + 예산 경고 (기존 승인 3종 재사용) | 기존 수정 | 중간 | ✅ 완료 07-12 (ab68c09 — shadow 기본, 차단 없음. enforce는 별도 결정) |
+| G5 | Codex 검수 #4 (Phase C) | 없음 | — | ✅ 통과 07-12 (조건부 통과 → 필수수정 2건 이행 248eb47 → 재검증 PASS 7490302) |
+| 20 | 메모리 출처 전파 (Stage 12 선행 축소판) | 기존 2파일 | 중간 | ✅ 완료 07-13 (ad78af5 — sidecar 인덱스, 01_RAW 불변) |
+| 21 | 최소 대시보드 (static-JSON 패턴 확장) | 신규 위주 | 낮음 | ✅ 완료 07-13 (15e65b8 + 산출물 772e28b — 보호 3종 무접촉) |
+| G6 | Codex 검수 #5 + P0 완료 판정 (스펙 §20 Story 5/6/7 대조) | 없음 | — | **다음 — Stage 13~21 구현 전부 완료, 마지막 관문** |
 
 각 Stage는 완료 시 "변경 파일 / 실행 명령과 출력 / 위험 / 미완료" 형식으로 보고하고,
 사용자 확인 후 다음 Stage로 넘어간다 (큰 작업 분할 프로토콜).
