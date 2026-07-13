@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-13 08:00:08",
+  "generated_at": "2026-07-14 08:00:10",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,115 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "23231df",
+        "date": "2026-07-13",
+        "subject": "fix: 체크리스트 이중경로 근본수선 — 읽기 실패가 데이터 삭제로 번지던 경로 제거",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "c222824",
+        "date": "2026-07-13",
+        "subject": "chore: 워킹트리 정리 — 미추적 17건 분류 + 파이프라인 소스/산출물 쌍 동기화",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "dashboard",
+          "knowledge-vault",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "5dfee7e",
+        "date": "2026-07-13",
+        "subject": "docs: G6 통과 — 재검수 #4 PASS + 비차단 지적 2건 이행",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "259a50b",
+        "date": "2026-07-13",
+        "subject": "fix: G6 재검수 #3 지적 이행 — 신규 노트 원자적 게시(부분 쓰기 노출 제거)",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "1e950a3",
+        "date": "2026-07-13",
+        "subject": "fix: G6 재검수 #2 지적 이행 — 병합 멱등화 + 신규 노트 원자적 생성(O_EXCL)",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "0f2e41d",
+        "date": "2026-07-13",
+        "subject": "fix: G6 재검수 #1 지적 이행 — 재실행 노트 덮어쓰기 결함 제거 (never-overwrite)",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "ec6a0d1",
+        "date": "2026-07-13",
+        "subject": "fix: G6 필수수정 이행 — 병합 provenance / sidecar 실패 격리 / process_batch 통합 테스트",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "c47d294",
+        "date": "2026-07-13",
+        "subject": "fix: Stage 20 테스트가 anthropic SDK 미설치 환경에서 실행 불가하던 문제",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "274219e",
+        "date": "2026-07-13",
+        "subject": "docs: Stage 20·21 완료 반영 + V3 플랜 상태표 실제 커밋 기준 동기화",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "15e65b8",
+        "date": "2026-07-13",
+        "subject": "feat: Stage 21 — Bucky 브레인 현황 대시보드 생성기 + agents.yaml PyYAML 비의존 파서",
+        "areas": [
+          "daily-plus",
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "772e28b",
+        "date": "2026-07-13",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-13 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "ad78af5",
         "date": "2026-07-13",
@@ -396,110 +505,17 @@
           "daily-plus",
           "workflow-expansion"
         ]
-      },
-      {
-        "commit": "0f58cae",
-        "date": "2026-07-11",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-11 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "7ce6c8e",
-        "date": "2026-07-10",
-        "subject": "docs: V3 Stage 5 — Codex 검수 요청서 (Phase 1: Stage 3~4) + 플랜 상태 갱신",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "25fdc7d",
-        "date": "2026-07-10",
-        "subject": "feat: V3 Stage 4 — TaskSpec/AgentResult 계약 (테스트 33 PASS)",
-        "areas": [
-          "knowledge-vault",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "4f0b068",
-        "date": "2026-07-10",
-        "subject": "feat: V3 Stage 3 — config 단일화 스캐폴드 (테스트 18 PASS)",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "df7c827",
-        "date": "2026-07-10",
-        "subject": "feat: B4 #1 — oracle client에 index_search/index_stats 추가 + 테스트 C16~C21 (22 PASS)",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "36bf59f",
-        "date": "2026-07-10",
-        "subject": "docs: Bucky OS V3 Stage 0~2 — 실측 AUDIT + 12단계 MIGRATION_PLAN (큐 정본=oracle 확정)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "fd1e57f",
-        "date": "2026-07-10",
-        "subject": "feat: obsidian-index 파이프라인 (indexer + 오라클 /index 라우트 + 스키마 계약)",
-        "areas": [
-          "instruction-authority",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "c576457",
-        "date": "2026-07-10",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-10 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "3b43bc0",
-        "date": "2026-07-10",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-10 [skip ci]",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "a5412d6",
-        "date": "2026-07-09",
-        "subject": "feat: Phase 3-⑤ 집PC 폴링 워커 — client claim/update + worker 루프",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "0cd1d18",
-        "date": "2026-07-09",
-        "subject": "test: Phase 3 종단 E2E 테스트 + 라이브 배포 런북",
-        "areas": [
-          "other"
-        ]
       }
     ],
     "by_area": {
+      "bucky-discord-daily-plus": 69,
+      "dashboard": 267,
+      "other": 150,
+      "workflow-expansion": 132,
+      "knowledge-vault": 70,
+      "daily-plus": 22,
+      "charlie": 17,
       "instruction-authority": 15,
-      "other": 141,
-      "workflow-expansion": 124,
-      "dashboard": 257,
-      "charlie": 16,
-      "knowledge-vault": 69,
-      "bucky-discord-daily-plus": 67,
-      "daily-plus": 21,
       "authentication": 13,
       "kmong": 8,
       "support-tooling": 8,
@@ -508,14 +524,10 @@
     }
   },
   "git_status": {
-    "changed_count": 27,
+    "changed_count": 2,
     "by_area": {
-      "dashboard": 7,
-      "workflow-expansion": 8,
-      "daily-plus": 1,
-      "other": 7,
-      "knowledge-vault": 3,
-      "bucky-discord-daily-plus": 1
+      "dashboard": 1,
+      "workflow-expansion": 1
     }
   },
   "runtime_status": {
@@ -543,8 +555,8 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260712_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-13 08:00"
+      "latest_outbox": "20260713_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-14 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-06-30",

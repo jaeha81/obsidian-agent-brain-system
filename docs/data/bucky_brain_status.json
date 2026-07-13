@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-07-13T08:20:19+0900",
+    "last_updated": "2026-07-14T08:00:11+0900",
     "generator": "generate_brain_status.py"
   },
   "task_queue": {
@@ -17,40 +17,46 @@
   },
   "usage": {
     "month": "2026-07",
-    "records": 164,
-    "tokens_in": 40,
-    "tokens_out": 1054,
-    "cost_usd": 0.00012,
+    "records": 266,
+    "tokens_in": 201,
+    "tokens_out": 1562,
+    "cost_usd": 0.000531,
     "by_model": {
       "ProviderAdapter/": {
-        "records": 31,
+        "records": 45,
         "tokens_in": 0,
-        "tokens_out": 155,
+        "tokens_out": 225,
         "cost_usd": 0.0
       },
       "boom/": {
-        "records": 31,
+        "records": 45,
         "tokens_in": 0,
-        "tokens_out": 217,
+        "tokens_out": 315,
         "cost_usd": 0.0
       },
       "codex_pro/": {
-        "records": 31,
+        "records": 45,
         "tokens_in": 0,
-        "tokens_out": 341,
+        "tokens_out": 495,
         "cost_usd": 0.0
       },
       "gemini/": {
-        "records": 31,
+        "records": 45,
         "tokens_in": 0,
-        "tokens_out": 341,
+        "tokens_out": 495,
         "cost_usd": 0.0
       },
       "claude_code/sonnet": {
-        "records": 40,
-        "tokens_in": 40,
+        "records": 85,
+        "tokens_in": 85,
         "tokens_out": 0,
-        "cost_usd": 0.00012
+        "cost_usd": 0.000255
+      },
+      "claude_code/haiku": {
+        "records": 1,
+        "tokens_in": 116,
+        "tokens_out": 32,
+        "cost_usd": 0.000276
       }
     }
   },
