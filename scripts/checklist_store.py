@@ -1,12 +1,16 @@
 """체크리스트 단일 저장소 — 읽기 실패가 데이터 삭제로 번지는 것을 막는다.
 
-정본: data/user_checklist.json          (git 미추적 — 봇이 수시로 갱신)
+정본: data/user_checklist.json          (git 미추적 — 봇이 수시로 갱신, 평문)
 미러: docs/data/user_checklist.json     (git 추적 — 대시보드가 읽고, 정본 복구원 역할)
 
 2026-07-11 사고: discord_bot._cl_load()가 파일을 못 읽으면 조용히 빈 목록을 반환했고,
 이어진 저장이 그 빈 목록을 정본·미러 양쪽에 덮어써 태스크 75개가 1개로 소실됐다.
 그래서 이 모듈은 "읽지 못했다"와 "읽었더니 비어 있다"를 절대 섞지 않는다.
 읽기에 실패하면 ChecklistUnavailable을 던진다 — 호출자는 저장하면 안 된다.
+
+2026-07-14: 저장소가 public이라 미러는 GitHub Pages로 그대로 공개된다.
+그래서 미러는 **암호문으로만** 쓴다(checklist_crypto). 읽기는 옛 평문 미러도 받아준다 —
+복구원의 견고성이 우선이고, 평문 미러는 다음 save()에서 자동으로 암호문이 된다.
 """
 
 from __future__ import annotations
@@ -15,6 +19,8 @@ import json
 import os
 from datetime import date
 from pathlib import Path
+
+import checklist_crypto as crypto
 
 ROOT = Path(__file__).resolve().parents[1]
 MASTER = ROOT / "data" / "user_checklist.json"
@@ -25,12 +31,23 @@ class ChecklistUnavailable(RuntimeError):
     """정본·미러 어느 쪽도 신뢰할 수 있게 읽지 못했다. 이 상태에서 저장은 금지."""
 
 
+def _validated(data: object, source: Path) -> dict:
+    if not isinstance(data, dict) or not isinstance(data.get("tasks"), list):
+        raise ValueError(f"{source}: 'tasks' 배열이 없다")
+    return data
+
+
 def _read(path: Path) -> dict:
     # 볼트 계열 파일은 선두 BOM이 붙는 경우가 있어 utf-8-sig로 읽는다.
-    data = json.loads(path.read_text(encoding="utf-8-sig"))
-    if not isinstance(data, dict) or not isinstance(data.get("tasks"), list):
-        raise ValueError(f"{path}: 'tasks' 배열이 없다")
-    return data
+    return _validated(json.loads(path.read_text(encoding="utf-8-sig")), path)
+
+
+def _read_mirror() -> dict:
+    """미러를 읽는다. 암호문이면 풀고, 옛 평문이면 그대로 받는다."""
+    raw = json.loads(MIRROR.read_text(encoding="utf-8-sig"))
+    if crypto.is_encrypted(raw):
+        raw = crypto.decrypt_json(raw, crypto.load_password())
+    return _validated(raw, MIRROR)
 
 
 def _write(path: Path, text: str) -> None:
@@ -56,7 +73,7 @@ def load() -> dict:
 
     if MIRROR.exists():
         try:
-            data = _read(MIRROR)
+            data = _read_mirror()
         except Exception as exc:
             raise ChecklistUnavailable(
                 f"정본({MASTER})과 미러({MIRROR}) 모두 읽을 수 없다: {exc}"
@@ -73,11 +90,16 @@ def load() -> dict:
 
 
 def save(data: dict) -> None:
-    """정본과 미러를 함께 갱신한다. 둘 중 하나만 쓰이는 일은 없다."""
+    """정본(평문)과 미러(암호문)를 함께 갱신한다. 둘 중 하나만 쓰이는 일은 없다."""
     if not isinstance(data.get("tasks"), list):
         raise ValueError("'tasks' 배열이 없는 데이터는 저장하지 않는다")
 
     data.setdefault("meta", {})["last_updated"] = str(date.today())
-    text = json.dumps(data, ensure_ascii=False, indent=2)
-    _write(MASTER, text)
-    _write(MIRROR, text)
+    plain = json.dumps(data, ensure_ascii=False, indent=2)
+
+    # 두 텍스트를 모두 확보한 뒤에 쓴다. 암호화가 실패하면 어느 파일도 건드리지 않는다 —
+    # 정본만 갱신되고 미러(복구원)가 뒤처지는 반쪽 상태를 만들지 않기 위해서다.
+    sealed = crypto.encrypt_json(data, crypto.load_password())
+
+    _write(MASTER, plain)
+    _write(MIRROR, sealed)

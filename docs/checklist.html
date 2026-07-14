@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -11,14 +11,6 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <title>User-Bucky 체크리스트</title>
-<script>
-(function(){
-  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
-  document.documentElement.style.visibility='hidden';
-  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
-  else{document.documentElement.style.visibility='';}
-})();
-</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -250,7 +242,7 @@
     .grid { grid-template-columns: 1fr; }
   }
 </style>
-<script src="/shared/auth.js"></script>
+<script src="/shared/checklist-crypto.js"></script>
 </head>
 <body>
 
@@ -330,125 +322,7 @@
 
 <script>
 // ── 태스크 데이터 (Claude Code가 유지) ──────────────────────────────────
-let TASKS = [
-  {
-    id: "CL-001",
-    title: "AgentBus 7개 승인 게이트 구현",
-    desc: "requires_approval=true 태스크 승인/거부 워크플로우. Discord 명령: !approve <ID>, !reject <ID>. approve_task.py 기반 확장.",
-    priority: "P0",
-    category: "개발",
-    added: "2026-06-02",
-    source: "PART-1/2 지시 문서"
-  },
-  {
-    id: "CL-002",
-    title: "!buki startproject 워크플로우 구현",
-    desc: "Gemini 리서치 → BUKI 요구사항 → Codex 설계검토 → Claude Code 계획 → Obsidian 저장. 순서 자동화 파이프라인.",
-    priority: "P0",
-    category: "개발",
-    added: "2026-06-02",
-    source: "PART-2 지시 문서"
-  },
-  {
-    id: "CL-003",
-    title: "Checkpoint 자동화 (!buki checkpoint)",
-    desc: "!buki checkpoint 명령 → 작업/결정/실패/다음액션 Obsidian 자동 저장. 세션 맥락 보존용.",
-    priority: "P1",
-    category: "개발",
-    added: "2026-06-02",
-    source: "PART-2 지시 문서"
-  },
-  {
-    id: "CL-004",
-    title: "Multi-Vault 구조 설계 및 전환",
-    desc: "vault-registry.md 설계. JH.AI-Core-Vault = 코어 권위, 프로젝트 Vault = 작업기억 전용. 06_Context_Packs 동결 유지. dry-run 검증 후 실제 전환.",
-    priority: "P2",
-    category: "설계",
-    added: "2026-06-02",
-    source: "PART-2 지시 문서"
-  },
-  {
-    id: "CL-005",
-    title: "!취소/<ID>, !재시도/<ID> Discord 명령",
-    desc: "Discord Bot에 태스크 취소/재시도 명령 추가. AgentBus 상태 관리 강화.",
-    priority: "P2",
-    category: "개발",
-    added: "2026-06-02",
-    source: "PART-2 지시 문서"
-  },
-  {
-    id: "CL-006",
-    title: "음성→태스크 자동 분류 (STT → !task)",
-    desc: "음성 입력을 텍스트로 변환 후 자동 !task 생성. STT 파이프라인 구현.",
-    priority: "P2",
-    category: "개발",
-    added: "2026-06-02",
-    source: "PART-2 지시 문서"
-  },
-  {
-    id: "CL-007",
-    title: "Codex AgentBus 피드백 수신 (양방향)",
-    desc: "현재 Codex는 단방향. Codex 리뷰 결과를 AgentBus로 피드백 수신하는 양방향 구조로 개선.",
-    priority: "P2",
-    category: "개발",
-    added: "2026-06-02",
-    source: "PART-2 지시 문서"
-  },
-  {
-    id: "CL-008",
-    title: "Cloudflare Zero Trust Access 설정",
-    desc: "obsidian-agent-brain-system.pages.dev 보호. Zero Trust → Access → Applications → Self-hosted. Policy: dltkddlf231@gmail.com만 허용. /portfolio.html 예외 설정.",
-    priority: "대기",
-    category: "인프라",
-    added: "2026-06-04",
-    source: "집 PC 복귀 후 직접 진행"
-  },
-  {
-    id: "CL-009",
-    title: "Gemini CLI 활성화",
-    desc: ".env에 GEMINI_API_KEY= 입력 + Gemini CLI 구독 설치. Agent Dispatcher Gemini 루트 활성화.",
-    priority: "대기",
-    category: "설정",
-    added: "2026-06-02",
-    source: "대기 중 (사용자 결정 필요)"
-  },
-  {
-    id: "CL-010",
-    title: "Anthropic API 크레딧 충전",
-    desc: "Agent Dispatcher E2E 검증에 필요. 현재 크레딧 소진 상태.",
-    priority: "대기",
-    category: "설정",
-    added: "2026-06-02",
-    source: "대기 중 (사용자 결정 필요)"
-  },
-  {
-    id: "CL-011",
-    title: "타오바오/아마존 쇼핑몰 착수",
-    desc: "사업자 등록, 첫 상품 테스트 미착수. 구매대행 사업화 첫 단계.",
-    priority: "대기",
-    category: "사업",
-    added: "2026-06-02",
-    source: "대기 중 (사용자 결정 필요)"
-  },
-  {
-    id: "CL-012",
-    title: "Graph 그룹 UI 수동 추가",
-    desc: "InfraNodus Obsidian 그래프 그룹 UI 수동 설정 필요. 태그 파이프라인은 완료됐으나 그룹 UI 미완.",
-    priority: "P2",
-    category: "설정",
-    added: "2026-06-02",
-    source: "2026-06-02 세션3"
-  },
-  {
-    id: "CL-013",
-    title: "User-Bucky 체크리스트 대시보드 구축",
-    desc: "미완료/진행중/처리완료 태스크를 대시보드에서 관리. 재개 버튼으로 Bucky Agent에 작업 재개 지시를 전송.",
-    priority: "P0",
-    category: "개발",
-    added: "2026-06-04",
-    source: "사용자 지시 2026-06-04"
-  }
-];
+let TASKS = [];  // 데이터는 암호화된 미러에서만 온다 (제목을 코드에 박지 않는다)
 
 const META = {
   last_updated: "2026-06-05",
@@ -456,16 +330,19 @@ const META = {
 };
 
 async function loadTasksFromJson() {
+  let d;
   try {
-    const r = await fetch('./data/user_checklist.json?t=' + Date.now());
-    if (!r.ok) throw new Error(r.status);
-    const d = await r.json();
-    if (d.tasks && d.tasks.length) {
-      TASKS = d.tasks.map(t => ({ ...t, desc: t.description || t.desc || '' }));
-      if (d.meta && d.meta.last_updated) META.last_updated = d.meta.last_updated;
-    }
-  } catch (_) {
-    // fallback to embedded TASKS
+    d = await loadChecklistJson('./data/user_checklist.json');
+  } catch (e) {
+    // "읽지 못했다"를 "비어 있다"로 바꾸지 않는다 — 빈 화면은 데이터 소실처럼 보인다.
+    document.getElementById('task-grid').innerHTML =
+      '<div style="padding:24px;color:#f85149">체크리스트를 불러오지 못했습니다: ' +
+      String(e && e.message || e) + '</div>';
+    return;
+  }
+  if (d && Array.isArray(d.tasks)) {
+    TASKS = d.tasks.map(t => ({ ...t, desc: t.description || t.desc || '' }));
+    if (d.meta && d.meta.last_updated) META.last_updated = d.meta.last_updated;
   }
   renderAll();
 }

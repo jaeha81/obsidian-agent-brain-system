@@ -7,6 +7,7 @@ _cl_add() → _cl_save()가 그 빈 목록을 정본·미러 양쪽에 덮어써
 """
 
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -17,7 +18,10 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
+import checklist_crypto as crypto  # noqa: E402
 import checklist_store as cs  # noqa: E402
+
+PASSWORD = "테스트-비밀번호-1234"
 
 
 def _sample(n: int = 3) -> dict:
@@ -40,12 +44,25 @@ class ChecklistStoreTest(unittest.TestCase):
         cs.MASTER.parent.mkdir(parents=True)
         cs.MIRROR.parent.mkdir(parents=True)
 
+        self._prev_pw = os.environ.get("CHECKLIST_PASSWORD")
+        os.environ["CHECKLIST_PASSWORD"] = PASSWORD
+
     def tearDown(self) -> None:
         cs.MASTER, cs.MIRROR = self._orig
+        if self._prev_pw is None:
+            os.environ.pop("CHECKLIST_PASSWORD", None)
+        else:
+            os.environ["CHECKLIST_PASSWORD"] = self._prev_pw
         self._tmp.cleanup()
 
     def _put(self, path: Path, data: dict) -> None:
         path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+    def _mirror(self) -> dict:
+        """미러를 평문으로 되돌려 읽는다(미러는 암호문으로 저장된다)."""
+        return crypto.decrypt_json(
+            json.loads(cs.MIRROR.read_text(encoding="utf-8")), PASSWORD
+        )
 
     # ── 정상 경로 ──────────────────────────────────────────────────────────
 
@@ -56,7 +73,7 @@ class ChecklistStoreTest(unittest.TestCase):
     def test_저장하면_정본과_미러가_같은_내용이_된다(self) -> None:
         cs.save(_sample(2))
         master = json.loads(cs.MASTER.read_text(encoding="utf-8"))
-        mirror = json.loads(cs.MIRROR.read_text(encoding="utf-8"))
+        mirror = self._mirror()
         self.assertEqual(master, mirror)
         self.assertEqual(len(mirror["tasks"]), 2)
 
@@ -113,10 +130,50 @@ class ChecklistStoreTest(unittest.TestCase):
         cs.save(data)
 
         master = json.loads(cs.MASTER.read_text(encoding="utf-8"))
-        mirror = json.loads(cs.MIRROR.read_text(encoding="utf-8"))
+        mirror = self._mirror()
         self.assertEqual(len(master["tasks"]), 76, "기존 75개가 소실됐다")
         self.assertEqual(master, mirror)
         self.assertEqual(master["tasks"][0]["id"], "CL-001", "ID가 처음부터 재생성됐다")
+
+    # ── 2026-07-14 공개 노출 회귀 가드 ─────────────────────────────────────
+    # 미러는 GitHub Pages로 그대로 공개된다. 여기에 평문이 실리면 할 일 제목이
+    # 인터넷에 새어나간다. 아래 두 테스트가 그 경로를 막는다.
+
+    def test_미러에는_할일_제목이_평문으로_남지_않는다(self) -> None:
+        cs.save(_sample(3))
+        raw = cs.MIRROR.read_text(encoding="utf-8")
+        self.assertNotIn("할일 1", raw, "미러에 제목이 평문으로 노출됐다")
+        self.assertNotIn("CL-001", raw, "미러에 태스크 ID가 평문으로 노출됐다")
+        self.assertTrue(json.loads(raw).get("encrypted"), "미러가 암호문이 아니다")
+
+    def test_비밀번호가_없으면_저장하지_않고_멈춘다(self) -> None:
+        """암호화할 수 없으면 정본도 건드리지 않는다 — 반쪽 상태를 만들지 않는다."""
+        self._put(cs.MASTER, _sample(5))
+        os.environ.pop("CHECKLIST_PASSWORD", None)
+        orig_key, crypto.KEY_FILE = crypto.KEY_FILE, Path(self._tmp.name) / "없는키"
+        try:
+            with self.assertRaises(crypto.KeyUnavailable):
+                cs.save(_sample(9))
+        finally:
+            crypto.KEY_FILE = orig_key
+
+        # 정본이 9개짜리로 덮어써지지 않고 원래 5개 그대로여야 한다
+        self.assertEqual(len(json.loads(cs.MASTER.read_text(encoding="utf-8"))["tasks"]), 5)
+        self.assertFalse(cs.MIRROR.exists(), "미러가 반쪽으로 쓰였다")
+
+    def test_암호문_미러에서도_정본을_복구한다(self) -> None:
+        cs.MIRROR.write_text(
+            crypto.encrypt_json(_sample(7), PASSWORD), encoding="utf-8"
+        )
+        self.assertEqual(len(cs.load()["tasks"]), 7)
+        self.assertTrue(cs.MASTER.exists(), "정본이 복원되지 않았다")
+
+    def test_비밀번호가_틀리면_빈_목록_대신_예외를_던진다(self) -> None:
+        cs.MIRROR.write_text(
+            crypto.encrypt_json(_sample(7), "다른-비밀번호"), encoding="utf-8"
+        )
+        with self.assertRaises(cs.ChecklistUnavailable):
+            cs.load()
 
 
 if __name__ == "__main__":

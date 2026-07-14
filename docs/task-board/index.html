@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -11,14 +11,6 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <title>태스크 보드 - JH Bucky</title>
-<script>
-(function(){
-  function getCookie(n){var v=document.cookie.split(';');for(var i=0;i<v.length;i++){var p=v[i].trim();if(p.startsWith(n+'='))return p.substring(n.length+1);}return '';}
-  document.documentElement.style.visibility='hidden';
-  if(!getCookie('bucky_auth')){location.replace('/login.html?r='+encodeURIComponent(location.pathname));}
-  else{document.documentElement.style.visibility='';}
-})();
-</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -251,7 +243,7 @@
   }
 </style>
 <script src="/shared/nav.js" defer></script>
-<script src="/shared/auth.js"></script>
+<script src="/shared/checklist-crypto.js"></script>
 </head>
 <body>
 
@@ -449,8 +441,7 @@ async function loadTasks() {
   localTasks = JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY) || '[]');
 
   try {
-    const r = await fetch('/data/user_checklist.json?t=' + Date.now());
-    const d = await r.json();
+    const d = await loadChecklistJson('/data/user_checklist.json');
     allTasks = [...(d.tasks || []), ...localTasks];
     document.getElementById('subline').textContent =
       `User-Bucky 작업 관리 · ${allTasks.length}개 태스크 · 마지막 갱신: ${d.meta?.last_updated || '-'}`;
