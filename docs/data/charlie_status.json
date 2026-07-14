@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-14 08:00:10",
+  "generated_at": "2026-07-15 08:00:13",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,42 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "5ddf206",
+        "date": "2026-07-15",
+        "subject": "fix: 테스트가 실 사용량 원장을 오염시켜 공개 대시보드에 허수를 게시하던 경로 차단 + G5/G6 비차단 권고 이행",
+        "areas": [
+          "dashboard",
+          "other"
+        ]
+      },
+      {
+        "commit": "1ca03ff",
+        "date": "2026-07-14",
+        "subject": "fix: 0cff94a가 제거한 로그인 복원 — Vercel에서는 정상 작동하는 인증이었다",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "0cff94a",
+        "date": "2026-07-14",
+        "subject": "fix: 체크리스트 공개 노출 차단 — 공개 미러를 암호문으로만 게시",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "e669503",
+        "date": "2026-07-14",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-14 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "23231df",
         "date": "2026-07-13",
@@ -467,54 +503,16 @@
           "other",
           "workflow-expansion"
         ]
-      },
-      {
-        "commit": "360216f",
-        "date": "2026-07-11",
-        "subject": "fix: Codex 재검수 LOW 보완 — self_test 런타임 경로 파일충돌 false-negative 제거 + §6 재검수 결과 기입",
-        "areas": [
-          "dashboard",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "bdb436d",
-        "date": "2026-07-11",
-        "subject": "fix: Codex 필수수정 2건 — clean clone 경로 테스트 + 계약 검증 경계 보강",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "e9553ce",
-        "date": "2026-07-11",
-        "subject": "docs: Codex Phase 1 검수 결과 §5 기입 — 조건부 통과 (필수수정 2건)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "aca1ad5",
-        "date": "2026-07-11",
-        "subject": "fix: 죽은 자동화 수리 — 파이프라인 인자 전달·수집 인코딩·Chrome 경로 + Charlie 일일감사 편입",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "charlie",
-          "daily-plus",
-          "workflow-expansion"
-        ]
       }
     ],
     "by_area": {
+      "dashboard": 271,
+      "other": 152,
+      "workflow-expansion": 133,
+      "charlie": 18,
       "bucky-discord-daily-plus": 69,
-      "dashboard": 267,
-      "other": 150,
-      "workflow-expansion": 132,
       "knowledge-vault": 70,
       "daily-plus": 22,
-      "charlie": 17,
       "instruction-authority": 15,
       "authentication": 13,
       "kmong": 8,
@@ -524,9 +522,9 @@
     }
   },
   "git_status": {
-    "changed_count": 2,
+    "changed_count": 3,
     "by_area": {
-      "dashboard": 1,
+      "dashboard": 2,
       "workflow-expansion": 1
     }
   },
@@ -555,8 +553,8 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260713_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-14 08:00"
+      "latest_outbox": "20260714_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-15 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-06-30",
