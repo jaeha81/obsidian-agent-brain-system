@@ -5,6 +5,7 @@
 """
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -14,6 +15,7 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
+from core import usage_ledger  # noqa: E402
 from core.agent_result import AgentResult  # noqa: E402
 from core.provider_adapter import (  # noqa: E402
     HEALTH_DISABLED,
@@ -31,6 +33,29 @@ from providers.gemini_adapter import GeminiAdapter  # noqa: E402
 
 VALID_SPEC = TaskSpec(task_id=new_task_id(), task_type="code")
 MISSING_EXE = r"C:\bucky_test_nonexistent\claude.exe"
+
+_usage_tmp = None
+_usage_orig = None
+
+
+def setUpModule():
+    """어댑터 run()은 내부적으로 usage_ledger에 기록한다 (provider_adapter.py:184).
+
+    격리하지 않으면 실 원장 data/usage/YYYY-MM.jsonl에 테스트 실행분이 append되고,
+    08:00 파이프라인이 그걸 집계해 공개 대시보드(docs/data/bucky_brain_status.json)의
+    "사용량"으로 게시한다 — 실제로 `boom/`·`ProviderAdapter/` 같은 테스트 내부 명칭과
+    허수 기록 수백 건이 공개돼 있었다 (G6 [P2] 지적, 07-14 이행).
+    record()는 호출 시점에 모듈 전역 USAGE_DIR을 읽으므로 여기서 돌려두면 충분하다.
+    """
+    global _usage_tmp, _usage_orig
+    _usage_tmp = tempfile.TemporaryDirectory(prefix="bucky_usage_test_")
+    _usage_orig = usage_ledger.USAGE_DIR
+    usage_ledger.USAGE_DIR = Path(_usage_tmp.name)
+
+
+def tearDownModule():
+    usage_ledger.USAGE_DIR = _usage_orig
+    _usage_tmp.cleanup()
 
 
 def _entry(**kwargs) -> dict:

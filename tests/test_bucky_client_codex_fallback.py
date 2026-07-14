@@ -1,6 +1,7 @@
 import importlib
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -9,6 +10,32 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
+
+_usage_tmp = None
+_usage_orig = None
+_usage_ledger = None
+
+
+def setUpModule():
+    """run_bucky()는 실행 1건마다 usage_ledger에 기록한다 (bucky_client.py:293, layer="cli").
+
+    격리하지 않으면 가짜 CLI 호출분이 실 원장 data/usage/YYYY-MM.jsonl에 쌓이고,
+    08:00 파이프라인이 그걸 공개 대시보드의 "사용량"으로 집계한다 (G6 [P2], 07-14 이행).
+    """
+    global _usage_tmp, _usage_orig, _usage_ledger
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    from core import usage_ledger
+
+    _usage_ledger = usage_ledger
+    _usage_tmp = tempfile.TemporaryDirectory(prefix="bucky_usage_test_")
+    _usage_orig = usage_ledger.USAGE_DIR
+    usage_ledger.USAGE_DIR = Path(_usage_tmp.name)
+
+
+def tearDownModule():
+    _usage_ledger.USAGE_DIR = _usage_orig
+    _usage_tmp.cleanup()
 
 
 class BuckyClientCodexFallbackTests(unittest.TestCase):

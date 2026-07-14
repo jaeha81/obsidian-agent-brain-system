@@ -63,6 +63,14 @@ task_tiers:
   payment: T3
   auth_change: T3
   secrets_access: T3
+  # 산문 정본(ROUTING_RULES Approval Gates)의 잔여 예약어 — 미분류 폴백(T3)과 결과는
+  # 같으나 명시 등록해야 "왜 T3인가"가 reason에 남아 감사 가능하다 (G5 권고 ③)
+  move: T3
+  archive: T3
+  reset: T3
+  force_push: T3
+  customer_data: T3
+  pii: T3
   # model_router.TASK_TO_MODEL의 미분류 폴백 sentinel — 실제 큐 유형 아님, 보수 T3 고정
   # (G5 필수수정 ① — 07-12 사용자 A안: 명시 등록 채택)
   default: T3
