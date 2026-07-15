@@ -136,7 +136,9 @@ except ImportError:
         return ""
 
 _ROOT = Path(__file__).parent.parent
-load_dotenv(_ROOT / ".env", encoding="utf-8")
+# utf-8-sig: .env 선두 UTF-8 BOM이 있으면 첫 키가 '﻿DISCORD_BOT_TOKEN'로
+# 잘못 로드돼 토큰이 빈 문자열이 된다 → BOM을 벗겨 읽는다.
+load_dotenv(_ROOT / ".env", encoding="utf-8-sig")
 
 # Discord 봇은 Vault 파일 읽기·명령 실행이 필요 → 항상 auto(dangerously-skip-permissions)
 os.environ.setdefault("BUCKY_TOOL_MODE", "auto")
