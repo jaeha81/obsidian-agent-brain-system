@@ -63,6 +63,13 @@ RunPython "build_system_evolution.py" @() "System Evolution 생성"
 RunPython "charlie_audit.py" @() "Charlie 감사"
 
 # 3d. Brain Status 생성 (오라클 읽기전용 + usage + policy shadow + agents.yaml, Stage 21)
+# 실배포(오라클 #2)에선 라이브 태스크 큐가 #2에 쌓인다(split-brain). 키가 있는 머신에서만
+# 원격 집계를 켠다 — 키 없으면 env 미설정 → 생성기가 로컬 DB로 degrade(대시보드는 항상 렌더).
+$_oracleKey = Join-Path $HOME ".ssh\oci-bucky-a1"
+if (Test-Path $_oracleKey) {
+    $env:BUCKY_ORACLE_SSH = "ubuntu@161.33.204.158"
+    $env:BUCKY_ORACLE_SSH_KEY = $_oracleKey
+}
 RunPython "generate_brain_status.py" @() "Brain Status 생성"
 
 # 4. git push (대시보드 생성 성공 시)

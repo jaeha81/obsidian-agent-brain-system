@@ -25,8 +25,10 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import sqlite3
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -64,12 +66,22 @@ def _now_ts() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
-def task_queue_summary(db_path: Path | None = None) -> dict:
-    """오라클 태스크 큐 상태별 집계. 읽기전용 연결(mode=ro). DB 부재/손상 → 전부 0."""
-    path = db_path or DB_PATH
+def _aggregate_status_rows(rows) -> dict:
+    """[(status, count), ...] → {"total", "by_status"}. 로컬·원격 집계 공용."""
     by_status = {s: 0 for s in TASK_STATUSES}
+    total = 0
+    for status, n in rows:
+        total += int(n)
+        if status in by_status:
+            by_status[status] = int(n)
+    return {"total": total, "by_status": by_status}
+
+
+def task_queue_summary(db_path: Path | None = None) -> dict:
+    """로컬 태스크 큐 상태별 집계. 읽기전용 연결(mode=ro). DB 부재/손상 → 전부 0."""
+    path = db_path or DB_PATH
     if not path.is_file():
-        return {"total": 0, "by_status": by_status}
+        return _aggregate_status_rows([])
     try:
         con = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
         try:
@@ -77,13 +89,44 @@ def task_queue_summary(db_path: Path | None = None) -> dict:
         finally:
             con.close()
     except Exception:
-        return {"total": 0, "by_status": by_status}
-    total = 0
-    for status, n in rows:
-        total += n
-        if status in by_status:
-            by_status[status] = n
-    return {"total": total, "by_status": by_status}
+        return _aggregate_status_rows([])
+    return _aggregate_status_rows(rows)
+
+
+def remote_task_summary() -> dict | None:
+    """실배포(오라클 #2)에서 태스크 큐는 #2의 DB에 쌓인다(split-brain). BUCKY_ORACLE_SSH가
+    설정되면 그 DB를 읽기전용 ssh로 원격 집계한다. 미설정/실패/타임아웃 → None(호출측이
+    로컬 DB로 폴백). 대시보드는 항상 렌더돼야 하므로 여기서 raise 하지 않는다.
+
+    Env:
+        BUCKY_ORACLE_SSH      ssh 대상 (예: "ubuntu@161.33.204.158"). 없으면 비활성.
+        BUCKY_ORACLE_SSH_KEY  ssh 개인키 경로 (선택).
+        BUCKY_ORACLE_DB       #2의 태스크 DB 경로 (기본 /opt/ai-os/data/bucky_tasks.db).
+    """
+    target = os.environ.get("BUCKY_ORACLE_SSH", "").strip()
+    if not target:
+        return None
+    key = os.environ.get("BUCKY_ORACLE_SSH_KEY", "").strip()
+    remote_db = os.environ.get("BUCKY_ORACLE_DB", "/opt/ai-os/data/bucky_tasks.db").strip()
+    remote_py = (
+        "import sqlite3,json;"
+        f"c=sqlite3.connect('file:{remote_db}?mode=ro',uri=True);"
+        "print(json.dumps(c.execute('SELECT status,COUNT(*) FROM tasks GROUP BY status').fetchall()))"
+    )
+    cmd = ["ssh", "-o", "ConnectTimeout=8", "-o", "BatchMode=yes"]
+    if key:
+        cmd += ["-i", key]
+    cmd += [target, f'python3 -c "{remote_py}"']
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+        if out.returncode != 0:
+            return None
+        rows = json.loads(out.stdout.strip())
+    except Exception:
+        return None
+    summary = _aggregate_status_rows(rows)
+    summary["source"] = "oracle"
+    return summary
 
 
 def usage_summary(usage_dir: Path | None = None, month: str | None = None) -> dict:
@@ -197,9 +240,14 @@ def agents_org(agents_file: Path | None = None) -> list[dict]:
 
 
 def build_status() -> dict:
+    # 실배포에선 라이브 큐가 오라클 #2에 있다 — 원격 집계 우선, 실패 시 로컬 폴백.
+    tq = remote_task_summary()
+    if tq is None:
+        tq = task_queue_summary()
+        tq["source"] = "local"
     return {
         "meta": {"last_updated": _now_ts(), "generator": "generate_brain_status.py"},
-        "task_queue": task_queue_summary(),
+        "task_queue": tq,
         "usage": usage_summary(),
         "policy_shadow": policy_shadow_summary(),
     }

@@ -17,9 +17,13 @@
 | Agent Registry | `oracle/core/agents.yaml` | #2 (기동 시 로드) |
 | Task Queue DB | `<repo>/data/bucky_tasks.db` (SQLite WAL) | #2 (자동 생성) |
 | submit 클라이언트 | `oracle/core/client.py` | Discord 봇(집PC/로컬) |
-| 집PC 폴링 워커 | **미구현 — 별도 Phase** | 집PC (pull) |
+| 집PC 폴링 워커 | `oracle/core/worker.py` (구현 완료) | 집PC (pull) |
 
 집PC는 인바운드 포트가 필요 없다(`/claim` 폴링 pull). #2만 공개 엔드포인트를 연다.
+
+> **실배포 방식(2026-07-15 확정)**: 공개 엔드포인트를 열지 않고 **집PC→#2 SSH 포워드 터널**로 연결한다.
+> 집PC에서 `ssh -i <key> -N -L 127.0.0.1:8700:127.0.0.1:8700 ubuntu@161.33.204.158` 를 상시 띄우고,
+> 워커는 `ORACLE_API_URL=http://127.0.0.1:8700` 로 폴링한다. 도메인·TLS·OCI 인그레스 변경 불필요(SSH가 암호화).
 
 ---
 
@@ -42,10 +46,13 @@ python3 -c "import sqlite3; print(sqlite3.sqlite_version)"   # 3.35.0 이상 확
 ```bash
 # 토큰 생성 (32바이트 hex). 출력값을 저장소·로그·채팅에 남기지 않는다.
 sudo mkdir -p /etc/ai-os
+sudo chmod 755 /etc/ai-os                     # 서비스 계정이 디렉터리를 traverse 해야 함(mkdir 기본 700이면 못 읽음)
 python3 -c "import secrets; print(secrets.token_hex(32))" | sudo tee /etc/ai-os/bucky_api_token >/dev/null
-sudo chmod 600 /etc/ai-os/bucky_api_token
-sudo chown root:root /etc/ai-os/bucky_api_token
+sudo chown <서비스계정>:<서비스계정> /etc/ai-os/bucky_api_token   # ⚠️ systemd User= 와 동일 계정(예: ubuntu). root 소유면 비root 서비스가 못 읽어 기동 실패
+sudo chmod 600 /etc/ai-os/bucky_api_token     # 소유자만 읽기(내용은 여전히 보호)
 ```
+
+> ⚠️ **실배포 검증(2026-07-15)**: 토큰을 `root:600`으로 두면 `User=ubuntu` 서비스가 `PermissionError`로 기동 실패한다. 토큰 소유자를 **systemd `User=`와 같은 계정**으로 맞추고, `/etc/ai-os` 디렉터리는 그 계정이 통과할 수 있게 `755`로 둔다.
 
 - 서버 기본 경로 `BUCKY_API_TOKEN_FILE=/etc/ai-os/bucky_api_token` 를 그대로 사용(env로 토큰 노출 회피 — env는 `/proc`로 샐 수 있음).
 - **동일 토큰**을 submit 측(Discord 봇 호스트)의 `BUCKY_API_TOKEN`에 배치해야 호출이 인증된다. 전달은 안전 채널로만.
@@ -134,6 +141,9 @@ BUCKY_API_TOKEN=<2장에서 배치한 동일 토큰>
 
 ## 7. 남은 후속 (별도 Phase)
 
-- **집PC 폴링 워커**: `/api/v1/tasks/claim` pull 루프 + 실행 + `/status` 보고. `client.py`에 `claim_task`/`update_status` 추가 필요(현재 submit 측만 구현).
+- ~~**집PC 폴링 워커**~~ **완료**: `oracle/core/worker.py`(claim 루프+실행+status 보고), `client.py`에 `claim_task`/`update_status` 구현됨. 2026-07-15 실배포·종단 검증(submit→claim→completed).
+- **[미결] 공개 대시보드 실데이터 연결**: `scripts/generate_brain_status.py`는 **집PC 로컬** `data/bucky_tasks.db`를 읽는데, 라이브 태스크는 **#2의** `bucky_tasks.db`에 쌓인다(split-brain). 대시보드에 오라클 라이브 데이터를 반영하려면 생성기를 #2에서 돌리거나, 파이프라인이 터널로 #2 DB/usage를 당겨오게 해야 한다.
+- **[미결] usage(by_model) 실데이터**: echo 스텁은 usage 원장에 기록하지 않는다. `config/bucky.yaml features.worker_adapter_dispatch: true` + 실제 provider 호출 시에만 `records`/`by_model`이 찬다.
+- **[미결] 상시화**: 집PC의 SSH 터널 + `worker.py`를 예약작업/시작프로그램으로 등록(현재는 세션 임시 기동).
 - 로그 로테이션(`logs/api/api_YYYYMMDD.jsonl` 일자별 append), DB 백업 정책.
 - Scheduler·MCP Server는 Phase 5.
