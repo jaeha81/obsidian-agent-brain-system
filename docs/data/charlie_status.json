@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-15 08:00:13",
+  "generated_at": "2026-07-16 08:00:09",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,58 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "4b67917",
+        "date": "2026-07-16",
+        "subject": "fix: 봇 워치독 런처가 검증된 Python312를 명시 사용 (bare python 스텁/3.14 오탐 방지)",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "9bd6121",
+        "date": "2026-07-16",
+        "subject": "fix: 디스코드 봇 .env BOM 때문에 토큰이 빈 문자열로 로드되던 버그 수정",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "e8e37cc",
+        "date": "2026-07-16",
+        "subject": "fix: 대시보드 split-brain 해소 — 생성기가 오라클 라이브 태스크 읽음",
+        "areas": [
+          "daily-plus",
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "6f3a06e",
+        "date": "2026-07-15",
+        "subject": "feat: 공유 네비게이션에 시스템상태 링크 추가",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "2114994",
+        "date": "2026-07-15",
+        "subject": "feat: 버키 브레인 대시보드에 시스템 상태 한눈 보기 추가",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "caf697e",
+        "date": "2026-07-15",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-15 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "5ddf206",
         "date": "2026-07-15",
@@ -452,67 +504,16 @@
         "areas": [
           "dashboard"
         ]
-      },
-      {
-        "commit": "a245856",
-        "date": "2026-07-11",
-        "subject": "feat: Stage 8 오라클 큐 ↔ TaskSpec 연결 — worker 결과를 AgentResult 규약으로",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "5c28321",
-        "date": "2026-07-11",
-        "subject": "docs: 플랜 상태 갱신 — Stage 7 완료 (8ff3655)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "8ff3655",
-        "date": "2026-07-11",
-        "subject": "feat: Stage 7 Model Router provider 확장 — provider_candidates + stdout 재래핑 수정",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "3abf783",
-        "date": "2026-07-11",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-11 [skip ci]",
-        "areas": [
-          "charlie",
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "376e1fd",
-        "date": "2026-07-11",
-        "subject": "docs: 플랜 상태 갱신 — 게이트 #1 통과·Stage 6 완료 (35dadd6)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "35dadd6",
-        "date": "2026-07-11",
-        "subject": "feat: Stage 6 Provider Adapter Layer — 인터페이스 + 어댑터 5종 + 테스트 31",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 271,
-      "other": 152,
-      "workflow-expansion": 133,
-      "charlie": 18,
-      "bucky-discord-daily-plus": 69,
+      "workflow-expansion": 135,
+      "bucky-discord-daily-plus": 70,
+      "daily-plus": 23,
+      "dashboard": 275,
+      "other": 153,
+      "charlie": 19,
       "knowledge-vault": 70,
-      "daily-plus": 22,
       "instruction-authority": 15,
       "authentication": 13,
       "kmong": 8,
@@ -522,10 +523,12 @@
     }
   },
   "git_status": {
-    "changed_count": 3,
+    "changed_count": 9,
     "by_area": {
-      "dashboard": 2,
-      "workflow-expansion": 1
+      "dashboard": 6,
+      "workflow-expansion": 1,
+      "bucky-discord-daily-plus": 1,
+      "daily-plus": 1
     }
   },
   "runtime_status": {
@@ -535,8 +538,8 @@
     },
     "bot_pid_file": {
       "valid": false,
-      "pid": 25200,
-      "raw_preview": "25200"
+      "pid": 38736,
+      "raw_preview": "38736"
     },
     "supervisor_pid_file": {
       "valid": false,
@@ -553,12 +556,12 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260714_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-15 08:00"
+      "latest_outbox": "20260715_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-16 08:00"
     },
     "daily_plus_dashboard": {
-      "latest_date": "2026-06-30",
-      "mtime": "2026-06-30 14:08"
+      "latest_date": "2026-07-16",
+      "mtime": "2026-07-16 02:38"
     }
   },
   "operational_checks": [
