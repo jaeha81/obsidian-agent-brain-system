@@ -1,4 +1,4 @@
-# run_daily_plus_pipeline.ps1
+﻿# run_daily_plus_pipeline.ps1
 # Daily Plus 전체 파이프라인: 수집 -> GPT 세션 -> 대시보드 생성 -> git push
 # Task Scheduler 또는 수동 실행 모두 지원
 
@@ -72,6 +72,13 @@ if (Test-Path $_oracleKey) {
 }
 RunPython "generate_brain_status.py" @() "Brain Status 생성"
 
+# 3e. 매일 갱신되지 않던 상태 대시보드 편입 (모두 로컬 데이터, 집PC/외부/유료 의존 없음)
+#     - AI사용량: 매일 재생성 / 워크플로우: 매일 재생성
+#     - 시스템강화(sync_system_enhance): career-strategy 소스가 바뀔 때만 자체 갱신(자가 가드)
+RunPython "generate_ai_usage_dashboard.py" @() "AI 사용량 대시보드 생성"
+RunPython "build_workflow_data.py" @() "워크플로우 데이터 생성"
+RunPython "sync_system_enhance.py" @() "시스템 강화 동기화"
+
 # 4. git push (대시보드 생성 성공 시)
 if ($reportOk -and -not $SkipGitPush) {
     Log "START: git push"
@@ -81,6 +88,7 @@ if ($reportOk -and -not $SkipGitPush) {
         if ($gitStatus) {
             & git add `
                 "docs/daily-plus.html" `
+                "docs/daily-plus/index.html" `
                 "docs/system-evolution.html" `
                 "docs/data/system_evolution.json" `
                 "docs/data/charlie_status.json" `
@@ -88,6 +96,10 @@ if ($reportOk -and -not $SkipGitPush) {
                 "docs/org-structure.html" `
                 "docs/data/bucky_brain_status.json" `
                 "docs/data/agents_org.json" `
+                "docs/ai-usage.html" `
+                "docs/workflow/agents.json" `
+                "docs/workflow/health.json" `
+                "docs/data/system_enhance.json" `
                 "ObsidianVault/04_Wiki/daily-plus/" `
                 "ObsidianVault/00_UPGRADE/pulse-evolution/" `
                 "ObsidianVault/01_RAW/gpt-sessions/" `

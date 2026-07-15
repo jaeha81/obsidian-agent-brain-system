@@ -1086,12 +1086,12 @@ def render_dashboard(
 <body>
 <header>
   <nav>
-    <a href="index.html">레포대시보드</a>
-    <a href="wishket.html">위시켓</a>
-    <a href="daily-plus.html" class="active">오늘의플러스</a>
-    <a href="ai-usage.html">AI사용량</a>
+    <a href="/index.html">레포대시보드</a>
+    <a href="/wishket.html">위시켓</a>
+    <a href="/daily-plus.html" class="active">오늘의플러스</a>
+    <a href="/ai-usage.html">AI사용량</a>
     <a href="https://github.com/jaeha81/obsidian-agent-brain-system" target="_blank" rel="noreferrer">깃허브</a>
-    <a href="login.html" class="auth-start">로그인</a>
+    <a href="/login.html" class="auth-start">로그인</a>
     <a href="/api/logout">로그아웃</a>
   </nav>
   <h1>오늘의 플러스 운영 리포트</h1>
@@ -1286,6 +1286,16 @@ def generate(date: str | None) -> Path:
     )
     html_text = "\n".join(line.rstrip() for line in html_text.splitlines()) + "\n"
     output.write_text(
+        html_text,
+        encoding="utf-8",
+        newline="\n",
+    )
+    # 미러: 공개 라우팅상 canonical 서빙 위치는 /daily-plus/ (=docs/daily-plus/index.html).
+    # vercel.json 이 /daily-plus.html -> /daily-plus/ 로 301 하므로, 동일 내용을 디렉터리
+    # index 에도 써야 split-brain(낡은 index.html 노출)이 사라진다. 네비는 절대경로라 이 위치에서도 작동.
+    mirror = DOCS / "daily-plus" / "index.html"
+    mirror.parent.mkdir(parents=True, exist_ok=True)
+    mirror.write_text(
         html_text,
         encoding="utf-8",
         newline="\n",
