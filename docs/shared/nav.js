@@ -2,6 +2,7 @@
 (function () {
   var LINKS = [
     { href: '/repo/',              label: '레포대시보드' },
+    { href: '/bucky-brain.html',   label: '시스템상태', cls: 'sys-status' },
     { href: '/wishket/',           label: '위시켓' },
     { href: '/daily-plus/',        label: '오늘의플러스' },
     { href: '/task-board/',        label: '태스크보드' },
