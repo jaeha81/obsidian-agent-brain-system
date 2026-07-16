@@ -1,28 +1,41 @@
 {
   "meta": {
-    "last_updated": "2026-07-16T08:00:11+0900",
+    "last_updated": "2026-07-16T14:34:31+0900",
     "generator": "generate_brain_status.py"
   },
   "task_queue": {
-    "total": 1,
+    "total": 0,
     "by_status": {
       "pending": 0,
       "assigned": 0,
       "running": 0,
       "waiting": 0,
-      "completed": 1,
+      "completed": 0,
       "failed": 0,
       "cancelled": 0
     },
-    "source": "oracle"
+    "source": "local"
   },
   "usage": {
     "month": "2026-07",
-    "records": 0,
-    "tokens_in": 0,
-    "tokens_out": 0,
-    "cost_usd": 0.0,
-    "by_model": {}
+    "records": 4,
+    "tokens_in": 25604,
+    "tokens_out": 962,
+    "cost_usd": 0.09074,
+    "by_model": {
+      "claude_code/haiku": {
+        "records": 1,
+        "tokens_in": 116,
+        "tokens_out": 27,
+        "cost_usd": 0.000251
+      },
+      "claude_code/sonnet": {
+        "records": 3,
+        "tokens_in": 25488,
+        "tokens_out": 935,
+        "cost_usd": 0.090489
+      }
+    }
   },
   "policy_shadow": {
     "total": 1,

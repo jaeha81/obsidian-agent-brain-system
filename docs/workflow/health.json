@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-15T23:00:12+00:00",
+  "generated_at": "2026-07-16T05:34:47+00:00",
   "global": {
     "tasks_total": 76,
     "tasks_pending": 32,
     "tasks_blocked": 0,
-    "bot_pid_minutes": 389.8840589602788,
-    "bot_log_minutes": 33179.11025955677
+    "bot_pid_minutes": 784.3097329815229,
+    "bot_log_minutes": 33573.68742657502
   },
   "runtime": [
     {
       "id": "discord_bot",
-      "status": "ok",
-      "msg": "PID 389m old"
+      "status": "warn",
+      "msg": "PID 13h old"
     },
     {
       "id": "chat_server",
       "status": "warn",
-      "msg": "log 48048m idle"
+      "msg": "log 48443m idle"
     }
   ],
   "agents": {
@@ -35,7 +35,7 @@
     "claude-code": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -43,7 +43,7 @@
     "codex": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -57,7 +57,7 @@
     "chris": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -65,7 +65,7 @@
     "repo": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -73,7 +73,7 @@
     "wishket": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -81,7 +81,7 @@
     "kmong": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -89,7 +89,7 @@
     "chsh-mining": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -97,7 +97,7 @@
     "threads": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -113,7 +113,7 @@
     "charlie": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
