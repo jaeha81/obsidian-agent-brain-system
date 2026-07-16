@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "last_updated": "2026-07-16T00:00:00",
+    "source": "seed",
+    "version": "1.0",
+    "note": "동기화된 크몽 의뢰 없음 — kmong_workflow.py sync_email_to_work_items 실행 시 채워짐"
+  },
+  "items": []
+}

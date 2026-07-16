@@ -158,7 +158,7 @@
     <span class="gen-label">마지막 수집</span>
     <span class="gen-time" id="last-scan">—</span>
     <span class="gen-label" style="margin-left:auto">자동화 상태</span>
-    <span id="agent-status" style="font-size:14px;font-weight:700;color:#94a3b8">확인 중…</span>
+    <span id="agent-status" style="font-size:14px;font-weight:700;color:#94a3b8">—</span>
   </div>
 </header>
 <div class="info-strip" style="padding:6px 28px;border-bottom:1px solid #30363d;font-size:0.75rem;color:#8b949e;">공식: <code>jh-chat</code> | <code>jh-위시켓</code> | Chrome extension, Vercel, Supabase, local PC control | 제안서 만들기</div>
@@ -194,6 +194,11 @@
   <!-- 루프 이력 -->
   <div class="panel">
     <p class="panel-title">스코어링 루프 이력 (최근 10건)</p>
+    <script type="application/json" id="loop-history-data">[
+      {"timestamp":"2026-06-09T19:54:11.152892","change_id":"p1_cut_75","change_desc":"P1 컷오프 70→75점","baseline_f1":1.0,"after_f1":1.0,"baseline_acc":1.0,"after_acc":1.0,"action":"discarded"},
+      {"timestamp":"2026-06-09T19:54:11.153074","change_id":"interior_bonus_15","change_desc":"인테리어 카테고리 보너스 18→15점","baseline_f1":1.0,"after_f1":1.0,"baseline_acc":1.0,"after_acc":1.0,"action":"discarded"},
+      {"timestamp":"2026-06-09T19:54:11.153209","change_id":"med_weight_up","change_desc":"MED 키워드 가중치 2→3","baseline_f1":1.0,"after_f1":1.0,"baseline_acc":1.0,"after_acc":1.0,"action":"discarded"}
+    ]</script>
     <div id="loop-table-wrap">
       <div class="empty-state">이력을 불러오는 중…</div>
     </div>

@@ -158,7 +158,7 @@
 </div>
 
 <div id="envWarning" class="env-warning" style="display:none">
-  .env 설정 필요 — YouTube API 키 및 채널 ID가 설정되지 않았습니다. Discord #jh-shorts 채널에서 설정을 요청하세요.
+  준비중 — 쇼츠 자동화 파이프라인이 아직 연결되지 않았습니다(실데이터 없음). 로컬 서버 실행 시 실제 수치가 표시됩니다.
 </div>
 
 <div class="main-grid" id="mainGrid">
@@ -200,29 +200,16 @@
 
 <script>
 const INTAKE = '/intake';
-const DEMO = {
-  uploads: 12, views: '48.3K', revenue: '₩24,000', scheduled: 3, avg_views: '4,025',
-  month_revenue: '₩8,500', total_revenue: '₩24,000', avg_per_video: '₩2,000',
-  top_video: 'AI 자동화 비법 3가지', last_upload: '2일 전',
-  videos: [
-    { title: 'AI 자동화 비법 3가지', views: '12,400', revenue: '₩5,200', date: '2일 전' },
-    { title: 'Claude Code 완전정복', views: '9,800', revenue: '₩4,100', date: '4일 전' },
-    { title: '옵시디언으로 Second Brain 만들기', views: '7,200', revenue: '₩3,000', date: '1주 전' },
-  ]
-};
 
 async function loadShortsStatus() {
+  // 실제 쇼츠 파이프라인/데이터 원천이 아직 없음 → 가짜 수치 대신 '준비중' 정직 표시.
   let data = null;
   try {
     const r = await fetch('/api/shorts-status', { credentials: 'include' });
-    if (r.ok) data = await r.json();
-    else if (r.status === 404 || r.status === 503) {
-      document.getElementById('envWarning').style.display = 'block';
-      data = DEMO;
-    }
+    if (r.ok) data = await r.json();  // 로컬 서버 연결 시에만 실데이터 표시
+    else document.getElementById('envWarning').style.display = 'block';
   } catch(e) {
     document.getElementById('envWarning').style.display = 'block';
-    data = DEMO;
   }
   if (data) applyStatus(data);
   document.getElementById('lastUpdate').textContent = '최종 갱신: ' + new Date().toLocaleTimeString('ko-KR');
