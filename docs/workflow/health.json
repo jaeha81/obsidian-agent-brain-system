@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-16T05:34:47+00:00",
+  "generated_at": "2026-07-16T23:00:16+00:00",
   "global": {
-    "tasks_total": 76,
-    "tasks_pending": 32,
+    "tasks_total": 77,
+    "tasks_pending": 33,
     "tasks_blocked": 0,
-    "bot_pid_minutes": 784.3097329815229,
-    "bot_log_minutes": 33573.68742657502
+    "bot_pid_minutes": 1829.9535489559173,
+    "bot_log_minutes": 34619.179732290904
   },
   "runtime": [
     {
       "id": "discord_bot",
       "status": "warn",
-      "msg": "PID 13h old"
+      "msg": "PID 30h old"
     },
     {
       "id": "chat_server",
       "status": "warn",
-      "msg": "log 48443m idle"
+      "msg": "log 49489m idle"
     }
   ],
   "agents": {
@@ -55,10 +55,8 @@
       "active_tasks": 0
     },
     "chris": {
-      "status": "warn",
-      "warnings": [
-        "dashboard stale 16d"
-      ],
+      "status": "ok",
+      "warnings": [],
       "errors": [],
       "active_tasks": 0
     },
@@ -71,10 +69,8 @@
       "active_tasks": 0
     },
     "wishket": {
-      "status": "warn",
-      "warnings": [
-        "dashboard stale 16d"
-      ],
+      "status": "ok",
+      "warnings": [],
       "errors": [],
       "active_tasks": 0
     },
@@ -105,7 +101,7 @@
     "my-dev": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 15d"
+        "dashboard stale 16d"
       ],
       "errors": [],
       "active_tasks": 0
