@@ -255,14 +255,18 @@ async function submitReview() {
     source_dashboard_url: location.href,
   };
   try {
-    await fetch(INTAKE, {
+    const r = await fetch(INTAKE, {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
-    document.getElementById('reviewInput').value = '';
-    cancelInput();
-    setTimeout(loadSessions, 1500);
+    if (r.ok) {
+      document.getElementById('reviewInput').value = '';
+      cancelInput();
+      setTimeout(loadSessions, 1500);
+    } else {
+      alert('이 기능은 로컬 서버(집 PC) 연결 시에만 작동합니다. Discord #jh-코덱스앱 채널에서 직접 요청하세요.');
+    }
   } catch(e) { alert('전송 실패: ' + e.message); }
 }
 
@@ -281,12 +285,13 @@ async function markFail(id) {
 async function sendPayload(extra) {
   const payload = { source: 'codex-dashboard', source_dashboard_url: location.href, ...extra };
   try {
-    await fetch(INTAKE, {
+    const r = await fetch(INTAKE, {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
-  } catch(e) { console.warn('전송 실패:', e.message); }
+    return r.ok;
+  } catch(e) { console.warn('전송 실패:', e.message); return false; }
 }
 
 function refresh() { loadSessions(); }

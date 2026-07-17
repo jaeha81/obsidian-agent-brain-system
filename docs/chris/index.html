@@ -199,7 +199,7 @@
       <span class="count" id="recentCount">0</span>
     </div>
     <div id="recentNodes">
-      <div class="empty-state">데이터 로딩 중...</div>
+      <div class="empty-state">그래프 분석 데이터 없음 — 위 "그래프 분석 요청" 버튼으로 요청하세요</div>
     </div>
   </div>
 
@@ -305,29 +305,33 @@ function escHtml(t) {
 }
 
 async function requestAnalysis() {
-  await sendPayload({ action: 'graph_analysis', content: 'InfraNodus 전체 그래프 건강도 분석 및 갭 감지 요청' });
-  alert('분석 요청이 전송되었습니다. #jh-chris 채널에서 결과를 확인하세요.');
+  const ok = await sendPayload({ action: 'graph_analysis', content: 'InfraNodus 전체 그래프 건강도 분석 및 갭 감지 요청' });
+  alert(ok ? '분석 요청이 전송되었습니다. #jh-chris 채널에서 결과를 확인하세요.'
+           : '이 기능은 로컬 서버(집 PC) 연결 시에만 작동합니다. Discord #jh-chris 채널에서 직접 요청하세요.');
 }
 
 async function requestBridge() {
-  await sendPayload({ action: 'graph_bridge', content: '현재 지식 그래프의 약한 연결 영역 브릿지 제안 요청' });
-  alert('브릿지 제안 요청이 전송되었습니다.');
+  const ok = await sendPayload({ action: 'graph_bridge', content: '현재 지식 그래프의 약한 연결 영역 브릿지 제안 요청' });
+  alert(ok ? '브릿지 제안 요청이 전송되었습니다.'
+           : '이 기능은 로컬 서버(집 PC) 연결 시에만 작동합니다. Discord #jh-chris 채널에서 직접 요청하세요.');
 }
 
 async function fillGap(topic) {
-  await sendPayload({ action: 'graph_fill_gap', content: `지식 갭 채우기: ${topic}`, topic });
-  alert(`"${topic}" 갭 채우기 요청을 전송했습니다.`);
+  const ok = await sendPayload({ action: 'graph_fill_gap', content: `지식 갭 채우기: ${topic}`, topic });
+  alert(ok ? `"${topic}" 갭 채우기 요청을 전송했습니다.`
+           : '이 기능은 로컬 서버(집 PC) 연결 시에만 작동합니다. Discord #jh-chris 채널에서 직접 요청하세요.');
 }
 
 async function sendPayload(extra) {
   const payload = { source: 'chris-dashboard', target_channel: 'jh-chris', source_dashboard_url: location.href, ...extra };
   try {
-    await fetch(INTAKE, {
+    const r = await fetch(INTAKE, {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
-  } catch(e) { console.warn('전송 실패:', e.message); }
+    return r.ok;
+  } catch(e) { console.warn('전송 실패:', e.message); return false; }
 }
 
 function refresh() { loadGraphStatus(); }
