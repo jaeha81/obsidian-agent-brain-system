@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18 08:02:52",
+  "generated_at": "2026-07-19 08:00:12",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -62,16 +62,477 @@
     }
   ],
   "change_timeline": {
-    "commits": [],
-    "by_area": {}
+    "commits": [
+      {
+        "commit": "3075dc4",
+        "date": "2026-07-18",
+        "subject": "feat: 디스코드 제어 배관 절반 — Supabase 큐 연결 (대시보드↔큐)",
+        "areas": [
+          "dashboard",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "a40fad5",
+        "date": "2026-07-18",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-18 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "334bb11",
+        "date": "2026-07-17",
+        "subject": "fix: 죽은 라이브 정직화 P1 잔여 (codex·chris 가짜 성공 alert 제거)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "3222431",
+        "date": "2026-07-17",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-17 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "5a933ef",
+        "date": "2026-07-16",
+        "subject": "fix: 죽은 라이브 페이지 정직화 (크몽 404·쇼츠 가짜DEMO·위시켓 확인중멈춤)",
+        "areas": [
+          "dashboard",
+          "kmong"
+        ]
+      },
+      {
+        "commit": "d2546d0",
+        "date": "2026-07-16",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-16 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "129c0f5",
+        "date": "2026-07-16",
+        "subject": "fix: 오늘의플러스 split-brain 해소 + 상태 대시보드 매일 갱신 편입",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "daily-plus"
+        ]
+      },
+      {
+        "commit": "a5343e2",
+        "date": "2026-07-16",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-16 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "4b67917",
+        "date": "2026-07-16",
+        "subject": "fix: 봇 워치독 런처가 검증된 Python312를 명시 사용 (bare python 스텁/3.14 오탐 방지)",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "9bd6121",
+        "date": "2026-07-16",
+        "subject": "fix: 디스코드 봇 .env BOM 때문에 토큰이 빈 문자열로 로드되던 버그 수정",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "e8e37cc",
+        "date": "2026-07-16",
+        "subject": "fix: 대시보드 split-brain 해소 — 생성기가 오라클 라이브 태스크 읽음",
+        "areas": [
+          "daily-plus",
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "6f3a06e",
+        "date": "2026-07-15",
+        "subject": "feat: 공유 네비게이션에 시스템상태 링크 추가",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "2114994",
+        "date": "2026-07-15",
+        "subject": "feat: 버키 브레인 대시보드에 시스템 상태 한눈 보기 추가",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "caf697e",
+        "date": "2026-07-15",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-15 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "5ddf206",
+        "date": "2026-07-15",
+        "subject": "fix: 테스트가 실 사용량 원장을 오염시켜 공개 대시보드에 허수를 게시하던 경로 차단 + G5/G6 비차단 권고 이행",
+        "areas": [
+          "dashboard",
+          "other"
+        ]
+      },
+      {
+        "commit": "1ca03ff",
+        "date": "2026-07-14",
+        "subject": "fix: 0cff94a가 제거한 로그인 복원 — Vercel에서는 정상 작동하는 인증이었다",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "0cff94a",
+        "date": "2026-07-14",
+        "subject": "fix: 체크리스트 공개 노출 차단 — 공개 미러를 암호문으로만 게시",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "e669503",
+        "date": "2026-07-14",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-14 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "23231df",
+        "date": "2026-07-13",
+        "subject": "fix: 체크리스트 이중경로 근본수선 — 읽기 실패가 데이터 삭제로 번지던 경로 제거",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "c222824",
+        "date": "2026-07-13",
+        "subject": "chore: 워킹트리 정리 — 미추적 17건 분류 + 파이프라인 소스/산출물 쌍 동기화",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "dashboard",
+          "knowledge-vault",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "5dfee7e",
+        "date": "2026-07-13",
+        "subject": "docs: G6 통과 — 재검수 #4 PASS + 비차단 지적 2건 이행",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "259a50b",
+        "date": "2026-07-13",
+        "subject": "fix: G6 재검수 #3 지적 이행 — 신규 노트 원자적 게시(부분 쓰기 노출 제거)",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "1e950a3",
+        "date": "2026-07-13",
+        "subject": "fix: G6 재검수 #2 지적 이행 — 병합 멱등화 + 신규 노트 원자적 생성(O_EXCL)",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "0f2e41d",
+        "date": "2026-07-13",
+        "subject": "fix: G6 재검수 #1 지적 이행 — 재실행 노트 덮어쓰기 결함 제거 (never-overwrite)",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "ec6a0d1",
+        "date": "2026-07-13",
+        "subject": "fix: G6 필수수정 이행 — 병합 provenance / sidecar 실패 격리 / process_batch 통합 테스트",
+        "areas": [
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "c47d294",
+        "date": "2026-07-13",
+        "subject": "fix: Stage 20 테스트가 anthropic SDK 미설치 환경에서 실행 불가하던 문제",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "274219e",
+        "date": "2026-07-13",
+        "subject": "docs: Stage 20·21 완료 반영 + V3 플랜 상태표 실제 커밋 기준 동기화",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "15e65b8",
+        "date": "2026-07-13",
+        "subject": "feat: Stage 21 — Bucky 브레인 현황 대시보드 생성기 + agents.yaml PyYAML 비의존 파서",
+        "areas": [
+          "daily-plus",
+          "dashboard",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "772e28b",
+        "date": "2026-07-13",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-13 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "ad78af5",
+        "date": "2026-07-13",
+        "subject": "feat: Stage 20 — 01_RAW provenance 필드 + sidecar 처리 인덱스",
+        "areas": [
+          "instruction-authority",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "7490302",
+        "date": "2026-07-12",
+        "subject": "docs: G5 재검증 PASS 전사(§6) + 백로그 G5 완전 통과 반영",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "248eb47",
+        "date": "2026-07-12",
+        "subject": "fix: G5 필수수정 이행 — task_tiers에 default 명시 등록(T3) + 라우터 어휘 포함 회귀 테스트",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "8d98121",
+        "date": "2026-07-12",
+        "subject": "docs: G5 Codex 검수 결과 전사 — 조건부 통과 (필수수정 2건, P2)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "a68f945",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 19 완료 반영 — 백로그 상태 갱신 (ab68c09)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "ab68c09",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 19 — worker 정책 shadow 상담 배선 + 예산 경고 (P0-6,7)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "b41057d",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 18 완료 반영 — 백로그 상태 갱신 (72242a6)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "72242a6",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 18 — policy_rules.yaml + policy_engine 순수 함수 (P0-6, 미배선)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "04d3b7f",
+        "date": "2026-07-12",
+        "subject": "docs: G4 필수수정 이행 반영 — 백로그 G4 행 통과로 갱신 (0c43835)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "0c43835",
+        "date": "2026-07-12",
+        "subject": "fix: G4 필수수정 — model_decision 방출을 실행 provider 확정 직후로 이동 (selected_provider 실일치)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "86e5e92",
+        "date": "2026-07-12",
+        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-12 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "8193fa6",
+        "date": "2026-07-12",
+        "subject": "docs: G4 게이트 결과 전사 — Codex 검수 #3 조건부 통과 (Phase B: 10·15·16·17)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "2150ea6",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 17 완료 반영 — 백로그 상태 갱신 (a79994d)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "a79994d",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 17 — worker 어댑터 디스패치 배선 (플래그 기본 off, P0-5·8·11)",
+        "areas": [
+          "other"
+        ]
+      },
+      {
+        "commit": "103269f",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 16 완료 반영 — 백로그 상태 갱신 (f70c430)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "f70c430",
+        "date": "2026-07-12",
+        "subject": "feat: Stage 16 — Task/Goal/Project 레지스트리 최소판 (P0-3)",
+        "areas": [
+          "knowledge-vault",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "8abb27c",
+        "date": "2026-07-12",
+        "subject": "docs: Stage 15 완료 반영 — 백로그 상태 갱신 (8a88256)",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "8a88256",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 15 — 통합 이벤트 로그 event_log.py (emit + model_decision 스키마 정합)",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "d92e2a0",
+        "date": "2026-07-11",
+        "subject": "docs: Stage 10 완료 반영 — 백로그 상태·오픈 퀘스천 2 확정·감사 S1 이행 전사",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "0455040",
+        "date": "2026-07-11",
+        "subject": "feat: Stage 10 — usage_ledger 원장 + gbrain 토큰 하드코딩 핫픽스 (P0-7)",
+        "areas": [
+          "bucky-discord-daily-plus",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "270774c",
+        "date": "2026-07-11",
+        "subject": "fix: user_checklist.json 유실 복구 — 마스터 리스트 75건 복원 + 자동감지 2건 병합",
+        "areas": [
+          "dashboard"
+        ]
+      }
+    ],
+    "by_area": {
+      "dashboard": 282,
+      "workflow-expansion": 136,
+      "charlie": 23,
+      "kmong": 9,
+      "bucky-discord-daily-plus": 71,
+      "daily-plus": 24,
+      "other": 153,
+      "knowledge-vault": 70,
+      "instruction-authority": 15,
+      "authentication": 13,
+      "support-tooling": 8,
+      "google-revenue-dashboard": 5,
+      "discord-runtime": 2
+    }
   },
   "git_status": {
-    "changed_count": 12,
+    "changed_count": 8,
     "by_area": {
-      "dashboard": 7,
-      "workflow-expansion": 3,
+      "dashboard": 4,
+      "workflow-expansion": 1,
       "knowledge-vault": 1,
-      "other": 1
+      "other": 2
     }
   },
   "runtime_status": {
@@ -99,12 +560,12 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260717_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-18 08:00"
+      "latest_outbox": "20260718_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-19 08:00"
     },
     "daily_plus_dashboard": {
-      "latest_date": "2026-07-17",
-      "mtime": "2026-07-17 09:03"
+      "latest_date": "2026-07-18",
+      "mtime": "2026-07-18 09:03"
     }
   },
   "operational_checks": [

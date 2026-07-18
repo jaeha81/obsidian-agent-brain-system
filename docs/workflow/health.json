@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-17T23:03:01+00:00",
+  "generated_at": "2026-07-18T23:00:17+00:00",
   "global": {
     "tasks_total": 77,
     "tasks_pending": 33,
     "tasks_blocked": 0,
-    "bot_pid_minutes": 3272.69670795997,
-    "bot_log_minutes": 36061.922891294955
+    "bot_pid_minutes": 4709.9624750256535,
+    "bot_log_minutes": 37499.18865836064
   },
   "runtime": [
     {
       "id": "discord_bot",
       "status": "warn",
-      "msg": "PID 54h old"
+      "msg": "PID 78h old"
     },
     {
       "id": "chat_server",
       "status": "warn",
-      "msg": "log 50931m idle"
+      "msg": "log 52369m idle"
     }
   ],
   "agents": {
@@ -35,7 +35,7 @@
     "claude-code": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -61,7 +61,7 @@
     "repo": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -75,7 +75,7 @@
     "kmong": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -83,7 +83,7 @@
     "chsh-mining": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -91,7 +91,7 @@
     "threads": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -99,7 +99,7 @@
     "my-dev": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
@@ -107,7 +107,7 @@
     "charlie": {
       "status": "warn",
       "warnings": [
-        "dashboard stale 17d"
+        "dashboard stale 18d"
       ],
       "errors": [],
       "active_tasks": 0
