@@ -58,10 +58,13 @@ def _http(method: str, url: str, *, data: dict | None = None, headers: dict | No
         return exc.code, exc.read().decode("utf-8", "replace")
 
 
+AGENTS = ",".join(sorted({AGENT, "wishket"}))
+
+
 def fetch_pending(limit: int = BATCH) -> list[dict]:
     url = (
         f"{SUPABASE_URL}/rest/v1/{TABLE}"
-        f"?agent=eq.{AGENT}&status=eq.pending&order=created_at.asc&limit={limit}"
+        f"?agent=in.({AGENTS})&status=eq.pending&order=created_at.asc&limit={limit}"
     )
     status, text = _http("GET", url, headers=_headers())
     if status != 200:
@@ -89,6 +92,20 @@ def record_result(row_id: str, review_text: str) -> None:
         raise RuntimeError(f"record_result {status}: {text[:300]}")
 
 
+def record_done(row_id: str, result_text: str) -> None:
+    """Auto-complete rows that need no human verdict (e.g. bid-state sync)."""
+    url = f"{SUPABASE_URL}/rest/v1/{TABLE}?id=eq.{row_id}"
+    body = {
+        "status": "passed",
+        "result": result_text[:20000],
+        "error": None,
+        "completed_at": now_iso(),
+    }
+    status, text = _http("PATCH", url, data=body, headers=_headers())
+    if status not in (200, 204):
+        raise RuntimeError(f"record_done {status}: {text[:300]}")
+
+
 def record_failure(row_id: str, detail: str) -> None:
     url = f"{SUPABASE_URL}/rest/v1/{TABLE}?id=eq.{row_id}"
     body = {
@@ -102,8 +119,72 @@ def record_failure(row_id: str, detail: str) -> None:
         raise RuntimeError(f"record_failure {status}: {text[:300]}")
 
 
+def process_wishket(row: dict) -> str:
+    """Wishket dashboard actions — reuses the bot's proposal/tracker modules (scripts/ is on sys.path)."""
+    row_id = row["id"]
+    payload = row.get("payload") or {}
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except Exception:
+            payload = {}
+    action = (row.get("action") or "").strip()
+    project = {
+        "title": payload.get("project_title") or payload.get("title") or row.get("title") or "",
+        "link": payload.get("url") or "",
+        "budget": payload.get("budget") or "미정",
+        "budget_wan": payload.get("budget_wan") or 0,
+        "description": payload.get("summary") or "",
+    }
+    try:
+        if action == "wishket_proposal":
+            import wishket_proposal_generator as wpg
+
+            text = wpg.generate_proposal_via_claude(project)
+            path = wpg.save_proposal(project, text)
+            record_result(row_id, f"{text}\n\n---\n저장: {path}")
+            return "reviewed"
+
+        if action == "wishket_bid":
+            import bucky_wishket_agent as bwa
+
+            state = (payload.get("state") or "").strip()
+            link = (project["link"] or "").rstrip("/")
+            tracker = bwa.load_tracker()
+            entry = None
+            if link:
+                entry = next(
+                    (b for b in tracker.get("bids", []) if (b.get("link") or "").rstrip("/") == link),
+                    None,
+                )
+            if state == "bid" and entry is None:
+                # record_bid는 stats 키를 전제하므로 구버전 tracker.json에 기본값을 채워둔다
+                if "stats" not in tracker:
+                    tracker["stats"] = {"total_bids": 0, "won": 0, "revenue_wan": 0}
+                    bwa.save_tracker(tracker)
+                bwa.record_bid(project, proposal_file="")
+            elif entry is not None:
+                new_status = {"bid": "submitted", "won": "won", "lost": "lost", "new": "submitted"}.get(state)
+                if new_status:
+                    entry["status"] = new_status
+                    if state == "won" and not entry.get("won_at"):
+                        entry["won_at"] = now_iso()
+                    bwa.save_tracker(tracker)
+            stats_msg = bwa.format_stats_message(bwa.get_stats())
+            record_done(row_id, f"응찰 상태 동기 완료: {project['title'][:50]} → {state}\n{stats_msg}")
+            return "done"
+
+        record_failure(row_id, f"unknown wishket action: {action}")
+        return "failed"
+    except Exception as exc:  # noqa: BLE001 - record any failure to the queue
+        record_failure(row_id, str(exc))
+        return "failed"
+
+
 def process(row: dict) -> str:
     row_id = row["id"]
+    if (row.get("agent") or "").strip() == "wishket":
+        return process_wishket(row)
     content = (row.get("content") or row.get("title") or "").strip()
     if not content:
         record_failure(row_id, "empty content in queue row")

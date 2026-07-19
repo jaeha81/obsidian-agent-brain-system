@@ -58,6 +58,22 @@ PROPOSAL_USER_TEMPLATE = """다음 프로젝트에 대한 제안서를 작성해
 제안서를 한국어로 작성해주세요."""
 
 
+def _resolve_claude_cmd() -> str:
+    """CLAUDE_COMMAND가 버전 폴더 고정 경로일 때, CLI 자동업데이트로 폴더가 바뀌면 같은 위치의 최신 버전을 찾는다."""
+    cmd = os.getenv("CLAUDE_COMMAND", "claude")
+    p = Path(cmd)
+    if p.is_absolute() and not p.exists():
+        candidates = list(p.parent.parent.glob("*/claude.exe"))
+        if candidates:
+            def vkey(x: Path):
+                try:
+                    return tuple(int(n) for n in x.parent.name.split("."))
+                except ValueError:
+                    return (0,)
+            return str(max(candidates, key=vkey))
+    return cmd
+
+
 def generate_proposal_via_claude(project: dict) -> str:
     """Claude CLI를 통해 제안서 생성."""
     user_prompt = PROPOSAL_USER_TEMPLATE.format(
@@ -74,7 +90,7 @@ def generate_proposal_via_claude(project: dict) -> str:
 
     env = os.environ.copy()
     env["BUCKY_SUBPROCESS"] = "1"
-    claude_cmd = os.getenv("CLAUDE_COMMAND", "claude")
+    claude_cmd = _resolve_claude_cmd()
 
     try:
         result = subprocess.run(

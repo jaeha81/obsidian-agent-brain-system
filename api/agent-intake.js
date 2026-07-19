@@ -1,6 +1,7 @@
 // POST /api/agent-intake
 // 대시보드/디스코드 명령을 Supabase agent_commands 큐에 삽입·갱신한다.
 // 지원 action: codex_review(신규), codex_rereview, codex_mark_pass, codex_mark_fail
+//             wishket_proposal(제안서 생성 요청), wishket_bid(응찰 상태 동기) — agent='wishket' 큐 행 삽입
 // 로그인 쿠키(bucky_auth == SESSION_TOKEN) 검증. Supabase 접근은 service_role 키(서버 전용).
 function parseCookies(header) {
   const cookies = {};
@@ -58,6 +59,35 @@ export default async function handler(req, res) {
         title: String(body.content).slice(0, 80),
         content: String(body.content),
         source: body.source === 'discord' ? 'discord' : 'dashboard',
+        status: 'pending',
+        payload: body,
+      };
+      const r = await fetch(`${url}/rest/v1/agent_commands`, {
+        method: 'POST',
+        headers: { ...H, Prefer: 'return=representation' },
+        body: JSON.stringify(row),
+      });
+      if (!r.ok) {
+        res.status(502).json({ error: 'insert failed', detail: await r.text() });
+        return;
+      }
+      const inserted = await r.json();
+      res.status(200).json({ ok: true, id: inserted[0] && inserted[0].id });
+      return;
+    }
+
+    if (action === 'wishket_proposal' || action === 'wishket_bid') {
+      const title = String(body.project_title || body.title || '').trim();
+      if (!title) {
+        res.status(400).json({ error: 'project_title required' });
+        return;
+      }
+      const row = {
+        agent: 'wishket',
+        action,
+        title: title.slice(0, 80),
+        content: [title, body.budget, body.state, body.url].filter(Boolean).join(' | '),
+        source: 'dashboard',
         status: 'pending',
         payload: body,
       };

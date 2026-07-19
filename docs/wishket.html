@@ -191,6 +191,14 @@
       <div class="empty-state">이력을 불러오는 중…</div>
     </div>
   </div>
+
+  <!-- 에이전트 세션 (Supabase 큐 — 집PC worker 처리 결과) -->
+  <div class="panel">
+    <p class="panel-title">에이전트 세션 — 제안서 큐 (최근 20건) <button class="action-btn" style="float:right" onclick="loadWkSessions()">새로고침</button></p>
+    <div id="wk-session-wrap">
+      <div class="empty-state">세션을 불러오는 중…</div>
+    </div>
+  </div>
 </main>
 
 <!-- 제안서 모달 -->
@@ -342,16 +350,24 @@ function saveState(id, state) {
   const all = loadStates();
   all[id] = { ...all[id], state, updatedAt: new Date().toISOString() };
   localStorage.setItem(WK_STATE_KEY, JSON.stringify(all));
+  const p = PROJECTS.find(x => x.id === id) || {};
   // Bucky 서버에도 동기 — tracker.json 영구 저장
   const bucky = getWkBuckyEndpoint();
   if (bucky) {
-    const p = PROJECTS.find(x => x.id === id) || {};
     fetch(bucky + '/wishket/bid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, link: p.link || '', title: p.title || id, state, budget: p.budget || '' })
     }).catch(() => {});
   }
+  // Vercel 큐에도 동기 — 집PC worker가 tracker.json에 영구 기록 (라이브 경로)
+  postToAgentIntake('wishket_bid', {
+    project_title: p.title || id,
+    url: p.link || '',
+    budget: p.budget || '',
+    budget_wan: p.budget_wan || 0,
+    state
+  }).catch(() => {});
 }
 function getProjectState(id) {
   // tracker.json 주입 상태 우선, 없으면 localStorage fallback
@@ -387,6 +403,18 @@ function getWkWebhookUrl() {
   return localStorage.getItem(WK_WH_URL_KEY) || localStorage.getItem('bucky-webhook') || localStorage.getItem('wh_url') || '';
 }
 
+// ── Vercel 큐 배관 — 배포된 /api/agent-intake (로그인 쿠키 인증, 집PC worker가 처리) ──
+async function postToAgentIntake(action, payload) {
+  const res = await fetch('/api/agent-intake', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, action })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json().catch(() => ({}));
+}
+
 async function postToIntake(payload) {
   const base = getWkBuckyEndpoint();
   if (base) {
@@ -416,11 +444,6 @@ async function sendWkWebhook(url, content) {
 async function requestWishketProposal(id) {
   const p = PROJECTS.find(x => x.id === id);
   if (!p) return;
-  const base = getWkBuckyEndpoint();
-  if (!base && !location.hostname.match(/^(localhost|127\.0\.0\.1)/) && !location.hostname.endsWith('.ts.net')) {
-    showWkToast('Bucky 연결 필요', '설정(⚙️)에서 Bucky URL을 입력하세요 (예: https://PC명.ts.net:8443)');
-    return;
-  }
   const linkId = ((p.link||'').match(/\/project\/(\d+)\/?/)||[])[1] || id;
   // target_channel: 'jh-위시켓'
   const payload = {
@@ -439,6 +462,19 @@ async function requestWishketProposal(id) {
     url:p.link||'',
     created_at:new Date().toISOString()
   };
+  // 1순위: 배포된 Vercel 큐 API — 집PC worker가 제안서 생성 후 아래 세션 패널에 결과 표시
+  try {
+    await postToAgentIntake('wishket_proposal', payload);
+    showWkToast('제안서 착수', '큐 접수 완료 — 하단 "에이전트 세션"에서 결과 확인 (약 1분)');
+    setTimeout(loadWkSessions, 1500);
+    return;
+  } catch (_) {}
+  // 2순위: 로컬/Tailscale Bucky 서버 또는 Discord 웹훅 (기존 경로)
+  const base = getWkBuckyEndpoint();
+  if (!base && !location.hostname.match(/^(localhost|127\.0\.0\.1)/) && !location.hostname.endsWith('.ts.net')) {
+    showWkToast('Bucky 연결 필요', '로그인 후 다시 시도하거나, 설정(⚙️)에서 Bucky URL을 입력하세요');
+    return;
+  }
   try {
     await postToIntake(payload);
     showWkToast('제안서 착수', p.title.slice(0,30) + ' → jh-위시켓');
@@ -758,6 +794,45 @@ function renderLoopHistory(history) {
   </table>`;
 }
 
+// ── 에이전트 세션 패널 — /api/agent-sessions?agent=wishket (codex 뷰 재사용) ──
+let WK_SESSIONS = [];
+function wkEsc(t) {
+  return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+async function loadWkSessions() {
+  const wrap = document.getElementById('wk-session-wrap');
+  try {
+    const r = await fetch('/api/agent-sessions?agent=wishket', { credentials:'include', cache:'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    WK_SESSIONS = (data.sessions || []).slice(0, 20);
+    if (!WK_SESSIONS.length) {
+      wrap.innerHTML = '<div class="empty-state">아직 큐 세션이 없습니다 — "제안서 만들기" 버튼으로 요청하세요.</div>';
+      return;
+    }
+    const STATUS_LABEL = { pending:'대기 중', reviewing:'처리 중', passed:'완료', failed:'실패' };
+    wrap.innerHTML = '<table><thead><tr><th>시각</th><th>제목</th><th>상태</th><th>결과</th></tr></thead><tbody>' +
+      WK_SESSIONS.map((s, i) => {
+        const status = (s.result && s.status === 'reviewing') ? '결과 도착' : (STATUS_LABEL[s.status] || s.status || '');
+        return `<tr>
+          <td>${wkEsc(s.created)}</td>
+          <td>${wkEsc((s.title || '').slice(0, 40))}</td>
+          <td>${wkEsc(status)}</td>
+          <td>${s.result ? `<button class="action-btn" onclick="showWkSessionResult(${i})">결과 보기</button>` : '—'}</td>
+        </tr>`;
+      }).join('') + '</tbody></table>';
+  } catch (e) {
+    wrap.innerHTML = '<div class="empty-state">세션 로드 실패 (' + wkEsc(e.message) + ') — 라이브 로그인 상태에서만 동작합니다.</div>';
+  }
+}
+function showWkSessionResult(i) {
+  const s = WK_SESSIONS[i];
+  if (!s) return;
+  document.getElementById('proposal-title').textContent = s.title || '큐 결과';
+  document.getElementById('proposal-body').textContent = s.result || '';
+  document.getElementById('proposal-overlay').classList.add('open');
+}
+
 // Load loop history from API or inline
 (function initLoopHistory() {
   fetch('/api/agent-os/health', {cache:'no-store'})
@@ -780,6 +855,7 @@ function renderLoopHistory(history) {
 updateStats();
 renderProjects(PROJECTS);
 loadLoopHistory();
+loadWkSessions();
 </script>
 
 <div data-dashboard-results="wishket" style="display:none">
