@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19 08:00:12",
+  "generated_at": "2026-07-20 08:00:15",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,40 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "76b9680",
+        "date": "2026-07-20",
+        "subject": "feat: 배관 복제 1호 — 위시켓 대시보드를 Supabase 큐에 연결",
+        "areas": [
+          "dashboard",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "63014ad",
+        "date": "2026-07-19",
+        "subject": "feat: 디스코드→큐 배선 — /codex queue 서브커맨드 (제어 배관 갈래 A)",
+        "areas": [
+          "bucky-discord-daily-plus"
+        ]
+      },
+      {
+        "commit": "f55b8a3",
+        "date": "2026-07-19",
+        "subject": "feat: Supabase 큐 worker — codex 리뷰 소비자 (디스코드 제어 배관 갈래 A)",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "990095c",
+        "date": "2026-07-19",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-19 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "3075dc4",
         "date": "2026-07-18",
@@ -473,49 +507,14 @@
         "areas": [
           "dashboard"
         ]
-      },
-      {
-        "commit": "8a88256",
-        "date": "2026-07-11",
-        "subject": "feat: Stage 15 — 통합 이벤트 로그 event_log.py (emit + model_decision 스키마 정합)",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "d92e2a0",
-        "date": "2026-07-11",
-        "subject": "docs: Stage 10 완료 반영 — 백로그 상태·오픈 퀘스천 2 확정·감사 S1 이행 전사",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "0455040",
-        "date": "2026-07-11",
-        "subject": "feat: Stage 10 — usage_ledger 원장 + gbrain 토큰 하드코딩 핫픽스 (P0-7)",
-        "areas": [
-          "bucky-discord-daily-plus",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "270774c",
-        "date": "2026-07-11",
-        "subject": "fix: user_checklist.json 유실 복구 — 마스터 리스트 75건 복원 + 자동감지 2건 병합",
-        "areas": [
-          "dashboard"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 282,
-      "workflow-expansion": 136,
-      "charlie": 23,
+      "dashboard": 284,
+      "workflow-expansion": 138,
+      "bucky-discord-daily-plus": 72,
+      "charlie": 24,
       "kmong": 9,
-      "bucky-discord-daily-plus": 71,
       "daily-plus": 24,
       "other": 153,
       "knowledge-vault": 70,
@@ -527,11 +526,11 @@
     }
   },
   "git_status": {
-    "changed_count": 8,
+    "changed_count": 7,
     "by_area": {
-      "dashboard": 4,
+      "knowledge-vault": 2,
+      "dashboard": 2,
       "workflow-expansion": 1,
-      "knowledge-vault": 1,
       "other": 2
     }
   },
@@ -542,8 +541,8 @@
     },
     "bot_pid_file": {
       "valid": false,
-      "pid": 38736,
-      "raw_preview": "38736"
+      "pid": 115316,
+      "raw_preview": "115316"
     },
     "supervisor_pid_file": {
       "valid": false,
@@ -561,7 +560,7 @@
     },
     "daily_plus_bridge": {
       "latest_outbox": "20260718_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-19 08:00"
+      "latest_sent": "2026-07-20 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-07-18",
