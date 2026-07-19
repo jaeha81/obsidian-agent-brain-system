@@ -2489,6 +2489,47 @@ def _register_wishket_commands(tree: app_commands.CommandTree) -> None:
 
 # ── Codex 명령어 ──────────────────────────────────────────────────────────────
 
+def _enqueue_codex_review(content: str, source: str = "discord") -> str:
+    """디스코드 명령을 Supabase agent_commands 큐에 pending 행으로 삽입한다.
+
+    집PC worker(scripts/supabase_queue_worker.py)가 claim → Codex 실행 → 결과를
+    대시보드에 표시한다. 행 구조는 api/agent-intake.js와 동일하게 맞춘다.
+    봇과 worker가 같은 집PC에서 같은 service_role 키를 쓰므로 Vercel(intake) 홉
+    없이 직접 삽입한다(SESSION_TOKEN 불필요). 반환값은 삽입된 행 id."""
+    import urllib.request  # 로컬 import — STT 후처리와 동일한 코드베이스 관례
+
+    url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    if not url or not key:
+        raise RuntimeError("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 미설정 (.env 확인)")
+
+    row = {
+        "agent": "codex",
+        "action": "codex_review",
+        "title": content[:80],
+        "content": content,
+        "source": source,
+        "status": "pending",
+        "payload": {"action": "codex_review", "content": content, "source": source},
+    }
+    req = urllib.request.Request(
+        f"{url}/rest/v1/agent_commands",
+        data=_json_mod.dumps(row).encode("utf-8"),
+        headers={
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        data = _json_mod.loads(resp.read().decode("utf-8"))
+    if not data:
+        raise RuntimeError("큐 삽입 응답이 비어 있음")
+    return data[0]["id"]
+
+
 def _register_codex_commands(tree: app_commands.CommandTree) -> None:
     """Discord /codex_review — 지정 파일 또는 최근 커밋 변경 파일을 Codex가 검수."""
 
@@ -2558,6 +2599,23 @@ def _register_codex_commands(tree: app_commands.CommandTree) -> None:
             await interaction.followup.send("\n".join(lines))
         except Exception as e:
             await interaction.followup.send(f"⚠️ log 조회 오류: {e}")
+
+    @codex_group.command(name="queue", description="Codex 검수를 큐에 등록 (비동기 · 결과는 대시보드에 표시)")
+    @app_commands.describe(text="검수할 내용/요청 (코드·diff·설명)")
+    async def codex_queue(interaction: discord.Interaction, text: str) -> None:
+        await interaction.response.defer(thinking=True)
+        try:
+            content = text.strip()
+            if not content:
+                await interaction.followup.send("⚠️ 검수할 내용을 입력하세요")
+                return
+            row_id = await asyncio.to_thread(_enqueue_codex_review, content, "discord")
+            await interaction.followup.send(
+                f"✅ 큐 등록 — `{row_id}`\n"
+                f"집PC worker가 곧 Codex 검수를 실행합니다. 결과는 코덱스 대시보드에 표시됩니다."
+            )
+        except Exception as e:
+            await interaction.followup.send(f"⚠️ codex queue 오류: {e}")
 
     tree.add_command(codex_group)
 
