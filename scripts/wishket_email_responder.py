@@ -246,10 +246,17 @@ def generate_reply_draft(email_data: dict) -> str:
     full_prompt = f"{REPLY_SYSTEM_PROMPT}\n\n{user_prompt}"
     env = os.environ.copy()
     env["BUCKY_SUBPROCESS"] = "1"
+    # claude.ai 구독 로그인으로 실행되도록 API 키 인증을 제거한다.
+    # (.env의 ANTHROPIC_API_KEY는 잔액 부족 → claude -p가 "Credit balance is too low"로 실패)
+    for _k in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_API_KEY"):
+        env.pop(_k, None)
+
+    sys.path.insert(0, str(Path(__file__).parent))
+    from wishket_proposal_generator import _resolve_claude_cmd
 
     try:
         result = subprocess.run(
-            ["claude", "--dangerously-skip-permissions", "-p", full_prompt],
+            [_resolve_claude_cmd(), "--dangerously-skip-permissions", "-p", full_prompt],
             capture_output=True,
             text=True,
             encoding="utf-8",
