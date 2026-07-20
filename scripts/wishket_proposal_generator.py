@@ -90,6 +90,10 @@ def generate_proposal_via_claude(project: dict) -> str:
 
     env = os.environ.copy()
     env["BUCKY_SUBPROCESS"] = "1"
+    # claude.ai 구독 로그인으로 실행되도록 API 키 인증을 제거한다.
+    # (.env의 ANTHROPIC_API_KEY는 잔액 부족 → claude -p가 "Credit balance is too low"로 실패)
+    for _k in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_API_KEY"):
+        env.pop(_k, None)
     claude_cmd = _resolve_claude_cmd()
 
     try:
