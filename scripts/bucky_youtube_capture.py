@@ -174,8 +174,9 @@ def _fetch_transcript_ytdlp(video_id: str) -> str:
             ydl_opts = {
                 "quiet": True,
                 "no_warnings": True,
+                "ignoreerrors": True,
                 "skip_download": True,
-                "writeautosub": True,
+                "writeautomaticsub": True,
                 "writesubtitles": True,
                 "subtitleslangs": ["ko", "en", "ko-KR"],
                 "subtitlesformat": "vtt",
@@ -185,17 +186,15 @@ def _fetch_transcript_ytdlp(video_id: str) -> str:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
 
-            for sub_file in sorted(Path(tmpdir).glob(f"{video_id}*.vtt")):
-                text = _parse_subtitle_text(sub_file.read_text(encoding="utf-8", errors="replace"), "vtt")
-                if text:
-                    print(f"[YouTube] yt-dlp 자막 성공: {sub_file.name}", flush=True)
-                    return text
-
-            for sub_file in sorted(Path(tmpdir).glob(f"{video_id}*.srt")):
-                text = _parse_subtitle_text(sub_file.read_text(encoding="utf-8", errors="replace"), "srt")
-                if text:
-                    print(f"[YouTube] yt-dlp SRT 자막 성공: {sub_file.name}", flush=True)
-                    return text
+            for lang in ["ko", "ko-KR", "en"]:
+                for ext in ["vtt", "srt"]:
+                    sub_file = Path(tmpdir) / f"{video_id}.{lang}.{ext}"
+                    if not sub_file.exists():
+                        continue
+                    text = _parse_subtitle_text(sub_file.read_text(encoding="utf-8", errors="replace"), ext)
+                    if text:
+                        print(f"[YouTube] yt-dlp 자막 성공: {sub_file.name}", flush=True)
+                        return text
     except Exception as e:
         print(f"[YouTube] yt-dlp 자막 폴백 실패: {e}", flush=True)
     return ""
