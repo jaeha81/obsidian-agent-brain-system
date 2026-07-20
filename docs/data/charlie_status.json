@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20 08:00:15",
+  "generated_at": "2026-07-21 08:00:12",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,31 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "7fc44e4",
+        "date": "2026-07-20",
+        "subject": "fix: 이메일 응답기 — claude 서브프로세스 API키 제거 + CLI 경로 자동탐색",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "3d9d369",
+        "date": "2026-07-20",
+        "subject": "fix: 위시켓 제안서 생성기 — claude 서브프로세스에서 API키 제거(구독 로그인 사용)",
+        "areas": [
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "80e5f16",
+        "date": "2026-07-20",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-20 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "76b9680",
         "date": "2026-07-20",
@@ -481,39 +506,13 @@
         "areas": [
           "other"
         ]
-      },
-      {
-        "commit": "103269f",
-        "date": "2026-07-12",
-        "subject": "docs: Stage 16 완료 반영 — 백로그 상태 갱신 (f70c430)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "f70c430",
-        "date": "2026-07-12",
-        "subject": "feat: Stage 16 — Task/Goal/Project 레지스트리 최소판 (P0-3)",
-        "areas": [
-          "knowledge-vault",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "8abb27c",
-        "date": "2026-07-12",
-        "subject": "docs: Stage 15 완료 반영 — 백로그 상태 갱신 (8a88256)",
-        "areas": [
-          "dashboard"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 284,
-      "workflow-expansion": 138,
+      "workflow-expansion": 140,
+      "charlie": 25,
+      "dashboard": 285,
       "bucky-discord-daily-plus": 72,
-      "charlie": 24,
       "kmong": 9,
       "daily-plus": 24,
       "other": 153,
@@ -526,9 +525,9 @@
     }
   },
   "git_status": {
-    "changed_count": 7,
+    "changed_count": 10,
     "by_area": {
-      "knowledge-vault": 2,
+      "knowledge-vault": 5,
       "dashboard": 2,
       "workflow-expansion": 1,
       "other": 2
@@ -541,8 +540,8 @@
     },
     "bot_pid_file": {
       "valid": false,
-      "pid": 115316,
-      "raw_preview": "115316"
+      "pid": 120484,
+      "raw_preview": "120484"
     },
     "supervisor_pid_file": {
       "valid": false,
@@ -559,8 +558,8 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260718_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-20 08:00"
+      "latest_outbox": "20260720_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-21 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-07-18",
