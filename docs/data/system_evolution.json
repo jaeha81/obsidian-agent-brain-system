@@ -29,7 +29,7 @@
         "date": "2026-05-22"
       },
       "now": 78,
-      "now_date": "2026-07-21"
+      "now_date": "2026-07-22"
     },
     {
       "id": "vault_knowledge",
@@ -39,8 +39,8 @@
         "value": 0,
         "date": "2026-05-22"
       },
-      "now": 88,
-      "now_date": "2026-07-21"
+      "now": 89,
+      "now_date": "2026-07-22"
     },
     {
       "id": "scripts",
@@ -50,8 +50,8 @@
         "value": 0,
         "date": "2026-05-22"
       },
-      "now": 193,
-      "now_date": "2026-07-21"
+      "now": 196,
+      "now_date": "2026-07-22"
     },
     {
       "id": "commits",
@@ -61,8 +61,8 @@
         "value": 1,
         "date": "2026-05-22"
       },
-      "now": 698,
-      "now_date": "2026-07-21"
+      "now": 701,
+      "now_date": "2026-07-22"
     },
     {
       "id": "graph_nodes",
@@ -161,7 +161,7 @@
     }
   ],
   "meta": {
-    "last_updated": "2026-07-21",
+    "last_updated": "2026-07-22",
     "version": "1.0",
     "next_update": "매일 오전 8시 자동"
   }

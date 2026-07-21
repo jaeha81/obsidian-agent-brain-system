@@ -119,36 +119,36 @@
   <p>Codex와 Claude Code 구독 사용량, 공식 잔여량, Bucky 운영 규칙, 리셋 창 전환 기준을 한 화면에서 확인합니다.</p>
   <div class="gen-stamp">
     <span class="gen-label">페이지 생성 시각</span>
-    <time class="gen-time">2026-07-21 16:09:43 KST</time>
+    <time class="gen-time">2026-07-22 08:00:11 KST</time>
   </div>
 </header>
 <main>
   <section class="agent-grid">
 
-      <article class="agent-card balanced">
+      <article class="agent-card underused">
         <div class="agent-head">
           <h3>Claude Code</h3>
-          <span>균형</span>
+          <span>유휴</span>
         </div>
-        <p class="action"><strong>지금 할 것</strong> 균형 — 현재 배분을 유지하고 작업 단위를 작게 가져갑니다.</p>
+        <p class="action"><strong>지금 할 것</strong> 유휴 — 저위험 backlog(문서·테스트·리팩토링)를 배정합니다.</p>
         <div class="metric-grid">
-          <div><strong>0</strong><span>세션</span></div>
-          <div><strong>0</strong><span>메시지</span></div>
-          <div><strong>0.0%</strong><span>활성일</span></div>
-          <div><strong>0</strong><span>현재창 부하</span></div>
+          <div><strong>111</strong><span>세션</span></div>
+          <div><strong>16,176</strong><span>메시지</span></div>
+          <div><strong>100%</strong><span>활성일</span></div>
+          <div><strong>426</strong><span>현재창 부하</span></div>
         </div>
-        <div class="gauge-wrap"><svg class="gauge" viewBox="0 0 100 8" preserveAspectRatio="none" role="img"><rect width="100" height="8" rx="4" fill="var(--line)"/><rect width="100.0" height="8" rx="4" fill="var(--red)"/></svg><span class="gauge-label">리셋창 100% 경과 · 잔여 리셋 지남 <em class="src est">추정</em></span></div>
+        <div class="gauge-wrap"><svg class="gauge" viewBox="0 0 100 8" preserveAspectRatio="none" role="img"><rect width="100" height="8" rx="4" fill="var(--line)"/></svg><span class="gauge-label">리셋창 미수집 — 한도 이벤트/수동 입력 시 표시</span></div>
         <dl>
-          <div><dt>토큰</dt><dd>실토큰 0 · 캐시적중 0%</dd></div>
+          <div><dt>토큰</dt><dd>실토큰 15.9M · 캐시적중 100%</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 N/A / 메시지당 N/A</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.21 / 메시지당 $0.001</dd></div>
         </dl>
         <div class="official-quota">
-          <h4 class="quota-title">공식 잔여량 (Official Quota) <em class="src est">추정</em></h4>
+          <h4 class="quota-title">공식 잔여량 (Official Quota) </h4>
           <dl class="quota-dl">
-            <div><dt>한도 상태</dt><dd class="">subscription limit exceeded</dd></div>
-            <div><dt>리셋 예정</dt><dd class="">2026-07-15T02:14:19+09:00</dd></div>
-            <div><dt>리셋까지 잔여</dt><dd class="">리셋 지남</dd></div>
+            <div><dt>한도 상태</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>리셋 예정</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
+            <div><dt>리셋까지 잔여</dt><dd class="uncollected">공식 잔여량 미수집</dd></div>
           </dl>
         </div>
       </article>
@@ -161,16 +161,16 @@
         </div>
         <p class="action"><strong>지금 할 것</strong> 균형 — 현재 배분을 유지하고 작업 단위를 작게 가져갑니다.</p>
         <div class="metric-grid">
-          <div><strong>0</strong><span>세션</span></div>
-          <div><strong>0</strong><span>메시지</span></div>
-          <div><strong>0.0%</strong><span>활성일</span></div>
-          <div><strong>0</strong><span>현재창 부하</span></div>
+          <div><strong>108</strong><span>세션</span></div>
+          <div><strong>17,669</strong><span>메시지</span></div>
+          <div><strong>100%</strong><span>활성일</span></div>
+          <div><strong>353</strong><span>현재창 부하</span></div>
         </div>
         <div class="gauge-wrap"><svg class="gauge" viewBox="0 0 100 8" preserveAspectRatio="none" role="img"><rect width="100" height="8" rx="4" fill="var(--line)"/></svg><span class="gauge-label">리셋창 미수집 — 한도 이벤트/수동 입력 시 표시</span></div>
         <dl>
           <div><dt>토큰</dt><dd>미수집</dd></div>
           <div><dt>예산</dt><dd>7일 기준 $23.33, 월 $100</dd></div>
-          <div><dt>단가</dt><dd>세션당 N/A / 메시지당 N/A</dd></div>
+          <div><dt>단가</dt><dd>세션당 $0.22 / 메시지당 $0.001</dd></div>
         </dl>
         <div class="official-quota">
           <h4 class="quota-title">공식 잔여량 (Official Quota) </h4>
@@ -187,8 +187,8 @@
     <section class="panel">
       <h2>효율 신호 <span class="status-pill balanced">균형</span></h2>
       <div class="signal-grid">
-        <div class="signal-box"><h4>모델 믹스</h4><svg class="chart" viewBox="0 0 100 22" preserveAspectRatio="none" role="img"><rect x="0.00" y="0" width="0.80" height="22" fill="var(--green)"><title>Haiku 0.8%</title></rect><rect x="0.80" y="0" width="74.60" height="22" fill="var(--blue)"><title>Sonnet 74.6%</title></rect><rect x="75.40" y="0" width="24.60" height="22" fill="var(--muted)"><title>기타 24.6%</title></rect></svg><div class="legend"><span class="lg"><i style="background:var(--green)"></i>Haiku 0.8%</span><span class="lg"><i style="background:var(--blue)"></i>Sonnet 74.6%</span><span class="lg"><i style="background:var(--muted)"></i>기타 24.6%</span></div></div>
-        <div class="signal-box"><h4>Claude vs Codex 배분</h4><p class="note">세션 데이터 없음</p></div>
+        <div class="signal-box"><h4>모델 믹스</h4><svg class="chart" viewBox="0 0 100 22" preserveAspectRatio="none" role="img"><rect x="0.00" y="0" width="1.70" height="22" fill="var(--green)"><title>Haiku 1.7%</title></rect><rect x="1.70" y="0" width="98.30" height="22" fill="var(--blue)"><title>Sonnet 98.3%</title></rect></svg><div class="legend"><span class="lg"><i style="background:var(--green)"></i>Haiku 1.7%</span><span class="lg"><i style="background:var(--blue)"></i>Sonnet 98.3%</span></div></div>
+        <div class="signal-box"><h4>Claude vs Codex 배분</h4><svg class="chart" viewBox="0 0 100 22" preserveAspectRatio="none" role="img"><rect x="0.00" y="0" width="50.68" height="22" fill="var(--blue)"><title>Claude 111세션</title></rect><rect x="50.68" y="0" width="49.32" height="22" fill="var(--green)"><title>Codex 108세션</title></rect></svg><div class="legend"><span class="lg"><i style="background:var(--blue)"></i>Claude 111</span><span class="lg"><i style="background:var(--green)"></i>Codex 108</span></div><p class="note">Claude Code가 1배 더 활발</p></div>
         <div class="signal-box"><h4>한도 도달 빈도</h4><p class="note">최근 8개 리셋 창에 한도 이벤트 없음</p></div>
       </div>
     </section>
@@ -197,16 +197,16 @@
     <section class="panel">
       <h2>실제 감지 상태</h2>
       <div class="state-grid">
-        <div><strong>130</strong><span>최근 CLI 호출</span></div>
-        <div><strong>32</strong><span>Claude 한도 이벤트</span></div>
-        <div><strong>haiku</strong><span>권장 Claude 모델</span></div>
+        <div><strong>58</strong><span>최근 CLI 호출</span></div>
+        <div><strong>0</strong><span>Claude 한도 이벤트</span></div>
+        <div><strong>sonnet</strong><span>권장 Claude 모델</span></div>
       </div>
-      <p class="note">2026-07-14T21:14:19 · sonnet · subscription limit exceeded</p>
+      <p class="note">최근 한도 이벤트 없음</p>
       <table>
         <thead><tr><th>모델</th><th>호출</th><th>성공</th><th>실패</th></tr></thead>
-        <tbody><tr><td>codex-default</td><td>32</td><td>32</td><td>0</td></tr><tr><td>haiku</td><td>1</td><td>1</td><td>0</td></tr><tr><td>sonnet</td><td>97</td><td>57</td><td>40</td></tr></tbody>
+        <tbody><tr><td>haiku</td><td>1</td><td>1</td><td>0</td></tr><tr><td>sonnet</td><td>57</td><td>57</td><td>0</td></tr></tbody>
       </table>
-      <p class="note"><strong>Haiku 우선: 상태 확인, 분류, 짧은 요약, 태그/추출은 Haiku로 보내고 Sonnet 절약: 구현, 파일 편집, 테스트 수정, 긴 분석에만 Sonnet을 사용합니다.</strong></p>
+      <p class="note"><strong>Sonnet 기본: 구현과 긴 분석은 Sonnet을 유지하되, 반복 분류/상태 확인은 Haiku로 분리합니다.</strong></p>
     </section>
 
   <section class="panel">
@@ -260,15 +260,24 @@
   </section>
   <section class="panel">
     <h2>일별 사용량</h2>
-    <p class="note">기간 내 일별 데이터 없음</p>
+    <svg class="chart vbar" viewBox="0 0 100 100" preserveAspectRatio="none" role="img"><rect x="1.00" y="100.00" width="3.60" height="0.00" fill="var(--blue)"><title>2026-07-11 · Claude Code 0세션</title></rect><rect x="5.00" y="96.67" width="3.60" height="3.33" fill="var(--green)"><title>2026-07-11 · Codex 1세션</title></rect><rect x="11.00" y="100.00" width="3.60" height="0.00" fill="var(--blue)"><title>2026-07-13 · Claude Code 0세션</title></rect><rect x="15.00" y="96.67" width="3.60" height="3.33" fill="var(--green)"><title>2026-07-13 · Codex 1세션</title></rect><rect x="21.00" y="73.33" width="3.60" height="26.67" fill="var(--blue)"><title>2026-07-15 · Claude Code 8세션</title></rect><rect x="25.00" y="83.33" width="3.60" height="16.67" fill="var(--green)"><title>2026-07-15 · Codex 5세션</title></rect><rect x="31.00" y="66.67" width="3.60" height="33.33" fill="var(--blue)"><title>2026-07-16 · Claude Code 10세션</title></rect><rect x="35.00" y="86.67" width="3.60" height="13.33" fill="var(--green)"><title>2026-07-16 · Codex 4세션</title></rect><rect x="41.00" y="90.00" width="3.60" height="10.00" fill="var(--blue)"><title>2026-07-17 · Claude Code 3세션</title></rect><rect x="45.00" y="93.33" width="3.60" height="6.67" fill="var(--green)"><title>2026-07-17 · Codex 2세션</title></rect><rect x="51.00" y="70.00" width="3.60" height="30.00" fill="var(--blue)"><title>2026-07-18 · Claude Code 9세션</title></rect><rect x="55.00" y="60.00" width="3.60" height="40.00" fill="var(--green)"><title>2026-07-18 · Codex 12세션</title></rect><rect x="61.00" y="70.00" width="3.60" height="30.00" fill="var(--blue)"><title>2026-07-19 · Claude Code 9세션</title></rect><rect x="65.00" y="10.00" width="3.60" height="90.00" fill="var(--green)"><title>2026-07-19 · Codex 27세션</title></rect><rect x="71.00" y="0.00" width="3.60" height="100.00" fill="var(--blue)"><title>2026-07-20 · Claude Code 30세션</title></rect><rect x="75.00" y="23.33" width="3.60" height="76.67" fill="var(--green)"><title>2026-07-20 · Codex 23세션</title></rect><rect x="81.00" y="50.00" width="3.60" height="50.00" fill="var(--blue)"><title>2026-07-21 · Claude Code 15세션</title></rect><rect x="85.00" y="16.67" width="3.60" height="83.33" fill="var(--green)"><title>2026-07-21 · Codex 25세션</title></rect><rect x="91.00" y="10.00" width="3.60" height="90.00" fill="var(--blue)"><title>2026-07-22 · Claude Code 27세션</title></rect><rect x="95.00" y="73.33" width="3.60" height="26.67" fill="var(--green)"><title>2026-07-22 · Codex 8세션</title></rect></svg><div class="legend"><span class="lg"><i style="background:var(--blue)"></i>Claude 세션</span><span class="lg"><i style="background:var(--green)"></i>Codex 세션</span></div>
     <table>
       <thead><tr><th>날짜</th><th>Claude Code</th><th>Codex</th></tr></thead>
-      <tbody><tr><td colspan="3">선택한 기간의 로컬 세션 로그가 없습니다.</td></tr></tbody>
+      <tbody><tr><td>2026-07-11</td><td>0s / 0m</td><td>1s / 9040m</td></tr>
+<tr><td>2026-07-13</td><td>0s / 0m</td><td>1s / 1635m</td></tr>
+<tr><td>2026-07-15</td><td>8s / 1781m</td><td>5s / 378m</td></tr>
+<tr><td>2026-07-16</td><td>10s / 1788m</td><td>4s / 197m</td></tr>
+<tr><td>2026-07-17</td><td>3s / 720m</td><td>2s / 109m</td></tr>
+<tr><td>2026-07-18</td><td>9s / 1712m</td><td>12s / 831m</td></tr>
+<tr><td>2026-07-19</td><td>9s / 2387m</td><td>27s / 2127m</td></tr>
+<tr><td>2026-07-20</td><td>30s / 2763m</td><td>23s / 1293m</td></tr>
+<tr><td>2026-07-21</td><td>15s / 2081m</td><td>25s / 1558m</td></tr>
+<tr><td>2026-07-22</td><td>27s / 2944m</td><td>8s / 501m</td></tr></tbody>
     </table>
   </section>
 </main>
 <footer>
-  생성: 2026-07-21 16:09:43 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
+  생성: 2026-07-22 08:00:11 KST. 비용은 라인당 월 $100 기준입니다. 실시간 한도는 공식 서비스 배너를 최종 기준으로 봅니다.
 </footer>
 </body>
 </html>

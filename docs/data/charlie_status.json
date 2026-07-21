@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21 16:09:33",
+  "generated_at": "2026-07-22 08:00:05",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -38,7 +38,7 @@
     {
       "path": "AGENTS.md",
       "exists": true,
-      "updated": "2026-06-20 06:33"
+      "updated": "2026-07-21 23:41"
     },
     {
       "path": "CLAUDE.md",
@@ -63,6 +63,37 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "17db850",
+        "date": "2026-07-22",
+        "subject": "feat: JH-VIDEO 채널 수집기 신설 + 백로그 자막 18개 정제 완료",
+        "areas": [
+          "knowledge-vault",
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "8c90e6b",
+        "date": "2026-07-22",
+        "subject": "chore: G:→D: 로컬 이전 — 스크립트 경로 재배선 25파일 + 봇 감시견 스크립트 추가",
+        "areas": [
+          "authentication",
+          "bucky-discord-daily-plus",
+          "dashboard",
+          "knowledge-vault",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "348f21f",
+        "date": "2026-07-21",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-21 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "2e8560e",
         "date": "2026-07-21",
@@ -482,57 +513,31 @@
           "other",
           "workflow-expansion"
         ]
-      },
-      {
-        "commit": "04d3b7f",
-        "date": "2026-07-12",
-        "subject": "docs: G4 필수수정 이행 반영 — 백로그 G4 행 통과로 갱신 (0c43835)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "0c43835",
-        "date": "2026-07-12",
-        "subject": "fix: G4 필수수정 — model_decision 방출을 실행 provider 확정 직후로 이동 (selected_provider 실일치)",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "86e5e92",
-        "date": "2026-07-12",
-        "subject": "chore: Daily Plus ?먮룞 ?낅뜲?댄듃 2026-07-12 [skip ci]",
-        "areas": [
-          "charlie",
-          "dashboard"
-        ]
       }
     ],
     "by_area": {
-      "knowledge-vault": 71,
-      "other": 152,
-      "workflow-expansion": 139,
-      "charlie": 26,
-      "dashboard": 282,
-      "bucky-discord-daily-plus": 69,
+      "knowledge-vault": 73,
+      "other": 155,
+      "workflow-expansion": 143,
+      "authentication": 14,
+      "bucky-discord-daily-plus": 73,
+      "dashboard": 288,
+      "charlie": 27,
       "kmong": 9,
-      "daily-plus": 23,
+      "daily-plus": 24,
       "instruction-authority": 15,
-      "authentication": 13,
       "support-tooling": 8,
       "google-revenue-dashboard": 5,
       "discord-runtime": 2
     }
   },
   "git_status": {
-    "changed_count": 9,
+    "changed_count": 11,
     "by_area": {
-      "knowledge-vault": 4,
-      "dashboard": 2,
-      "workflow-expansion": 1,
-      "other": 2
+      "knowledge-vault": 1,
+      "dashboard": 5,
+      "workflow-expansion": 2,
+      "other": 3
     }
   },
   "runtime_status": {
@@ -542,8 +547,8 @@
     },
     "bot_pid_file": {
       "valid": false,
-      "pid": 120484,
-      "raw_preview": "120484"
+      "pid": 235824,
+      "raw_preview": "235824"
     },
     "supervisor_pid_file": {
       "valid": false,
@@ -561,11 +566,11 @@
     },
     "daily_plus_bridge": {
       "latest_outbox": "20260721_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-21 16:08"
+      "latest_sent": "2026-07-22 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-07-18",
-      "mtime": "2026-07-18 09:04"
+      "mtime": "2026-07-18 09:03"
     }
   },
   "operational_checks": [
