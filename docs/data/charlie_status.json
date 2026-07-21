@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21 08:00:12",
+  "generated_at": "2026-07-21 16:09:33",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,32 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "2e8560e",
+        "date": "2026-07-21",
+        "subject": "docs: ui-ux-pro-max-skill vs 기존 디자인 스킬 비교 노트 추가",
+        "areas": [
+          "knowledge-vault"
+        ]
+      },
+      {
+        "commit": "37dbd74",
+        "date": "2026-07-21",
+        "subject": "fix: 유튜브 자동자막 폴백 옵션키 오타 수정 + 노트 deep 분석",
+        "areas": [
+          "other",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "69aaf79",
+        "date": "2026-07-21",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-21 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "7fc44e4",
         "date": "2026-07-20",
@@ -482,41 +508,17 @@
           "charlie",
           "dashboard"
         ]
-      },
-      {
-        "commit": "8193fa6",
-        "date": "2026-07-12",
-        "subject": "docs: G4 게이트 결과 전사 — Codex 검수 #3 조건부 통과 (Phase B: 10·15·16·17)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "2150ea6",
-        "date": "2026-07-12",
-        "subject": "docs: Stage 17 완료 반영 — 백로그 상태 갱신 (a79994d)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "a79994d",
-        "date": "2026-07-12",
-        "subject": "feat: Stage 17 — worker 어댑터 디스패치 배선 (플래그 기본 off, P0-5·8·11)",
-        "areas": [
-          "other"
-        ]
       }
     ],
     "by_area": {
-      "workflow-expansion": 140,
-      "charlie": 25,
-      "dashboard": 285,
-      "bucky-discord-daily-plus": 72,
+      "knowledge-vault": 71,
+      "other": 152,
+      "workflow-expansion": 139,
+      "charlie": 26,
+      "dashboard": 282,
+      "bucky-discord-daily-plus": 69,
       "kmong": 9,
-      "daily-plus": 24,
-      "other": 153,
-      "knowledge-vault": 70,
+      "daily-plus": 23,
       "instruction-authority": 15,
       "authentication": 13,
       "support-tooling": 8,
@@ -525,9 +527,9 @@
     }
   },
   "git_status": {
-    "changed_count": 10,
+    "changed_count": 9,
     "by_area": {
-      "knowledge-vault": 5,
+      "knowledge-vault": 4,
       "dashboard": 2,
       "workflow-expansion": 1,
       "other": 2
@@ -558,12 +560,12 @@
       }
     },
     "daily_plus_bridge": {
-      "latest_outbox": "20260720_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-21 08:00"
+      "latest_outbox": "20260721_090000_daily_plus_dashboard_bucky.md",
+      "latest_sent": "2026-07-21 16:08"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-07-18",
-      "mtime": "2026-07-18 09:03"
+      "mtime": "2026-07-18 09:04"
     }
   },
   "operational_checks": [
