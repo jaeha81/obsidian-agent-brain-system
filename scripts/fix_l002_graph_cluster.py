@@ -4,7 +4,7 @@ L002 오류(graph_cluster 미설정) 240건을 파일명 패턴으로 자동 추
 """
 import os, re, glob, yaml, sys
 
-VAULT = r"G:\내 드라이브\obsidian-agent-brain-system\ObsidianVault"
+VAULT = r"D:\ai프로젝트\obsidian-agent-brain-system\ObsidianVault"
 KNOWLEDGE_DIR = os.path.join(VAULT, "03_Knowledge")
 
 # 파일명 prefix → graph_cluster 매핑

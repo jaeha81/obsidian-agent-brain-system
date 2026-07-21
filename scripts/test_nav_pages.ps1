@@ -1,4 +1,4 @@
-﻿$docsRoot = "G:\내 드라이브\obsidian-agent-brain-system\docs"
+﻿$docsRoot = "D:\ai프로젝트\obsidian-agent-brain-system\docs"
 $pages = @(
     @{path="repo\index.html";             label="레포대시보드"},
     @{path="wishket\index.html";          label="위시켓"},

@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-VAULT = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 AGENTBUS = VAULT / "10_AgentBus"
 INBOX_CLAUDE = AGENTBUS / "inbox/claude"
 INBOX_CODEX = AGENTBUS / "inbox/codex"

@@ -42,19 +42,19 @@ BACKUP_DIR = REPO_ROOT / ".agent" / "backup"
 PC_CONFIGS: dict[str, dict[str, str]] = {
     "home": {
         "PC_ENV": "home",
-        "VAULT_BASE_PATH": "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+        "VAULT_BASE_PATH": "D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault",
         "LOCAL_AI_PATH": "D:/ai프로젝트",
         "GDRIVE_PATH": "G:/내 드라이브",
     },
     "laptop": {
         "PC_ENV": "laptop",
-        "VAULT_BASE_PATH": "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+        "VAULT_BASE_PATH": "D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault",
         "LOCAL_AI_PATH": "C:/ai프로젝트",
         "GDRIVE_PATH": "G:/내 드라이브",
     },
     "office": {
         "PC_ENV": "office",
-        "VAULT_BASE_PATH": "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+        "VAULT_BASE_PATH": "D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault",
         "LOCAL_AI_PATH": "C:/ai프로젝트",
         "GDRIVE_PATH": "G:/내 드라이브",
     },

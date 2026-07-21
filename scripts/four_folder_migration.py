@@ -29,7 +29,7 @@ DEFAULT_SOURCES = [
     r"G:\내 드라이브\OBSIDIAN-SECOND",
 ]
 
-DEFAULT_ROOT = r"G:\내 드라이브\obsidian-agent-brain-system"
+DEFAULT_ROOT = r"D:\ai프로젝트\obsidian-agent-brain-system"
 
 EXCLUDE_DIRS = {
     ".git",

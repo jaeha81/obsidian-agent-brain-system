@@ -20,7 +20,7 @@ import logging
 from pathlib import Path
 from datetime import datetime, timezone, date
 
-VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT_BASE = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 OUTPUT_BASE = VAULT_BASE / "01_RAW" / "claude-sessions"
 PROFILE_DIR = Path(os.environ.get("USERPROFILE", "~")) / ".playwright-claude-sessions"
 STATE_FILE = Path(__file__).parent / ".claude_collector_state.json"

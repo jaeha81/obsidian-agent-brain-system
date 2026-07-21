@@ -19,7 +19,7 @@ import pandas as pd
 
 PDF_PATH = Path(r"G:\내 드라이브\견적시스템\temp_1782269609990.-1588570946.pdf")
 XLS_PATH = Path(r"G:\내 드라이브\견적시스템\temp_1782269596641.2097014861.xls")
-OUT_DIR = Path(r"G:\내 드라이브\obsidian-agent-brain-system\data\estimation_samples")
+OUT_DIR = Path(r"D:\ai프로젝트\obsidian-agent-brain-system\data\estimation_samples")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Drawing code pattern: P-101 / E-201 / K-301 / D-401 / F-501 / S-601 etc.

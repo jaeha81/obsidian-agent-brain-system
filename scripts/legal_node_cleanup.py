@@ -22,7 +22,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-VAULT     = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT     = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 LEGAL_DIR = VAULT / "04_Wiki" / "Legal"
 LAWS_DIR  = LEGAL_DIR / "laws"
 PACKS_DIR = VAULT / "06_Context_Packs" / "Legal"

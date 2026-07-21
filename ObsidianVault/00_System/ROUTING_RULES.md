@@ -331,7 +331,7 @@ preserve_design: true
 | 계층 | 방법 | 범위 | 현황 |
 |------|------|------|------|
 | **Layer 1: 로컬 직접** | Claude Code CLI → 파일시스템 직접 읽기 | G:\내 드라이브 전체 | ✅ 운영중 |
-| **Layer 2: 원격 VPN** | Tailscale → BuckyOS 서버(8765) → `/os/*` API | JSON 요약 + 채팅 | ✅ 운영중 |
+| **Layer 2: 원격 VPN** | Tailscale serve `:8443` → 로컬 8765(`127.0.0.1`) → `/os/*` API·대시보드 | JSON 요약 + 채팅 | ✅ 운영중 (자동시작=예약작업 `bucky-chat-server`, 2026-07-21 실측 복구. 폰 접속 주소는 비공개 메모리 참조) |
 | **Layer 3: MCP 파일시스템** | `@modelcontextprotocol/server-filesystem` → `.mcp.json` `obsidian-vault` 서버 | 볼트 전체 (읽기/쓰기) | ✅ 운영중 |
 
 ### Layer 3 설정 완료 (2026-06-18)

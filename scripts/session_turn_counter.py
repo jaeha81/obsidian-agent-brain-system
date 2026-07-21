@@ -1,6 +1,6 @@
 import sys, json, os, tempfile, datetime
 
-HANDOFF_DIR = "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault/10_AgentBus/handoffs/ClaudeCode"
+HANDOFF_DIR = "D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault/10_AgentBus/handoffs/ClaudeCode"
 WARN_TURN = 15
 BLOCK_TURN = 25
 

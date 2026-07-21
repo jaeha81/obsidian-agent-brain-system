@@ -24,7 +24,7 @@ import logging
 from pathlib import Path
 from datetime import datetime, timezone, timedelta, date
 
-VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT_BASE = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 OUTPUT_BASE = VAULT_BASE / "01_RAW" / "codex-sessions"
 AGENTBUS_DIR = VAULT_BASE / "10_AgentBus"
 REPO_ROOT = Path(__file__).parent.parent

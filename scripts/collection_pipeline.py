@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).parent
-VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT_BASE = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 AGENTBUS_DIR = VAULT_BASE / "10_AgentBus"
 LOG_FILE = SCRIPTS_DIR / "pipeline.log"
 

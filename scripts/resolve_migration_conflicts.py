@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-DEFAULT_ROOT = r"G:\내 드라이브\obsidian-agent-brain-system"
+DEFAULT_ROOT = r"D:\ai프로젝트\obsidian-agent-brain-system"
 DEFAULT_DATE = "2026-05-24"
 
 SKIP_PARTS = {

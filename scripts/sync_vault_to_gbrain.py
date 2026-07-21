@@ -24,8 +24,8 @@ import re
 from pathlib import Path
 from datetime import datetime
 
-VAULT_ROOT = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
-LOG_PATH = Path("G:/내 드라이브/obsidian-agent-brain-system/logs/gbrain_sync.jsonl")
+VAULT_ROOT = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
+LOG_PATH = Path("D:/ai프로젝트/obsidian-agent-brain-system/logs/gbrain_sync.jsonl")
 GBRAIN_TOKEN = os.environ.get("GBRAIN_TOKEN", "")
 
 TIER_PREFIXES = {

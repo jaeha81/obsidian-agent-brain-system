@@ -38,7 +38,7 @@ from pathlib import Path
 import anthropic
 
 # ── 경로 설정 ──────────────────────────────────────────────────────────────────
-VAULT_BASE   = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT_BASE   = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 RAW_DIR      = VAULT_BASE / "01_RAW"
 INBOX_DIR    = RAW_DIR / "inbox"
 # Phase 2: 출력 경로를 06_Knowledge/distilled 로 변경

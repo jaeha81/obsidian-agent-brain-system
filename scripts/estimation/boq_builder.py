@@ -36,7 +36,7 @@ sys.path.insert(0, str(HERE))
 from drawing_recognizer import recognize as recognize_drawings  # type: ignore
 from excel_recognizer import recognize_workbook  # type: ignore
 
-ROOT = Path(r"G:\내 드라이브\obsidian-agent-brain-system")
+ROOT = Path(r"D:\ai프로젝트\obsidian-agent-brain-system")
 SAMPLES_DIR = ROOT / "data" / "estimation_samples"
 DOCS_DATA_DIR = ROOT / "docs" / "data" / "estimation"
 UNIT_PRICE_FILE = HERE / "unit_price_defaults.json"

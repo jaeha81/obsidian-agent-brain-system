@@ -36,7 +36,7 @@ except ImportError:
 
 DEFAULT_VAULT_PATH = os.environ.get(
     "VAULT_PATH",
-    "G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault",
+    "D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault",
 )
 
 LEGAL_PATTERN = re.compile(

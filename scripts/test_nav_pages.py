@@ -1,7 +1,7 @@
 """nav 페이지 auth + nav.js 전수 점검"""
 from pathlib import Path
 
-DOCS = Path(r"G:\내 드라이브\obsidian-agent-brain-system\docs")
+DOCS = Path(r"D:\ai프로젝트\obsidian-agent-brain-system\docs")
 
 PAGES = [
     ("repo/index.html",          "repo"),

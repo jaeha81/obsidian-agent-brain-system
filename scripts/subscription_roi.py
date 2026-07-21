@@ -43,7 +43,7 @@ KST = timezone(timedelta(hours=9))
 USER_HOME = Path(os.environ.get("USERPROFILE", os.path.expanduser("~")))
 CODEX_SESSIONS = USER_HOME / ".codex" / "sessions"
 CLAUDE_PROJECTS = USER_HOME / ".claude" / "projects"
-VAULT_REPORTS = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault/00_System/roi-reports")
+VAULT_REPORTS = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault/00_System/roi-reports")
 ROOT = Path(__file__).resolve().parents[1]
 CLI_TOOLS_LOG = ROOT / "ObsidianVault" / "05_Logs" / "cli-tools.jsonl"
 QUOTA_OVERRIDE_PATH = ROOT / "data" / "ai_usage_quota.json"

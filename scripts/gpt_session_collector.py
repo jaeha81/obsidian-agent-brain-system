@@ -26,7 +26,7 @@ from datetime import datetime, timezone, date
 # ── 설정 ──────────────────────────────────────────────────────────────────────
 import urllib.request as _urllib_req
 
-VAULT_BASE = Path("G:/내 드라이브/obsidian-agent-brain-system/ObsidianVault")
+VAULT_BASE = Path("D:/ai프로젝트/obsidian-agent-brain-system/ObsidianVault")
 OUTPUT_BASE = VAULT_BASE / "01_RAW" / "gpt-sessions"
 
 # 독립 전용 프로파일 (fallback — CDP가 없을 때 사용)
