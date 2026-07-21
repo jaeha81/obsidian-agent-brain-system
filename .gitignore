@@ -208,6 +208,8 @@ runtime/
 .rag/
 scripts/.codex_collector_state.json
 scripts/.claude_collector_state.json
+data/memory/jh_video_collector_state.json
+data/memory/jh_video_queue.jsonl
 .sync_system_enhance_ts
 .codex/
 

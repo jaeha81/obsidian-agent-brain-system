@@ -97,6 +97,15 @@ COLLECTORS = [
         "profile_path": None,
         "login_cmd": None,
     },
+    {
+        "name": "JH-VIDEO Channel Collector",
+        "script": "jh_video_channel_collector.py",
+        "args": [],
+        "dry_run_args": ["--dry-run"],
+        "login_required": False,
+        "profile_path": None,
+        "login_cmd": None,
+    },
 ]
 
 
