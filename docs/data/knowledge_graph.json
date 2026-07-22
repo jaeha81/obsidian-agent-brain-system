@@ -1,0 +1,4123 @@
+{
+ "title": "Vault (실데이터)",
+ "color": "#4facfe",
+ "groups": {
+  "03_Knowledge": {
+   "label": "정제 지식 (SoT)",
+   "color": "#ffd93d"
+  },
+  "04_Wiki": {
+   "label": "Wiki",
+   "color": "#4ecdc4"
+  },
+  "05_Frameworks": {
+   "label": "Frameworks",
+   "color": "#43e97b"
+  },
+  "06_Context_Packs": {
+   "label": "Context Packs",
+   "color": "#6c63ff"
+  },
+  "09_Knowledge_Capture": {
+   "label": "Knowledge Capture",
+   "color": "#4facfe"
+  },
+  "00_System": {
+   "label": "System",
+   "color": "#ff8c42"
+  }
+ },
+ "nodes": [
+  {
+   "id": "03_Knowledge/2026-03-10-yt-클로드-코드-실전-강의-ai-에이전트-11개가-알아서-일한다-비개발자-실.md",
+   "label": "2026-03-10-yt-클로드-코드-실전-강의-ai-에이전트-11개가-알아서-일한다-비개발자-실",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "4주 커리큘럼의 마지막 세션으로, 그동안 배운 커맨드·CLAUDE.md·룰스 개념을 하나로 묶은 클로드포지(Claude Forge) 시스템을 설치·실습한다. 발표자가 수백~수천 시간을 들여 개발한 \"밀키트\" 같은 패키지로, 사용자는 이케아 가구 조립하"
+  },
+  {
+   "id": "03_Knowledge/2026-06-01-yt-claude-code-필수-지식-20가지-13분-정리.md",
+   "label": "2026-06-01-yt-claude-code-필수-지식-20가지-13분-정리",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "클로드 코드를 200% 활용하기 위한 핵심 슬래시 명령·기능 20여 가지를 13분에 압축 정리한다. 딥 리서치(소스 수집→크로스체크→검증→생성의 페이즈를 스텝바이스텝으로 실행해 잘못된 정보를 걸러냄), 울트라 코드(가장 높은 에오트 레벨, 다수 에이전"
+  },
+  {
+   "id": "03_Knowledge/2026-06-08-yt-진짜-소름-ai-디자인-코덱스가-판도를-바꿉니다.md",
+   "label": "2026-06-08-yt-진짜-소름-ai-디자인-코덱스가-판도를-바꿉니다",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "레퍼런스 URL/이미지 하나만으로 웹사이트 디자인을 그대로 복제(디자인 클로닝)해 주는 두 가지 도구 — DesignLang(디자인 랭) 플러그인과 OpenAI Codex의 Product Design 플러그인 — 을 실제로 비교 테스트한 영상이다. 발"
+  },
+  {
+   "id": "03_Knowledge/2026-06-19-yt-클로드-코드가-혼자-100명처럼-일하는-법-현업이-정리한-opus-48-.md",
+   "label": "2026-06-19-yt-클로드-코드가-혼자-100명처럼-일하는-법-현업이-정리한-opus-48-",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "Claude Code에 새로 들어온 Dynamic Workflow(동적 워크플로우)를 중심으로 Subagent, Agent Teams, Agent View까지 이어지는 멀티 에이전트 구조를 하나의 기준으로 정리한다. 그 기준은 \"작업 계획이 아니라, "
+  },
+  {
+   "id": "03_Knowledge/2026-06-21-yt-바이브코딩의-핵심은-기획입니다-매니패스트manyfast-소개.md",
+   "label": "2026-06-21-yt-바이브코딩의-핵심은-기획입니다-매니패스트manyfast-소개",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "바이브 코딩에서 가장 중요한 단계는 코드가 아니라 기획이라는 주장을 중심으로, 기획 전용 도구 ManyFast(매니패스트)를 실제 사용 화면으로 시연한다. 마크다운 문서는 AI가 다루기 좋지만 텍스트 나열이라 사용자 흐름·중요도·누락 지점을 파악하기 "
+  },
+  {
+   "id": "03_Knowledge/2026-06-22-yt-루프-엔지니어링-프롬프트하는-나를-시스템으로-대체하는-법.md",
+   "label": "2026-06-22-yt-루프-엔지니어링-프롬프트하는-나를-시스템으로-대체하는-법",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "\"프롬프트의 시대는 끝났고 이제는 루프를 설계하는 시대\"라는 트위터발 화두를 실전 관점에서 정리한 영상이다. Anthropic 클로드 코드 리드 보리스 체니가 \"더 이상 프롬프트를 치지 않는다, 내 일은 루프를 짜는 것\"이라며 IDE도 거의 안 열고 "
+  },
+  {
+   "id": "03_Knowledge/2026-06-22-yt-요즘-유행하는-loop-engineering.md",
+   "label": "2026-06-22-yt-요즘-유행하는-loop-engineering",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "Boris Cherny(보리스 체니)와 Peter Steinberger(피터 스타인버거)의 언급으로 유행하기 시작한 Loop Engineering(루프 엔지니어링)을 \"그렇게 어려운 개념이 아니다\"라며 시간순 계보로 풀어낸다. 핵심은 세 개념의 구분:"
+  },
+  {
+   "id": "03_Knowledge/2026-06-22-yt-클로드-디자인-대규모-업데이트-총정리-design-sync-업그레이드된.md",
+   "label": "2026-06-22-yt-클로드-디자인-대규모-업데이트-총정리-design-sync-업그레이드된",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "클로드 디자인(Claude Design)의 대규모 업데이트를 직접 써보고 정리한 영상이다. 기존 클로드 디자인은 (1) 토큰을 너무 빨리 소진하고, (2) 디자인 에디터 기능이 약해 박스 크기 변경조차 프롬프트로 해야 했으며, (3) 클로드 코드와 클"
+  },
+  {
+   "id": "03_Knowledge/2026-06-22-yt-클로드-코드-토큰-6090-줄이는-무료-도구-rtk-완전정복.md",
+   "label": "2026-06-22-yt-클로드-코드-토큰-6090-줄이는-무료-도구-rtk-완전정복",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "AI 코딩 도구 요금의 상당 부분이 \"눈으로 한 번도 안 보고 버리는 터미널 출력\"에서 새어나간다는 문제에서 출발한다. rtk(Rust Token Killer)는 명령 결과가 AI에게 전달되기 직전 길목을 지키며 군더더기를 걷어내고 핵심만 남겨 넘기는"
+  },
+  {
+   "id": "03_Knowledge/2026-06-23-yt-ai-생성-코드-절반으로-줄이는-5만-스타-스킬-ponytail-직접-써봤습니다.md",
+   "label": "2026-06-23-yt-ai-생성-코드-절반으로-줄이는-5만-스타-스킬-ponytail-직접-써봤습니다",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "출시 2주 만에 GitHub 스타 5만 개를 넘긴 Ponytail(포니테일) 스킬을 발표자가 직접 설치해 검증한 실사용 리뷰다. 핵심 문제의식은 코딩 에이전트가 간단한 요청에도 파일을 여러 개 만들고 단순 로직을 과도하게 복잡화(추상화 레이어·불필요한"
+  },
+  {
+   "id": "03_Knowledge/2026-06-23-yt-openclaw에-지친-사람들을-위한-차세대-에이전트-hermes-agent.md",
+   "label": "2026-06-23-yt-openclaw에-지친-사람들을-위한-차세대-에이전트-hermes-agent",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "오픈 클로우(OpenClaw)에서 에러가 많아 관리가 힘들었던 사람들을 위한 대안으로 차세대 에이전트 \"허미스(Hermes) 에이전트\"를 실제 설치부터 연동·자동화 워크플로까지 시연한다. 발표자는 허미스가 더 빠르고, 더 세련됐으며, 무엇보다 기억력이"
+  },
+  {
+   "id": "03_Knowledge/2026-06-23-yt-헤르메스-에이전트-100시간-쓰고-깨달은-5가지-사용법.md",
+   "label": "2026-06-23-yt-헤르메스-에이전트-100시간-쓰고-깨달은-5가지-사용법",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "헤르메스 에이전트를 100시간 이상 쓴 인디해커가 자신의 실제 사용법 5가지를 공개한다. 핵심 관점은 \"헤르메스는 도구가 아니라 스스로 일하는 직원에 가깝고, 내가 도구를 부리는 구조가 아니라 나를 감싸는 더 큰 테두리(세컨드 브레인)로 쓸 때 진가가"
+  },
+  {
+   "id": "03_Knowledge/2026-06-23-yt-화제의-하네스-lazycodex-사용법-완전-정리-트위터-쿠팡-코덱스로-.md",
+   "label": "2026-06-23-yt-화제의-하네스-lazycodex-사용법-완전-정리-트위터-쿠팡-코덱스로-",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "쓰레드에서 화제인 LazyCodex 하네스를 소개한다. OpenCode를 만든 연규 님이 코덱스(Codex) 위에서도 OpenCode 같은 경험을 낼 수 있게 제작한 하네스로, 한 줄 설치가 가능하고 코덱스 기반이라 윈도우에서도 정상 동작한다. 핵심은"
+  },
+  {
+   "id": "03_Knowledge/2026-06-25-yt-full-ver-옵시디언과-클로드코드를-사용해야만-진짜-ai-팀을-만들-.md",
+   "label": "2026-06-25-yt-full-ver-옵시디언과-클로드코드를-사용해야만-진짜-ai-팀을-만들-",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "옵시디언에 클로드 코드를 붙여 \"AI 팀\"이 굴러가는 세컨드 브레인을 0에서 구축하는 튜토리얼이다. GPT·클로드가 대화창을 새로 열 때마다 나를 잊고, 모델을 갈아탈 때마다 데이터를 옮겨야 하는 문제를 지적하며 데이터를 100% 내가 소유하는 옵시디"
+  },
+  {
+   "id": "03_Knowledge/2026-06-25-yt-혼자-만든-제품이-안-팔리는-이유-1인-창업은-saas보다-컨설팅을-먼저.md",
+   "label": "2026-06-25-yt-혼자-만든-제품이-안-팔리는-이유-1인-창업은-saas보다-컨설팅을-먼저",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "AI로 앱·SaaS를 금방 만들 수 있는 시대지만, 나를 전혀 모르는 사람에게 제품을 팔아 첫 결제 한 건까지 가는 길은 멀고 험하다는 문제의식에서 출발한다. 경력 있는 1인 창업자가 당장 돈을 버는 시작점은 '제품'이 아니라 '컨설팅'이라는 것이 핵"
+  },
+  {
+   "id": "03_Knowledge/2026-06-26-yt-anthropic이-직접-써보고-공개한-ai와-팀으로-일하는-법-4가지.md",
+   "label": "2026-06-26-yt-anthropic이-직접-써보고-공개한-ai와-팀으로-일하는-법-4가지",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "Anthropic이 'Claude Tag'(슬랙에서 \"클로드\"라고 부르면 팀 채널에 상주 멤버로 들어오는 AI)를 내놓으며 함께 공개한 블로그 \"Building effective human-agent teams\"를 4가지 운영 원칙으로 요약한 영상이다"
+  },
+  {
+   "id": "03_Knowledge/2026-06-26-yt-자료가-쌓일수록-똑똑해지는-ai-옵시디언-헤르메스-에이전트-graphif.md",
+   "label": "2026-06-26-yt-자료가-쌓일수록-똑똑해지는-ai-옵시디언-헤르메스-에이전트-graphif",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "지난 영상에서 옵시디언 + 헤르메스 에이전트로 만든 \"LLM 위키\"에, 이번엔 Graphify(그래피파이) 라는 무료 오픈소스 도구를 더해 대량 자료를 저비용으로 빠르게 정리하는 방법을 다룬다. 핵심 통찰은 위키와 Graphify가 경쟁 도구가 아니라"
+  },
+  {
+   "id": "03_Knowledge/2026-06-28-yt-클로드-코드-파일-읽기-토큰-99-줄이는-codebase-memory-m.md",
+   "label": "2026-06-28-yt-클로드-코드-파일-읽기-토큰-99-줄이는-codebase-memory-m",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "2026-06-28-yt-클로드-코드-파일-읽기-토큰-99-줄이는-codebase-memory-m"
+  },
+  {
+   "id": "03_Knowledge/2026-07-14-yt-orca-ide-완전정복-claude-codex-grok-동시에-돌리는-멀티-에이전트.md",
+   "label": "2026-07-14-yt-orca-ide-완전정복-claude-codex-grok-동시에-돌리는-멀티-에이전트",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "배움의 달인(김문정)이 SNS에서 뜨고 있는 Orca(오르카) 라는 ADE(Agentic Development Environment, 에이전틱 개발 환경) 를 소개·시연한다. Cursor·VS Code가 사람이 코딩하려고 터미널을 띄우는 IDE라면, "
+  },
+  {
+   "id": "03_Knowledge/2026-07-16-yt-클로드코드-kimi-오픈모델-전환-a-to-z.md",
+   "label": "2026-07-16-yt-클로드코드-kimi-오픈모델-전환-a-to-z",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "핵심 메시지: \"Kimi로 갈아타라\"가 아니라 \"언제든 갈아탈 수 있는 상태를 만들어두자\". 배경은 2026-06-13 미 상무부의 Anthropic 최상위 모델 수출통제 차단 시나리오 — 구독형 AI는 \"포토샵 매달 대여\"(공급사가 끊으면 끝)인 반"
+  },
+  {
+   "id": "03_Knowledge/2026-07-20-yt-orca-핵심-가이드-요즘-가장-핫한-툴-직접-써보고-솔직하게-정리했습니.md",
+   "label": "2026-07-20-yt-orca-핵심-가이드-요즘-가장-핫한-툴-직접-써보고-솔직하게-정리했습니",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "요즘 가장 핫한 도구, Orca ADE를 직접 써보고 정리했습니다."
+  },
+  {
+   "id": "03_Knowledge/2026-07-21-github-ui-ux-pro-max-skill-vs-jh-design-skills.md",
+   "label": "2026-07-21-github-ui-ux-pro-max-skill-vs-jh-design-skills",
+   "group": "03_Knowledge",
+   "size": 10,
+   "desc": "ui-ux-pro-max-skill은 기존 JH 디자인 스킬(soft-skill, taste-skill, gpt-tasteskill, stitch-skill, minimalist-skill, brutalist-skill, redesign-skill)을"
+  },
+  {
+   "id": "03_Knowledge/2026-07-21-yt-클로드코드로-1인-사업을-시작하는-방법ai-마케팅으로-고객을-만드는-모든.md",
+   "label": "2026-07-21-yt-클로드코드로-1인-사업을-시작하는-방법ai-마케팅으로-고객을-만드는-모든",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "00:00 인트로"
+  },
+  {
+   "id": "03_Knowledge/2026-07-22-yt-왜-내-옵시디언-노트는-정리가-안-될까-클릭-한번에-끝내는-노트-정리-플.md",
+   "label": "2026-07-22-yt-왜-내-옵시디언-노트는-정리가-안-될까-클릭-한번에-끝내는-노트-정리-플",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "🎯 옵시디언(Obsidian) 노트가 만 개 넘게 쌓였는데, 정작 다시 열어본 적 없는 노트가 태반이라면? 오늘 소개하는 신규 커뮤니티 플러그인 'Note Sweep'으로 매일 20분, 방치된 노트를 체계적으로 정리하는 습관을 만들어보세요!"
+  },
+  {
+   "id": "03_Knowledge/2026-07-22-yt-진정한-남자는-포토샵-대신-html-쓴다고-함.md",
+   "label": "2026-07-22-yt-진정한-남자는-포토샵-대신-html-쓴다고-함",
+   "group": "03_Knowledge",
+   "size": 6,
+   "desc": "🧠 Notion Agent를 사용해 보세요 → https://ntn.so/codingapple"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md",
+   "label": "2026-07-22-00-INDEX",
+   "group": "03_Knowledge",
+   "size": 18,
+   "desc": "2026-07-22-00-INDEX"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md",
+   "label": "2026-07-22-01-personal-career",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "2026-07-22-01-personal-career"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md",
+   "label": "2026-07-22-02-dev-workflow",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "2026-07-22-02-dev-workflow"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md",
+   "label": "2026-07-22-02-JH-브랜드-생태계",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "2026-07-22-02-JH-브랜드-생태계"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md",
+   "label": "2026-07-22-03-tech-stack",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "원본: 01RAW/memories2/06기술스택개발원칙.md (2026-04-26 작성). 핵심 스택(FastAPI+Next.js 14+Supabase+Claude API)·코딩 규칙 5·5-에이전트(RESEARCH/PLAN/FRONTEND/BACKE"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md",
+   "label": "2026-07-22-03-사업-철학-의사결정",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "2026-07-22-03-사업-철학-의사결정"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md",
+   "label": "2026-07-22-04-jh-keanu",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "2026-07-22-04-jh-keanu"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md",
+   "label": "2026-07-22-04-목표-로드맵",
+   "group": "03_Knowledge",
+   "size": 22,
+   "desc": "2026-07-22-04-목표-로드맵"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-05-jh-estimate-ai.md",
+   "label": "2026-07-22-05-jh-estimate-ai",
+   "group": "03_Knowledge",
+   "size": 14,
+   "desc": "2026-07-22-05-jh-estimate-ai"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-06-jh-harness.md",
+   "label": "2026-07-22-06-jh-harness",
+   "group": "03_Knowledge",
+   "size": 14,
+   "desc": "2026-07-22-06-jh-harness"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-07-jh-brain.md",
+   "label": "2026-07-22-07-jh-brain",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-07-jh-brain"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-08-agent-hub-3d.md",
+   "label": "2026-07-22-08-agent-hub-3d",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-08-agent-hub-3d"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-09-past-projects.md",
+   "label": "2026-07-22-09-past-projects",
+   "group": "03_Knowledge",
+   "size": 14,
+   "desc": "2026-07-22-09-past-projects"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-10-business-strategy.md",
+   "label": "2026-07-22-10-business-strategy",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-10-business-strategy"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-10-수익화-전략.md",
+   "label": "2026-07-22-10-수익화-전략",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-10-수익화-전략"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-11-client-projects.md",
+   "label": "2026-07-22-11-client-projects",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-11-client-projects"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-11-Obsidian-세컨드브레인-체크포인트.md",
+   "label": "2026-07-22-11-Obsidian-세컨드브레인-체크포인트",
+   "group": "03_Knowledge",
+   "size": 14,
+   "desc": "2026-07-22-11-Obsidian-세컨드브레인-체크포인트"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-12-ai-tools.md",
+   "label": "2026-07-22-12-ai-tools",
+   "group": "03_Knowledge",
+   "size": 14,
+   "desc": "2026-07-22-12-ai-tools"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-12-보안-법적기준.md",
+   "label": "2026-07-22-12-보안-법적기준",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-12-보안-법적기준"
+  },
+  {
+   "id": "03_Knowledge/distilled/2026-07/2026-07-22-13-개발-프롬프트-템플릿.md",
+   "label": "2026-07-22-13-개발-프롬프트-템플릿",
+   "group": "03_Knowledge",
+   "size": 12,
+   "desc": "2026-07-22-13-개발-프롬프트-템플릿"
+  },
+  {
+   "id": "04_Wiki/AgentBus/Index.md",
+   "label": "Index",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "AgentBus는 Obsidian Agent Brain System의 파일 기반 에이전트 통신 레이어입니다."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-05-26.md",
+   "label": "2026-05-26",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "이건 “GitHub → Obsidian(옵시디언) 에이전트 룸”으로 변경 내역을 안전하게 자동 기록하는, 바로 붙여 넣어 쓸 수 있는 보안 중심 워크플로우예요. 핵심은: 깃허브 액션이 변경 감지 → HMAC 서명·타임스탬프 포함 페이로드를 Obsidi"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-05-27.md",
+   "label": "2026-05-27",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-05-28.md",
+   "label": "2026-05-28",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-05-29.md",
+   "label": "2026-05-29",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-05-30.md",
+   "label": "2026-05-30",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-05-31.md",
+   "label": "2026-05-31",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-01.md",
+   "label": "2026-06-01",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-02.md",
+   "label": "2026-06-02",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "ChatGPT Pulse returned a 404 or not-found page."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-03.md",
+   "label": "2026-06-03",
+   "group": "04_Wiki",
+   "size": 8,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-04.md",
+   "label": "2026-06-04",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-05.md",
+   "label": "2026-06-05",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-06.md",
+   "label": "2026-06-06",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "6월 6일 Pulse Curate는 추정 아이디어를 측정 가능하고 검증 가능한 요소로 변환하는 도구 모음입니다. 실무 QC 계획, 안전한 에이전트 핸드오프, 유튜브 자동화 패키지, 시스템 안정화 및 프라이버시 보호를 포함합니다."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-07.md",
+   "label": "2026-06-07",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-09.md",
+   "label": "2026-06-09",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-10.md",
+   "label": "2026-06-10",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "6월 10일 Pulse 큐레이션: 실제 운영에 바로 적용 가능한 템플릿과 도구들을 모았습니다. 각 항목은 오늘부터 사용할 수 있도록 구성하였으며, 다음 Pulse를 위해 어떤 내용을 더 다루기를 원하시는지 피드백을 기다립니다."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-11.md",
+   "label": "2026-06-11",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "수집 대기 중. 오늘 ChatGPT Pulse를 수집한 후 이 파일을 업데이트하세요."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-13.md",
+   "label": "2026-06-13",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Recovery-only mode: live Pulse capture skipped (CI/headless safety net)."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-14.md",
+   "label": "2026-06-14",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "ChatGPT Pulse returned a 404 or not-found page."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-15.md",
+   "label": "2026-06-15",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "ChatGPT Pulse returned a 404 or not-found page."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-16.md",
+   "label": "2026-06-16",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "ChatGPT Pulse returned a 404 or not-found page."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-19.md",
+   "label": "2026-06-19",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "ChatGPT Pulse returned a 404 or not-found page."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-20.md",
+   "label": "2026-06-20",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-21.md",
+   "label": "2026-06-21",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-22.md",
+   "label": "2026-06-22",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-23.md",
+   "label": "2026-06-23",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-24.md",
+   "label": "2026-06-24",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-25.md",
+   "label": "2026-06-25",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-26.md",
+   "label": "2026-06-26",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-27.md",
+   "label": "2026-06-27",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-06-28.md",
+   "label": "2026-06-28",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Pulse"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-03.md",
+   "label": "2026-07-03",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Missing dependency: websocket-client"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-06.md",
+   "label": "2026-07-06",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "No Pulse cards found; refusing to save an empty Daily Plus note."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-11.md",
+   "label": "2026-07-11",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Missing dependency: websocket-client"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-12.md",
+   "label": "2026-07-12",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "No Pulse content found. Page snippet: Log in or sign up Continue with Google Continue with Apple Continue with phone OR Continue Try it firs"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-13.md",
+   "label": "2026-07-13",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "No Pulse cards found; refusing to save an empty Daily Plus note."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-14.md",
+   "label": "2026-07-14",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Missing dependency: websocket-client"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-15.md",
+   "label": "2026-07-15",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "No Pulse content found. Page snippet: upstream connect error or disconnect/reset before headers. reset reason: connection termination"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-16.md",
+   "label": "2026-07-16",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Missing dependency: websocket-client"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-17.md",
+   "label": "2026-07-17",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "No Pulse cards found; refusing to save an empty Daily Plus note."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-18.md",
+   "label": "2026-07-18",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "No Pulse cards found; refusing to save an empty Daily Plus note."
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-20.md",
+   "label": "2026-07-20",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Missing dependency: websocket-client"
+  },
+  {
+   "id": "04_Wiki/daily-plus/2026-07-21.md",
+   "label": "2026-07-21",
+   "group": "04_Wiki",
+   "size": 6,
+   "desc": "Missing dependency: websocket-client"
+  },
+  {
+   "id": "04_Wiki/Graphify/Graphify_Usage_Guide.md",
+   "label": "Graphify_Usage_Guide",
+   "group": "04_Wiki",
+   "size": 14,
+   "desc": "pip install graphifyy"
+  },
+  {
+   "id": "04_Wiki/Graphify/Index.md",
+   "label": "Index",
+   "group": "04_Wiki",
+   "size": 16,
+   "desc": "Graphify는 프로젝트 단위의 오프라인 지식 그래프 레이어입니다."
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "label": "concept-agent-philosophy",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "JH Brain System의 모든 에이전트(마스터든 서브든)가 내재화해야 하는 불변 지침."
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-agentbus.md",
+   "label": "concept-agentbus",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "생성 (status: pending)"
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-dev-workflow.md",
+   "label": "concept-dev-workflow",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "JH 생태계 전체에 적용되는 0~8단계 개발 프로세스."
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md",
+   "label": "concept-infranodus-graph-knowledge-base",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "InfraNodus adds a graph intelligence layer on top of an LLM Wiki. The wiki stores concepts and source summaries, while InfraNodus shows how "
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md",
+   "label": "concept-jh-local-knowledge-graph-engine",
+   "group": "04_Wiki",
+   "size": 20,
+   "desc": "The JH local knowledge graph engine is a Codex-built local alternative to the most important InfraNodus-style functions needed by the JH sys"
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "label": "concept-llm-wiki",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "LLM이 직접 위키를 작성·유지함으로써 지식이 매 세션마다 복리처럼 누적되는 퍼스널 노리지 베이스 패턴. 기존 RAG의 \"매번 재발견\" 문제를 해소한다."
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-obsidian-plugins.md",
+   "label": "concept-obsidian-plugins",
+   "group": "04_Wiki",
+   "size": 20,
+   "desc": "SECOND 볼트(JH 지식 브레인)에 설치된 커뮤니티 플러그인 목록과 활용 방법."
+  },
+  {
+   "id": "04_Wiki/JH/concepts/concept-windows-launcher-pattern.md",
+   "label": "concept-windows-launcher-pattern",
+   "group": "04_Wiki",
+   "size": 16,
+   "desc": "Windows에서 PowerShell/Electron 앱을 바탕화면 아이콘으로 실행할 때 반복 등장하는 5가지 문제와 검증된 해결 패턴."
+  },
+  {
+   "id": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md",
+   "label": "decision-adopt-infranodus-graph-layer",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "Adopt InfraNodus as the graph intelligence layer for the JH Obsidian LLM Wiki."
+  },
+  {
+   "id": "04_Wiki/JH/entities/entity-agent-ecosystem.md",
+   "label": "entity-agent-ecosystem",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "JH Brain System을 구성하는 에이전트들의 전체 맵."
+  },
+  {
+   "id": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md",
+   "label": "entity-claude-ai-desktop-setup",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "1. Claude.ai → 좌측 Projects → New Project 생성"
+  },
+  {
+   "id": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "label": "entity-jh-brain-system",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "재하님의 두 번째 뇌를 구현하는 중앙 관제 허브."
+  },
+  {
+   "id": "04_Wiki/JH/entities/entity-mneme.md",
+   "label": "entity-mneme",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "기억의 여신. 재하님의 두 번째 뇌이자 JH Brain System의 최고 실행 에이전트."
+  },
+  {
+   "id": "04_Wiki/JH/entities/master-mneme.md",
+   "label": "master-mneme",
+   "group": "04_Wiki",
+   "size": 10,
+   "desc": "실제 내용: entity-mneme"
+  },
+  {
+   "id": "04_Wiki/JH/index.md",
+   "label": "index",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "이 위키는 JH 개발 생태계의 복리 지식 베이스다. LLM 에이전트가 작성·유지하고, 나는 소스와 질문을 제공한다."
+  },
+  {
+   "id": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md",
+   "label": "jh-infranodus-upgrade-analysis",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "The JH Obsidian Vault already has the beginning of an LLM Wiki: raw/ stores source material and wiki/ stores synthesized knowledge pages. In"
+  },
+  {
+   "id": "04_Wiki/JH/jh-system.md",
+   "label": "jh-system",
+   "group": "04_Wiki",
+   "size": 18,
+   "desc": "대표 (방향·지시·승인)"
+  },
+  {
+   "id": "04_Wiki/JH/lint-quick.md",
+   "label": "lint-quick",
+   "group": "04_Wiki",
+   "size": 8,
+   "desc": "모든 wiki 파일 정상. 다음 검진: 내일 오전 9시"
+  },
+  {
+   "id": "04_Wiki/JH/log.md",
+   "label": "log",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "<!-- migration-merge:2026-05-24:98cd3514d6a0 -->"
+  },
+  {
+   "id": "04_Wiki/JH/overview.md",
+   "label": "overview",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "JH 개발 생태계는 재하님의 두 번째 뇌를 구현하는 시스템이다. 중심은 entity-jh-brain-system — Claude Code 위에서 실행되는 에이전트 오케스트레이터이며, entity-mneme가 마스터 에이전트로 전체를 통괄한다."
+  },
+  {
+   "id": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md",
+   "label": "pattern-graph-gap-driven-research",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "Use a knowledge graph to find weakly connected clusters, then turn those gaps into research questions, Claude instructions, Codex review tar"
+  },
+  {
+   "id": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md",
+   "label": "source-infranodus-llm-wiki-video",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "Video: \"Karpathy LLM Wiki를 가장 강력하게 구축하는 방법. InfraNodus로 Obsidian과 LLM을 활용한 지식 기반 워크플로우 구축하기.\""
+  },
+  {
+   "id": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md",
+   "label": "source-infranodus-visual-ai-text-analysis-video",
+   "group": "04_Wiki",
+   "size": 18,
+   "desc": "The user provided a transcript for a second InfraNodus video by Dimitri, the developer of InfraNodus."
+  },
+  {
+   "id": "04_Wiki/JH/sources/source-jh-windows-launcher-insight.md",
+   "label": "source-jh-windows-launcher-insight",
+   "group": "04_Wiki",
+   "size": 12,
+   "desc": "2026-04-21 세션 10개 커밋 분석에서 추출한 Windows 런처 반복 문제 5가지와 검증된 해결 패턴."
+  },
+  {
+   "id": "04_Wiki/JH/sources/source-llm-wiki-pattern.md",
+   "label": "source-llm-wiki-pattern",
+   "group": "04_Wiki",
+   "size": 20,
+   "desc": "RAG가 매번 지식을 재발견하는 것과 달리, LLM이 직접 위키를 작성·유지함으로써 복리처럼 누적되는 지식 베이스를 만드는 패턴."
+  },
+  {
+   "id": "04_Wiki/Legal/Frequently_Used_Laws.md",
+   "label": "Frequently_Used_Laws",
+   "group": "04_Wiki",
+   "size": 16,
+   "desc": "externaldata/legalize-kr/kr/{법령명}/"
+  },
+  {
+   "id": "04_Wiki/Legal/Index.md",
+   "label": "Index",
+   "group": "04_Wiki",
+   "size": 22,
+   "desc": "LegalizeKR 통합을 통한 한국 법령 데이터 운용 인덱스입니다."
+  },
+  {
+   "id": "04_Wiki/Legal/Law_Search_Guide.md",
+   "label": "Law_Search_Guide",
+   "group": "04_Wiki",
+   "size": 16,
+   "desc": "bash scripts/legalizesearch.sh \"임차인\""
+  },
+  {
+   "id": "04_Wiki/Legal/laws/건축법.md",
+   "label": "건축법",
+   "group": "04_Wiki",
+   "size": 10,
+   "desc": "이 법은 건축물의 대지ㆍ구조ㆍ설비 기준 및 용도 등을 정하여 건축물의 안전ㆍ기능ㆍ환경 및 미관을 향상시킴으로써 공공복리의 증진에 이바지하는 것을 목적으로 한다."
+  },
+  {
+   "id": "04_Wiki/Legal/laws/건축법_시행규칙.md",
+   "label": "건축법_시행규칙",
+   "group": "04_Wiki",
+   "size": 10,
+   "desc": "이 규칙은 「건축법」 및 「건축법 시행령」에서 위임된 사항과 그 시행에 필요한 사항을 규정함을 목적으로 한다. <개정 2005.7.18, 2012.12.12>"
+  },
+  {
+   "id": "04_Wiki/Legal/laws/주택법.md",
+   "label": "주택법",
+   "group": "04_Wiki",
+   "size": 14,
+   "desc": "이 법은 쾌적하고 살기 좋은 주거환경 조성에 필요한 주택의 건설ㆍ공급 및 주택시장의 관리 등에 관한 사항을 정함으로써 국민의 주거안정과 주거수준의 향상에 이바지함을 목적으로 한다."
+  },
+  {
+   "id": "04_Wiki/Legal/laws/주택법_시행규칙.md",
+   "label": "주택법_시행규칙",
+   "group": "04_Wiki",
+   "size": 14,
+   "desc": "이 규칙은 「주택법」 및 같은 법 시행령에서 위임된 사항과 그 시행에 필요한 사항을 규정함을 목적으로 한다."
+  },
+  {
+   "id": "04_Wiki/Legal/LegalizeKR_Source.md",
+   "label": "LegalizeKR_Source",
+   "group": "04_Wiki",
+   "size": 8,
+   "desc": "법령명: 건축법"
+  },
+  {
+   "id": "05_Frameworks/AgentBus/agentbus_protocol.md",
+   "label": "agentbus_protocol",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "AgentBus is the append-only coordination layer for Bucky, Claude Code, Codex, and user-facing handoff records. It replaces the old Agent Roo"
+  },
+  {
+   "id": "05_Frameworks/AgentBus/intake_guide.md",
+   "label": "intake_guide",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "외부 입력(음성 전사 파일, Discord 메시지 덤프)을 AgentBus inbox로 변환합니다."
+  },
+  {
+   "id": "05_Frameworks/AgentBus/README.md",
+   "label": "README",
+   "group": "05_Frameworks",
+   "size": 22,
+   "desc": "AgentBus는 Claude Code, Codex 등 복수 에이전트 간의 파일 기반 비동기 메시지 브로커입니다."
+  },
+  {
+   "id": "05_Frameworks/AgentBus/session_lifecycle.md",
+   "label": "session_lifecycle",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "세션 시작"
+  },
+  {
+   "id": "05_Frameworks/AgentBus/templates/stripe-webhook-order-intake.md",
+   "label": "stripe-webhook-order-intake",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Stripe checkout.session.completed 또는 paymentintent.succeeded 웹훅 수신 시"
+  },
+  {
+   "id": "05_Frameworks/Codex/Codex_Goal_Mode_Playbook.md",
+   "label": "Codex_Goal_Mode_Playbook",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "이 문서는 사용자가 제공한 유튜브 영상 내용을 바탕으로, 현재 운영 중인 Obsidian + Claude Code + Codex 기반 세컨드 브레인/개발 통합 시스템에 적용하기 위한 운영 지침이다."
+  },
+  {
+   "id": "05_Frameworks/Graphify/graphify_adapter.md",
+   "label": "graphify_adapter",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "python -m graphifyy build \\"
+  },
+  {
+   "id": "05_Frameworks/Graphify/graphify_context_pack_rules.md",
+   "label": "graphify_context_pack_rules",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "ObsidianVault/06ContextPacks/Graphify/{PROJECT}graphifypack.md"
+  },
+  {
+   "id": "05_Frameworks/Graphify/graphify_query_patterns.md",
+   "label": "graphify_query_patterns",
+   "group": "05_Frameworks",
+   "size": 14,
+   "desc": "python -m graphifyy query \\"
+  },
+  {
+   "id": "05_Frameworks/Graphify/graphify_scope_policy.md",
+   "label": "graphify_scope_policy",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "1. Claude Code가 위반 스코프 감지 → 즉시 중단"
+  },
+  {
+   "id": "05_Frameworks/Graphify/graphify_security_policy.md",
+   "label": "graphify_security_policy",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "Codex는 다음을 검토:"
+  },
+  {
+   "id": "05_Frameworks/Graphify/graphify_update_policy.md",
+   "label": "graphify_update_policy",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "python -m graphifyy update \\"
+  },
+  {
+   "id": "05_Frameworks/Graphify/README.md",
+   "label": "README",
+   "group": "05_Frameworks",
+   "size": 14,
+   "desc": "선별된 프로젝트/문서 범위의 마크다운 파일과 코드를 분석해 지식 그래프(graph.json)를 생성."
+  },
+  {
+   "id": "05_Frameworks/guides/agent-onboarding.md",
+   "label": "agent-onboarding",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "This guide is the framework-level onboarding entry. The project-level copy is ObsidianVault/03Projects/agents/onboarding.md."
+  },
+  {
+   "id": "05_Frameworks/guides/boris-phase1-report.md",
+   "label": "boris-phase1-report",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Boris 방법론 핵심 원칙인 \"구현 완료 후 Codex 검수 전 자동 검증 게이트 의무화\" 를 JH 워크플로우에 통합한다."
+  },
+  {
+   "id": "05_Frameworks/guides/boris-phase2-plan.md",
+   "label": "boris-phase2-plan",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "대규모 작업(파일 10개+, 독립 영역 분리 가능, 단일 세션 2시간+ 예상)을 여러 Claude Code 세션이 병렬로 처리할 때:"
+  },
+  {
+   "id": "05_Frameworks/guides/boris-phase2-report.md",
+   "label": "boris-phase2-report",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "대규모 작업(파일 10개+, 독립 영역 분리 가능, 단일 세션 2시간+ 예상)을 여러 Claude Code 세션이 병렬로 처리할 때 충돌 없이 조율하는 오케스트레이션 프로토콜을 구축한다."
+  },
+  {
+   "id": "05_Frameworks/guides/bucky-command-template.md",
+   "label": "bucky-command-template",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "\"v\": 1,"
+  },
+  {
+   "id": "05_Frameworks/guides/bucky-evolution-system.md",
+   "label": "bucky-evolution-system",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "사용할수록 똑똑해지는 Bucky. 두 트랙으로 구성됨."
+  },
+  {
+   "id": "05_Frameworks/guides/CLAUDE_MASTER.md",
+   "label": "CLAUDE_MASTER",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "This file is no longer the source of truth for Claude Code."
+  },
+  {
+   "id": "05_Frameworks/guides/context-management-strategy.md",
+   "label": "context-management-strategy",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "50% 도달 → 현재 세션에 추가 작업 투입 중단. 진행 중인 것만 완료."
+  },
+  {
+   "id": "05_Frameworks/guides/context-pack-index.md",
+   "label": "context-pack-index",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Agents must start light. This index tells Bucky, Codex, ClaudeCode, and future subagents which small pack to read for each task type."
+  },
+  {
+   "id": "05_Frameworks/guides/discord-fallback-pipeline.md",
+   "label": "discord-fallback-pipeline",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Discord is currently the user's strongest access point. It is the primary conversational interface until replaced by a better one."
+  },
+  {
+   "id": "05_Frameworks/guides/jh-system.md",
+   "label": "jh-system",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Obsidian Agent Brain System is the main operating system for JH agent work. Bucky is the instruction source, orchestrator, and activation sw"
+  },
+  {
+   "id": "05_Frameworks/guides/knowledge-paths.md",
+   "label": "knowledge-paths",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "JH knowledge lookup starts inside the current Obsidian Agent Brain System vault."
+  },
+  {
+   "id": "05_Frameworks/guides/model-routing.md",
+   "label": "model-routing",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "한도 초과 시 자동 다음 모델 시도 (BUCKYFALLBACK=1 기본 활성)."
+  },
+  {
+   "id": "05_Frameworks/guides/multi-pc-sync-sentinel.md",
+   "label": "multi-pc-sync-sentinel",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "The user works across home PC, office PC, and laptop. The user should not need to manually explain which PC is authoritative every time."
+  },
+  {
+   "id": "05_Frameworks/guides/p1-scheduling.md",
+   "label": "p1-scheduling",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "buckypatternextractor.py를 매일 자동 실행하여 반복 요청 패턴을 감지하고 스킬 자동 제안을 생성한다."
+  },
+  {
+   "id": "05_Frameworks/guides/parallel-session-template.md",
+   "label": "parallel-session-template",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Use this template when Bucky splits one large task into independent Claude Code or Codex sessions."
+  },
+  {
+   "id": "05_Frameworks/guides/paths.md",
+   "label": "paths",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "This document lists current operating paths. Legacy paths are reference-only unless a Bucky-approved migration packet explicitly enables the"
+  },
+  {
+   "id": "05_Frameworks/guides/pc-detection.md",
+   "label": "pc-detection",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "🏠/💻/🏢 [PC명] 환경 감지되었습니다. 기본 경로: [path]."
+  },
+  {
+   "id": "05_Frameworks/guides/recovery-oneshot-playbook.md",
+   "label": "recovery-oneshot-playbook",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "운영 중 장애가 나도 짧은 한 줄로 바로 복구·검증까지 돌릴 수 있는 Ops 원라이너 모음."
+  },
+  {
+   "id": "05_Frameworks/guides/roles.md",
+   "label": "roles",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "Framework-level role guide. The project-level role document is ObsidianVault/03Projects/agents/roles.md."
+  },
+  {
+   "id": "05_Frameworks/guides/session-state-gdrive.md",
+   "label": "session-state-gdrive",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "This file is retained only to document that an older GDrive session-state mirror existed."
+  },
+  {
+   "id": "05_Frameworks/guides/shared-protocol.md",
+   "label": "shared-protocol",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "This protocol replaces the old JH-SHARED collision rules for current work. JH-SHARED remains an archive/reference source, not the active sha"
+  },
+  {
+   "id": "05_Frameworks/guides/sync-protocol.md",
+   "label": "sync-protocol",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "이 문서는 사용자가 동기화, sync, 오늘 작업 정리해줘, 이 PC 최신화를 요청했을 때 따르는 절차다. 현재 기준은 Obsidian Agent Brain System Vault이며, legacy shared folders are reference-"
+  },
+  {
+   "id": "05_Frameworks/guides/tablet-batch-upload-manifest.md",
+   "label": "tablet-batch-upload-manifest",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "현장(인테리어·건축 등)에서 Galaxy Tab 등 태블릿으로 녹음/파일 배치를 업로드할 때 Bucky가 수신하는 매니페스트 형식과 운영 규칙."
+  },
+  {
+   "id": "05_Frameworks/guides/tablet-voice-intake-guide.md",
+   "label": "tablet-voice-intake-guide",
+   "group": "05_Frameworks",
+   "size": 6,
+   "desc": "Samsung Galaxy Tab에서 Bucky 음성 인테이크를 원클릭 설치하고 Obsidian Vault에 자동 로깅하는 가이드."
+  },
+  {
+   "id": "05_Frameworks/guides/video-extraction-checklist.md",
+   "label": "video-extraction-checklist",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "영상 한 편을 자동으로 \"읽어\" 메타데이터로 정리하려면, 아래 3단계 체크리스트로 시작한다."
+  },
+  {
+   "id": "05_Frameworks/guides/webhook-replay-ops-checklist.md",
+   "label": "webhook-replay-ops-checklist",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "SHA256 확인, HMAC 검증, 청크 결합, 레드시트 처리, Idempotency-Key replay까지 한 번에 실행하는 복붙용 절차."
+  },
+  {
+   "id": "05_Frameworks/Harness/framework_router.md",
+   "label": "framework_router",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "AgentBus의 implementationrequest, harnessdevelopmentrequest, 또는 개발 의도가 감지된 discordintake 본문."
+  },
+  {
+   "id": "05_Frameworks/Harness/GSD.md",
+   "label": "GSD",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "GSD는 장기 개발과 대형 요구사항을 phase 단위로 나누고, .planning/ 상태를 통해 컨텍스트를 안정적으로 유지하는 Claude Code 프레임워크다."
+  },
+  {
+   "id": "05_Frameworks/Harness/gstack.md",
+   "label": "gstack",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "gstack은 구현 전에 제품 방향, 가치, 아키텍처, 디자인, 개발자 경험을 검토하는 역할 기반 Claude Code 프레임워크다. \"이걸 만들어야 하는가\"를 먼저 묻는 것이 핵심이다."
+  },
+  {
+   "id": "05_Frameworks/Harness/README.md",
+   "label": "README",
+   "group": "05_Frameworks",
+   "size": 22,
+   "desc": "Harness Framework는 사용자의 개발 요구를 먼저 분석하고, 적합한 개발 프레임워크로 정리한 뒤 Claude Code와 Codex에게 서로 다른 지시를 전달하는 라우팅 계층이다."
+  },
+  {
+   "id": "05_Frameworks/Harness/Superpowers.md",
+   "label": "Superpowers",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "Superpowers는 실행 품질을 강제하는 Claude Code 프레임워크다. 코딩 전 아이디어 정제, 작업 분해, 테스트 우선 구현, 서브에이전트 개발, 코드 리뷰를 흐름으로 묶는다."
+  },
+  {
+   "id": "05_Frameworks/index.md",
+   "label": "index",
+   "group": "05_Frameworks",
+   "size": 22,
+   "desc": "index"
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/cli_mcp_policy.md",
+   "label": "cli_mcp_policy",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "pipx install legalize-cli"
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/github_sync_policy.md",
+   "label": "github_sync_policy",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "bash scripts/legalizesync.sh"
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/law_context_pack_rules.md",
+   "label": "law_context_pack_rules",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "ObsidianVault/06ContextPacks/Legal/{topic}legalpack.md"
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/law_query_patterns.md",
+   "label": "law_query_patterns",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "grep -r \"하여야 한다\\|금지한다\\|하지 못한다\" \\"
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/legal_risk_policy.md",
+   "label": "legal_risk_policy",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "모든 법률 정보는 참고용이며, 실제 법적 결정은 변호사 상담이 필요합니다."
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md",
+   "label": "legalize_kr_adapter",
+   "group": "05_Frameworks",
+   "size": 20,
+   "desc": "grep -r \"{키워드}\" externaldata/legalize-kr/ --include=\".md\" -l | head -20"
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/legalize_update_policy.md",
+   "label": "legalize_update_policy",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "LegalizeKR는 Obsidian Agent Brain System의 외부 법령 데이터 소스다. ObsidianVault 안에 전체 레포를 복사하지 않고, 필요한 법령만 검색해 Legal Context Pack으로 압축한다."
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/README.md",
+   "label": "README",
+   "group": "05_Frameworks",
+   "size": 12,
+   "desc": "LegalizeKR은 한국 법령 데이터를 검색·분석하기 위한 외부 데이터 레이어입니다."
+  },
+  {
+   "id": "05_Frameworks/LegalizeKR/update_policy.md",
+   "label": "update_policy",
+   "group": "05_Frameworks",
+   "size": 10,
+   "desc": "bash scripts/legalizesync.sh"
+  },
+  {
+   "id": "05_Frameworks/prompts/ai-api-catalog.md",
+   "label": "ai-api-catalog",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "1. 신규 프로젝트 시 /jh-ai-api-router 스킬 호출"
+  },
+  {
+   "id": "05_Frameworks/prompts/ai-api-routing-architect.md",
+   "label": "ai-api-routing-architect",
+   "group": "05_Frameworks",
+   "size": 8,
+   "desc": "너는 \"AI API 탑재 설계자\"이자 \"개발 프로젝트용 AI 모델 라우팅 아키텍트\"다."
+  },
+  {
+   "id": "06_Context_Packs/_proposals/2026-06-14-skill-미분류-skill.md",
+   "label": "2026-06-14-skill-미분류-skill",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "1. (수동 입력 필요)"
+  },
+  {
+   "id": "06_Context_Packs/_proposals/diff_matrix_2026-06-24.md",
+   "label": "diff_matrix_2026-06-24",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "1. Ponytail → Codex 프롬프트 또는 미니 스킬"
+  },
+  {
+   "id": "06_Context_Packs/_proposals/estimation-skills/CLAUDE_MD.PATCH.md",
+   "label": "CLAUDE_MD.PATCH",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "기존 CLAUDE.md 하단에 다음 섹션을 추가한다. 기존 내용 수정 없음."
+  },
+  {
+   "id": "06_Context_Packs/_proposals/estimation-skills/jh-boq-builder.SKILL.md",
+   "label": "jh-boq-builder.SKILL",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "python -X utf8 scripts/estimation/excelrecognizer.py <xlspath> --out data/estimationsamples/<slug>/boqworkbook.json"
+  },
+  {
+   "id": "06_Context_Packs/_proposals/estimation-skills/jh-drawing-recognition.SKILL.md",
+   "label": "jh-drawing-recognition.SKILL",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "견적 입력에 PDF 도면이 포함되거나, \"도면 분석/분류/인식\" 요청이 들어올 때."
+  },
+  {
+   "id": "06_Context_Packs/_proposals/estimation-skills/jh-estimate.EXTENSION.md",
+   "label": "jh-estimate.EXTENSION",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "기존 jh-estimate는 지침만 있고 실제 파이프라인이 없었다. 본 확장으로"
+  },
+  {
+   "id": "06_Context_Packs/_proposals/estimation-skills/jh-material-spec-extractor.SKILL.md",
+   "label": "jh-material-spec-extractor.SKILL",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "1. 자재 페이지만 PyMuPDF로 텍스트 + 이미지 추출"
+  },
+  {
+   "id": "06_Context_Packs/_proposals/extraction_2026-06-24.md",
+   "label": "extraction_2026-06-24",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "1. 소형 컴포넌트(모달·색상선택기·아코디언) 작업 시 Ponytail 먼저 탑재"
+  },
+  {
+   "id": "06_Context_Packs/_proposals/jh-estimate-analyzer-pack.md",
+   "label": "jh-estimate-analyzer-pack",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "다음 키워드/요청에서 Bucky 또는 Claude Code가 본 팩을 on-demand로 로드한다."
+  },
+  {
+   "id": "06_Context_Packs/bucky-agent-os-legacy-rules.md",
+   "label": "bucky-agent-os-legacy-rules",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This pack absorbs useful operating rules from the old integrated JH setup into the current Obsidian Agent Brain System. Historical folders a"
+  },
+  {
+   "id": "06_Context_Packs/bucky-ai-api-routing-policy.md",
+   "label": "bucky-ai-api-routing-policy",
+   "group": "06_Context_Packs",
+   "size": 8,
+   "desc": "Bucky must use this pack when a new project or feature may call AI APIs, LLMs, embeddings, OCR, image generation, image analysis, speech-to-"
+  },
+  {
+   "id": "06_Context_Packs/bucky-atoms-multi-agent-builder-video-2026-06-10.md",
+   "label": "bucky-atoms-multi-agent-builder-video-2026-06-10",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "이 문서는 Atoms 멀티 에이전트 빌더 영상에서 확인된 기능 패턴을 Bucky Agent OS에 적용 가능한 지식으로 저장한다. 영상 자막은 확보되지 않았으므로, 아래 내용은 프레임에서 확인된 화면 흐름과 텍스트에 근거한 기능 추출이다. 기존 OAB"
+  },
+  {
+   "id": "06_Context_Packs/bucky-context-efficiency-goal-mode.md",
+   "label": "bucky-context-efficiency-goal-mode",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This pack promotes legacy integration-system operating rules into the current Obsidian Agent Brain System. Bucky must use these rules when d"
+  },
+  {
+   "id": "06_Context_Packs/bucky-design-improvement-policy.md",
+   "label": "bucky-design-improvement-policy",
+   "group": "06_Context_Packs",
+   "size": 10,
+   "desc": "사용자가 디자인 개선 또는 신규 제작 시 발동하는 Bucky 디자인 강화 정책."
+  },
+  {
+   "id": "06_Context_Packs/bucky-design-tool-workflow.md",
+   "label": "bucky-design-tool-workflow",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "사용자: \"<레퍼런스 URL> 처럼 만들어줘 + <수정 요구사항>\""
+  },
+  {
+   "id": "06_Context_Packs/bucky-development-workflow-policy.md",
+   "label": "bucky-development-workflow-policy",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This pack promotes useful development workflow rules from legacy material into the current Obsidian Agent Brain System. It is for Bucky pack"
+  },
+  {
+   "id": "06_Context_Packs/bucky-goal-mode-autonomous-execution.md",
+   "label": "bucky-goal-mode-autonomous-execution",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "goal: \"<구체적 목표 — 관찰 가능한 결과로 기술>\""
+  },
+  {
+   "id": "06_Context_Packs/bucky-hermes-agent-lessons-video-2026-06-10.md",
+   "label": "bucky-hermes-agent-lessons-video-2026-06-10",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Hermes Agent 영상의 기술/운영 지식을 Bucky Agent OS 참고용으로 압축 저장한다. 외부 절차보다 OABS canonical instruction과 repo별 packet을 우선한다."
+  },
+  {
+   "id": "06_Context_Packs/bucky-higgsfield-video-production-mcp-2026-06-10.md",
+   "label": "bucky-higgsfield-video-production-mcp-2026-06-10",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "이 문서는 사용자가 Bucky에게 영상 제작을 요청했을 때, Bucky가 Higgsfield MCP를 활용해 제작 가능한 요청으로 정리하고 실행/검수/수정 루프를 운영하기 위한 기준이다. 기존 OABS 역할 경계는 유지한다. Bucky는 라우팅과 운영"
+  },
+  {
+   "id": "06_Context_Packs/bucky-migration-build-charter.md",
+   "label": "bucky-migration-build-charter",
+   "group": "06_Context_Packs",
+   "size": 8,
+   "desc": "이 Context Pack은 옵시디언에이전트브레인시스템구축자료/에 남아 있던 초기 구축/마이그레이션 지침을 현재 Bucky 중심 에이전트 OS 기준으로 압축한 것이다. 마이그레이션, Graphify, LegalizeKR, 기존 Vault 정렬 작업에서"
+  },
+  {
+   "id": "06_Context_Packs/bucky-one-person-entrepreneur-mindset-video-2026-06-10.md",
+   "label": "bucky-one-person-entrepreneur-mindset-video-2026-06-10",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "이 문서는 영상의 기업가 사고를 Bucky Agent가 수익형 모델을 구상할 때 재사용할 수 있는 판단 규칙으로 저장한다. 핵심 취지는 사용자가 Bucky에게 \"1인 사업가/기업가 정신\"을 탑재해, AI와 자동화를 활용한 현실적인 수익 모델을 계속 발"
+  },
+  {
+   "id": "06_Context_Packs/bucky-security-runtime-governance.md",
+   "label": "bucky-security-runtime-governance",
+   "group": "06_Context_Packs",
+   "size": 8,
+   "desc": "This pack promotes legacy runtime safety, security, and agent-control rules into the current Obsidian Agent Brain System."
+  },
+  {
+   "id": "06_Context_Packs/bucky-shorts-dashboard.md",
+   "label": "bucky-shorts-dashboard",
+   "group": "06_Context_Packs",
+   "size": 10,
+   "desc": "Bucky가 shorts-dashboard 프로젝트 작업을 지시할 때 필요한 최소 컨텍스트."
+  },
+  {
+   "id": "06_Context_Packs/bucky-user-communication-output-policy.md",
+   "label": "bucky-user-communication-output-policy",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This pack promotes user-facing communication preferences from legacy material into the current Obsidian Agent Brain System. It is a default "
+  },
+  {
+   "id": "06_Context_Packs/bucky-vault-ingestion-record-policy.md",
+   "label": "bucky-vault-ingestion-record-policy",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This pack converts legacy LLM Wiki and template rules into the current Obsidian Agent Brain System. Bucky uses it when importing knowledge, "
+  },
+  {
+   "id": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md",
+   "label": "2026-05-12-infranodus-briefing",
+   "group": "06_Context_Packs",
+   "size": 18,
+   "desc": "Codex directly implemented the first InfraNodus integration layer for the JH Obsidian Vault."
+  },
+  {
+   "id": "06_Context_Packs/claude/index.md",
+   "label": "index",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Store user-approved instructions for Claude that were generated from graph analysis."
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/.claude/skills/designlang/SKILL.md",
+   "label": "SKILL",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Source: https://linear.app"
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/agents.md",
+   "label": "agents",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This project follows the design system extracted from https://linear.app."
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-AGENT.md",
+   "label": "linear-AGENT",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Source: https://linear.app"
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-design-language.md",
+   "label": "linear-design-language",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "This document describes the complete design language of the website. It is structured for AI/LLM consumption — use it to faithfully recreate"
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-DESIGN.md",
+   "label": "linear-DESIGN",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "A landing page (heuristic confidence 0.31), dressed in material-you material (0.45)."
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-prompts/claude-artifacts.md",
+   "label": "claude-artifacts",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Create a React artifact that reproduces this brand's design language."
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-prompts/cursor.md",
+   "label": "cursor",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Page type: landing."
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-prompts/recipe-button.md",
+   "label": "recipe-button",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Build one button component that matches this brand."
+  },
+  {
+   "id": "06_Context_Packs/Design/samples/linear-app/linear-prompts/recipe-input.md",
+   "label": "recipe-input",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "Build one input component that matches this brand."
+  },
+  {
+   "id": "06_Context_Packs/Graphify/OABS_second_brain_graphify_pack.md",
+   "label": "OABS_second_brain_graphify_pack",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "0개 커뮤니티 감지됨. 상세 내용은 graph.json 참조 (LLM 프롬프트 포함 금지)."
+  },
+  {
+   "id": "06_Context_Packs/Graphify/ObsidianVault_graphify_pack.md",
+   "label": "ObsidianVault_graphify_pack",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "0개 커뮤니티 감지됨. 상세 내용은 graph.json 참조 (LLM 프롬프트 포함 금지)."
+  },
+  {
+   "id": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md",
+   "label": "graphify_context_pack_template",
+   "group": "06_Context_Packs",
+   "size": 18,
+   "desc": "graphify_context_pack_template"
+  },
+  {
+   "id": "06_Context_Packs/jh-estimate-analyzer-pack.md",
+   "label": "jh-estimate-analyzer-pack",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "다음 키워드/요청에서 Bucky 또는 Claude Code가 본 팩을 on-demand로 로드한다."
+  },
+  {
+   "id": "06_Context_Packs/jh-estimation-system-architecture.md",
+   "label": "jh-estimation-system-architecture",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "건설/인테리어 프로젝트의 PDF 도면 세트와 엑셀 내역서를 입력받아,"
+  },
+  {
+   "id": "06_Context_Packs/Legal/templates/legal_context_pack_template.md",
+   "label": "legal_context_pack_template",
+   "group": "06_Context_Packs",
+   "size": 14,
+   "desc": "{무엇을 알고 싶었는가 — 구체적으로 서술}"
+  },
+  {
+   "id": "06_Context_Packs/Legal/건축법_기초_legal_pack.md",
+   "label": "건축법_기초_legal_pack",
+   "group": "06_Context_Packs",
+   "size": 16,
+   "desc": "건축법기초 관련 법령 조사"
+  },
+  {
+   "id": "06_Context_Packs/Legal/도시계획법_기초_legal_pack.md",
+   "label": "도시계획법_기초_legal_pack",
+   "group": "06_Context_Packs",
+   "size": 12,
+   "desc": "도시계획법기초 관련 법령 조사"
+  },
+  {
+   "id": "06_Context_Packs/Legal/주택법_기초_legal_pack.md",
+   "label": "주택법_기초_legal_pack",
+   "group": "06_Context_Packs",
+   "size": 16,
+   "desc": "주택법기초 관련 법령 조사"
+  },
+  {
+   "id": "06_Context_Packs/Legal/주택법_분양청약_legal_pack.md",
+   "label": "주택법_분양청약_legal_pack",
+   "group": "06_Context_Packs",
+   "size": 16,
+   "desc": "주택법분양청약 관련 법령 조사"
+  },
+  {
+   "id": "06_Context_Packs/skills_pending/jh-excel-boq-pricer.SKILL.md",
+   "label": "jh-excel-boq-pricer.SKILL",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "이 파일을 다음 경로로 복사하세요:"
+  },
+  {
+   "id": "06_Context_Packs/web-delivery-pack.md",
+   "label": "web-delivery-pack",
+   "group": "06_Context_Packs",
+   "size": 6,
+   "desc": "클라이언트 웹사이트 납품 시 Claude Code가 로드하는 작업 규칙."
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260525.md",
+   "label": "pattern-report-20260525",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 4개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260526.md",
+   "label": "pattern-report-20260526",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 9개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260527.md",
+   "label": "pattern-report-20260527",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 10개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260528.md",
+   "label": "pattern-report-20260528",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 12개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260529.md",
+   "label": "pattern-report-20260529",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 2개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260531.md",
+   "label": "pattern-report-20260531",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 5개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260602.md",
+   "label": "pattern-report-20260602",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 5개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260603.md",
+   "label": "pattern-report-20260603",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 7개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260604.md",
+   "label": "pattern-report-20260604",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 11개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260605.md",
+   "label": "pattern-report-20260605",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 14개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260606.md",
+   "label": "pattern-report-20260606",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 14개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260607.md",
+   "label": "pattern-report-20260607",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 14개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260608.md",
+   "label": "pattern-report-20260608",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 13개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260609.md",
+   "label": "pattern-report-20260609",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 15개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260610.md",
+   "label": "pattern-report-20260610",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 17개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260611.md",
+   "label": "pattern-report-20260611",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 19개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260612.md",
+   "label": "pattern-report-20260612",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 21개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260613.md",
+   "label": "pattern-report-20260613",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 23개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260614.md",
+   "label": "pattern-report-20260614",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 22개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260615.md",
+   "label": "pattern-report-20260615",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 22개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260616.md",
+   "label": "pattern-report-20260616",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 22개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260618.md",
+   "label": "pattern-report-20260618",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 22개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260621.md",
+   "label": "pattern-report-20260621",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 23개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260622.md",
+   "label": "pattern-report-20260622",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 21개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260623.md",
+   "label": "pattern-report-20260623",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 23개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260624.md",
+   "label": "pattern-report-20260624",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 23개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260625.md",
+   "label": "pattern-report-20260625",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 21개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260626.md",
+   "label": "pattern-report-20260626",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 23개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260627.md",
+   "label": "pattern-report-20260627",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 23개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260628.md",
+   "label": "pattern-report-20260628",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 21개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260704.md",
+   "label": "pattern-report-20260704",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 19개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260705.md",
+   "label": "pattern-report-20260705",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 21개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260706.md",
+   "label": "pattern-report-20260706",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 21개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260707.md",
+   "label": "pattern-report-20260707",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 19개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260708.md",
+   "label": "pattern-report-20260708",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 18개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260709.md",
+   "label": "pattern-report-20260709",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 16개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260710.md",
+   "label": "pattern-report-20260710",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 16개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260711.md",
+   "label": "pattern-report-20260711",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 15개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260712.md",
+   "label": "pattern-report-20260712",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 15개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260713.md",
+   "label": "pattern-report-20260713",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 12개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260717.md",
+   "label": "pattern-report-20260717",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 16개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260720.md",
+   "label": "pattern-report-20260720",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 9개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/patterns/pattern-report-20260721.md",
+   "label": "pattern-report-20260721",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "총 9개 반복 패턴 감지됨"
+  },
+  {
+   "id": "09_Knowledge_Capture/promptlog/2026-06-13.md",
+   "label": "2026-06-13",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "<!-- dedup: 08:14:28:ef7217b2 -->"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260525.md",
+   "label": "reflection-20260525",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260526.md",
+   "label": "reflection-20260526",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260527.md",
+   "label": "reflection-20260527",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260528.md",
+   "label": "reflection-20260528",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260529.md",
+   "label": "reflection-20260529",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260530.md",
+   "label": "reflection-20260530",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260601.md",
+   "label": "reflection-20260601",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260602.md",
+   "label": "reflection-20260602",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260603.md",
+   "label": "reflection-20260603",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260604.md",
+   "label": "reflection-20260604",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260605.md",
+   "label": "reflection-20260605",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260606.md",
+   "label": "reflection-20260606",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260607.md",
+   "label": "reflection-20260607",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260608.md",
+   "label": "reflection-20260608",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260609.md",
+   "label": "reflection-20260609",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260610.md",
+   "label": "reflection-20260610",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260611.md",
+   "label": "reflection-20260611",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260612.md",
+   "label": "reflection-20260612",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260613.md",
+   "label": "reflection-20260613",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260615.md",
+   "label": "reflection-20260615",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260616.md",
+   "label": "reflection-20260616",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260617.md",
+   "label": "reflection-20260617",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260618.md",
+   "label": "reflection-20260618",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260619.md",
+   "label": "reflection-20260619",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260620.md",
+   "label": "reflection-20260620",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260621.md",
+   "label": "reflection-20260621",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260622.md",
+   "label": "reflection-20260622",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260623.md",
+   "label": "reflection-20260623",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260625.md",
+   "label": "reflection-20260625",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260626.md",
+   "label": "reflection-20260626",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260627.md",
+   "label": "reflection-20260627",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260703.md",
+   "label": "reflection-20260703",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260704.md",
+   "label": "reflection-20260704",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260705.md",
+   "label": "reflection-20260705",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260707.md",
+   "label": "reflection-20260707",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260708.md",
+   "label": "reflection-20260708",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260709.md",
+   "label": "reflection-20260709",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260710.md",
+   "label": "reflection-20260710",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260711.md",
+   "label": "reflection-20260711",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260712.md",
+   "label": "reflection-20260712",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260716.md",
+   "label": "reflection-20260716",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260717.md",
+   "label": "reflection-20260717",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260720.md",
+   "label": "reflection-20260720",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/self-reflection/reflection-20260722.md",
+   "label": "reflection-20260722",
+   "group": "09_Knowledge_Capture",
+   "size": 6,
+   "desc": "자동 생성: buckyselfreflection.py"
+  },
+  {
+   "id": "09_Knowledge_Capture/video-patterns/2026-06-25.md",
+   "label": "2026-06-25",
+   "group": "09_Knowledge_Capture",
+   "size": 8,
+   "desc": "이 추출 결과는 Stage 2(승격 후보 분류) 입력값입니다."
+  },
+  {
+   "id": "00_System/AGENT_STATE.md",
+   "label": "AGENT_STATE",
+   "group": "00_System",
+   "size": 8,
+   "desc": "세션 시작 시 이 파일은 빠른 상태 확인용으로만 사용한다. 실제 운영 지침은 BUCKYCONTEXT.md, ROUTINGRULES.md, ObsidianVault/06ContextPacks/index.md를 우선한다."
+  },
+  {
+   "id": "00_System/AGENTS_CANONICAL.md",
+   "label": "AGENTS_CANONICAL",
+   "group": "00_System",
+   "size": 8,
+   "desc": "행위별 권한 매트릭스(구현/리뷰/커밋/삭제/규칙 변경)는 roles.md의 Role Matrix가 정본 — 여기 중복 전재하지 않는다."
+  },
+  {
+   "id": "00_System/archive/handoffs/agent-startup-check.md",
+   "label": "agent-startup-check",
+   "group": "00_System",
+   "size": 6,
+   "desc": "다른 PC에서 Claude 또는 Codex가 시작할 때 아래만 먼저 확인한다."
+  },
+  {
+   "id": "00_System/archive/handoffs/claude-brief-agent-room-rehome.md",
+   "label": "claude-brief-agent-room-rehome",
+   "group": "00_System",
+   "size": 6,
+   "desc": "codex-medipic-app는 medipic 웹사이트 저장소이므로, JH Agent Room 대시보드는 이 저장소가 아니라 별도 프로젝트 폴더에서 관리해야 한다."
+  },
+  {
+   "id": "00_System/archive/handoffs/claude-obsidian-upgrade.md",
+   "label": "claude-obsidian-upgrade",
+   "group": "00_System",
+   "size": 6,
+   "desc": "현재 CLAUDE.md에 12개의 자동 로드 규칙이 있어 매 세션마다 guides/.md가 컨텍스트에 강제 로드된다."
+  },
+  {
+   "id": "00_System/archive/handoffs/claude-sync-context-guard.md",
+   "label": "claude-sync-context-guard",
+   "group": "00_System",
+   "size": 6,
+   "desc": "사용자가 동기화 또는 업데이트를 요청해도 전역 ~/.claude/CLAUDE.md 전체를 매번 읽지 말고, JH-SHARED/00SYSTEM의 최소 기준 파일부터 읽어라."
+  },
+  {
+   "id": "00_System/archive/handoffs/codex-sync-redesign-협의.md",
+   "label": "codex-sync-redesign-협의",
+   "group": "00_System",
+   "size": 6,
+   "desc": "사용자 피드백 (2026-05-01):"
+  },
+  {
+   "id": "00_System/archive/handoffs/handoff-20260502-claude-web.md",
+   "label": "handoff-20260502-claude-web",
+   "group": "00_System",
+   "size": 6,
+   "desc": "1. git pull — claude-projects-jh, jh-brain-system, jh-harness"
+  },
+  {
+   "id": "00_System/archive/handoffs/session-handoff-20260430.md",
+   "label": "session-handoff-20260430",
+   "group": "00_System",
+   "size": 6,
+   "desc": "Codex MCP가 gpt-5.5 모델 버전 호환 문제로 응답 불가."
+  },
+  {
+   "id": "00_System/archive/sync-log-gdrive.md",
+   "label": "sync-log-gdrive",
+   "group": "00_System",
+   "size": 6,
+   "desc": "sync-log-gdrive"
+  },
+  {
+   "id": "00_System/archive/sync-manifest-gdrive.md",
+   "label": "sync-manifest-gdrive",
+   "group": "00_System",
+   "size": 6,
+   "desc": "sync-manifest-gdrive"
+  },
+  {
+   "id": "00_System/BENCHMARKS_HERMES_AGENTIC_OS.md",
+   "label": "BENCHMARKS_HERMES_AGENTIC_OS",
+   "group": "00_System",
+   "size": 6,
+   "desc": "❌ Skill Pantheon = 텍스트 뱃지 리스트만"
+  },
+  {
+   "id": "00_System/BUCKY_CONTEXT.md",
+   "label": "BUCKY_CONTEXT",
+   "group": "00_System",
+   "size": 6,
+   "desc": "﻿---"
+  },
+  {
+   "id": "00_System/bucky_goal_prompt_template.md",
+   "label": "bucky_goal_prompt_template",
+   "group": "00_System",
+   "size": 6,
+   "desc": "Use this when Bucky converts a broad user request into a long-running Codex/Claude task."
+  },
+  {
+   "id": "00_System/BUCKY_OPERATIONS_PLAN.md",
+   "label": "BUCKY_OPERATIONS_PLAN",
+   "group": "00_System",
+   "size": 6,
+   "desc": "사용자 → Discord → Bucky → Claude (단일) → 응답"
+  },
+  {
+   "id": "00_System/BUCKY_OS_COMPLETION_AUDIT_2026-05-30.md",
+   "label": "BUCKY_OS_COMPLETION_AUDIT_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "﻿---"
+  },
+  {
+   "id": "00_System/BUCKY_OS_GATE_2026-05-30.md",
+   "label": "BUCKY_OS_GATE_2026-05-30",
+   "group": "00_System",
+   "size": 6,
+   "desc": "Purpose: verify that Obsidian Agent Brain System is the active instruction operating layer for JH agent work."
+  },
+  {
+   "id": "00_System/BUCKY_OS_MIGRATION_NEXT_ACTIONS_2026-05-30.md",
+   "label": "BUCKY_OS_MIGRATION_NEXT_ACTIONS_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "﻿---"
+  },
+  {
+   "id": "00_System/BUCKY_OS_RUNBOOK.md",
+   "label": "BUCKY_OS_RUNBOOK",
+   "group": "00_System",
+   "size": 8,
+   "desc": "This runbook is the short operating procedure for using Obsidian Agent Brain System as the JH agent instruction operating system."
+  },
+  {
+   "id": "00_System/channel_roles/CHSH_MINING_ROLE.md",
+   "label": "CHSH_MINING_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "CHSH_MINING_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/CLAUDE_CODE_ROLE.md",
+   "label": "CLAUDE_CODE_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "CLAUDE_CODE_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/CODEX_ROLE.md",
+   "label": "CODEX_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "CODEX_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/DAILYPLUS_ROLE.md",
+   "label": "DAILYPLUS_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "DAILYPLUS_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/JHHUB_ROLE.md",
+   "label": "JHHUB_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "JHHUB_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/KMONG_ROLE.md",
+   "label": "KMONG_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "KMONG_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/MYINTRO_ROLE.md",
+   "label": "MYINTRO_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "MYINTRO_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/REPO_DASHBOARD_ROLE.md",
+   "label": "REPO_DASHBOARD_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "REPO_DASHBOARD_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/SHORTS_ROLE.md",
+   "label": "SHORTS_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "SHORTS_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/TASKBOARD_ROLE.md",
+   "label": "TASKBOARD_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "TASKBOARD_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/THREADS_ROLE.md",
+   "label": "THREADS_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "THREADS_ROLE"
+  },
+  {
+   "id": "00_System/channel_roles/WISHKET_ROLE.md",
+   "label": "WISHKET_ROLE",
+   "group": "00_System",
+   "size": 6,
+   "desc": "WISHKET_ROLE"
+  },
+  {
+   "id": "00_System/CHARLIE_CHANGE_LOG.md",
+   "label": "CHARLIE_CHANGE_LOG",
+   "group": "00_System",
+   "size": 8,
+   "desc": "A risk- and approval-centered log of system-level changes (not a full commit log — git log"
+  },
+  {
+   "id": "00_System/CHARLIE_ERROR_REGISTRY.md",
+   "label": "CHARLIE_ERROR_REGISTRY",
+   "group": "00_System",
+   "size": 8,
+   "desc": "Repeat-error tracking. An entry goes here when the same class of problem has been found"
+  },
+  {
+   "id": "00_System/distiller-errors.md",
+   "label": "distiller-errors",
+   "group": "00_System",
+   "size": 6,
+   "desc": "distiller-errors"
+  },
+  {
+   "id": "00_System/framework_decision_matrix.md",
+   "label": "framework_decision_matrix",
+   "group": "00_System",
+   "size": 8,
+   "desc": "→ 기본값: 개발 요청은 Harness Router가 먼저 분류하고, Claude Code 실행 지시와 Codex 검수 체크리스트를 함께 생성한다."
+  },
+  {
+   "id": "00_System/gdrive-root-files/README.md",
+   "label": "README",
+   "group": "00_System",
+   "size": 6,
+   "desc": "README"
+  },
+  {
+   "id": "00_System/gdrive-root-files/session-handoff-20260501.md",
+   "label": "session-handoff-20260501",
+   "group": "00_System",
+   "size": 6,
+   "desc": "1. Codex에 아래 내용 확인 요청 (새 세션에서 진행)"
+  },
+  {
+   "id": "00_System/gdrive-root-files/노트북-옵시디언-설정가이드.md",
+   "label": "노트북-옵시디언-설정가이드",
+   "group": "00_System",
+   "size": 6,
+   "desc": "노트북에서 아래 항목이 준비되어 있는지 확인한다."
+  },
+  {
+   "id": "00_System/GDRIVE_SCRIPT_CLASSIFICATION_2026-05-30.md",
+   "label": "GDRIVE_SCRIPT_CLASSIFICATION_2026-05-30",
+   "group": "00_System",
+   "size": 6,
+   "desc": "이 문서는 JH-SHARED/scripts/에서 이관한 레거시 스크립트를 현재 Obsidian Agent Brain System 기준으로 분류한다. 이 파일에 integrate로 표시되지 않은 레거시 스크립트는 Bucky/Claude/Codex가 직접"
+  },
+  {
+   "id": "00_System/HANDOFF_LOG.md",
+   "label": "HANDOFF_LOG",
+   "group": "00_System",
+   "size": 8,
+   "desc": "1. 회원가입 인증 5종: 구글/카카오/네이버/라인/휴대폰"
+  },
+  {
+   "id": "00_System/HANDOFF_LOG_ARCHIVE.md",
+   "label": "HANDOFF_LOG_ARCHIVE",
+   "group": "00_System",
+   "size": 8,
+   "desc": "HANDOFF_LOG_ARCHIVE"
+  },
+  {
+   "id": "00_System/index.md",
+   "label": "index",
+   "group": "00_System",
+   "size": 22,
+   "desc": "볼트 운영의 핵심 상태·라우팅·잠금을 관리하는 시스템 폴더."
+  },
+  {
+   "id": "00_System/INSTRUCTION_BUCKYOS_IMPLEMENTATION.md",
+   "label": "INSTRUCTION_BUCKYOS_IMPLEMENTATION",
+   "group": "00_System",
+   "size": 6,
+   "desc": "1. buckychatserver.py 수정"
+  },
+  {
+   "id": "00_System/knowledge-gaps.md",
+   "label": "knowledge-gaps",
+   "group": "00_System",
+   "size": 6,
+   "desc": "인링크도 아웃링크도 없는 완전히 단절된 노트입니다."
+  },
+  {
+   "id": "00_System/LEGACY_INSTRUCTION_CANDIDATE_AUDIT_2026-05-30.md",
+   "label": "LEGACY_INSTRUCTION_CANDIDATE_AUDIT_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "Track legacy integration-system instruction sources that still need review, compression, or explicit archival decisions. This prevents old s"
+  },
+  {
+   "id": "00_System/LEGACY_INSTRUCTION_INVENTORY_2026-05-30.md",
+   "label": "LEGACY_INSTRUCTION_INVENTORY_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "Scope: archive/import and bridge/hub sources that look instruction-like. This report does not make those sources authoritative."
+  },
+  {
+   "id": "00_System/LEGACY_MIGRATION_APPLIED_2026-05-30.md",
+   "label": "LEGACY_MIGRATION_APPLIED_2026-05-30",
+   "group": "00_System",
+   "size": 6,
+   "desc": "이전 통합 구축 시스템의 운영 지침, Agent Room 로그, 일일보고, 작업 잠금/로그, 스크립트, Claude 설정 잔재를 Obsidian Agent Brain System 안으로 흡수해 Bucky 중심 에이전트 운영체제의 기준 자료로 만든다."
+  },
+  {
+   "id": "00_System/LEGACY_RESIDUE_SCAN_2026-05-30.md",
+   "label": "LEGACY_RESIDUE_SCAN_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "Scope: current operating docs and runtime scripts only. Archive, historical reports, AgentBus archives, and daily-plus content are excluded."
+  },
+  {
+   "id": "00_System/LEGACY_SECRET_DECISION_REGISTER_2026-05-30.md",
+   "label": "LEGACY_SECRET_DECISION_REGISTER_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "This register is value-free. It does not include secret values, matched line text, or excerpts."
+  },
+  {
+   "id": "00_System/LEGACY_SECRET_MANIFEST_2026-05-30.md",
+   "label": "LEGACY_SECRET_MANIFEST_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "This report intentionally omits secret values and line text. It records only paths, pattern classes, and line numbers."
+  },
+  {
+   "id": "00_System/LEGACY_SECRET_REVIEW_POLICY_2026-05-30.md",
+   "label": "LEGACY_SECRET_REVIEW_POLICY_2026-05-30",
+   "group": "00_System",
+   "size": 8,
+   "desc": "This policy governs archive/import sources that may contain API keys, tokens, passwords, webhooks, or private payloads."
+  },
+  {
+   "id": "00_System/legal-node-analysis.md",
+   "label": "legal-node-analysis",
+   "group": "00_System",
+   "size": 8,
+   "desc": "컨텍스트팩 내부에 # 법령명 H1 헤딩으로 법령 원문이 임베드되어"
+  },
+  {
+   "id": "00_System/legal-node-cleanup-plan.md",
+   "label": "legal-node-cleanup-plan",
+   "group": "00_System",
+   "size": 12,
+   "desc": "04Wiki/Legal/"
+  },
+  {
+   "id": "00_System/LIBRARIAN_RULES.md",
+   "label": "LIBRARIAN_RULES",
+   "group": "00_System",
+   "size": 8,
+   "desc": "이 파일은 AI 툴(Claude Code·Codex·Bucky·Oracle worker)이 이 볼트를 열 때 가장 먼저 읽는 라이브러리안 행동 지침이다. 상세 규칙은 아래 정본을 참조한다 — 여기서 중복 서술하지 않는다."
+  },
+  {
+   "id": "00_System/MASTER_PLAN.md",
+   "label": "MASTER_PLAN",
+   "group": "00_System",
+   "size": 16,
+   "desc": "Obsidian을 중심 두뇌로, Claude Code와 Codex를 실행 도구로 사용하는 Agent Brain System."
+  },
+  {
+   "id": "00_System/MIGRATION/CONFLICT_MAP.md",
+   "label": "CONFLICT_MAP",
+   "group": "00_System",
+   "size": 10,
+   "desc": "기존 Vault는 숫자 prefix + 언더스코어 (00, 01, ...) 또는 언더스코어 prefix (templates, graph-index) 사용."
+  },
+  {
+   "id": "00_System/MIGRATION/index.md",
+   "label": "index",
+   "group": "00_System",
+   "size": 18,
+   "desc": "index"
+  },
+  {
+   "id": "00_System/MIGRATION/MIGRATION_PLAN.md",
+   "label": "MIGRATION_PLAN",
+   "group": "00_System",
+   "size": 10,
+   "desc": "목표: G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault\\ 에 신규 Agent Brain System 구성"
+  },
+  {
+   "id": "00_System/MIGRATION/ROLLBACK_PLAN.md",
+   "label": "ROLLBACK_PLAN",
+   "group": "00_System",
+   "size": 10,
+   "desc": "G:\\내 드라이브\\obsidian-agent-brain-system\\ObsidianVault\\"
+  },
+  {
+   "id": "00_System/MIGRATION/SAFE_MERGE_LOG.md",
+   "label": "SAFE_MERGE_LOG",
+   "group": "00_System",
+   "size": 10,
+   "desc": "1. 신규 Vault의 복사된 파일 삭제"
+  },
+  {
+   "id": "00_System/MIGRATION/VAULT_INVENTORY.md",
+   "label": "VAULT_INVENTORY",
+   "group": "00_System",
+   "size": 10,
+   "desc": "Path: C:\\Users\\user1\\Documents\\Obsidian Vault\\"
+  },
+  {
+   "id": "00_System/migration-gap-report.md",
+   "label": "migration-gap-report",
+   "group": "00_System",
+   "size": 6,
+   "desc": "title: G드라이브 Migration Gap Report"
+  },
+  {
+   "id": "00_System/oabs-library-taxonomy-standard.md",
+   "label": "oabs-library-taxonomy-standard",
+   "group": "00_System",
+   "size": 8,
+   "desc": "﻿---"
+  },
+  {
+   "id": "00_System/PROJECT_INSTRUCTION_REGISTRY.md",
+   "label": "PROJECT_INSTRUCTION_REGISTRY",
+   "group": "00_System",
+   "size": 8,
+   "desc": "Tracks the instruction-authority files that govern this project, so Charlie (and humans) can"
+  },
+  {
+   "id": "00_System/ROUTING_RULES.md",
+   "label": "ROUTING_RULES",
+   "group": "00_System",
+   "size": 14,
+   "desc": "Bucky is the main orchestrator for JH agent work. Claude Code implements. Codex reviews independently. The user owns final direction and app"
+  },
+  {
+   "id": "00_System/session-end-log.md",
+   "label": "session-end-log",
+   "group": "00_System",
+   "size": 6,
+   "desc": "session-end-log"
+  },
+  {
+   "id": "00_System/session-state.md",
+   "label": "session-state",
+   "group": "00_System",
+   "size": 6,
+   "desc": "이 파일은 현재 세션의 빠른 재개 정보다. canonical 운영 지침은 BUCKYCONTEXT.md, ROUTINGRULES.md, AGENTSTATE.md, ObsidianVault/06ContextPacks/index.md를 우선한다."
+  },
+  {
+   "id": "00_System/system-pages-hub.md",
+   "label": "system-pages-hub",
+   "group": "00_System",
+   "size": 22,
+   "desc": "BuckyOS 시스템 운영 페이지 모음."
+  },
+  {
+   "id": "00_System/TASKS.md",
+   "label": "TASKS",
+   "group": "00_System",
+   "size": 8,
+   "desc": "없음 — Phase 0/1/2/3/4/5 완료"
+  },
+  {
+   "id": "00_System/triage-audit-log.md",
+   "label": "triage-audit-log",
+   "group": "00_System",
+   "size": 6,
+   "desc": "triage-audit-log"
+  },
+  {
+   "id": "00_System/USER_OPERATING_INTENT.md",
+   "label": "USER_OPERATING_INTENT",
+   "group": "00_System",
+   "size": 8,
+   "desc": "This file pins the top-level goal so that small tasks cannot quietly replace it. Charlie reads"
+  },
+  {
+   "id": "00_System/vault-registry.md",
+   "label": "vault-registry",
+   "group": "00_System",
+   "size": 6,
+   "desc": "JH.AI-Core-Vault (권위 볼트)"
+  },
+  {
+   "id": "00_System/VAULT_GRAPH_AUDIT.md",
+   "label": "VAULT_GRAPH_AUDIT",
+   "group": "00_System",
+   "size": 6,
+   "desc": "search: \"-path:01RAW -path:09Archive -path:10AgentBus -path:00UPGRADE ...\""
+  },
+  {
+   "id": "00_System/video-inbox/README.md",
+   "label": "README",
+   "group": "00_System",
+   "size": 6,
+   "desc": "이 폴더에 영상/오디오 파일을 넣으면 자동으로 Obsidian 지식 노트로 변환됩니다."
+  }
+ ],
+ "links": [
+  {
+   "s": "03_Knowledge/2026-07-21-github-ui-ux-pro-max-skill-vs-jh-design-skills.md",
+   "t": "06_Context_Packs/bucky-design-improvement-policy.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-00-INDEX.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-05-jh-estimate-ai.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-05-jh-estimate-ai.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-05-jh-estimate-ai.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-05-jh-estimate-ai.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-06-jh-harness.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-06-jh-harness.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-06-jh-harness.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-06-jh-harness.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-07-jh-brain.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-07-jh-brain.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-07-jh-brain.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-08-agent-hub-3d.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-08-agent-hub-3d.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-08-agent-hub-3d.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-09-past-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-09-past-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-09-past-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-09-past-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-10-business-strategy.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-10-business-strategy.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-10-business-strategy.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-10-수익화-전략.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-10-수익화-전략.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-10-수익화-전략.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-11-client-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-11-client-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-11-client-projects.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-01-personal-career.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-11-Obsidian-세컨드브레인-체크포인트.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-11-Obsidian-세컨드브레인-체크포인트.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-JH-브랜드-생태계.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-11-Obsidian-세컨드브레인-체크포인트.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-목표-로드맵.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-ai-tools.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-ai-tools.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-ai-tools.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-04-jh-keanu.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-ai-tools.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-보안-법적기준.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-보안-법적기준.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-12-보안-법적기준.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-사업-철학-의사결정.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-13-개발-프롬프트-템플릿.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-02-dev-workflow.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-13-개발-프롬프트-템플릿.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-03-tech-stack.md"
+  },
+  {
+   "s": "03_Knowledge/distilled/2026-07/2026-07-22-13-개발-프롬프트-템플릿.md",
+   "t": "03_Knowledge/distilled/2026-07/2026-07-22-11-Obsidian-세컨드브레인-체크포인트.md"
+  },
+  {
+   "s": "04_Wiki/AgentBus/Index.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/AgentBus/Index.md",
+   "t": "05_Frameworks/AgentBus/agentbus_protocol.md"
+  },
+  {
+   "s": "04_Wiki/AgentBus/Index.md",
+   "t": "05_Frameworks/AgentBus/intake_guide.md"
+  },
+  {
+   "s": "04_Wiki/AgentBus/Index.md",
+   "t": "05_Frameworks/AgentBus/session_lifecycle.md"
+  },
+  {
+   "s": "04_Wiki/AgentBus/Index.md",
+   "t": "04_Wiki/JH/concepts/concept-agentbus.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Graphify_Usage_Guide.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Graphify_Usage_Guide.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Index.md",
+   "t": "04_Wiki/Graphify/Graphify_Usage_Guide.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Index.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Index.md",
+   "t": "05_Frameworks/Graphify/graphify_query_patterns.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Index.md",
+   "t": "05_Frameworks/Graphify/graphify_scope_policy.md"
+  },
+  {
+   "s": "04_Wiki/Graphify/Index.md",
+   "t": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "t": "04_Wiki/JH/entities/entity-agent-ecosystem.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "t": "04_Wiki/JH/concepts/concept-dev-workflow.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "t": "04_Wiki/JH/concepts/concept-agentbus.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agent-philosophy.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agentbus.md",
+   "t": "04_Wiki/JH/concepts/concept-agent-philosophy.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agentbus.md",
+   "t": "04_Wiki/JH/entities/entity-jh-brain-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agentbus.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-agentbus.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-dev-workflow.md",
+   "t": "04_Wiki/JH/entities/entity-jh-brain-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-dev-workflow.md",
+   "t": "04_Wiki/JH/concepts/concept-agent-philosophy.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-dev-workflow.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-dev-workflow.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md",
+   "t": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md",
+   "t": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/sources/source-llm-wiki-pattern.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/log.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/concepts/concept-obsidian-plugins.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-llm-wiki.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-obsidian-plugins.md",
+   "t": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-obsidian-plugins.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-obsidian-plugins.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-windows-launcher-pattern.md",
+   "t": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-windows-launcher-pattern.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/concepts/concept-windows-launcher-pattern.md",
+   "t": "04_Wiki/JH/sources/source-jh-windows-launcher-insight.md"
+  },
+  {
+   "s": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md",
+   "t": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-agent-ecosystem.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-agent-ecosystem.md",
+   "t": "04_Wiki/JH/entities/entity-jh-brain-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-agent-ecosystem.md",
+   "t": "04_Wiki/JH/concepts/concept-agent-philosophy.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-agent-ecosystem.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md",
+   "t": "04_Wiki/JH/concepts/concept-obsidian-plugins.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md",
+   "t": "04_Wiki/JH/log.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "t": "04_Wiki/JH/entities/entity-agent-ecosystem.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "t": "04_Wiki/JH/concepts/concept-dev-workflow.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "t": "04_Wiki/JH/concepts/concept-agentbus.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-jh-brain-system.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-mneme.md",
+   "t": "04_Wiki/JH/concepts/concept-agent-philosophy.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-mneme.md",
+   "t": "04_Wiki/JH/entities/entity-jh-brain-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-mneme.md",
+   "t": "04_Wiki/JH/entities/entity-agent-ecosystem.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-mneme.md",
+   "t": "04_Wiki/JH/concepts/concept-dev-workflow.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-mneme.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/entity-mneme.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/entities/master-mneme.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/entities/entity-jh-brain-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/entities/entity-agent-ecosystem.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/concepts/concept-agent-philosophy.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/concepts/concept-dev-workflow.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/jh-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/entities/master-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "00_System/MASTER_PLAN.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/log.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md"
+  },
+  {
+   "s": "04_Wiki/JH/index.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-system.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-system.md",
+   "t": "05_Frameworks/guides/roles.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-system.md",
+   "t": "00_System/ROUTING_RULES.md"
+  },
+  {
+   "s": "04_Wiki/JH/jh-system.md",
+   "t": "00_System/MASTER_PLAN.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/sources/source-llm-wiki-pattern.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/concepts/concept-windows-launcher-pattern.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/concepts/concept-obsidian-plugins.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/lint-quick.md"
+  },
+  {
+   "s": "04_Wiki/JH/log.md",
+   "t": "04_Wiki/JH/sources/source-jh-windows-launcher-insight.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/entities/entity-jh-brain-system.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/entities/entity-mneme.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/entities/entity-agent-ecosystem.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/concepts/concept-agent-philosophy.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/concepts/concept-dev-workflow.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/concepts/concept-obsidian-plugins.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/entities/entity-claude-ai-desktop-setup.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/log.md"
+  },
+  {
+   "s": "04_Wiki/JH/overview.md",
+   "t": "04_Wiki/JH/sources/source-llm-wiki-pattern.md"
+  },
+  {
+   "s": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md",
+   "t": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md"
+  },
+  {
+   "s": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md",
+   "t": "04_Wiki/JH/concepts/concept-jh-local-knowledge-graph-engine.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-infranodus-visual-ai-text-analysis-video.md",
+   "t": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-jh-windows-launcher-insight.md",
+   "t": "04_Wiki/JH/concepts/concept-windows-launcher-pattern.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-llm-wiki-pattern.md",
+   "t": "04_Wiki/JH/concepts/concept-llm-wiki.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-llm-wiki-pattern.md",
+   "t": "04_Wiki/JH/overview.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-llm-wiki-pattern.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/JH/sources/source-llm-wiki-pattern.md",
+   "t": "04_Wiki/JH/log.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Frequently_Used_Laws.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Frequently_Used_Laws.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "06_Context_Packs/Legal/건축법_기초_legal_pack.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "06_Context_Packs/Legal/주택법_기초_legal_pack.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "06_Context_Packs/Legal/도시계획법_기초_legal_pack.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "06_Context_Packs/Legal/주택법_분양청약_legal_pack.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/LegalizeKR/legal_risk_policy.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/LegalizeKR/update_policy.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/LegalizeKR/github_sync_policy.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/LegalizeKR/cli_mcp_policy.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "04_Wiki/Legal/LegalizeKR_Source.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "04_Wiki/Legal/Law_Search_Guide.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "04_Wiki/Legal/Frequently_Used_Laws.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "05_Frameworks/LegalizeKR/law_query_patterns.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Index.md",
+   "t": "06_Context_Packs/Legal/templates/legal_context_pack_template.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Law_Search_Guide.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/Legal/Law_Search_Guide.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "04_Wiki/Legal/laws/건축법.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/Legal/laws/건축법_시행규칙.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/Legal/laws/주택법.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "04_Wiki/Legal/laws/주택법_시행규칙.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/AgentBus/README.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/AgentBus/README.md",
+   "t": "04_Wiki/JH/concepts/concept-agentbus.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/graphify_context_pack_rules.md",
+   "t": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/graphify_query_patterns.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/graphify_query_patterns.md",
+   "t": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/README.md",
+   "t": "05_Frameworks/Graphify/graphify_scope_policy.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/README.md",
+   "t": "06_Context_Packs/bucky-migration-build-charter.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/README.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "05_Frameworks/Graphify/README.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/guides/recovery-oneshot-playbook.md",
+   "t": "05_Frameworks/guides/webhook-replay-ops-checklist.md"
+  },
+  {
+   "s": "05_Frameworks/guides/video-extraction-checklist.md",
+   "t": "04_Wiki/daily-plus/2026-06-03.md"
+  },
+  {
+   "s": "05_Frameworks/guides/webhook-replay-ops-checklist.md",
+   "t": "05_Frameworks/guides/recovery-oneshot-playbook.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "05_Frameworks/Harness/Superpowers.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "05_Frameworks/Harness/GSD.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "05_Frameworks/Harness/gstack.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "04_Wiki/Legal/Frequently_Used_Laws.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "04_Wiki/Graphify/Graphify_Usage_Guide.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "04_Wiki/Legal/Law_Search_Guide.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "05_Frameworks/Harness/README.md",
+   "t": "04_Wiki/JH/concepts/concept-agentbus.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/AgentBus/README.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/Codex/Codex_Goal_Mode_Playbook.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/prompts/ai-api-catalog.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/CLAUDE_MASTER.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/context-management-strategy.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/knowledge-paths.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/paths.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/pc-detection.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/shared-protocol.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/guides/sync-protocol.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/Graphify/graphify_adapter.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/Graphify/graphify_security_policy.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/Graphify/graphify_update_policy.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/Harness/framework_router.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "05_Frameworks/prompts/ai-api-routing-architect.md"
+  },
+  {
+   "s": "05_Frameworks/index.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/cli_mcp_policy.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/github_sync_policy.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/law_context_pack_rules.md",
+   "t": "06_Context_Packs/Legal/templates/legal_context_pack_template.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/legal_risk_policy.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md",
+   "t": "05_Frameworks/LegalizeKR/legalize_update_policy.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/README.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/README.md",
+   "t": "04_Wiki/Legal/Law_Search_Guide.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/README.md",
+   "t": "04_Wiki/Legal/Frequently_Used_Laws.md"
+  },
+  {
+   "s": "05_Frameworks/LegalizeKR/update_policy.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/bucky-design-improvement-policy.md",
+   "t": "03_Knowledge/2026-07-21-github-ui-ux-pro-max-skill-vs-jh-design-skills.md"
+  },
+  {
+   "s": "06_Context_Packs/bucky-shorts-dashboard.md",
+   "t": "06_Context_Packs/bucky-ai-api-routing-policy.md"
+  },
+  {
+   "s": "06_Context_Packs/bucky-shorts-dashboard.md",
+   "t": "06_Context_Packs/bucky-security-runtime-governance.md"
+  },
+  {
+   "s": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md",
+   "t": "04_Wiki/JH/sources/source-infranodus-llm-wiki-video.md"
+  },
+  {
+   "s": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md",
+   "t": "04_Wiki/JH/concepts/concept-infranodus-graph-knowledge-base.md"
+  },
+  {
+   "s": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md",
+   "t": "04_Wiki/JH/jh-infranodus-upgrade-analysis.md"
+  },
+  {
+   "s": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md",
+   "t": "04_Wiki/JH/decisions/decision-adopt-infranodus-graph-layer.md"
+  },
+  {
+   "s": "06_Context_Packs/claude/2026-05-12-infranodus-briefing.md",
+   "t": "04_Wiki/JH/patterns/pattern-graph-gap-driven-research.md"
+  },
+  {
+   "s": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md",
+   "t": "05_Frameworks/Graphify/graphify_query_patterns.md"
+  },
+  {
+   "s": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/Graphify/templates/graphify_context_pack_template.md",
+   "t": "05_Frameworks/Graphify/graphify_context_pack_rules.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/templates/legal_context_pack_template.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/templates/legal_context_pack_template.md",
+   "t": "05_Frameworks/LegalizeKR/law_context_pack_rules.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/건축법_기초_legal_pack.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/건축법_기초_legal_pack.md",
+   "t": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/건축법_기초_legal_pack.md",
+   "t": "04_Wiki/Legal/laws/건축법.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/건축법_기초_legal_pack.md",
+   "t": "04_Wiki/Legal/laws/건축법_시행규칙.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/도시계획법_기초_legal_pack.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/도시계획법_기초_legal_pack.md",
+   "t": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_기초_legal_pack.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_기초_legal_pack.md",
+   "t": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_기초_legal_pack.md",
+   "t": "04_Wiki/Legal/laws/주택법.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_기초_legal_pack.md",
+   "t": "04_Wiki/Legal/laws/주택법_시행규칙.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_분양청약_legal_pack.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_분양청약_legal_pack.md",
+   "t": "05_Frameworks/LegalizeKR/legalize_kr_adapter.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_분양청약_legal_pack.md",
+   "t": "04_Wiki/Legal/laws/주택법.md"
+  },
+  {
+   "s": "06_Context_Packs/Legal/주택법_분양청약_legal_pack.md",
+   "t": "04_Wiki/Legal/laws/주택법_시행규칙.md"
+  },
+  {
+   "s": "09_Knowledge_Capture/video-patterns/2026-06-25.md",
+   "t": "00_System/ROUTING_RULES.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/MASTER_PLAN.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/AGENT_STATE.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/HANDOFF_LOG.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/HANDOFF_LOG_ARCHIVE.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/ROUTING_RULES.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/TASKS.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/framework_decision_matrix.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/MIGRATION/CONFLICT_MAP.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/MIGRATION/MIGRATION_PLAN.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/MIGRATION/ROLLBACK_PLAN.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/MIGRATION/SAFE_MERGE_LOG.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "00_System/MIGRATION/VAULT_INVENTORY.md"
+  },
+  {
+   "s": "00_System/index.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "00_System/legal-node-cleanup-plan.md",
+   "t": "04_Wiki/Legal/laws/주택법.md"
+  },
+  {
+   "s": "00_System/legal-node-cleanup-plan.md",
+   "t": "04_Wiki/Legal/laws/주택법_시행규칙.md"
+  },
+  {
+   "s": "00_System/legal-node-cleanup-plan.md",
+   "t": "00_System/legal-node-analysis.md"
+  },
+  {
+   "s": "00_System/LIBRARIAN_RULES.md",
+   "t": "00_System/oabs-library-taxonomy-standard.md"
+  },
+  {
+   "s": "00_System/MASTER_PLAN.md",
+   "t": "04_Wiki/JH/jh-system.md"
+  },
+  {
+   "s": "00_System/MASTER_PLAN.md",
+   "t": "00_System/ROUTING_RULES.md"
+  },
+  {
+   "s": "00_System/MIGRATION/index.md",
+   "t": "00_System/MIGRATION/CONFLICT_MAP.md"
+  },
+  {
+   "s": "00_System/MIGRATION/index.md",
+   "t": "00_System/MIGRATION/MIGRATION_PLAN.md"
+  },
+  {
+   "s": "00_System/MIGRATION/index.md",
+   "t": "00_System/MIGRATION/ROLLBACK_PLAN.md"
+  },
+  {
+   "s": "00_System/MIGRATION/index.md",
+   "t": "00_System/MIGRATION/SAFE_MERGE_LOG.md"
+  },
+  {
+   "s": "00_System/MIGRATION/index.md",
+   "t": "00_System/MIGRATION/VAULT_INVENTORY.md"
+  },
+  {
+   "s": "00_System/MIGRATION/index.md",
+   "t": "04_Wiki/AgentBus/Index.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/AGENTS_CANONICAL.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/BUCKY_OS_RUNBOOK.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/CHARLIE_CHANGE_LOG.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/CHARLIE_ERROR_REGISTRY.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/PROJECT_INSTRUCTION_REGISTRY.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/USER_OPERATING_INTENT.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/BUCKY_OS_COMPLETION_AUDIT_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/BUCKY_OS_MIGRATION_NEXT_ACTIONS_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/LEGACY_INSTRUCTION_CANDIDATE_AUDIT_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/LEGACY_INSTRUCTION_INVENTORY_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/LEGACY_RESIDUE_SCAN_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/LEGACY_SECRET_DECISION_REGISTER_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/LEGACY_SECRET_MANIFEST_2026-05-30.md"
+  },
+  {
+   "s": "00_System/system-pages-hub.md",
+   "t": "00_System/LEGACY_SECRET_REVIEW_POLICY_2026-05-30.md"
+  }
+ ]
+}

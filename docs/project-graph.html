@@ -968,6 +968,19 @@ window.addEventListener('load', () => {
   renderGraph(currentTab);
 });
 
+// ── Vault 탭: 실데이터 지식 그래프 로드 ──
+// docs/data/knowledge_graph.json = scripts/build_dashboard_graph.py 산출물
+// (큐레이트 지식 폴더의 [[위키링크]] 파싱). 실패 시 위 하드코딩 GRAPHS.vault 폴백.
+fetch('data/knowledge_graph.json', { cache: 'no-store' })
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(live => {
+    if (live && Array.isArray(live.nodes) && live.nodes.length) {
+      GRAPHS.vault = live;
+      if (currentTab === 'vault') renderGraph('vault');
+    }
+  })
+  .catch(() => {});
+
 window.addEventListener('resize', () => {
   const container = document.querySelector('.graph-container');
   const W = Math.max(container.clientWidth || 0, 320);
