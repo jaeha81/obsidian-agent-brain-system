@@ -1,0 +1,62 @@
+---
+type: legacy-secret-decision-register
+created: 2026-05-30T07:32:34
+status: active
+owner: Bucky
+tags:
+  - #status/active
+---
+
+# Legacy Secret Decision Register
+
+This register is value-free. It does not include secret values, matched line text, or excerpts.
+
+- Candidates: 31
+- archive-only: 9
+- covered-quarantined: 20
+- partial-promoted-quarantined: 2
+
+## Decision Rules
+
+- `archive-only`: no promotion needed unless a later targeted review proves a missing reusable rule.
+- `covered-quarantined`: useful rule class is already promoted, but the source remains secret-like.
+- `partial-promoted-quarantined`: a safe manifest/inventory signal was promoted; source still needs redaction for more.
+- `pending-targeted-redaction`: no further use until manifest-listed lines are reviewed and redacted.
+
+## Entries
+
+| Decision | Path | Pattern classes | Promotion target | Evidence | Next action |
+|---|---|---|---|---|---|
+| partial-promoted-quarantined | `ObsidianVault/09_Archive/legacy-import/legacy-import/OBSIDIAN-SECOND/raw/gpt/메모리.txt` | webhook_word | ObsidianVault/06_Context_Packs/bucky-user-communication-output-policy.md | safe inventory excerpt already promoted user-output rules; source remains secret-like | targeted redaction required before any further extraction |
+| partial-promoted-quarantined | `ObsidianVault/09_Archive/legacy-import/legacy-import/Obsidian-Vault/01_Projects/knowledge/gpt-memory/gpt-memory-projects.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-user-communication-output-policy.md | safe inventory excerpt already promoted user-output rules; source remains secret-like | targeted redaction required before any further extraction |
+| covered-quarantined | `ObsidianVault/09_Archive/legacy-import/legacy-import/Obsidian-Vault/01_Projects/knowledge/gpt-memory/gpt-memory-tech-stack.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | technical stack and development defaults are promoted as current Bucky runtime governance; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/legacy-import/legacy-import/Obsidian-Vault/raw/memories2/06_기술스택_개발원칙 (1).md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | technical stack and development defaults are promoted as current Bucky runtime governance; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/merge-candidate/OBSIDIAN-SECOND/raw/memories2/11_Obsidian_세컨드브레인_체크포인트.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md | second-brain checkpoint behavior is promoted as current Vault checkpoint workflow; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/preserve-legacy/JH-Agent-Room/README.md` | secret-hint | ObsidianVault/05_Frameworks/AgentBus/agentbus_protocol.md | old Agent Room behavior is covered by current AgentBus protocol; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/03_Prompts/ai-api/ai-api-routing-architect.md` | api_key_word, token_word, webhook_word | ObsidianVault/06_Context_Packs/bucky-ai-api-routing-policy.md | AI/API routing rules are already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| archive-only | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/output/codex-review-targets/2026-05-12-infranodus-functional-verification.md` | api_key_word | none | old verification outputs are evidence; current verification rules are covered by Codex and Goal Mode packs | keep quarantined as historical evidence |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories/05_jh_estimate_ai.md` | token_word | ObsidianVault/06_Context_Packs/bucky-user-project-terrain.md | EstimateAI terrain is already promoted with stale-data warning; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories/06_jh_harness.md` | token_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | technical stack and development defaults are promoted as current Bucky runtime governance; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories/12_ai_tools.md` | token_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | AI tool safety rules are already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories2/11_Obsidian_세컨드브레인_체크포인트.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md | second-brain checkpoint behavior is promoted as current Vault checkpoint workflow; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories2/12_보안_법적기준.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | security/legal handling is already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/raw/memories2/13_개발_프롬프트_템플릿.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md | prompt/template record behavior is already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| archive-only | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/_organized/superseded/Obsidian-Vault/wiki/jh-infranodus-upgrade-analysis.md` | secret-hint | none | old graph analysis is superseded by Graphify/LegalizeKR scoped policies | keep as reference unless a graph task requests targeted review |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/JH-Agent-Room/README.md` | secret-hint | ObsidianVault/05_Frameworks/AgentBus/agentbus_protocol.md | old Agent Room behavior is covered by current AgentBus protocol; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/OBSIDIAN-SECOND/raw/memories2/11_Obsidian_세컨드브레인_체크포인트.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md | second-brain checkpoint behavior is promoted as current Vault checkpoint workflow; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/03_Prompts/ai-api/ai-api-routing-architect.md` | api_key_word, token_word, webhook_word | ObsidianVault/06_Context_Packs/bucky-ai-api-routing-policy.md | AI/API routing rules are already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| archive-only | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/output/codex-review-targets/2026-05-12-infranodus-functional-verification.md` | api_key_word | none | old verification outputs are evidence; current verification rules are covered by Codex and Goal Mode packs | keep quarantined as historical evidence |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/05_jh_estimate_ai.md` | token_word | ObsidianVault/06_Context_Packs/bucky-user-project-terrain.md | EstimateAI terrain is already promoted with stale-data warning; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/06_jh_harness.md` | token_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | technical stack and development defaults are promoted as current Bucky runtime governance; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories/12_ai_tools.md` | token_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | AI tool safety rules are already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories2/11_Obsidian_세컨드브레인_체크포인트.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md | second-brain checkpoint behavior is promoted as current Vault checkpoint workflow; source remains secret-like | only targeted redaction may extract additional non-secret examples |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories2/12_보안_법적기준.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-security-runtime-governance.md | security/legal handling is already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| covered-quarantined | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/raw/memories2/13_개발_프롬프트_템플릿.md` | webhook_word | ObsidianVault/06_Context_Packs/bucky-vault-ingestion-record-policy.md | prompt/template record behavior is already promoted; source remains secret-like | only targeted redaction may extract additional non-secret rules |
+| archive-only | `ObsidianVault/09_Archive/migration-conflicts/2026-05-24/Obsidian-Vault/wiki/jh-infranodus-upgrade-analysis.md` | secret-hint | none | old graph analysis is superseded by Graphify/LegalizeKR scoped policies | keep as reference unless a graph task requests targeted review |
+| archive-only | `ObsidianVault/09_Archive/sessions/2026-05-15-07-51-08.md` | api_key_word, secret_word | none | session logs are evidence; reusable session rules are covered by record and Goal Mode packs | do not promote unless a later targeted review identifies a missing reusable rule |
+| archive-only | `ObsidianVault/09_Archive/sessions/2026-05-16-23-40-44-544-codex-20260516-234040-codex.md` | token_word | none | session logs are evidence; reusable session rules are covered by record and Goal Mode packs | do not promote unless a later targeted review identifies a missing reusable rule |
+| archive-only | `ObsidianVault/09_Archive/sessions/2026-05-17-06-40-51-844-codex-20260517-064047-codex.md` | token_word | none | session logs are evidence; reusable session rules are covered by record and Goal Mode packs | do not promote unless a later targeted review identifies a missing reusable rule |
+| archive-only | `ObsidianVault/09_Archive/sessions/2026-05-17-07-18-31-857-codex-20260517-071827-codex.md` | token_word | none | session logs are evidence; reusable session rules are covered by record and Goal Mode packs | do not promote unless a later targeted review identifies a missing reusable rule |
+| archive-only | `ObsidianVault/09_Archive/sessions/2026-05-20-09-03-03-126-codex-20260520-session-end-codex.md` | token_word | none | session logs are evidence; reusable session rules are covered by record and Goal Mode packs | do not promote unless a later targeted review identifies a missing reusable rule |
+
+[[bucky-system-hub]]

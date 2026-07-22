@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22 08:00:05",
+  "generated_at": "2026-07-23 08:00:06",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,40 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "1e67b49",
+        "date": "2026-07-22",
+        "subject": "feat: 그래프뷰 Vault 탭을 실데이터 지식 그래프로 교체",
+        "areas": [
+          "dashboard",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "968d9b8",
+        "date": "2026-07-22",
+        "subject": "fix: 대시보드 시각화 CDN 3종 로컬화 — 폰 오프라인/CSP 빈화면 해결",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "b4fa54f",
+        "date": "2026-07-22",
+        "subject": "fix: 대시보드 모바일 접속 시 API를 same-origin 상대경로로 고정",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "fd48bce",
+        "date": "2026-07-22",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-22 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard"
+        ]
+      },
       {
         "commit": "17db850",
         "date": "2026-07-22",
@@ -480,49 +514,16 @@
         "areas": [
           "dashboard"
         ]
-      },
-      {
-        "commit": "a68f945",
-        "date": "2026-07-12",
-        "subject": "docs: Stage 19 완료 반영 — 백로그 상태 갱신 (ab68c09)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "ab68c09",
-        "date": "2026-07-12",
-        "subject": "feat: Stage 19 — worker 정책 shadow 상담 배선 + 예산 경고 (P0-6,7)",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "b41057d",
-        "date": "2026-07-12",
-        "subject": "docs: Stage 18 완료 반영 — 백로그 상태 갱신 (72242a6)",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "72242a6",
-        "date": "2026-07-12",
-        "subject": "feat: Stage 18 — policy_rules.yaml + policy_engine 순수 함수 (P0-6, 미배선)",
-        "areas": [
-          "other",
-          "workflow-expansion"
-        ]
       }
     ],
     "by_area": {
+      "dashboard": 292,
+      "workflow-expansion": 144,
+      "charlie": 28,
       "knowledge-vault": 73,
       "other": 155,
-      "workflow-expansion": 143,
       "authentication": 14,
       "bucky-discord-daily-plus": 73,
-      "dashboard": 288,
-      "charlie": 27,
       "kmong": 9,
       "daily-plus": 24,
       "instruction-authority": 15,
@@ -532,12 +533,12 @@
     }
   },
   "git_status": {
-    "changed_count": 11,
+    "changed_count": 35,
     "by_area": {
-      "knowledge-vault": 1,
-      "dashboard": 5,
-      "workflow-expansion": 2,
-      "other": 3
+      "knowledge-vault": 21,
+      "dashboard": 3,
+      "workflow-expansion": 6,
+      "other": 5
     }
   },
   "runtime_status": {
@@ -547,8 +548,8 @@
     },
     "bot_pid_file": {
       "valid": false,
-      "pid": 235824,
-      "raw_preview": "235824"
+      "pid": 248760,
+      "raw_preview": "248760"
     },
     "supervisor_pid_file": {
       "valid": false,
@@ -566,7 +567,7 @@
     },
     "daily_plus_bridge": {
       "latest_outbox": "20260721_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-22 08:00"
+      "latest_sent": "2026-07-23 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-07-18",
