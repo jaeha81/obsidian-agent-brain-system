@@ -1311,9 +1311,9 @@ function fmtHMS(d) {
 /* ═══════════════════════════════════════════════════════════════
    CONSTANTS
 ═══════════════════════════════════════════════════════════════ */
-// Use same-origin (relative) when served by local Flask; fall back to explicit localhost otherwise
-const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? '' : 'http://localhost:8765';
+// Always use same-origin (relative): the same Flask on :8765 serves both this page and the API,
+// so relative paths work from any host (localhost, LAN, Tailscale) without hardcoding localhost.
+const API = '';
 let _demoMode = false;
 
 /* ═══════════════════════════════════════════════════════════════
