@@ -15,6 +15,7 @@ configs/paths.json
 .claude/*
 !.claude/commands/
 !.claude/commands/**
+CLAUDE.local.md
 .raw_watcher_state.json
 
 # RAW sensitive data
