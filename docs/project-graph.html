@@ -965,6 +965,13 @@ document.addEventListener('keydown', e => {
 // ─────────────────────────────────────────
 window.addEventListener('load', () => {
   initSVG();
+  // URL ?tab=vault 등으로 초기 탭 지정 (대시보드 iframe이 Vault를 바로 열도록)
+  const wantTab = new URLSearchParams(location.search).get('tab');
+  if (wantTab && GRAPHS[wantTab]) {
+    currentTab = wantTab;
+    document.querySelectorAll('.tab-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.tab === wantTab));
+  }
   renderGraph(currentTab);
 });
 
