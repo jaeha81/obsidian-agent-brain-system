@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23 08:00:06",
+  "generated_at": "2026-07-24 08:00:03",
   "agent": "Charlie",
   "state": "WARNING",
   "principle": "Charlie는 독립 시스템 감사 계층입니다. 운영 이상을 보고하지만 사용자 승인 없이 자동 수정하지 않습니다.",
@@ -63,6 +63,45 @@
   ],
   "change_timeline": {
     "commits": [
+      {
+        "commit": "56a4412",
+        "date": "2026-07-24",
+        "subject": "chore: 로컬 오버라이드 gitignore + 체크리스트 상태 + 지식노트 1건 반영",
+        "areas": [
+          "dashboard",
+          "other"
+        ]
+      },
+      {
+        "commit": "7c9f5c0",
+        "date": "2026-07-23",
+        "subject": "fix: Bucky 지침 게이트 3건 정리 + 세션 산출물 반영",
+        "areas": [
+          "dashboard",
+          "knowledge-vault",
+          "other",
+          "support-tooling",
+          "workflow-expansion"
+        ]
+      },
+      {
+        "commit": "e4e9699",
+        "date": "2026-07-23",
+        "subject": "feat: 그래프뷰 ?tab= URL 파라미터 지원 + 대시보드 iframe을 Vault 탭 딥링크",
+        "areas": [
+          "dashboard"
+        ]
+      },
+      {
+        "commit": "7e87666",
+        "date": "2026-07-23",
+        "subject": "chore: Daily Plus 자동 업데이트 2026-07-23 [skip ci]",
+        "areas": [
+          "charlie",
+          "dashboard",
+          "knowledge-vault"
+        ]
+      },
       {
         "commit": "1e67b49",
         "date": "2026-07-22",
@@ -480,65 +519,29 @@
           "charlie",
           "dashboard"
         ]
-      },
-      {
-        "commit": "ad78af5",
-        "date": "2026-07-13",
-        "subject": "feat: Stage 20 — 01_RAW provenance 필드 + sidecar 처리 인덱스",
-        "areas": [
-          "instruction-authority",
-          "other",
-          "workflow-expansion"
-        ]
-      },
-      {
-        "commit": "7490302",
-        "date": "2026-07-12",
-        "subject": "docs: G5 재검증 PASS 전사(§6) + 백로그 G5 완전 통과 반영",
-        "areas": [
-          "dashboard"
-        ]
-      },
-      {
-        "commit": "248eb47",
-        "date": "2026-07-12",
-        "subject": "fix: G5 필수수정 이행 — task_tiers에 default 명시 등록(T3) + 라우터 어휘 포함 회귀 테스트",
-        "areas": [
-          "other"
-        ]
-      },
-      {
-        "commit": "8d98121",
-        "date": "2026-07-12",
-        "subject": "docs: G5 Codex 검수 결과 전사 — 조건부 통과 (필수수정 2건, P2)",
-        "areas": [
-          "dashboard"
-        ]
       }
     ],
     "by_area": {
-      "dashboard": 292,
-      "workflow-expansion": 144,
-      "charlie": 28,
-      "knowledge-vault": 73,
-      "other": 155,
+      "dashboard": 296,
+      "other": 157,
+      "knowledge-vault": 75,
+      "support-tooling": 9,
+      "workflow-expansion": 145,
+      "charlie": 29,
       "authentication": 14,
       "bucky-discord-daily-plus": 73,
       "kmong": 9,
       "daily-plus": 24,
       "instruction-authority": 15,
-      "support-tooling": 8,
       "google-revenue-dashboard": 5,
       "discord-runtime": 2
     }
   },
   "git_status": {
-    "changed_count": 35,
+    "changed_count": 4,
     "by_area": {
-      "knowledge-vault": 21,
-      "dashboard": 3,
-      "workflow-expansion": 6,
-      "other": 5
+      "knowledge-vault": 2,
+      "dashboard": 2
     }
   },
   "runtime_status": {
@@ -548,8 +551,8 @@
     },
     "bot_pid_file": {
       "valid": false,
-      "pid": 248760,
-      "raw_preview": "248760"
+      "pid": 5108,
+      "raw_preview": "5108"
     },
     "supervisor_pid_file": {
       "valid": false,
@@ -567,7 +570,7 @@
     },
     "daily_plus_bridge": {
       "latest_outbox": "20260721_090000_daily_plus_dashboard_bucky.md",
-      "latest_sent": "2026-07-23 08:00"
+      "latest_sent": "2026-07-24 08:00"
     },
     "daily_plus_dashboard": {
       "latest_date": "2026-07-18",

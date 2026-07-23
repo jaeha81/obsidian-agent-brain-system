@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-07-23T08:00:07+0900",
+    "last_updated": "2026-07-24T08:00:04+0900",
     "generator": "generate_brain_status.py"
   },
   "task_queue": {
@@ -18,22 +18,22 @@
   },
   "usage": {
     "month": "2026-07",
-    "records": 117,
-    "tokens_in": 469297,
-    "tokens_out": 15815,
-    "cost_usd": 1.641104,
+    "records": 140,
+    "tokens_in": 656217,
+    "tokens_out": 21052,
+    "cost_usd": 2.276393,
     "by_model": {
       "claude_code/haiku": {
-        "records": 3,
-        "tokens_in": 1541,
-        "tokens_out": 93,
-        "cost_usd": 0.002006
+        "records": 5,
+        "tokens_in": 3149,
+        "tokens_out": 174,
+        "cost_usd": 0.004019
       },
       "claude_code/sonnet": {
-        "records": 114,
-        "tokens_in": 467756,
-        "tokens_out": 15722,
-        "cost_usd": 1.639098
+        "records": 135,
+        "tokens_in": 653068,
+        "tokens_out": 20878,
+        "cost_usd": 2.272374
       }
     }
   },

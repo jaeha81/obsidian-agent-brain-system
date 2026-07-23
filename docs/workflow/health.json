@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-22T23:00:12+00:00",
+  "generated_at": "2026-07-23T23:00:08+00:00",
   "global": {
-    "tasks_total": 80,
-    "tasks_pending": 36,
+    "tasks_total": 82,
+    "tasks_pending": 38,
     "tasks_blocked": 0,
-    "bot_pid_minutes": 1097.5430672367413,
-    "bot_log_minutes": 43259.10941713651
+    "bot_pid_minutes": 688.7563759883245,
+    "bot_log_minutes": 44699.04095737139
   },
   "runtime": [
     {
       "id": "discord_bot",
-      "status": "warn",
-      "msg": "PID 18h old"
+      "status": "ok",
+      "msg": "PID 688m old"
     },
     {
       "id": "chat_server",
       "status": "warn",
-      "msg": "log 58128m idle"
+      "msg": "log 59568m idle"
     }
   ],
   "agents": {
