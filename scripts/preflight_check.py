@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import io
 import os
 import shutil
@@ -46,12 +45,6 @@ def _run(args: list[str], timeout: int = 10) -> tuple[int, str]:
         return result.returncode, (result.stdout + result.stderr).strip()
     except Exception as exc:
         return 1, str(exc)
-
-
-def _md5(path: Path) -> str | None:
-    if not path.exists():
-        return None
-    return hashlib.md5(path.read_bytes()).hexdigest()
 
 
 def _check_git() -> list[tuple[str, str]]:
@@ -99,19 +92,22 @@ def _check_paths() -> list[tuple[str, str]]:
 
 
 def _check_claude_sync() -> list[tuple[str, str]]:
+    """Verify the two-layer CLAUDE.md structure: global (all-projects) and
+    project (this repo) are deliberately separate files that cross-reference
+    each other, not a single file synced/overwritten in both places."""
     source = ROOT / "CLAUDE.md"
     dest = Path.home() / ".claude" / "CLAUDE.md"
-    source_hash = _md5(source)
-    dest_hash = _md5(dest)
-    if not source_hash:
+    if not source.exists():
         return [("claude_source", f"WARN missing {source}")]
-    if not dest_hash:
+    if not dest.exists():
         return [("claude_md", f"WARN missing {dest}")]
-    if source_hash == dest_hash:
-        return [("claude_md", "ok exact match")]
-    code, output = _run([sys.executable, "scripts/sync_claude_instructions.py", "--check"])
-    state = "ok" if code == 0 else "WARN sync needed"
-    return [("claude_md", f"{state}: {output}")]
+    source_text = source.read_text(encoding="utf-8", errors="replace")
+    dest_text = dest.read_text(encoding="utf-8", errors="replace")
+    source_points_to_dest = ".claude\\CLAUDE.md" in source_text or ".claude/CLAUDE.md" in source_text
+    dest_points_to_source = "obsidian-agent-brain-system" in dest_text.lower()
+    if source_points_to_dest and dest_points_to_source:
+        return [("claude_md", "ok two-layer structure linked (global + project cross-reference)")]
+    return [("claude_md", "WARN two-layer cross-reference missing (project/global CLAUDE.md should point at each other)")]
 
 
 def _check_bucky_os_gate() -> list[tuple[str, str]]:

@@ -236,12 +236,17 @@ JH 시스템 맥락:
 
 기존 지식 노트 (wikilink 후보): {existing_nodes}
 
+이 파이프라인의 목적은 단순 아카이빙이 아니라, 영상 내용을 근거로 사용자의
+Bucky 운영체제/Obsidian Vault 시스템을 실제로 진화시킬 구체적 업그레이드 제안을
+뽑아내는 것입니다. jh_apply_points는 "느낀점"이 아니라 "이 시스템의 어느
+스크립트/스킬/폴더 구조를 어떻게 바꿀지" 수준의 실행 가능한 제안이어야 합니다.
+
 아래 JSON 형식으로만 응답하세요 (코드블록 없이 순수 JSON, 반드시 한국어):
 {{
   "summary": "3~5줄 핵심 요약",
   "key_concepts": ["개념1", "개념2"],
   "frameworks": ["도구1"],
-  "jh_apply_points": ["적용 아이디어1", "적용 아이디어2"],
+  "jh_apply_points": ["Bucky/Vault에 적용할 구체적 업그레이드 제안1", "제안2"],
   "graph_cluster": "youtube-learning",
   "wikilinks": ["노트명1"],
   "tags": ["area/ai", "topic/llm"],
@@ -449,7 +454,7 @@ deep_analyzed: {"true" if deep else "false"}
 
 # ── 메인 파이프라인 ──────────────────────────────────────────────────────────
 
-def process(input_str: str, language: str = "ko", deep: bool = False,
+def process(input_str: str, language: str = "ko", deep: bool = True,
             tags: list = None) -> dict:
     """
     영상 → 지식 노트 전체 파이프라인.
@@ -538,13 +543,15 @@ def main():
     parser = argparse.ArgumentParser(description="Video → Knowledge Pipeline")
     parser.add_argument("input", help="YouTube URL 또는 로컬 영상/오디오 파일 경로")
     parser.add_argument("--lang", default="ko", help="트랜스크립트 언어 (ko/en, 기본: ko)")
+    parser.add_argument("--shallow", action="store_true",
+                        help="단순 아카이빙 모드 (요약만, 시스템 적용 포인트 추출 생략)")
     parser.add_argument("--deep", action="store_true",
-                        help="깊은 지식 추출 모드 (개념/프레임워크/wikilink 자동 생성)")
+                        help="(레거시 호환용, 기본값이 이미 deep이라 무동작)")
     parser.add_argument("--tags", default="", help="추가 태그 (쉼표 구분)")
     args = parser.parse_args()
 
     tags = [t.strip() for t in args.tags.split(",") if t.strip()]
-    result = process(args.input, args.lang, args.deep, tags)
+    result = process(args.input, args.lang, not args.shallow, tags)
 
     if result["success"]:
         dup_str = " [중복 스킵]" if result.get("duplicate") else ""

@@ -31,6 +31,9 @@ if str(Path(__file__).parent) not in sys.path:
 
 import task_queue as tq
 from bucky_client import BuckyError, codex_command, run_bucky, run_bucky_with_tools
+from core.task_spec import TaskSpec, new_task_id
+from model_router import provider_candidates
+from providers import get_adapter
 
 POOL_SIZE: int     = int(os.getenv("WORKER_POOL_SIZE", "5"))
 TASK_TIMEOUT: int  = int(os.getenv("BUCKY_TIMEOUT", "900"))
@@ -356,6 +359,11 @@ class WorkerPool:
                                 )
                                 await asyncio.sleep(wait_sec)
                             else:
+                                if agent == "bucky":
+                                    fallback_result = await self._try_provider_fallback(tid, title, body, reply_ch)
+                                    if fallback_result is not None:
+                                        result = fallback_result
+                                        break
                                 await self._escalate(tid, AGENT_LABEL, title, last_err, reply_ch)
                                 return
 
@@ -427,6 +435,25 @@ class WorkerPool:
             except Exception:
                 pass
         print(f"[WorkerPool] 에스컬레이션: {tid} — {msg}", flush=True)
+
+    async def _try_provider_fallback(self, tid: str, title: str, body: str, reply_ch) -> Optional[str]:
+        """claude_code(run_bucky) 소진 후 routing_policy 폴백 provider 시도 — 'bucky'(도구 없는 대화) 전용.
+
+        Gemini 등은 파일/도구 실행을 지원하지 않으므로 claude/codex 경로에는 적용하지 않는다.
+        정책은 config/routing_policy.yaml defaults.provider_chain이 정본 (model_router.provider_candidates).
+        """
+        for provider_name in provider_candidates("chat"):
+            if provider_name in ("claude_code", "codex_pro"):
+                continue  # claude_code는 이미 소진, codex_pro는 검수 전용(실행 어댑터 미지원)
+            adapter = get_adapter(provider_name)
+            if adapter is None:
+                continue
+            await self._send_status(f"🔁 `{tid}` **{title}** — {provider_name} 폴백 시도")
+            spec = TaskSpec(task_id=new_task_id(), task_type="chat")
+            agent_result = await asyncio.to_thread(adapter.run, spec, body)
+            if agent_result.status == "completed":
+                return f"⚠️ [{provider_name} 폴백 — 도구/파일 실행 불가, 텍스트 응답만]\n\n{agent_result.summary}"
+        return None
 
     async def _auto_review(self, parent_tid: str, title: str,
                            original_body: str, result: str, reply_ch) -> None:

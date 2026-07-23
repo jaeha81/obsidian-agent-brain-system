@@ -450,23 +450,32 @@ def process_file(filepath: Path) -> None:
             filepath.rename(COMPLETED / filepath.name)
 
         elif task_type == "claude_sync":
-            # Repo CLAUDE.md -> generated Claude Code global target sync
+            # Repo CLAUDE.md and the user's real global ~/.claude/CLAUDE.md are
+            # independently maintained (different content/purpose) — never
+            # auto-overwrite the global file. Only run --check here; an actual
+            # sync requires explicit manual approval and a manual script run.
             sync_script = Path(__file__).parent / "sync_claude_instructions.py"
             result = subprocess.run(
-                ["python3", str(sync_script)],
+                ["python3", str(sync_script), "--check"],
                 capture_output=True, text=True, encoding="utf-8"
             )
             output = (result.stdout + result.stderr).strip()
-            success = result.returncode == 0
+            if result.returncode == 0:
+                status, folder = "done", COMPLETED
+            elif result.returncode == 2:
+                status, folder = "failed", FAILED
+                output += "\n[Dispatcher] sync needed but auto-write is disabled — run scripts/sync_claude_instructions.py manually after user approval."
+            else:
+                status, folder = "failed", FAILED
             result_file = _write_result(filepath.name, output, "sync")
             update_frontmatter(filepath, {
-                "status": "done" if success else "failed",
+                "status": status,
                 "processed_by": "AgentDispatcher",
                 "processed_at": iso(),
                 "output": str(result_file),
             })
-            filepath.rename((COMPLETED if success else FAILED) / filepath.name)
-            print(f"  [Dispatcher] claude_sync {'OK' if success else 'FAILED'}: {output[:80]}")
+            filepath.rename(folder / filepath.name)
+            print(f"  [Dispatcher] claude_sync {status.upper()}: {output[:80]}")
 
         elif task_type == "review_request":
             result_file = route_to_codex(filepath, fm, body)

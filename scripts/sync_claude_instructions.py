@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Sync repo CLAUDE.md to the generated global Claude Code target.
 
+DEPRECATED (2026-07-23): the global `~/.claude/CLAUDE.md` and this repo's
+`CLAUDE.md` are now deliberately separate, cross-referencing files (global =
+all-projects rules, repo = brain-system-specific rules), not one file synced
+in two places. `preflight_check.py` no longer calls this script. Kept only
+for manual one-off use; running `sync` (no flags) will overwrite the global
+file's independent content.
+
 Usage:
   python scripts/sync_claude_instructions.py
   python scripts/sync_claude_instructions.py --check
   python scripts/sync_claude_instructions.py --dry-run
-
-AgentBus can call this for type=claude_sync messages. The instruction source is
-the repository-level CLAUDE.md managed by Bucky, not the generated global file.
 """
 
 from __future__ import annotations
@@ -86,14 +90,24 @@ def sync(dry_run: bool = False, check_only: bool = False) -> int:
     raw = SOURCE.read_text(encoding="utf-8")
     new_content = _managed_header() + _strip_obsidian_notice(raw)
 
+    if check_only:
+        if not DEST.exists():
+            print(f"[WARN] global CLAUDE.md missing: {DEST}")
+            return 2
+        dest_text = DEST.read_text(encoding="utf-8", errors="replace")
+        source_points_to_dest = ".claude\\CLAUDE.md" in raw or ".claude/CLAUDE.md" in raw
+        dest_points_to_source = "obsidian-agent-brain-system" in dest_text.lower()
+        if source_points_to_dest and dest_points_to_source:
+            print("[OK] two-layer structure linked (global + project cross-reference)")
+            return 0
+        print("[WARN] two-layer cross-reference missing (project/global CLAUDE.md should point at each other)")
+        return 2
+
     if DEST.exists():
         existing = DEST.read_text(encoding="utf-8")
         if _md5(_strip_managed_header(existing)) == _md5(_strip_managed_header(new_content)):
             print("[OK] global CLAUDE.md is current")
             return 0
-        if check_only:
-            print("[INFO] global CLAUDE.md differs; sync required")
-            return 2
 
     if dry_run:
         print(f"[DRY-RUN] {SOURCE} -> {DEST}")

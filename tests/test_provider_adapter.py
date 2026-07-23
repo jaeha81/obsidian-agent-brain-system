@@ -231,11 +231,12 @@ class EstimateTests(unittest.TestCase):
             est = CodexCliAdapter(_entry()).estimate(VALID_SPEC)
         self.assertFalse(est.ok)
 
-    def test_gemini_stub_estimate_not_ok_even_when_healthy(self):
+    def test_gemini_estimate_ok_when_healthy(self):
+        """Stage 8: gemini는 실연동 어댑터라 healthy면 estimate ok=True (claude_code와 동일 취급)."""
         ok = Health("gemini", HEALTH_OK)
         with mock.patch.object(GeminiAdapter, "_probe", return_value=ok):
             est = GeminiAdapter(_entry()).estimate(VALID_SPEC)
-        self.assertFalse(est.ok)
+        self.assertTrue(est.ok)
 
 
 class ClaudeRunWiringTests(unittest.TestCase):
@@ -269,12 +270,27 @@ class StubAdapterTests(unittest.TestCase):
         self.assertEqual(res.status, "failed")
         self.assertIn("독립 검수 전용", res.summary)
 
-    def test_gemini_run_is_stub(self):
+
+class GeminiRunWiringTests(unittest.TestCase):
+    """Stage 8: gemini_adapter가 gemini_client.run_gemini를 실제 호출하는지 (실호출 없이 mock)."""
+
+    def test_run_delegates_to_run_gemini(self):
         ok = Health("gemini", HEALTH_OK)
-        with mock.patch.object(GeminiAdapter, "_probe", return_value=ok):
+        with mock.patch.object(GeminiAdapter, "_probe", return_value=ok), \
+             mock.patch("gemini_client.run_gemini", return_value="응답 텍스트") as m:
+            res = GeminiAdapter(_entry()).run(VALID_SPEC, "지시문")
+        self.assertEqual(res.status, "completed")
+        self.assertEqual(res.summary, "응답 텍스트")
+        self.assertEqual(res.validate(), [])
+        m.assert_called_once_with("rag", "지시문")
+
+    def test_run_gemini_error_marker_becomes_failed_result(self):
+        ok = Health("gemini", HEALTH_OK)
+        with mock.patch.object(GeminiAdapter, "_probe", return_value=ok), \
+             mock.patch("gemini_client.run_gemini", return_value="❌ GEMINI_API_KEY가 .env에 없습니다."):
             res = GeminiAdapter(_entry()).run(VALID_SPEC, "지시문")
         self.assertEqual(res.status, "failed")
-        self.assertIn("stub", res.summary)
+        self.assertIn("GEMINI_API_KEY", res.summary)
 
 
 if __name__ == "__main__":

@@ -67,7 +67,10 @@ EXCLUDED_NAMES = {
 }
 
 PATTERNS = {
-    "legacy_path": re.compile(r"JH-SHARED|OBSIDIAN-SECOND|C:\\[^\n|`]*Obsidian Vault|G:\\[^\n|`]*Obsidian Vault|CLAUDE_MASTER|~/\.claude/CLAUDE\.md|\\\.claude\\CLAUDE\.md", re.IGNORECASE),
+    # ~/.claude/CLAUDE.md (and its Windows form) is the current canonical
+    # global instruction file under the two-layer structure, not legacy —
+    # excluded here rather than matched-then-allowlisted.
+    "legacy_path": re.compile(r"JH-SHARED|OBSIDIAN-SECOND|C:\\[^\n|`]*Obsidian Vault|G:\\[^\n|`]*Obsidian Vault|CLAUDE_MASTER", re.IGNORECASE),
     "authority_phrase": re.compile(r"source of truth|원본입니다|실제 운영 파일|먼저 읽는다|기준 정보|active root|current source", re.IGNORECASE),
     "write_or_sync": re.compile(r"git push|git pull|push\.sh|pull\.sh|동기화|sync", re.IGNORECASE),
 }

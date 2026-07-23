@@ -1,9 +1,13 @@
 ---
 updated: 2026-05-31
+verified_stale: 2026-07-23
+status: stale-historical
 session: Bucky Agent OS — C drive cleanup incident recovery and runtime recheck
 ---
 
 # Session State
+
+> ⚠️ **2026-07-23 확인: 이 파일은 2026-05-31 시점 스냅샷에서 갱신되지 않았다.** 아래 "Current Focus"/incident 내용은 이미 종료된 과거 사건이며 현재 상태가 아니다. 현재 상태는 `BUCKY_CONTEXT.md`, `ROUTING_RULES.md`, `AGENT_STATE.md`, 최신 `HANDOFF_LOG.md`, `ObsidianVault/06_Context_Packs/index.md`에서 확인한다.
 
 이 파일은 현재 세션의 빠른 재개 정보다. canonical 운영 지침은 `BUCKY_CONTEXT.md`, `ROUTING_RULES.md`, `AGENT_STATE.md`, `ObsidianVault/06_Context_Packs/index.md`를 우선한다.
 
